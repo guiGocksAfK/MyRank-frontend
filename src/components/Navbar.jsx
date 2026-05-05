@@ -143,6 +143,8 @@ const Navbar = () => {
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "#e5e5e5")}
           onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
+          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.96)")}
+          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
           Entrar
         </button>
@@ -160,9 +162,18 @@ const Navbar = () => {
             cursor: "pointer",
             transition: "opacity 0.2s",
             fontFamily: "'DM Sans', sans-serif",
+            transition: "all 0.1s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseEnter={(e) => {
+          e.currentTarget.style.opacity = "0.85";
+          e.currentTarget.style.boxShadow = "0 0 20px rgba(212,175,55,0.4)";
+  }}
+          onMouseLeave={(e) => {
+           e.currentTarget.style.opacity = "1";
+           e.currentTarget.style.boxShadow = "none";
+  }}
+          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.92)")}
+          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
           Cadastrar
         </button>
