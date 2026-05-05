@@ -291,7 +291,6 @@ const Home = () => {
           fontWeight: "800",
           color: "#d4af37",
           fontFamily: "'DM Sans', sans-serif",
-          opacity: 0.35,
           lineHeight: 1,
         }}>{step.num}</span>
         <h3 style={{
