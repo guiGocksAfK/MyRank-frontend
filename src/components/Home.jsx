@@ -23,7 +23,7 @@ const FAQItem = ({ question, answer }) => {
     <div
       onClick={() => setOpen(!open)}
       style={{
-        backgroundColor: open ? "#222" : "#1a1a1a",
+        backgroundColor: open ? "#1a1a1a" : "#111111",
         border: `1px solid ${open ? "#d4af37" : "#2a2a2a"}`,
         borderRadius: "12px",
         padding: "24px 28px",
@@ -73,7 +73,7 @@ const FAQItem = ({ question, answer }) => {
 
 const Home = () => {
   return (
-    <main style={{ backgroundColor: "#0f0f0f", minHeight: "100vh" }}>
+    <main style={{ backgroundColor: "#000000", minHeight: "100vh" }}>
 
       {/* Hero Section */}
       <section style={{
@@ -261,7 +261,7 @@ const Home = () => {
   },
     ].map((step) => (
           <div key={step.num} style={{
-        backgroundColor: "#1a1a1a",
+        backgroundColor: "#111111",
         borderTop: "2px solid #d4af37",
         border: "1px solid #2a2a2a",
         borderRadius: "12px",
