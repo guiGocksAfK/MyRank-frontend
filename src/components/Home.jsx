@@ -1,4 +1,5 @@
 import logo from '../assets/logo.png'
+import { useState } from "react";
 
 const medias = [
   { icon: "🎬", label: "Filmes" },
@@ -14,6 +15,61 @@ const posters = [
   "#1a1a0a", "#0a1a1a", "#2e1a1a", "#1a2e1a", "#1a1a2e",
   "#2e2e2e", "#0a2e0a", "#2e0a0a", "#0a0a0a", "#1a0a1a",
 ];
+
+const FAQItem = ({ question, answer }) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      onClick={() => setOpen(!open)}
+      style={{
+        backgroundColor: open ? "#222" : "#1a1a1a",
+        border: `1px solid ${open ? "#d4af37" : "#2a2a2a"}`,
+        borderRadius: "12px",
+        padding: "24px 28px",
+        cursor: "pointer",
+        transition: "all 0.2s",
+      }}
+      onMouseEnter={(e) => {
+        if (!open) e.currentTarget.style.borderColor = "#555";
+      }}
+      onMouseLeave={(e) => {
+        if (!open) e.currentTarget.style.borderColor = "#2a2a2a";
+      }}
+    >
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "16px",
+      }}>
+        <span style={{
+          fontSize: "15px",
+          fontWeight: "600",
+          color: "#e5e5e5",
+          fontFamily: "'DM Sans', sans-serif",
+        }}>{question}</span>
+        <span style={{
+          color: "#d4af37",
+          fontSize: "22px",
+          fontWeight: "300",
+          flexShrink: 0,
+          transition: "transform 0.2s",
+          transform: open ? "rotate(45deg)" : "rotate(0deg)",
+        }}>+</span>
+      </div>
+      {open && (
+        <p style={{
+          fontSize: "14px",
+          color: "#888",
+          fontFamily: "'DM Sans', sans-serif",
+          lineHeight: "1.7",
+          marginTop: "16px",
+        }}>{answer}</p>
+      )}
+    </div>
+  );
+};
 
 const Home = () => {
   return (
@@ -113,19 +169,32 @@ const Home = () => {
           }}>
             {medias.map((m) => (
               <div key={m.label} style={{
-                backgroundColor: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "12px",
-                padding: "16px 24px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "8px",
-                fontFamily: "'DM Sans', sans-serif",
-                color: "#e5e5e5",
-                fontSize: "13px",
-                fontWeight: "500",
-              }}>
+                     backgroundColor: "rgba(255,255,255,0.05)",
+                     border: "1px solid rgba(255,255,255,0.1)",
+                     borderRadius: "12px",
+                     padding: "16px 24px",
+                     display: "flex",
+                     flexDirection: "column",
+                     alignItems: "center",
+                     gap: "8px",
+                     fontFamily: "'DM Sans', sans-serif",
+                     color: "#e5e5e5",
+                     fontSize: "13px",
+                     fontWeight: "500",
+                     cursor: "pointer",
+                     transition: "all 0.2s",
+              }}
+             onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "rgba(212,175,55,0.1)";
+                e.currentTarget.style.borderColor = "rgba(212,175,55,0.4)";
+                e.currentTarget.style.transform = "translateY(-4px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)";
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+                e.currentTarget.style.transform = "translateY(0)";
+               }}
+    >
                 <span style={{ fontSize: "28px" }}>{m.icon}</span>
                 {m.label}
               </div>
@@ -158,26 +227,31 @@ const Home = () => {
     gap: "24px",
     flexWrap: "wrap",
     justifyContent: "center",
-    maxWidth: "1000px",
+    maxWidth: "1400px",
   }}>
-    {[
-      {
-        num: "01",
-        title: "Monte suas tabelas",
-        desc: "Crie tabelas do jeito que quiser — uma só de filmes, ou várias por categoria: Filmes de Ficção, Filmes de Máfia, Jogos de RPG. Você define a estrutura.",
-      },
-      {
-        num: "02",
-        title: "Avalie do seu jeito",
-        desc: "Dê notas de 0 a 10 para filmes, séries, jogos, livros e animes. Registre também o tempo consumido — ele influencia sua nota final de forma justa.",
-      },
-      {
-        num: "03",
-        title: "Unifique tudo",
-        desc: "Junte todas as suas tabelas em um ranking unificado com média ponderada. Compare obras de mídias diferentes e descubra o que realmente te marcou.",
-      },
+   {[
+  {
+    num: "01",
+    title: "Crie sua conta",
+    desc: "Comece de graça, sem cartão e sem pegadinha. Acesso completo a todas as funcionalidades — suas tabelas, seu ranking e sua identidade, tudo seu desde o primeiro login.",
+  },
+  {
+    num: "02",
+    title: "Monte suas tabelas",
+    desc: "Crie tabelas do jeito que fizer sentido pra você — uma só de séries, uma só de animes, ou misture os dois. Prefere separar por categoria? Animes Shonen, Animes de Sci-Fi, Filmes de Máfia. Você define a estrutura, sem limites.",
+  },
+  {
+    num: "03",
+    title: "Avalie do seu jeito",
+    desc: "Dê notas de 0 a 10 para qualquer obra. Se quiser ir além, registre o tempo que dedicou — e a gente cria uma média ponderada especial, valorizando o que você realmente consumiu com atenção.",
+  },
+  {
+    num: "04",
+    title: "Unifique tudo",
+    desc: "Junte as tabelas que quiser num ranking unificado com média ponderada — opcional, mas poderoso. Compare filmes com jogos, séries com animes, e descubra o que realmente te marcou.",
+  },
     ].map((step) => (
-      <div key={step.num} style={{
+          <div key={step.num} style={{
         backgroundColor: "#1a1a1a",
         borderTop: "2px solid #d4af37",
         border: "1px solid #2a2a2a",
@@ -185,11 +259,24 @@ const Home = () => {
         padding: "28px",
         flex: "1",
         minWidth: "240px",
-        maxWidth: "300px",
+        maxWidth: "320px",
         display: "flex",
         flexDirection: "column",
         gap: "12px",
-      }}>
+        cursor: "default",
+        transition: "all 0.2s",
+      }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-6px)";
+          e.currentTarget.style.borderColor = "#d4af37";
+          e.currentTarget.style.boxShadow = "0 8px 32px rgba(212,175,55,0.1)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.borderColor = "#2a2a2a";
+          e.currentTarget.style.boxShadow = "none";
+        }}
+>
         <span style={{
           fontSize: "36px",
           fontWeight: "800",
@@ -254,51 +341,46 @@ const Home = () => {
   ))}
 </section>
 
-{/* CTA Final */}
+{/* FAQ */}
 <section style={{
-  padding: "100px 2rem",
+  padding: "80px 2rem",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: "24px",
-  textAlign: "center",
+  gap: "48px",
 }}>
   <h2 style={{
-    fontSize: "40px",
+    fontSize: "36px",
     fontWeight: "800",
     color: "#e5e5e5",
     fontFamily: "'DM Sans', sans-serif",
-    maxWidth: "600px",
-    lineHeight: 1.2,
+    textAlign: "center",
   }}>
-    Pronto para montar o seu ranking?
+    Perguntas frequentes
   </h2>
-  <p style={{
-    fontSize: "15px",
-    color: "#888",
-    fontFamily: "'DM Sans', sans-serif",
-    maxWidth: "440px",
-    lineHeight: 1.7,
+
+  <div style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    width: "100%",
+    maxWidth: "800px",
   }}>
-    Gratuito, sem anúncios e do seu jeito.
-  </p>
-  <button style={{
-    backgroundColor: "#d4af37",
-    border: "none",
-    borderRadius: "8px",
-    color: "#0f0f0f",
-    fontSize: "15px",
-    fontWeight: "700",
-    padding: "14px 36px",
-    cursor: "pointer",
-    fontFamily: "'DM Sans', sans-serif",
-    marginTop: "8px",
-  }}
-    onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-    onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-  >
-    Criar conta grátis
-  </button>
+    {[
+      { q: "O MyRank é gratuito?", a: "Sim, 100% gratuito e sem anúncios. Criar conta, montar tabelas, avaliar obras, usar o ranking unificado e comparar com amigos não custa nada. Sempre." },
+      { q: "Como funciona o ranking unificado?", a: "Você escolhe quais tabelas quer unir — pode ser todas de uma vez ou só uma seleção específica, como suas tabelas de filmes e séries juntas, ou filmes e jogos. O MyRank funde tudo em uma única lista ordenada, onde cada obra recebe sua posição com base na nota — e opcionalmente na média ponderada por tempo consumido. O resultado é um ranking personalizado que cruza mídias diferentes e mostra o que realmente ficou no topo da sua história como consumidor." },
+      { q: "Como funciona a média ponderada por tempo?", a: "Quando você registra o tempo dedicado a uma obra, a nota recebe um bônus proporcional. Um filme de 2h com nota 8.0 praticamente não é afetado — continua quase o mesmo 8.0. Já uma série que você maratonou por 30h com nota 8.0 sobe para 8.3, reconhecendo o tempo real que você investiu. O bônus é calibrado para não distorcer as notas — obras longas sobem com justiça, obras curtas não são punidas." },
+      { q: "Posso comparar meu ranking com o de amigos?", a: "Sim! Você pode seguir outros usuários e comparar suas notas individuais, rankings gerais e ver as últimas alterações que eles fizeram nas tabelas públicas deles. É a melhor forma de descobrir o que seus amigos estão consumindo e onde vocês concordam ou discordam." },
+      { q: "As tabelas são públicas ou privadas?", a: "Você decide. Cada tabela pode ser configurada como pública — visível para seus seguidores — ou privada, visível só para você. Seu perfil também pode ser público ou privado, te dando controle total sobre o que compartilha." },
+      { q: "Como é o dashboard visual?", a: "Suas obras são exibidas em um grid de posters — visual, organizado e fácil de navegar. Você também conta com filtros para ordenar por data de lançamento, data em que adicionou a obra, e até ver o que seus amigos mais consumiram." },
+      { q: "Como as informações das obras são cadastradas?", a: "Automaticamente. O MyRank usa APIs externas para buscar os metadados de cada obra assim que você a adiciona — diretor do filme, produtora do jogo, autor do livro, estúdio do anime e muito mais. Você não precisa preencher nada na mão." },
+      { q: "Existe um ranking por autor ou empresa?", a: "Sim! O MyRank gera rankings automáticos por criador — seja um diretor, uma produtora de jogos ou um autor de livros. Cada um recebe uma nota média ponderada, que favorece criadores com mais obras avaliadas por você. É a forma mais honesta de descobrir quem realmente domina o seu gosto." },
+      { q: "Conquistas e badges", a: "O MyRank gera badges automáticos baseados no seu consumo. Maratonou mais de 500 horas em jogos? Você é um \"Maratonista de Elite\". Consumiu mais de 50 obras de ficção científica? Vira \"Explorador do Futuro\". Seu perfil vira um reflexo real do que você consome." },
+      { q: "O que é o MyRank Pro?", a: "O MyRank Pro é o plano premium para quem quer ir além. Com ele, uma IA analisa seu perfil completo — suas notas, mídias favoritas e padrões de consumo — e gera insights personalizados: seu estilo como consumidor, suas tendências, e sugestões de próxima obra baseadas no seu ranking atual. O restante do site permanece 100% gratuito." },
+    ].map((item, i) => (
+      <FAQItem key={i} question={item.q} answer={item.a} />
+    ))}
+  </div>
 </section>
 
 {/* Footer */}
