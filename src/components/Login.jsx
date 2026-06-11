@@ -18,15 +18,15 @@ const Login = () => {
       <section className="auth-hero" aria-label="Entrar no MyRank">
         <div className="auth-copy">
           <p className="auth-kicker">MyRank</p>
-          <h1>Informe seus dados para entrar</h1>
+          <h1>Entre no MyRank</h1>
           <p>
-            Organize suas notas, rankings e listas em uma experiência escura,
-            direta e com a sua cara.
+            Acompanhe suas notas, rankings e listas em um só lugar.
           </p>
           <div className="auth-highlights" aria-hidden="true">
-            <span>0-10</span>
-            <span>5 mídias</span>
-            <span>99+ tabelas</span>
+            <span>🎬 Filmes</span>
+            <span>🎮 Jogos</span>
+            <span>📺 Séries</span>
+            <span>📚 Livros</span>
           </div>
         </div>
 

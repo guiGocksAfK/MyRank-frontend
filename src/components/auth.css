@@ -1,5 +1,8 @@
 .auth-page {
-  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background:
     linear-gradient(115deg, rgba(212, 175, 55, 0.16), rgba(0, 0, 0, 0) 34%),
     radial-gradient(circle at 80% 18%, rgba(212, 175, 55, 0.13), transparent 28%),
@@ -25,19 +28,26 @@
 /* Hero base */
 .auth-hero {
   width: min(100%, 1220px);
+  min-height: 100dvh;
   margin: 0 auto;
-  padding: 72px 40px;
+  padding: 40px 24px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 492px);
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 470px);
   align-items: center;
-  gap: 72px;
+  gap: 36px;
+  box-sizing: border-box;
+}
+
+.auth-page--noscroll .auth-hero {
+  min-height: 100dvh;
+  height: 100dvh;
 }
 
 /* Register — scroll natural, copy alinhado ao topo do card */
 .auth-hero--scroll {
   min-height: 100dvh;
-  padding: 100px 40px;
-  align-items: start;
+  padding: 88px 40px 56px;
+  align-items: center;
 }
 
 .auth-hero--scroll .auth-copy {
@@ -49,6 +59,9 @@
 /* Copy */
 .auth-copy {
   max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .auth-kicker {
@@ -69,43 +82,108 @@
 }
 
 .auth-copy p {
-  margin: 22px 0 0;
+  margin: 14px 0 0;
   max-width: 470px;
   color: #a5a5a5;
   font-size: 18px;
-  line-height: 1.65;
+  line-height: 1.55;
 }
 
 .auth-highlights {
-  margin-top: 34px;
+  margin-top: 18px;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 
 .auth-highlights span {
-  border: 1px solid #2a2a2a;
+  border: 1px solid rgba(212, 175, 55, 0.16);
   border-radius: 999px;
-  background: rgba(17, 17, 17, 0.78);
-  color: #d4af37;
+  background: rgba(17, 17, 17, 0.82);
+  color: #d8d8d8;
   padding: 9px 14px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+  transition: border-color 0.16s ease, color 0.16s ease, background-color 0.16s ease;
+}
+
+.auth-highlights span:hover {
+  color: #f1d98a;
+  border-color: rgba(212, 175, 55, 0.42);
+  background: rgba(24, 24, 24, 0.95);
 }
 
 /* Card */
 .auth-card {
   width: 100%;
-  padding: 48px;
+  max-width: 500px;
+  padding: 28px 26px;
   background: rgba(17, 17, 17, 0.94);
   border: 1px solid #303030;
   border-radius: 18px;
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.48);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-height: calc(100dvh - 64px);
+  transform: none;
+  transition: none;
 }
 
 .auth-card-header {
-  margin-bottom: 34px;
+  margin-bottom: 14px;
   text-align: center;
+}
+
+.auth-step-label {
+  margin: 8px 0 0;
+  color: #b5b5b5;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.auth-step-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-step-copy h3 {
+  margin: 0;
+  color: #f5f5f5;
+  font-size: 18px;
+}
+
+.auth-step-copy p {
+  margin: 6px 0 0;
+  color: #a5a5a5;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.auth-button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.auth-secondary-button {
+  flex: 1;
+  height: 58px;
+  border: 1px solid #2d2d2d;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #e5e5e5;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-submit--inline {
+  flex: 2;
 }
 
 .auth-card h2 {
@@ -122,7 +200,7 @@
 /* Fields */
 .auth-fields {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .auth-field {
@@ -204,7 +282,21 @@
   font-size: 18px;
   font-weight: 900;
   cursor: pointer;
-  transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+  transition: box-shadow 0.16s ease, opacity 0.16s ease;
+}
+
+.auth-submit--compact {
+  width: 100%;
+  min-height: 46px;
+  height: 46px;
+  align-self: stretch;
+  font-size: 15px;
+  font-weight: 800;
+  border-radius: 8px;
+  background: #c1a24b;
+  color: #171717;
+  box-shadow: none;
+  opacity: 0.95;
 }
 
 .auth-submit:hover {
@@ -213,7 +305,13 @@
 }
 
 .auth-submit:active {
-  transform: scale(0.98);
+  transform: none;
+}
+
+.auth-submit:hover,
+.auth-social-button:hover,
+.auth-secondary-button:hover {
+  transform: none;
 }
 
 /* Social buttons */
@@ -242,7 +340,7 @@
 }
 
 .auth-social-button:active {
-  transform: scale(0.98);
+  transform: none;
 }
 
 .auth-social-button--discord {
@@ -276,7 +374,7 @@
 /* Botão voltar */
 .auth-back {
   position: fixed;
-  top: 24px;
+  top: 30px;
   left: 24px;
   background: transparent;
   border: 1px solid #2a2a2a;
@@ -352,6 +450,7 @@
   .auth-card {
     max-width: 500px;
     margin: 0 auto;
+    align-self: center;
   }
 }
 
@@ -371,5 +470,9 @@
   .auth-card {
     padding: 30px 18px;
     border-radius: 14px;
+  }
+
+  .auth-copy {
+    max-width: 100%;
   }
 }
