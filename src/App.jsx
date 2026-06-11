@@ -1,12 +1,31 @@
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Home from './components/Home'
+import Login from './components/Login'
+import Register from './components/Register'
+
+
+function Layout() {
+  const location = useLocation();
+  const hideNavbar = ['/entrar', '/cadastrar'].includes(location.pathname);
+
+  return (
+    <div style={{width: '100%', minHeight: '100vh'}}>
+      {!hideNavbar && <Navbar />}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/entrar" element={<Login />} />
+        <Route path="/cadastrar" element={<Register />} />
+      </Routes>
+    </div>
+  )
+}
 
 function App() {
   return (
-    <div style={{width: '100%', backgroundColor: 'red'}}>
-      <Navbar />
-      <Home />
-    </div>
+    <BrowserRouter>
+      <Layout />
+    </BrowserRouter>
   )
 }
 

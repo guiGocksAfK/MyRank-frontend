@@ -1,6 +1,7 @@
 import logo from '../assets/logo.png'
 import { useState } from "react";
 
+
 const medias = [
   { icon: "🎬", label: "Filmes" },
   { icon: "📺", label: "Séries" },
