@@ -6,10 +6,19 @@ const Register = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
 
+  const handleBack = () => {
+    if (step === 2) {
+      setStep(1);
+      return;
+    }
+
+    navigate("/");
+  };
+
   return (
     <main className="auth-page auth-page--noscroll">
 
-      <button onClick={() => navigate("/")} className="auth-back">
+      <button onClick={handleBack} className="auth-back">
         ← Voltar
       </button>
 
