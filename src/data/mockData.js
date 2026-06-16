@@ -1,82 +1,82 @@
 export const mediaItems = [
   {
     id: "1", title: "Interstellar", type: "filme", note: 9.2, bonusTime: 0.5, finalNote: 9.7,
-    timeMinutes: 169, image: "",
+    timeMinutes: 169, image: "https://picsum.photos/seed/interstellar/200/300",
     addedDate: "2026-06-10", releaseDate: "2014-11-07", director: "Christopher Nolan",
   },
   {
     id: "2", title: "S.T.A.L.K.E.R. 2", type: "jogo", note: 9.0, bonusTime: 1.2, finalNote: 10.2,
-    timeMinutes: 2400, image: "",
+    timeMinutes: 2400, image: "https://picsum.photos/seed/stalker2/200/300",
     addedDate: "2026-06-08", releaseDate: "2024-11-20", studio: "GSC Game World",
   },
   {
     id: "3", title: "1984", type: "livro", note: 8.8, bonusTime: 0.3, finalNote: 9.1,
-    timeMinutes: 360, image: "",
+    timeMinutes: 360, image: "https://picsum.photos/seed/1984book/200/300",
     addedDate: "2026-06-05", releaseDate: "1949-06-08", author: "George Orwell",
   },
   {
     id: "4", title: "Breaking Bad", type: "serie", note: 9.5, bonusTime: 1.8, finalNote: 11.3,
-    timeMinutes: 2940, image: "",
+    timeMinutes: 2940, image: "https://picsum.photos/seed/breakingbad/200/300",
     addedDate: "2026-06-01", releaseDate: "2008-01-20", director: "Vince Gilligan",
   },
   {
     id: "5", title: "Blade Runner 2049", type: "filme", note: 8.5, bonusTime: 0.4, finalNote: 8.9,
-    timeMinutes: 163, image: "",
+    timeMinutes: 163, image: "https://picsum.photos/seed/blade2049/200/300",
     addedDate: "2026-05-28", releaseDate: "2017-10-06", director: "Denis Villeneuve",
   },
   {
     id: "6", title: "The Witcher 3", type: "jogo", note: 9.8, bonusTime: 1.5, finalNote: 11.3,
-    timeMinutes: 3000, image: "",
+    timeMinutes: 3000, image: "https://picsum.photos/seed/witcher3/200/300",
     addedDate: "2026-05-25", releaseDate: "2015-05-19", studio: "CD Projekt Red",
   },
   {
     id: "7", title: "Duna: Parte Dois", type: "filme", note: 8.7, bonusTime: 0.4, finalNote: 9.1,
-    timeMinutes: 166, image: "",
+    timeMinutes: 166, image: "https://picsum.photos/seed/duna2/200/300",
     addedDate: "2026-05-20", releaseDate: "2024-03-01", director: "Denis Villeneuve",
   },
   {
     id: "8", title: "Dark", type: "serie", note: 9.1, bonusTime: 1.0, finalNote: 10.1,
-    timeMinutes: 1440, image: "",
+    timeMinutes: 1440, image: "https://picsum.photos/seed/darkseries/200/300",
     addedDate: "2026-05-15", releaseDate: "2017-12-01", director: "Baran bo Odar",
   },
   {
     id: "9", title: "Crime e Castigo", type: "livro", note: 9.0, bonusTime: 0.4, finalNote: 9.4,
-    timeMinutes: 480, image: "",
+    timeMinutes: 480, image: "https://picsum.photos/seed/crimecastigo/200/300",
     addedDate: "2026-05-10", releaseDate: "1866-01-01", author: "Fiódor Dostoiévski",
   },
   {
     id: "10", title: "Inception", type: "filme", note: 9.0, bonusTime: 0.4, finalNote: 9.4,
-    timeMinutes: 148, image: "",
+    timeMinutes: 148, image: "https://picsum.photos/seed/inception/200/300",
     addedDate: "2026-05-05", releaseDate: "2010-07-16", director: "Christopher Nolan",
   },
   {
     id: "11", title: "Elden Ring", type: "jogo", note: 9.3, bonusTime: 1.3, finalNote: 10.6,
-    timeMinutes: 2700, image: "",
+    timeMinutes: 2700, image: "https://picsum.photos/seed/eldenring/200/300",
     addedDate: "2026-05-01", releaseDate: "2022-02-25", studio: "FromSoftware",
   },
   {
     id: "12", title: "Chernobyl", type: "serie", note: 9.6, bonusTime: 0.5, finalNote: 10.1,
-    timeMinutes: 330, image: "",
+    timeMinutes: 330, image: "https://picsum.photos/seed/chernobyl/200/300",
     addedDate: "2026-04-28", releaseDate: "2019-05-06", director: "Johan Renck",
   },
   {
     id: "13", title: "O Pequeno Príncipe", type: "livro", note: 8.0, bonusTime: 0.1, finalNote: 8.1,
-    timeMinutes: 60, image: "",
+    timeMinutes: 60, image: "https://picsum.photos/seed/pequenoprincipe/200/300",
     addedDate: "2026-04-20", releaseDate: "1943-04-06", author: "Antoine de Saint-Exupéry",
   },
   {
     id: "14", title: "Oppenheimer", type: "filme", note: 8.8, bonusTime: 0.5, finalNote: 9.3,
-    timeMinutes: 180, image: "",
+    timeMinutes: 180, image: "https://picsum.photos/seed/oppenheimer/200/300",
     addedDate: "2026-04-15", releaseDate: "2023-07-21", director: "Christopher Nolan",
   },
   {
     id: "15", title: "Red Dead Redemption 2", type: "jogo", note: 9.7, bonusTime: 1.6, finalNote: 11.3,
-    timeMinutes: 3600, image: "",
+    timeMinutes: 3600, image: "https://picsum.photos/seed/rdr2/200/300",
     addedDate: "2026-04-10", releaseDate: "2018-10-26", studio: "Rockstar Games",
   },
   {
     id: "16", title: "Severance", type: "serie", note: 8.9, bonusTime: 0.6, finalNote: 9.5,
-    timeMinutes: 540, image: "",
+    timeMinutes: 540, image: "https://picsum.photos/seed/severance/200/300",
     addedDate: "2026-04-05", releaseDate: "2022-02-18", director: "Dan Erickson",
   },
 ];
@@ -182,7 +182,6 @@ function getMediaSub(item) {
 }
 
 // ─── Configuração das tabelas padrão do Rankings ──────────────────────────
-// Só metadata — os items são derivados de mediaItems (fonte de verdade única)
 const TABLE_CONFIGS = [
   { id: 'filmes', label: '🎬 Filmes', type: 'filme' },
   { id: 'jogos',  label: '🎮 Jogos',  type: 'jogo'  },
@@ -191,9 +190,6 @@ const TABLE_CONFIGS = [
 ];
 
 // ─── INITIAL_TABLES derivado de mediaItems ────────────────────────────────
-// Estrutura consumida pelo RankingsTab:
-//   { id, label, type, items: [{ id, title, sub, note, timeMinutes,
-//                                bonusTime, finalNote, addedDate }] }
 export const INITIAL_TABLES = TABLE_CONFIGS.map(cfg => ({
   ...cfg,
   items: mediaItems
@@ -207,5 +203,39 @@ export const INITIAL_TABLES = TABLE_CONFIGS.map(cfg => ({
       bonusTime:   m.bonusTime,
       finalNote:   m.finalNote,
       addedDate:   m.addedDate,
+      releaseDate: m.releaseDate,
+      image:       m.image,
     })),
 }));
+
+// ─── Mock de "API" externa para auto-preenchimento (RF-009) ───────────────
+// Simula a resposta de TMDB / IGDB / Google Books.
+// Em produção, isto viria de uma chamada assíncrona ao backend.
+export const MOCK_API_DB = {
+  "Interstellar":        { type: "filme", director: "Christopher Nolan",        timeMinutes: 169,  releaseDate: "2014-11-07", image: "https://picsum.photos/seed/interstellar/200/300" },
+  "Inception":           { type: "filme", director: "Christopher Nolan",        timeMinutes: 148,  releaseDate: "2010-07-16", image: "https://picsum.photos/seed/inception/200/300" },
+  "Oppenheimer":         { type: "filme", director: "Christopher Nolan",        timeMinutes: 180,  releaseDate: "2023-07-21", image: "https://picsum.photos/seed/oppenheimer/200/300" },
+  "Blade Runner 2049":   { type: "filme", director: "Denis Villeneuve",         timeMinutes: 163,  releaseDate: "2017-10-06", image: "https://picsum.photos/seed/blade2049/200/300" },
+  "Duna: Parte Dois":    { type: "filme", director: "Denis Villeneuve",         timeMinutes: 166,  releaseDate: "2024-03-01", image: "https://picsum.photos/seed/duna2/200/300" },
+  "The Witcher 3":       { type: "jogo",  studio:  "CD Projekt Red",            timeMinutes: 3000, releaseDate: "2015-05-19", image: "https://picsum.photos/seed/witcher3/200/300" },
+  "Elden Ring":          { type: "jogo",  studio:  "FromSoftware",              timeMinutes: 2700, releaseDate: "2022-02-25", image: "https://picsum.photos/seed/eldenring/200/300" },
+  "Red Dead Redemption 2":{ type:"jogo",  studio:  "Rockstar Games",            timeMinutes: 3600, releaseDate: "2018-10-26", image: "https://picsum.photos/seed/rdr2/200/300" },
+  "Breaking Bad":        { type: "serie", director: "Vince Gilligan",           timeMinutes: 2940, releaseDate: "2008-01-20", image: "https://picsum.photos/seed/breakingbad/200/300" },
+  "Chernobyl":           { type: "serie", director: "Johan Renck",              timeMinutes: 330,  releaseDate: "2019-05-06", image: "https://picsum.photos/seed/chernobyl/200/300" },
+  "1984":                { type: "livro", author:  "George Orwell",             timeMinutes: 360,  releaseDate: "1949-06-08", image: "https://picsum.photos/seed/1984book/200/300" },
+  "Crime e Castigo":     { type: "livro", author:  "Fiódor Dostoiévski",        timeMinutes: 480,  releaseDate: "1866-01-01", image: "https://picsum.photos/seed/crimecastigo/200/300" },
+};
+
+/**
+ * Simula chamada à API externa para auto-preenchimento.
+ * Em produção: GET /api/metadata?title=...&type=...
+ * @returns {Promise<Object|null>} metadados ou null se não encontrar
+ */
+export function fetchMetadataSuggestion(title) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const found = MOCK_API_DB[title?.trim()];
+      resolve(found ?? null);
+    }, 800); // simula latência de rede
+  });
+}
