@@ -1,0 +1,44 @@
+// ─── Dicionário de plurais → singulares ────────────────────────────────────
+// Apenas palavras deste mapa serão convertidas. Tudo o que não estiver aqui
+// é devolvido intacto (zero adivinhação).
+const SINGULAR_MAP = {
+  // PT-BR
+  'Filmes':         'Filme',
+  'Jogos':          'Jogo',
+  'Séries':         'Série',
+  'Livros':         'Livro',
+  'Animes':         'Anime',
+  'Séries de TV':   'Série de TV',
+  'Documentários':  'Documentário',
+  // EN
+  'Movies':         'Movie',
+  'Games':          'Game',
+  'Books':          'Book',
+  // Invariáveis — explícito para evitar regra de "remove S":
+  'Series':         'Series',
+};
+
+// Remove emojis (inclui variação com VS16 e modifiers) — suporta Unicode completo
+function stripEmoji(str) {
+  return str.replace(/\p{Extended_Pictographic}|\p{Emoji_Component}/gu, '').trim();
+}
+
+/**
+ * Converte o label de uma tabela para o singular, se ele estiver no mapa.
+ * Mantém o emoji original.
+ *
+ * @param {string} label - ex: "🎬 Filmes"
+ * @returns {string}    - ex: "🎬 Filme"
+ */
+export function singularizeLabel(label) {
+  if (!label || typeof label !== 'string') return '';
+  const withoutEmoji = stripEmoji(label);
+
+  if (SINGULAR_MAP[withoutEmoji]) {
+    // Substitui só a parte textual, preservando o emoji e espaçamento
+    return label.replace(withoutEmoji, SINGULAR_MAP[withoutEmoji]);
+  }
+
+  // Não está no mapa → devolve intacto
+  return label;
+}

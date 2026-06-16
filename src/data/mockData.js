@@ -175,3 +175,37 @@ export function calculateTimeBonus(minutes) {
 export function calculateFinalNote(originalNote, minutes) {
   return originalNote + calculateTimeBonus(minutes);
 }
+
+// ─── Helper: extrai "sub" (diretor/studio/autor) de um mediaItem ──────────
+function getMediaSub(item) {
+  return item.director || item.studio || item.author || '';
+}
+
+// ─── Configuração das tabelas padrão do Rankings ──────────────────────────
+// Só metadata — os items são derivados de mediaItems (fonte de verdade única)
+const TABLE_CONFIGS = [
+  { id: 'filmes', label: '🎬 Filmes', type: 'filme' },
+  { id: 'jogos',  label: '🎮 Jogos',  type: 'jogo'  },
+  { id: 'series', label: '📺 Séries', type: 'serie' },
+  { id: 'livros', label: '📚 Livros', type: 'livro' },
+];
+
+// ─── INITIAL_TABLES derivado de mediaItems ────────────────────────────────
+// Estrutura consumida pelo RankingsTab:
+//   { id, label, type, items: [{ id, title, sub, note, timeMinutes,
+//                                bonusTime, finalNote, addedDate }] }
+export const INITIAL_TABLES = TABLE_CONFIGS.map(cfg => ({
+  ...cfg,
+  items: mediaItems
+    .filter(m => m.type === cfg.type)
+    .map(m => ({
+      id:          m.id,
+      title:       m.title,
+      sub:         getMediaSub(m),
+      note:        m.note,
+      timeMinutes: m.timeMinutes,
+      bonusTime:   m.bonusTime,
+      finalNote:   m.finalNote,
+      addedDate:   m.addedDate,
+    })),
+}));

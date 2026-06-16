@@ -257,18 +257,6 @@ export default function HomeTab() {
                 </div>
               ))}
             </div>
-
-            {/* Rodapé - Ver todas */}
-            <div style={{
-              marginTop: 16,
-              paddingTop: 14,
-              borderTop: '1px solid var(--mr-border)',
-              textAlign: 'center',
-            }}>
-              <button className="mr-link-btn" style={{ fontSize: '0.8125rem' }}>
-                Ver todas as obras ranqueadas →
-              </button>
-            </div>
           </div>
         </div>
 
@@ -307,23 +295,79 @@ export default function HomeTab() {
         </div>
       </div>
 
-      {/* Info Card - Formula */}
-      <div className="mr-info-card-blue">
-        <div className="mr-card-body mr-flex mr-items-start mr-gap-4">
-          <span style={{ fontSize: '1.5rem' }}>📐</span>
-          <div>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>
-              Como funciona a ponderação por tempo?
-            </div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>
-              A nota final é calculada somando a nota original com um bônus baseado no
-              tempo investido. A fórmula é:{' '}
-              <span className="mr-code mr-code-gold">
-                Nota Final = Nota Original + log₁₀(Tempo / 60min)
-              </span>
-              . Obras que exigem mais tempo recebem um bônus maior, valorizando o
-              investimento do usuário.
-            </div>
+      {/* Próximos Badges */}
+      <div className="mr-card">
+        <div className="mr-card-body">
+          <div className="mr-section-header">
+            <h3 className="mr-section-title">🎯 Próximas Conquistas</h3>
+            <button className="mr-link-btn">Ver todas →</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            {badges
+              .filter((b) => !b.unlocked)
+              .map((badge) => {
+                const pct = Math.min((badge.progress / badge.maxProgress) * 100, 100);
+                const remaining = badge.maxProgress - badge.progress;
+                return (
+                  <div
+                    key={badge.id}
+                    style={{
+                      background: 'rgba(255,255,255,0.02)',
+                      border: '1px solid var(--mr-border)',
+                      borderRadius: 'var(--mr-radius-sm)',
+                      padding: '14px 16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 10,
+                      transition: 'border-color 0.2s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(212,175,55,0.25)'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--mr-border)'}
+                  >
+                    {/* Ícone + nome */}
+                    <div className="mr-flex mr-items-center mr-gap-3">
+                      <span style={{ fontSize: '1.5rem', opacity: 0.5 }}>{badge.icon}</span>
+                      <div className="mr-flex-1 mr-min-w-0">
+                        <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--mr-text)' }} className="mr-truncate">
+                          {badge.name}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginTop: 2 }}>
+                          {badge.description}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Barra de progresso */}
+                    <div>
+                      <div className="mr-progress mr-progress-sm">
+                        <div
+                          className="mr-progress-bar"
+                          style={{
+                            width: `${pct}%`,
+                            background: pct >= 80
+                              ? 'var(--mr-gold)'
+                              : pct >= 50
+                              ? '#facc15'
+                              : 'var(--mr-text-muted)',
+                          }}
+                        />
+                      </div>
+                      <div className="mr-flex mr-justify-between mr-items-center" style={{ marginTop: 6 }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--mr-text-muted)' }}>
+                          {badge.progress} / {badge.maxProgress}
+                        </span>
+                        <span style={{
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          color: pct >= 80 ? 'var(--mr-gold)' : 'var(--mr-text-muted)',
+                        }}>
+                          {pct >= 80 ? `🔥 falta ${remaining}!` : `${Math.round(pct)}%`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
           </div>
         </div>
       </div>
