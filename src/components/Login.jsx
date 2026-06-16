@@ -4,6 +4,11 @@ import "./auth.css";
 const Login = () => {
   const navigate = useNavigate();
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    navigate('/dashboard');
+  };
+
   return (
     <main className="auth-page auth-page--noscroll">
 
@@ -30,7 +35,7 @@ const Login = () => {
           </div>
         </div>
 
-        <form className="auth-card">
+        <form className="auth-card" onSubmit={handleSubmit}>
           <div className="auth-card-header">
             <h2>My<span>Rank</span></h2>
           </div>

@@ -36,6 +36,10 @@ const Navbar = () => {
           Home
         </Link>
 
+        <Link className="navbar-link hide-on-small" to="/dashboard">
+          Dashboard
+        </Link>
+
         <div className="navbar-language">
           <button
             className="navbar-ghost"
