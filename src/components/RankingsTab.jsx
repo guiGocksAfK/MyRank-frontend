@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import {
-  authorRankings,
   calculateFinalNote,
   INITIAL_TABLES,
   fetchMetadataSuggestion,
@@ -12,11 +11,6 @@ function getNoteBarColor(note) {
   if (note >= 8)  return 'green';
   if (note >= 6)  return 'yellow';
   return 'red';
-}
-
-function getAuthorTypeBadge(type) {
-  const map = { Diretor: '🎬 Diretor', Escritor: '✍️ Escritor', Studio: '🏢 Studio' };
-  return map[type] || type;
 }
 
 // Formata minutos → "2h 30min" / "45min" / "50h 0min"
@@ -1054,7 +1048,7 @@ function NewTableModal({ onSave, onClose }) {
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────
-export default function RankingsTab() {
+export default function RankingsTab({ onNavigateToCreators }) {
   const [tables,            setTables]            = useState(INITIAL_TABLES);
   const [activeTab,         setActiveTab]         = useState('unified');
   const [useTimeWeight,     setUseTimeWeight]     = useState(true);
@@ -1104,7 +1098,20 @@ export default function RankingsTab() {
             Compare e analise suas avaliações
           </p>
         </div>
-        <div className="mr-flex mr-items-center mr-gap-3">
+        <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
+          {/* Botão → navega para a tela de criadores (CreatorsTab) */}
+          {onNavigateToCreators && (
+            <button
+              className="mr-btn mr-btn-outline"
+              onClick={onNavigateToCreators}
+              title="Ver ranking de diretores, escritores e studios"
+            >
+              ✨ Ver criadores →
+            </button>
+          )}
+
+          <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
+
           <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>Ponderação por tempo</span>
           <button className={`mr-switch ${useTimeWeight ? 'checked' : ''}`} onClick={() => setUseTimeWeight(v => !v)}>
             <span className="mr-switch-thumb" />
@@ -1231,70 +1238,7 @@ export default function RankingsTab() {
         })()
       )}
 
-      {/* ── Ranking de Autores/Diretores ── */}
-      <div>
-        <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: 16 }}>👤 Ranking de Autores/Diretores</h2>
-        <div className="mr-author-grid">
-          {authorRankings.map((author, i) => (
-            <div className="mr-author-card" key={i}>
-              <div className="mr-flex mr-items-center mr-gap-3">
-                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: i < 3 ? 'var(--mr-gold)' : 'var(--mr-text-secondary)', width: 28 }}>
-                  {i + 1}
-                </span>
-                <div className="mr-flex-1">
-                  <div style={{ fontWeight: 600 }}>{author.name}</div>
-                  <span className="mr-badge mr-badge-outline mr-mt-2">{getAuthorTypeBadge(author.type)}</span>
-                </div>
-              </div>
-              <div className="mr-author-stats">
-                <div>
-                  <div className="mr-author-stat-label">Média</div>
-                  <div className="mr-author-stat-value" style={{ color: 'var(--mr-gold)' }}>{author.avgNote.toFixed(1)}</div>
-                </div>
-                <div>
-                  <div className="mr-author-stat-label">Simples</div>
-                  <div className="mr-author-stat-value">{author.avgNote.toFixed(1)}</div>
-                </div>
-                <div>
-                  <div className="mr-author-stat-label">Ponderada</div>
-                  <div className="mr-author-stat-value" style={{ color: 'var(--mr-blue-light)' }}>{author.weightedAvg.toFixed(1)}</div>
-                </div>
-                <div>
-                  <div className="mr-author-stat-label">Obras</div>
-                  <div className="mr-author-stat-value">{author.count}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* ── Fórmulas ── */}
-      <div className="mr-info-card-gold">
-        <div className="mr-card-body mr-flex mr-items-start mr-gap-4">
-          <span style={{ fontSize: '1.5rem' }}>📜</span>
-          <div>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>Fórmulas de Cálculo</div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>
-              <div style={{ marginBottom: 4 }}>
-                <span className="mr-code mr-code-gold">Nota Final = Nota Original + log₁₀(Tempo / 60min)</span>
-              </div>
-              <div style={{ marginBottom: 4 }}>
-                <span className="mr-code mr-code-blue">Média Ponderada = Σ(nota × tempo) / Σ(tempo)</span>
-              </div>
-              <div>
-                O bônus de tempo recompensa obras que exigem maior investimento,
-                enquanto a média ponderada considera o tempo como peso na média dos autores.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Modais globais ── */}
-      {showNewTable && (
-        <NewTableModal onSave={handleCreateTable} onClose={() => setShowNewTable(false)} />
-      )}
     </div>
   );
 }

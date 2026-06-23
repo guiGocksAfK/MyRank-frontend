@@ -1090,3 +1090,190 @@
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ============ STATUS RIBBON FOOTER ============ */
+.mr-status-footer {
+  margin-top: 48px;
+  border-top: 1px solid var(--mr-border);
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.myrank-light .mr-status-footer {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+/* ── Ribbon superior ── */
+.mr-status-ribbon {
+  border-bottom: 1px solid var(--mr-border-light);
+}
+
+.mr-status-ribbon-inner {
+  width: min(1400px, calc(100% - 24px));
+  margin: 0 auto;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Marca */
+.mr-status-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.mr-status-logo {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: -0.5px;
+}
+
+.mr-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mr-gold);
+  box-shadow: 0 0 8px var(--mr-gold-glow);
+  margin-right: 8px;
+}
+
+.mr-status-version {
+  font-size: 0.6875rem;
+  color: var(--mr-text-muted);
+  font-family: 'DM Sans', sans-serif;
+  padding: 2px 6px;
+  border: 1px solid var(--mr-border);
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+/* Stats centrais */
+.mr-status-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  justify-content: center;
+}
+
+.mr-status-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.mr-status-stat-num {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--mr-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.mr-status-stat-label {
+  font-size: 0.6875rem;
+  color: var(--mr-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mr-status-divider {
+  width: 1px;
+  height: 12px;
+  background: var(--mr-border);
+}
+
+/* Ações */
+.mr-status-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.mr-status-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--mr-border);
+  border-radius: 6px;
+  color: var(--mr-text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.mr-status-btn:hover {
+  border-color: var(--mr-gold);
+  color: var(--mr-gold);
+  background: var(--mr-gold-10);
+}
+
+/* Faixa inferior */
+.mr-status-bottom-inner {
+  width: min(1400px, calc(100% - 24px));
+  margin: 0 auto;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mr-status-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mr-status-link {
+  font-size: 0.6875rem;
+  color: var(--mr-text-muted);
+  text-decoration: none;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.15s ease;
+}
+
+.mr-status-link:hover {
+  color: var(--mr-text);
+}
+
+.mr-status-bullet {
+  color: var(--mr-text-muted);
+  font-size: 0.6875rem;
+}
+
+.mr-status-copyright {
+  font-size: 0.6875rem;
+  color: var(--mr-text-muted);
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+/* ── Responsivo ── */
+@media (max-width: 768px) {
+  .mr-status-stats { display: none; }   /* stats somem no mobile */
+  .mr-status-ribbon-inner,
+  .mr-status-bottom-inner { height: 40px; }
+}
+
+@media (max-width: 480px) {
+  .mr-status-bottom-inner {
+    flex-direction: column;
+    height: auto;
+    padding: 8px 0;
+    gap: 4px;
+  }
+}
