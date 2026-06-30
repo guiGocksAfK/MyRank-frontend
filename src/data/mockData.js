@@ -157,16 +157,27 @@ export const badges = [
   },
 ];
 
-export const authorRankings = [
-  { name: "Christopher Nolan", avgNote: 9.0, count: 4, weightedAvg: 8.95, type: "Diretor" },
-  { name: "Denis Villeneuve", avgNote: 8.6, count: 2, weightedAvg: 8.4, type: "Diretor" },
-  { name: "Fiódor Dostoiévski", avgNote: 9.0, count: 1, weightedAvg: 7.8, type: "Escritor" },
-  { name: "George Orwell", avgNote: 8.8, count: 1, weightedAvg: 7.6, type: "Escritor" },
-  { name: "FromSoftware", avgNote: 9.3, count: 1, weightedAvg: 7.8, type: "Studio" },
-  { name: "Rockstar Games", avgNote: 9.7, count: 1, weightedAvg: 7.9, type: "Studio" },
-  { name: "CD Projekt Red", avgNote: 9.8, count: 1, weightedAvg: 8.0, type: "Studio" },
-  { name: "Vince Gilligan", avgNote: 9.5, count: 1, weightedAvg: 7.7, type: "Diretor" },
-];
+// Deriva `authorRankings` dinamicamente a partir de `mediaItems` para garantir consistência
+export const authorRankings = (() => {
+  const map = {};
+  mediaItems.forEach(m => {
+    const sub = getMediaSub(m);
+    if (!sub) return;
+    if (!map[sub]) {
+      map[sub] = { name: sub, count: 0, sumNote: 0, sumFinal: 0, type: m.director ? 'Diretor' : m.author ? 'Escritor' : 'Studio' };
+    }
+    map[sub].count += 1;
+    map[sub].sumNote += (m.note ?? 0);
+    map[sub].sumFinal += (m.finalNote ?? m.note ?? 0);
+  });
+  return Object.values(map).map(a => ({
+    name: a.name,
+    avgNote: Math.round((a.sumNote / a.count) * 100) / 100,
+    count: a.count,
+    weightedAvg: Math.round((a.sumFinal / a.count) * 100) / 100,
+    type: a.type,
+  }));
+})();
 
 export function calculateTimeBonus(minutes) {
   return Math.log10(minutes / 60);
