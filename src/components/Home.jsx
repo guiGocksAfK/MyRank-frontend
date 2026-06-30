@@ -1,6 +1,6 @@
 import logo from '../assets/logo.png'
 import { useState } from "react";
-
+import { Link } from "react-router-dom";
 
 const medias = [
   { icon: "🎬", label: "Filmes" },
@@ -142,19 +142,25 @@ const Home = () => {
             Avalie filmes, séries, jogos, livros e animes em um só lugar. Compare com amigos e descubra seu perfil de consumo.
           </p>
 
-          <button style={{
-            backgroundColor: "#d4af37",
-            border: "none",
-            borderRadius: "8px",
-            color: "#0f0f0f",
-            fontSize: "15px",
-            fontWeight: "700",
-            padding: "14px 36px",
-            cursor: "pointer",
-            fontFamily: "'DM Sans', sans-serif",
-            marginTop: "8px",
-            transition: "all 0.2s",
-          }}
+          <Link
+            to="/cadastrar"
+            style={{
+              backgroundColor: "#d4af37",
+              border: "none",
+              borderRadius: "8px",
+              color: "#0f0f0f",
+              fontSize: "15px",
+              fontWeight: "700",
+              padding: "14px 36px",
+              cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif",
+              marginTop: "8px",
+              transition: "all 0.2s",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textDecoration: "none",
+            }}
             onMouseEnter={(e) => {
               e.currentTarget.style.opacity = "0.85";
               e.currentTarget.style.boxShadow = "0 0 20px rgba(212,175,55,0.4)";
@@ -167,7 +173,7 @@ const Home = () => {
             onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
           >
             Criar conta grátis
-          </button>
+          </Link>
 
           {/* Cards de mídia */}
           <div style={{

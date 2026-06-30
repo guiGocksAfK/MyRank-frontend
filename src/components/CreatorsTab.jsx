@@ -46,6 +46,7 @@ function getNoteBarColor(note) {
 export default function CreatorsTab({ onBack }) {
   const [sortBy,        setSortBy]        = useState('avg');
   const [selectedTypes, setSelectedTypes] = useState(['Todos']);
+  const [showWeights, setShowWeights] = useState(true);
 
   const typeOptions = ['Diretor', 'Escritor', 'Studio'];
 
@@ -115,6 +116,24 @@ export default function CreatorsTab({ onBack }) {
               Diretores, escritores e studios — ranqueados pelas suas avaliações
             </p>
           </div>
+        </div>
+
+        <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
+          {onBack && (
+            <button
+              className="mr-btn mr-btn-outline"
+              onClick={onBack}
+            >
+              🏆 Ver rankings →
+            </button>
+          )}
+
+          <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
+
+          <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>Ponderação por tempo</span>
+          <button className={`mr-switch ${showWeights ? 'checked' : ''}`} onClick={() => setShowWeights(v => !v)}>
+            <span className="mr-switch-thumb" />
+          </button>
         </div>
       </div>
 

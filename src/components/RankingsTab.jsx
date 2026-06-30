@@ -1011,17 +1011,19 @@ function NewTableModal({ onSave, onClose }) {
 
         {isOutro && (
           <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', display: 'block', marginBottom: 4 }}>
+            <label style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', display: 'block', marginBottom: 4, textAlign: 'center' }}>
               Emoji da tabela
             </label>
-            <input
-              type="text" value={customEmoji}
-              placeholder="🎨 🎵 🎤 ⚽ 🍿..."
-              onChange={e => setCustomEmoji(e.target.value)}
-              maxLength={4}
-              style={{ ...inputStyle, width: 80, textAlign: 'center', fontSize: '1.1rem' }}
-            />
-            <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <input
+                type="text" value={customEmoji}
+                placeholder="🎨 🎵 🎤 ⚽ 🍿..."
+                onChange={e => setCustomEmoji(e.target.value)}
+                maxLength={4}
+                style={{ ...inputStyle, width: 90, textAlign: 'center', fontSize: '1.1rem' }}
+              />
+            </div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4, textAlign: 'center' }}>
               Escolha um emoji que represente sua tabela
             </div>
           </div>
@@ -1207,6 +1209,13 @@ export default function RankingsTab({ onNavigateToCreators }) {
           onChange={setFilters}
           onClear={() => setFilters({})}
           resultCount={filteredCount}
+        />
+      )}
+
+      {showNewTable && (
+        <NewTableModal
+          onSave={handleCreateTable}
+          onClose={() => setShowNewTable(false)}
         />
       )}
 
