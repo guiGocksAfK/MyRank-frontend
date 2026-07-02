@@ -8,7 +8,7 @@ const navTabs = [
   { id: 'profile', label: 'Perfil', icon: '👤' },
 ];
 
-export default function DashboardNavbar({ activeTab, onTabChange, isDark, onThemeToggle }) {
+export default function DashboardNavbar({ activeTab, onTabChange }) {
   return (
     <nav className="mr-navbar">
       <div className="mr-navbar-inner">
@@ -30,16 +30,6 @@ export default function DashboardNavbar({ activeTab, onTabChange, isDark, onThem
         </div>
 
         <div className="mr-nav-right">
-          <div className="mr-theme-toggle">
-            <span>{isDark ? '🌙' : '☀️'}</span>
-            <button
-              className={`mr-switch ${isDark ? 'checked' : ''}`}
-              onClick={onThemeToggle}
-            >
-              <span className="mr-switch-thumb" />
-            </button>
-          </div>
-
           <button className="mr-notification-btn">
             🔔
             <span className="mr-notification-badge">3</span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { mediaItems, badges } from '../data/mockData';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
@@ -86,11 +86,20 @@ function BadgeCard({ badge }) {
 
 // ─── Componente principal ─────────────────────────────────────────────────
 export default function ProfileTab({ isDark, onThemeToggle }) {
-  const [timeTracking,     setTimeTracking]     = useState(true);
-  const [isPublicProfile,  setIsPublicProfile]  = useState(true);
-  const [manualHours,      setManualHours]      = useState('');
-  const [manualMinutes,    setManualMinutes]     = useState('');
-  const [badgeFilter,      setBadgeFilter]      = useState('all'); // 'all' | 'unlocked' | 'locked'
+  const [profileName,     setProfileName]     = useState('Lucas Silva');
+  const [profileUsername, setProfileUsername] = useState('lucassilva');
+  const [profileBio,      setProfileBio]      = useState('Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
+  const [editMode,        setEditMode]        = useState(false);
+  const [draftName,       setDraftName]       = useState(profileName);
+  const [draftUsername,   setDraftUsername]   = useState(profileUsername);
+  const [draftBio,        setDraftBio]        = useState(profileBio);
+  const [badgeFilter,     setBadgeFilter]     = useState('all'); // 'all' | 'unlocked' | 'locked'
+
+  useEffect(() => {
+    setDraftName(profileName);
+    setDraftUsername(profileUsername);
+    setDraftBio(profileBio);
+  }, [profileName, profileUsername, profileBio]);
 
   // ── Stats derivados dos dados ──
   const totalMinutes  = mediaItems.reduce((s, item) => s + (item.timeMinutes ?? 0), 0);
@@ -99,6 +108,17 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
     mediaItems.reduce((s, item) => s + item.finalNote, 0) / mediaItems.length
   ).toFixed(1);
   const unlockedCount = badges.filter(b => b.unlocked).length;
+  const bestItem      = mediaItems.reduce((best, item) => (!best || item.finalNote > best.finalNote ? item : best), null);
+  const longestItem   = mediaItems.reduce((top, item) => (!top || (item.timeMinutes ?? 0) > (top.timeMinutes ?? 0) ? item : top), null);
+  const typeCounts    = mediaItems.reduce((acc, item) => {
+    acc[item.type] = (acc[item.type] || 0) + 1;
+    return acc;
+  }, {});
+  const activities = [
+    { text: `Avaliou ${bestItem?.title ?? 'uma obra'} com ${bestItem?.finalNote?.toFixed(1) ?? '—'}`, time: '2h atrás' },
+    { text: `Adicionou ${mediaItems[0]?.title ?? 'uma obra'} ao ranking`, time: '1 dia atrás' },
+    { text: `Destravou badge ${badges.find(b => b.unlocked)?.name ?? 'Novo badge'}`, time: '3 dias atrás' },
+  ];
 
   // Filtro de badges
   const visibleBadges =
@@ -119,30 +139,6 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
         </div>
       </div>
 
-      {/* ── Stat cards ── */}
-      <div className="mr-stats-grid">
-        <div className="mr-stat-card">
-          <div className="mr-stat-icon-row"><span className="mr-stat-icon">🎯</span><span className="mr-stat-dot" /></div>
-          <div className="mr-stat-value">{mediaItems.length}</div>
-          <div className="mr-stat-label">Obras avaliadas</div>
-        </div>
-        <div className="mr-stat-card">
-          <div className="mr-stat-icon-row"><span className="mr-stat-icon">⏱️</span><span className="mr-stat-dot" /></div>
-          <div className="mr-stat-value">{totalHours}h</div>
-          <div className="mr-stat-label">Horas consumidas</div>
-        </div>
-        <div className="mr-stat-card">
-          <div className="mr-stat-icon-row"><span className="mr-stat-icon">⭐</span><span className="mr-stat-dot" /></div>
-          <div className="mr-stat-value">{avgNote}</div>
-          <div className="mr-stat-label">Nota média</div>
-        </div>
-        <div className="mr-stat-card">
-          <div className="mr-stat-icon-row"><span className="mr-stat-icon">🏅</span><span className="mr-stat-dot" /></div>
-          <div className="mr-stat-value">{unlockedCount}<span style={{ fontSize: '1rem', color: 'var(--mr-text-secondary)', fontWeight: 400 }}>/{badges.length}</span></div>
-          <div className="mr-stat-label">Badges desbloqueados</div>
-        </div>
-      </div>
-
       {/* ── Layout principal: avatar + settings ── */}
       <div className="mr-profile-grid">
 
@@ -155,11 +151,71 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
               <div className="mr-avatar-lg">LS</div>
             </div>
 
-            <div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>Lucas Silva</div>
-              <div style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-                @lucassilva
-              </div>
+            <div style={{ textAlign: 'left', width: '100%' }}>
+              {editMode ? (
+                <div className="mr-space-y-3">
+                  <div>
+                    <label className="mr-setting-label" style={{ marginBottom: 6 }}>Nome</label>
+                    <input
+                      className="mr-input"
+                      value={draftName}
+                      onChange={e => setDraftName(e.target.value)}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="mr-setting-label" style={{ marginBottom: 6 }}>Usuário</label>
+                    <input
+                      className="mr-input"
+                      value={draftUsername}
+                      onChange={e => setDraftUsername(e.target.value)}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="mr-setting-label" style={{ marginBottom: 6 }}>Bio</label>
+                    <textarea
+                      className="mr-input"
+                      value={draftBio}
+                      onChange={e => setDraftBio(e.target.value)}
+                      rows={3}
+                      style={{ width: '100%', resize: 'vertical' }}
+                    />
+                  </div>
+                  <div className="mr-flex mr-gap-2 mr-justify-center" style={{ marginTop: 6 }}>
+                    <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => {
+                      setEditMode(false);
+                      setDraftName(profileName);
+                      setDraftUsername(profileUsername);
+                      setDraftBio(profileBio);
+                    }}>
+                      Cancelar
+                    </button>
+                    <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={() => {
+                      setProfileName(draftName.trim() || profileName);
+                      setProfileUsername(draftUsername.trim() || profileUsername);
+                      setProfileBio(draftBio.trim() || profileBio);
+                      setEditMode(false);
+                    }}>
+                      Salvar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>{profileName}</div>
+                  <div style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
+                    @{profileUsername}
+                  </div>
+                  <button
+                    className="mr-btn mr-btn-sm mr-btn-outline"
+                    style={{ marginTop: 12 }}
+                    onClick={() => setEditMode(true)}
+                  >
+                    Editar perfil
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Mini stats inline */}
@@ -180,13 +236,16 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
               ))}
             </div>
 
-            {/* Badge preview rápido */}
-            <div style={{ borderTop: '1px solid var(--mr-border)', paddingTop: 16 }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', fontWeight: 600, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-                Conquistas
+            {/* Bio e conquistas rápidas */}
+            <div style={{ borderTop: '1px solid var(--mr-border)', paddingTop: 16, textAlign: 'left' }}>
+              <div style={{ fontSize: '0.9rem', color: 'var(--mr-text)', marginBottom: 10 }}>
+                {profileBio}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginBottom: 12 }}>
+                Conquistas rápidas
               </div>
               <div className="mr-flex mr-flex-wrap mr-justify-center mr-gap-2">
-                {badges.map(badge => (
+                {badges.slice(0, 5).map(badge => (
                   <span
                     key={badge.id}
                     title={badge.name}
@@ -207,27 +266,6 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
               </div>
             </div>
 
-            {/* Visibilidade */}
-            <div style={{ borderTop: '1px solid var(--mr-border)', paddingTop: 16 }}>
-              <div className="mr-flex mr-items-center mr-justify-between">
-                <div style={{ textAlign: 'left' }}>
-                  <div className="mr-setting-label">
-                    {isPublicProfile ? '🌐 Perfil público' : '🔒 Perfil privado'}
-                  </div>
-                  <div className="mr-setting-desc">
-                    {isPublicProfile
-                      ? 'Amigos podem ver seu ranking'
-                      : 'Seu ranking está oculto'}
-                  </div>
-                </div>
-                <button
-                  className={`mr-switch ${isPublicProfile ? 'checked' : ''}`}
-                  onClick={() => setIsPublicProfile(v => !v)}
-                >
-                  <span className="mr-switch-thumb" />
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -252,116 +290,21 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
             </div>
           </div>
 
-          {/* Rastreamento de Tempo (RF-005 + RF-006) */}
-          <div className="mr-card">
-            <div className="mr-card-body mr-space-y-4">
-              <h3 style={{ fontWeight: 700 }}>⏱️ Rastreamento de Tempo</h3>
-
-              <SettingRow
-                label="Ponderação por tempo"
-                desc="Calcular bônus logarítmico automaticamente nas notas finais"
-              >
-                <button
-                  className={`mr-switch ${timeTracking ? 'checked' : ''}`}
-                  onClick={() => setTimeTracking(v => !v)}
-                >
-                  <span className="mr-switch-thumb" />
-                </button>
-              </SettingRow>
-
-              {/* Fórmula */}
-              <div style={{
-                padding: '10px 14px', borderRadius: 8,
-                background: 'rgba(201,162,39,0.06)',
-                border: '1px solid rgba(201,162,39,0.2)',
-              }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--mr-text-secondary)', marginBottom: 6 }}>
-                  Fórmula de ponderação (RF-006)
-                </div>
-                <div className="mr-code mr-code-gold">
-                  Nota Final = Nota Original + log₁₀(Minutos / 60)
-                </div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-muted)', marginTop: 6 }}>
-                  Recompensa obras longas sem punir obras curtas.
-                </div>
-              </div>
-
-              {/* Entrada manual de tempo */}
-              <div>
-                <div style={{ fontSize: '0.875rem', fontWeight: 500, marginBottom: 8 }}>
-                  Entrada manual de tempo
-                </div>
-                <div className="mr-flex mr-items-center mr-gap-2">
-                  <input
-                    className="mr-time-input"
-                    placeholder="HH"
-                    value={manualHours}
-                    onChange={e => setManualHours(e.target.value)}
-                    type="number" min="0"
-                  />
-                  <span style={{ color: 'var(--mr-text-secondary)' }}>:</span>
-                  <input
-                    className="mr-time-input"
-                    placeholder="mm"
-                    value={manualMinutes}
-                    onChange={e => setManualMinutes(e.target.value)}
-                    type="number" min="0" max="59"
-                  />
-                  <button className="mr-btn mr-btn-gold mr-btn-sm">Salvar</button>
-                </div>
-                {(parseInt(manualHours, 10) > 0 || parseInt(manualMinutes, 10) > 0) && (
-                  <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 6 }}>
-                    Total: {formatTime(
-                      (parseInt(manualHours, 10) || 0) * 60 +
-                      (parseInt(manualMinutes, 10) || 0)
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Gerenciamento de Imagens (RF-007) */}
+          {/* Histórico de atividade */}
           <div className="mr-card">
             <div className="mr-card-body mr-space-y-4">
               <div className="mr-flex mr-items-center mr-justify-between">
-                <h3 style={{ fontWeight: 700 }}>🖼️ Imagens das Obras</h3>
+                <h3 style={{ fontWeight: 700 }}>🕒 Histórico</h3>
                 <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)' }}>
-                  RF-007
+                  Últimas ações
                 </span>
               </div>
 
-              <div style={{ fontSize: '0.8125rem', color: 'var(--mr-text-secondary)' }}>
-                Imagens atribuídas automaticamente via API. Clique num poster para trocar.
-              </div>
-
-              <div className="mr-flex mr-flex-wrap mr-gap-3">
-                {mediaItems.slice(0, 6).map(item => (
-                  <div
-                    key={item.id}
-                    className="mr-poster"
-                    style={{ width: 72, cursor: 'pointer' }}
-                    title={`${item.title} — clique para trocar`}
-                  >
-                    <div className="mr-poster-inner" style={{ position: 'relative' }}>
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 6 }}
-                          onError={e => { e.target.style.display = 'none'; }}
-                        />
-                      ) : (
-                        <div className="mr-poster-placeholder">
-                          <span style={{ fontSize: '1.25rem', display: 'block' }}>
-                            {typeIcons[item.type] ?? '🎬'}
-                          </span>
-                        </div>
-                      )}
-                      <div className="mr-poster-overlay mr-text-center">
-                        <span style={{ fontSize: '0.7rem' }}>📷 Trocar</span>
-                      </div>
-                    </div>
+              <div className="mr-space-y-3">
+                {activities.map((activity, idx) => (
+                  <div key={idx} style={{ borderRadius: 8, padding: '10px 12px', background: 'var(--mr-surface)', border: '1px solid var(--mr-border)' }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{activity.text}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>{activity.time}</div>
                   </div>
                 ))}
               </div>

@@ -3,8 +3,6 @@ import React from 'react';
 export default function Footer({
   // Stats opcionais — vem do Dashboard.jsx
   stats = { obras: 0, horas: 0, amigos: 0 },
-  isDark,
-  onThemeToggle,
 }) {
   const year = new Date().getFullYear();
 
@@ -43,16 +41,8 @@ export default function Footer({
             </span>
           </div>
 
-          {/* Direita: tema + topo */}
+          {/* Direita: topo */}
           <div className="mr-status-actions">
-            <button
-              className="mr-status-btn"
-              onClick={onThemeToggle}
-              title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-              aria-label="Alternar tema"
-            >
-              {isDark ? '🌙' : '☀️'}
-            </button>
             <button
               className="mr-status-btn"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

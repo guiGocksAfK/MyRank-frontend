@@ -60,8 +60,6 @@ export default function Dashboard() {
       <DashboardNavbar
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        isDark={isDark}
-        onThemeToggle={handleThemeToggle}
       />
       <div className="mr-main">
         {renderTab()}
@@ -70,8 +68,6 @@ export default function Dashboard() {
       {/* ← NOVO: ribbon no fim de todas as abas */}
       <Footer
         stats={footerStats}
-        isDark={isDark}
-        onThemeToggle={handleThemeToggle}
       />
     </div>
   );
