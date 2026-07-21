@@ -24,15 +24,19 @@ const Navbar = () => {
   const [lang, setLang] = useState("PT");
   const languages = ["PT", "EN", "ES"];
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <nav className="navbar">
-      <Link className="navbar-logo" to="/">
+      <Link className="navbar-logo" to="/" onClick={scrollToTop}>
         <span>My</span>
         <span>Rank</span>
       </Link>
 
       <div className="navbar-actions">
-        <Link className="navbar-link hide-on-small" to="/">
+        <Link className="navbar-link hide-on-small" to="/" onClick={scrollToTop}>
           Home
         </Link>
 
@@ -73,13 +77,8 @@ const Navbar = () => {
         <Link className="navbar-primary" to="/cadastrar">
           Cadastrar
         </Link>
-
-        <button className="navbar-user" type="button" aria-label="Perfil">
-          <UserIcon />
-        </button>
       </div>
     </nav>
   );
 };
-
 export default Navbar;

@@ -311,14 +311,11 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
             </div>
           </div>
 
-          {/* APIs Conectadas (RF-009) */}
+          {/* APIs Conectadas */}
           <div className="mr-card">
             <div className="mr-card-body mr-space-y-4">
               <div className="mr-flex mr-items-center mr-justify-between">
                 <h3 style={{ fontWeight: 700 }}>🔌 APIs Conectadas</h3>
-                <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)' }}>
-                  RF-009
-                </span>
               </div>
 
               {/* Tabela de APIs — mesmo padrão das outras tabelas */}
