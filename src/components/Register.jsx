@@ -1,10 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { createUser } from "../services/userService";
+import { saveUser } from "../services/authService";
 import "./auth.css";
 
 const Register = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleBack = () => {
     if (step === 2) {
@@ -13,6 +21,29 @@ const Register = () => {
     }
 
     navigate("/");
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+
+    if (password !== confirm) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await createUser({ username, email, password });
+      saveUser({ email, username, name: username });
+      navigate("/dashboard");
+    } catch (err) {
+      const message = err.response?.data?.message || "Erro ao criar conta. Tente novamente.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,7 +68,7 @@ const Register = () => {
           </div>
         </div>
 
-        <form className="auth-card">
+        <form className="auth-card" onSubmit={handleSubmit}>
           <div className="auth-card-header">
             <h2>My<span>Rank</span></h2>
             <p className="auth-step-label">Etapa {step} de 2</p>
@@ -59,6 +90,8 @@ const Register = () => {
                     type="email"
                     placeholder="seu@email.com"
                     autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </label>
 
@@ -112,6 +145,8 @@ const Register = () => {
                     type="text"
                     placeholder="seunome"
                     autoComplete="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                   />
                 </label>
 
@@ -123,6 +158,8 @@ const Register = () => {
                     type="password"
                     placeholder="••••••••"
                     autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </label>
 
@@ -134,16 +171,20 @@ const Register = () => {
                     type="password"
                     placeholder="••••••••"
                     autoComplete="new-password"
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
                   />
                 </label>
               </div>
+
+              {error && <p className="auth-error">{error}</p>}
 
               <div className="auth-button-row">
                 <button className="auth-secondary-button" type="button" onClick={() => setStep(1)}>
                   Voltar
                 </button>
-                <button className="auth-submit auth-submit--inline" type="submit">
-                  Criar conta
+                <button className="auth-submit auth-submit--inline" type="submit" disabled={loading}>
+                  {loading ? "Criando..." : "Criar conta"}
                 </button>
               </div>
             </div>

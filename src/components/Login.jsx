@@ -1,11 +1,17 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { saveUser } from "../services/authService";
 import "./auth.css";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    const username = email.split('@')[0] || "usuario";
+    saveUser({ email, username, name: username });
     navigate('/dashboard');
   };
 
@@ -49,6 +55,8 @@ const Login = () => {
                 type="email"
                 placeholder="seu@email.com"
                 autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </label>
 
@@ -60,6 +68,8 @@ const Login = () => {
                 type="password"
                 placeholder="••••••••"
                 autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </label>
           </div>

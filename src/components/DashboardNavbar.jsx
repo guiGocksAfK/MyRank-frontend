@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { mediaItems, badges } from '../data/mockData';
+import { getStoredUser } from '../services/authService';
 
 const navTabs = [
   { id: 'home', label: 'Dashboard', icon: '📊' },
@@ -30,13 +31,13 @@ const notifications = [
   },
 ];
 
-const profileSummary = {
-  name: 'Lucas Silva',
-  username: 'lucassilva',
-  bio: 'Apaixonado por jogos, filmes e livros.',
-};
-
 export default function DashboardNavbar({ activeTab, onTabChange }) {
+  const storedUser = useMemo(() => getStoredUser(), []);
+  const profileSummary = useMemo(() => ({
+    name: storedUser?.name || storedUser?.username || 'Usuário',
+    username: storedUser?.username || 'usuario',
+    bio: storedUser?.bio || 'Apaixonado por jogos, filmes e livros.',
+  }), [storedUser]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 

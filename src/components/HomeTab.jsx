@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { mediaItems, badges } from '../data/mockData';
+import { getStoredUser } from '../services/authService';
 
 const typeIcons = {
   filme: '🎬',
@@ -40,6 +41,8 @@ function timeAgo(dateString) {
 export default function HomeTab() {
   const [weighted, setWeighted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const storedUser = useMemo(() => getStoredUser(), []);
+  const userName = storedUser?.name || storedUser?.username || 'usuário';
 
   const totalHours = Math.round(
     mediaItems.reduce((sum, item) => sum + item.timeMinutes, 0) / 60
@@ -70,7 +73,7 @@ export default function HomeTab() {
       {/* Welcome */}
       <div>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>
-          Olá, <span style={{ color: 'var(--mr-gold)' }}>Lucas</span> 👋
+          Olá, <span style={{ color: 'var(--mr-gold)' }}>{userName}</span> 👋
         </h1>
         <p style={{ color: 'var(--mr-text-secondary)', marginTop: 4 }}>
           Aqui está o resumo do seu ranking pessoal

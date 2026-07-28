@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { mediaItems, badges } from '../data/mockData';
+import { getStoredUser, saveUser } from '../services/authService';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 const typeIcons = {
@@ -86,9 +87,10 @@ function BadgeCard({ badge }) {
 
 // ─── Componente principal ─────────────────────────────────────────────────
 export default function ProfileTab({ isDark, onThemeToggle }) {
-  const [profileName,     setProfileName]     = useState('Lucas Silva');
-  const [profileUsername, setProfileUsername] = useState('lucassilva');
-  const [profileBio,      setProfileBio]      = useState('Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
+  const storedUser = useMemo(() => getStoredUser(), []);
+  const [profileName,     setProfileName]     = useState(storedUser?.name || 'Usuário');
+  const [profileUsername, setProfileUsername] = useState(storedUser?.username || 'usuario');
+  const [profileBio,      setProfileBio]      = useState(storedUser?.bio || 'Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
   const [editMode,        setEditMode]        = useState(false);
   const [draftName,       setDraftName]       = useState(profileName);
   const [draftUsername,   setDraftUsername]   = useState(profileUsername);
@@ -192,9 +194,13 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
                       Cancelar
                     </button>
                     <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={() => {
-                      setProfileName(draftName.trim() || profileName);
-                      setProfileUsername(draftUsername.trim() || profileUsername);
-                      setProfileBio(draftBio.trim() || profileBio);
+                      const nextName = draftName.trim() || profileName;
+                      const nextUsername = draftUsername.trim() || profileUsername;
+                      const nextBio = draftBio.trim() || profileBio;
+                      setProfileName(nextName);
+                      setProfileUsername(nextUsername);
+                      setProfileBio(nextBio);
+                      saveUser({ email: storedUser?.email || '', username: nextUsername, name: nextName, bio: nextBio });
                       setEditMode(false);
                     }}>
                       Salvar
