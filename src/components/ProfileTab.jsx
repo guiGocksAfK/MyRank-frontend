@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { mediaItems, badges } from '../data/mockData';
 import { getMe, updateMe } from '../services/userService';
 
@@ -17,6 +17,17 @@ function formatTime(totalMinutes) {
   const h = Math.floor(totalMinutes / 60);
   const m = totalMinutes % 60;
   return m > 0 ? `${h}h ${m}min` : `${h}h`;
+}
+
+function formatDate(dateString) {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
 }
 
 // ─── Componente: linha de configuração ────────────────────────────────────
@@ -87,12 +98,12 @@ function BadgeCard({ badge }) {
 
 // ─── Componente principal ─────────────────────────────────────────────────
 export default function ProfileTab({ isDark, onThemeToggle }) {
-  const [profileName,     setProfileName]     = useState('Usuário');
   const [profileUsername, setProfileUsername] = useState('usuario');
   const [profileBio,      setProfileBio]      = useState('Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
+  const [profilePlan,     setProfilePlan]     = useState('FREE');
+  const [createdAt,       setCreatedAt]       = useState(null);
   const [loadingProfile,  setLoadingProfile]  = useState(true);
   const [editMode,        setEditMode]        = useState(false);
-  const [draftName,       setDraftName]       = useState(profileName);
   const [draftUsername,   setDraftUsername]   = useState(profileUsername);
   const [draftBio,        setDraftBio]        = useState(profileBio);
   const [saving,          setSaving]          = useState(false);
@@ -103,9 +114,10 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
     const loadProfile = async () => {
       try {
         const user = await getMe();
-        setProfileName(user.name || 'Usuário');
         setProfileUsername(user.username || 'usuario');
         setProfileBio(user.bio || 'Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
+        setProfilePlan(user.plan || 'FREE');
+        setCreatedAt(user.createdAt || null);
       } catch (err) {
         setError('Não foi possível carregar seu perfil.');
       } finally {
@@ -116,22 +128,19 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
   }, []);
 
   useEffect(() => {
-    setDraftName(profileName);
     setDraftUsername(profileUsername);
     setDraftBio(profileBio);
-  }, [profileName, profileUsername, profileBio]);
+  }, [profileUsername, profileBio]);
 
   const handleSave = async () => {
     setSaving(true);
     setError('');
     try {
       const updated = await updateMe({
-        name: draftName.trim() || profileName,
         username: draftUsername.trim() || profileUsername,
         bio: draftBio.trim() || profileBio,
       });
 
-      setProfileName(updated.name || profileName);
       setProfileUsername(updated.username || profileUsername);
       setProfileBio(updated.bio || profileBio);
       setEditMode(false);
@@ -205,15 +214,6 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
               {editMode ? (
                 <div className="mr-space-y-3">
                   <div>
-                    <label className="mr-setting-label" style={{ marginBottom: 6 }}>Nome</label>
-                    <input
-                      className="mr-input"
-                      value={draftName}
-                      onChange={e => setDraftName(e.target.value)}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-                  <div>
                     <label className="mr-setting-label" style={{ marginBottom: 6 }}>Usuário</label>
                     <input
                       className="mr-input"
@@ -236,7 +236,6 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
                   <div className="mr-flex mr-gap-2 mr-justify-center" style={{ marginTop: 6 }}>
                     <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => {
                       setEditMode(false);
-                      setDraftName(profileName);
                       setDraftUsername(profileUsername);
                       setDraftBio(profileBio);
                       setError('');
@@ -250,10 +249,19 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>{profileName}</div>
-                  <div style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-                    @{profileUsername}
-                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>@{profileUsername}</div>
+                  {createdAt && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginTop: 6 }}>
+                      Membro desde {formatDate(createdAt)}
+                    </div>
+                  )}
+                  {profilePlan && (
+                    <div style={{ marginTop: 8 }}>
+                      <span className={`mr-badge ${profilePlan === 'PRO' ? 'mr-badge-gold' : 'mr-badge-outline'}`}>
+                        {profilePlan === 'PRO' ? 'PRO' : 'FREE'}
+                      </span>
+                    </div>
+                  )}
                   <button
                     className="mr-btn mr-btn-sm mr-btn-outline"
                     style={{ marginTop: 12 }}
