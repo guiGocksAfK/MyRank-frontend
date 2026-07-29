@@ -1,18 +1,29 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { saveUser } from "../services/authService";
+import { login } from "../services/authService";
 import "./auth.css";
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const username = email.split('@')[0] || "usuario";
-    saveUser({ email, username, name: username });
-    navigate('/dashboard');
+    setError("");
+    setLoading(true);
+
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      const message = err.response?.data?.message || "Erro ao entrar. Tente novamente.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -74,12 +85,14 @@ const Login = () => {
             </label>
           </div>
 
+          {error && <p className="auth-error">{error}</p>}
+
           <a className="auth-forgot" href="#">
             Esqueci minha senha
           </a>
 
-          <button className="auth-submit" type="submit">
-            Entrar
+          <button className="auth-submit" type="submit" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
           </button>
 
           <div className="auth-divider">

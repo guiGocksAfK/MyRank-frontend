@@ -1,27 +1,30 @@
-const STORAGE_KEY = 'myrank-user';
+import api from "./api";
 
-export const buildUserFromCredentials = ({ email, username, name, bio }) => ({
-  email: email || '',
-  username: username || name || (email ? email.split('@')[0] : 'usuario'),
-  name: name || username || (email ? email.split('@')[0] : 'Usuário'),
-  bio: bio || 'Apaixonado por jogos, filmes e livros.',
-});
+export const login = async (email, password) => {
+  const response = await api.post("/auth/login", { email, password });
+  const { token, username } = response.data;
 
-export const saveUser = (userData) => {
-  const user = buildUserFromCredentials(userData);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-  return user;
+  localStorage.setItem("myrank_token", token);
+  localStorage.setItem("myrank_username", username);
+
+  return response.data;
+};
+
+export const logout = () => {
+  localStorage.removeItem("myrank_token");
+  localStorage.removeItem("myrank_username");
+};
+
+export const getToken = () => {
+  return localStorage.getItem("myrank_token");
+};
+
+export const isAuthenticated = () => {
+  return !!getToken();
 };
 
 export const getStoredUser = () => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : null;
-  } catch {
-    return null;
-  }
-};
-
-export const clearStoredUser = () => {
-  localStorage.removeItem(STORAGE_KEY);
+  const username = localStorage.getItem("myrank_username");
+  if (!username) return null;
+  return { username };
 };

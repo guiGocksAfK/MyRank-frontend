@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { mediaItems, badges } from '../data/mockData';
-import { getStoredUser, saveUser } from '../services/authService';
+import { getMe, updateMe } from '../services/userService';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 const typeIcons = {
@@ -87,21 +87,61 @@ function BadgeCard({ badge }) {
 
 // ─── Componente principal ─────────────────────────────────────────────────
 export default function ProfileTab({ isDark, onThemeToggle }) {
-  const storedUser = useMemo(() => getStoredUser(), []);
-  const [profileName,     setProfileName]     = useState(storedUser?.name || 'Usuário');
-  const [profileUsername, setProfileUsername] = useState(storedUser?.username || 'usuario');
-  const [profileBio,      setProfileBio]      = useState(storedUser?.bio || 'Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
+  const [profileName,     setProfileName]     = useState('Usuário');
+  const [profileUsername, setProfileUsername] = useState('usuario');
+  const [profileBio,      setProfileBio]      = useState('Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
+  const [loadingProfile,  setLoadingProfile]  = useState(true);
   const [editMode,        setEditMode]        = useState(false);
   const [draftName,       setDraftName]       = useState(profileName);
   const [draftUsername,   setDraftUsername]   = useState(profileUsername);
   const [draftBio,        setDraftBio]        = useState(profileBio);
+  const [saving,          setSaving]          = useState(false);
+  const [error,           setError]           = useState('');
   const [badgeFilter,     setBadgeFilter]     = useState('all'); // 'all' | 'unlocked' | 'locked'
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const user = await getMe();
+        setProfileName(user.name || 'Usuário');
+        setProfileUsername(user.username || 'usuario');
+        setProfileBio(user.bio || 'Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
+      } catch (err) {
+        setError('Não foi possível carregar seu perfil.');
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+    loadProfile();
+  }, []);
 
   useEffect(() => {
     setDraftName(profileName);
     setDraftUsername(profileUsername);
     setDraftBio(profileBio);
   }, [profileName, profileUsername, profileBio]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const updated = await updateMe({
+        name: draftName.trim() || profileName,
+        username: draftUsername.trim() || profileUsername,
+        bio: draftBio.trim() || profileBio,
+      });
+
+      setProfileName(updated.name || profileName);
+      setProfileUsername(updated.username || profileUsername);
+      setProfileBio(updated.bio || profileBio);
+      setEditMode(false);
+    } catch (err) {
+      const message = err.response?.data?.message || 'Erro ao salvar perfil.';
+      setError(message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // ── Stats derivados dos dados ──
   const totalMinutes  = mediaItems.reduce((s, item) => s + (item.timeMinutes ?? 0), 0);
@@ -127,6 +167,14 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
     badgeFilter === 'unlocked' ? badges.filter(b =>  b.unlocked) :
     badgeFilter === 'locked'   ? badges.filter(b => !b.unlocked) :
     badges;
+
+  if (loadingProfile) {
+    return (
+      <div className="mr-card">
+        <div className="mr-card-body">Carregando perfil...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="mr-space-y-6">
@@ -184,26 +232,19 @@ export default function ProfileTab({ isDark, onThemeToggle }) {
                       style={{ width: '100%', resize: 'vertical' }}
                     />
                   </div>
+                  {error && <p className="auth-error">{error}</p>}
                   <div className="mr-flex mr-gap-2 mr-justify-center" style={{ marginTop: 6 }}>
                     <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => {
                       setEditMode(false);
                       setDraftName(profileName);
                       setDraftUsername(profileUsername);
                       setDraftBio(profileBio);
+                      setError('');
                     }}>
                       Cancelar
                     </button>
-                    <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={() => {
-                      const nextName = draftName.trim() || profileName;
-                      const nextUsername = draftUsername.trim() || profileUsername;
-                      const nextBio = draftBio.trim() || profileBio;
-                      setProfileName(nextName);
-                      setProfileUsername(nextUsername);
-                      setProfileBio(nextBio);
-                      saveUser({ email: storedUser?.email || '', username: nextUsername, name: nextName, bio: nextBio });
-                      setEditMode(false);
-                    }}>
-                      Salvar
+                    <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving}>
+                      {saving ? 'Salvando...' : 'Salvar'}
                     </button>
                   </div>
                 </div>

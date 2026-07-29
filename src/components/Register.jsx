@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createUser } from "../services/userService";
-import { saveUser } from "../services/authService";
+import { login } from "../services/authService";
 import "./auth.css";
 
 const Register = () => {
@@ -36,7 +36,7 @@ const Register = () => {
 
     try {
       await createUser({ username, email, password });
-      saveUser({ email, username, name: username });
+      await login(email, password);
       navigate("/dashboard");
     } catch (err) {
       const message = err.response?.data?.message || "Erro ao criar conta. Tente novamente.";
