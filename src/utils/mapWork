@@ -1,0 +1,27 @@
+// src/utils/mapWork.js
+export function mapWorkToItem(work) {
+  return {
+    id: work.id,
+    title: work.title,
+    sub: work.creator ?? '',
+    note: work.score,
+    timeMinutes: work.timeMinutes,
+    bonusTime: work.timeBonusScore,
+    finalNote: work.finalScore,
+    addedDate: work.createdAt?.slice(0, 10) ?? null,
+    releaseDate: work.releaseDate,
+    image: work.imageUrl ?? '',
+  };
+}
+// dentro do mesmo arquivo mapWork.js
+export function mapItemToWorkDTO(item, categoryId) {
+  return {
+    categoryId,
+    title: item.title,
+    imageUrl: item.image || null,
+    creator: item.sub || null,
+    releaseDate: item.releaseDate || null,
+    timeMinutes: item.timeMinutes,
+    score: item.note,
+  };
+}
