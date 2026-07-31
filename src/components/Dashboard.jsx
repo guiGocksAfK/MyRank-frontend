@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import DashboardNavbar from './DashboardNavbar';
 import HomeTab from './HomeTab';
-import RankingsTab from './RankingsTab';
+import RankingsTab from './Rankings/RankingsTab';
 import CreatorsTab from './CreatorsTab';
 import SocialTab from './SocialTab';
 import AIInsightsTab from './AIInsightsTab';

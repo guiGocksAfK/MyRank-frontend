@@ -1,0 +1,94 @@
+// Formata minutos → "2h 30min" / "45min" / "50h"
+export function formatTime(minutes) {
+  if (!minutes || minutes <= 0) return '—';
+  if (minutes < 60) return `${minutes}min`;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+}
+
+// Converte minutos → { hours, mins } para o input HH:mm
+export function minutesToHHMM(minutes) {
+  if (!minutes || minutes <= 0) return { hours: '', mins: '' };
+  return {
+    hours: Math.floor(minutes / 60),
+    mins: minutes % 60,
+  };
+}
+
+export function getNoteBarColor(note) {
+  if (note >= 10) return 'gold';
+  if (note >= 8) return 'green';
+  if (note >= 6) return 'yellow';
+  return 'red';
+}
+
+export function getYear(isoDate) {
+  if (!isoDate) return null;
+  return parseInt(isoDate.split('-')[0], 10);
+}
+
+export function sortItems(items, sortBy, useTimeWeight) {
+  return [...items].sort((a, b) => {
+    if (sortBy === 'time') return b.timeMinutes - a.timeMinutes;
+    return useTimeWeight ? b.finalNote - a.finalNote : b.note - a.note;
+  });
+}
+
+export function getMode(sortBy, useTimeWeight) {
+  if (sortBy === 'time') return 'time';
+  return useTimeWeight ? 'weight' : 'simple';
+}
+
+export function applyFilters(items, filters) {
+  if (!filters) return items;
+  return items.filter(item => {
+    if (filters.releaseYearMin != null || filters.releaseYearMax != null) {
+      const year = getYear(item.releaseDate);
+      if (year == null) return false;
+      if (filters.releaseYearMin != null && year < filters.releaseYearMin) return false;
+      if (filters.releaseYearMax != null && year > filters.releaseYearMax) return false;
+    }
+    if (filters.addedDateFrom != null && item.addedDate < filters.addedDateFrom) return false;
+    if (filters.addedDateTo != null && item.addedDate > filters.addedDateTo) return false;
+    return true;
+  });
+}
+
+export function getColumnConfig(mode, withActions = false, hasImage = false) {
+  const showTableCol = !withActions;
+  const imgCol = hasImage ? ['40px'] : [];
+  const imgHeader = hasImage ? [''] : [];
+
+  if (mode === 'weight') {
+    const grid = ['2rem', ...imgCol, '1fr'];
+    const headers = ['#', ...imgHeader, 'Título'];
+    if (showTableCol) { grid.push('120px'); headers.push('Tabela'); }
+    grid.push('70px', '70px', '140px');
+    headers.push('Nota', 'Bônus', 'Nota Final');
+    if (withActions) { grid.push('80px'); headers.push('Ações'); }
+    return { gridTemplate: grid.join(' '), headers };
+  }
+  if (mode === 'time') {
+    const grid = ['2rem', ...imgCol, '1fr'];
+    const headers = ['#', ...imgHeader, 'Título'];
+    if (showTableCol) { grid.push('120px'); headers.push('Tabela'); }
+    grid.push('70px', '110px');
+    headers.push('Nota', 'Tempo');
+    if (withActions) { grid.push('80px'); headers.push('Ações'); }
+    return { gridTemplate: grid.join(' '), headers };
+  }
+  const grid = ['2rem', ...imgCol, '1fr'];
+  const headers = ['#', ...imgHeader, 'Título'];
+  if (showTableCol) { grid.push('120px'); headers.push('Tabela'); }
+  grid.push('180px');
+  headers.push('Nota');
+  if (withActions) { grid.push('80px'); headers.push('Ações'); }
+  return { gridTemplate: grid.join(' '), headers };
+}
+
+export const badgeStyle = {
+  fontSize: '0.7rem',
+  width: 'fit-content',
+  whiteSpace: 'nowrap',
+};

@@ -1,4 +1,4 @@
-// src/utils/mapWork.js
+// Backend (WorkResponseDTO) → shape usado pelos componentes visuais
 export function mapWorkToItem(work) {
   return {
     id: work.id,
@@ -13,7 +13,8 @@ export function mapWorkToItem(work) {
     image: work.imageUrl ?? '',
   };
 }
-// dentro do mesmo arquivo mapWork.js
+
+// Payload do ItemModal → DTO esperado pelo backend (createWork/updateWork)
 export function mapItemToWorkDTO(item, categoryId) {
   return {
     categoryId,
@@ -23,5 +24,14 @@ export function mapItemToWorkDTO(item, categoryId) {
     releaseDate: item.releaseDate || null,
     timeMinutes: item.timeMinutes,
     score: item.note,
+  };
+}
+
+// Category (backend) → tabela usada pelo RankingsTab
+export function mapCategoryToTable(category, items = []) {
+  return {
+    id: category.id,
+    label: category.name,
+    items,
   };
 }
