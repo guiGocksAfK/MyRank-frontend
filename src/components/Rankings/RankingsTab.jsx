@@ -4,8 +4,9 @@ import IndividualTable from './IndividualTable';
 import TableSelector from './TableSelector';
 import FilterPanel from './FilterPanel';
 import NewTableModal from './NewTableModal';
-import { getCategories, createCategory, deleteCategory } from '../../services/categoryService';
-import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../services/workService';
+import { getGroups, createGroup, updateGroup } from '../../services/masterTableGroupService';
+import { getCategories, createCategory, deleteCategory } from '../../services/CategoryService.js';
+import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../services/WorkService.js';
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../utils/mapWork';
 import { applyFilters } from '../../utils/formatters';
 
@@ -21,8 +22,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
   const [filters,          setFilters]          = useState({});
   const [selectedTableIds, setSelectedTableIds] = useState([]);
   const [showNewTable,     setShowNewTable]     = useState(false);
+  const [unifiedGroupId,   setUnifiedGroupId]   = useState(null);
 
-  // ── Carrega categorias + obras do backend ao montar ──
+  // ── Carrega categorias + obras + grupo "Unificado" do backend ao montar ──
   useEffect(() => {
     let cancelled = false;
 
@@ -39,7 +41,23 @@ export default function RankingsTab({ onNavigateToCreators }) {
         );
         if (cancelled) return;
         setTables(tablesWithItems);
-        setSelectedTableIds(tablesWithItems.map(t => t.id));
+
+        // Busca o grupo "Unificado" já existente, ou cria um novo com tudo selecionado
+        const groups = await getGroups();
+        let unifiedGroup = groups.find(g => g.name === 'Unificado');
+
+        if (!unifiedGroup && tablesWithItems.length > 0) {
+          unifiedGroup = await createGroup('Unificado', tablesWithItems.map(t => t.id));
+        }
+
+        if (cancelled) return;
+
+        if (unifiedGroup) {
+          setUnifiedGroupId(unifiedGroup.id);
+          setSelectedTableIds(unifiedGroup.categoryIds);
+        } else {
+          setSelectedTableIds(tablesWithItems.map(t => t.id));
+        }
       } catch (err) {
         if (!cancelled) setLoadError(err?.response?.data?.message || err.message || 'Erro ao carregar suas tabelas.');
       } finally {
@@ -80,8 +98,18 @@ export default function RankingsTab({ onNavigateToCreators }) {
     const cat = await createCategory(label);
     const newTable = mapCategoryToTable(cat);
     setTables(prev => [...prev, newTable]);
-    setSelectedTableIds(prev => [...prev, newTable.id]);
+
+    const newSelectedIds = [...selectedTableIds, newTable.id];
+    setSelectedTableIds(newSelectedIds);
     setActiveTab(newTable.id);
+
+    if (unifiedGroupId) {
+      try {
+        await updateGroup(unifiedGroupId, 'Unificado', newSelectedIds);
+      } catch (err) {
+        console.error('Erro ao atualizar grupo unificado:', err);
+      }
+    }
   }
 
   // ── Excluir tabela (categoria) ──
@@ -90,6 +118,17 @@ export default function RankingsTab({ onNavigateToCreators }) {
     setTables(prev => prev.filter(t => t.id !== id));
     setSelectedTableIds(prev => prev.filter(x => x !== id));
     setActiveTab('unified');
+  }
+
+  // ── Mudar seleção do Unificado (persiste no master_table_group) ──
+  async function handleChangeSelectedTables(newIds) {
+    setSelectedTableIds(newIds); // atualiza a UI na hora
+    if (!unifiedGroupId) return;
+    try {
+      await updateGroup(unifiedGroupId, 'Unificado', newIds);
+    } catch (err) {
+      alert(err?.response?.data?.message || err.message || 'Erro ao salvar seleção de tabelas.');
+    }
   }
 
   const filteredCount = useMemo(() => {
@@ -169,7 +208,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
       </div>
 
       {activeTab === 'unified' && (
-        <TableSelector tables={tables} selectedIds={selectedTableIds} onChange={setSelectedTableIds} />
+        <TableSelector tables={tables} selectedIds={selectedTableIds} onChange={handleChangeSelectedTables} />
       )}
 
       {showFilters && (
