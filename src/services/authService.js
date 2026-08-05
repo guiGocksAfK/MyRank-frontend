@@ -1,13 +1,39 @@
 import api from "./api";
 
-export const login = async (email, password) => {
-  const response = await api.post("/auth/login", { email, password });
-  const { token, username } = response.data;
-
+const saveAuthResponse = ({ token, username }) => {
   localStorage.setItem("myrank_token", token);
   localStorage.setItem("myrank_username", username);
+};
 
+export const login = async (email, password) => {
+  const response = await api.post("/auth/login", { email, password });
+  saveAuthResponse(response.data);
   return response.data;
+};
+
+export const loginWithGoogle = async (idToken) => {
+  const response = await api.post("/auth/oauth/google", { token: idToken });
+  saveAuthResponse(response.data);
+  return response.data;
+};
+
+export const loginWithDiscord = async (accessToken) => {
+  const response = await api.post("/auth/oauth/discord", { token: accessToken });
+  saveAuthResponse(response.data);
+  return response.data;
+};
+
+export const getDiscordAuthUrl = () => {
+  const clientId = import.meta.env.VITE_DISCORD_CLIENT_ID;
+  const redirectUri = `${window.location.origin}/auth/discord/callback`;
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "token",
+    scope: "identify email",
+  });
+
+  return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
 };
 
 export const logout = () => {
