@@ -24,8 +24,18 @@ export const loginWithDiscord = async (accessToken) => {
 };
 
 export const getDiscordAuthUrl = () => {
-  const clientId = import.meta.env.VITE_DISCORD_CLIENT_ID;
-  const redirectUri = `${window.location.origin}/auth/discord/callback`;
+  const clientId = import.meta.env.VITE_DISCORD_CLIENT_ID?.trim();
+
+  if (!clientId) {
+    throw new Error("VITE_DISCORD_CLIENT_ID não configurado.");
+  }
+
+  const currentOrigin = window.location.origin.replace(/\/$/, "");
+  const configuredRedirectUri = import.meta.env.VITE_DISCORD_REDIRECT_URI?.trim();
+  const redirectUri = configuredRedirectUri && !/^(http:\/\/localhost|http:\/\/127\.0\.0\.1)/.test(currentOrigin)
+    ? configuredRedirectUri
+    : `${currentOrigin}/auth/discord/callback`;
+
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,

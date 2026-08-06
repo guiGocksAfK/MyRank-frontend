@@ -8,18 +8,19 @@ export default function DiscordCallback() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const accessToken = params.get("access_token");
-    const oauthError = params.get("error");
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const queryParams = new URLSearchParams(window.location.search);
+    const accessToken = hashParams.get("access_token");
+    const oauthError = hashParams.get("error") || queryParams.get("error");
+    const errorDescription = hashParams.get("error_description") || queryParams.get("error_description");
 
     if (oauthError) {
-      setError("Autorização cancelada ou negada.");
+      setError(errorDescription || "Autorização cancelada ou negada.");
       return;
     }
 
     if (!accessToken) {
-      setError("Token do Discord não encontrado.");
+      setError("Token do Discord não encontrado. Verifique se a redirect URI cadastrada no Discord bate exatamente com a URL atual.");
       return;
     }
 
