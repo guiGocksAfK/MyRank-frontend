@@ -133,24 +133,25 @@ const Login = () => {
             <span>ou continue com</span>
           </div>
 
-          <div className="auth-google-wrapper">
-            {googleClientId ? (
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={(error) => {
-                  console.error("Erro no login do Google:", error);
-                  setError("Erro ao entrar com Google. Verifique se o client ID está correto e se a origem http://localhost:5173 foi autorizada no Google Cloud Console.");
-                }}
-                text="continue_with"
-                shape="rectangular"
-                theme="outline"
-                size="large"
-                width="360"
-              />
-            ) : (
-              <p className="auth-error">Google OAuth não está configurado.</p>
-            )}
-          </div>
+          {googleClientId ? (
+            <div className="auth-google-wrapper">
+                  <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={(error) => {
+                console.error("Erro no login do Google:", error);
+                setError("Erro ao entrar com Google. Verifique se o client ID está correto e se a origem http://localhost:5173 foi autorizada no Google Cloud Console.");
+              }}
+              theme="filled_black"
+              shape="pill"
+              size="large"
+              text="continue_with"
+              logo_alignment="left"
+              width="446"
+/>
+            </div>
+          ) : (
+            <p className="auth-error">Google OAuth não está configurado.</p>
+          )}
 
           <button
             className="auth-social-button auth-social-button--discord"

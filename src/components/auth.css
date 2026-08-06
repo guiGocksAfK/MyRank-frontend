@@ -320,6 +320,11 @@
 }
 
 /* Social buttons */
+.auth-google-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
 .auth-social-button {
   width: 100%;
   min-height: 54px;
@@ -346,6 +351,18 @@
 
 .auth-social-button:active {
   transform: none;
+}
+
+.auth-social-button--google {
+  background: #ffffff;
+  color: #111111;
+  border-color: #d8d8d8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.auth-social-button--google:hover {
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.16);
 }
 
 .auth-social-button--discord {
@@ -480,4 +497,18 @@
   .auth-copy {
     max-width: 100%;
   }
+}
+
+.auth-google-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.auth-google-wrapper > div {
+  width: 100% !important;
+}
+
+.auth-google-wrapper iframe {
+  width: 100% !important;
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin } from "@react-oauth/google";
 import { createUser } from "../services/userService";
 import { getDiscordAuthUrl, login, loginWithGoogle } from "../services/authService";
 import "./auth.css";
@@ -37,24 +37,33 @@ const Register = () => {
     setStep(2);
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    setError("");
-    setLoading(true);
-
-    try {
-      const credential = credentialResponse?.credential;
-      if (!credential) {
-        throw new Error("Credenciais do Google não foram retornadas.");
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setError("");
+      setLoading(true);
+      try {
+        await loginWithGoogle(tokenResponse.access_token);
+        navigate("/dashboard");
+      } catch (err) {
+        const message = err.response?.data?.message || err.message || "Erro ao entrar com Google.";
+        setError(message);
+      } finally {
+        setLoading(false);
       }
+    },
+    onError: () => {
+      console.error("Erro no login do Google");
+      setError("Erro ao entrar com Google. Verifique se o client ID está correto e se a origem http://localhost:5173 foi autorizada no Google Cloud Console.");
+    },
+  });
 
-      await loginWithGoogle(credential);
-      navigate("/dashboard");
-    } catch (err) {
-      const message = err.response?.data?.message || err.message || "Erro ao entrar com Google.";
-      setError(message);
-    } finally {
-      setLoading(false);
+  const handleGoogleClick = () => {
+    setError("");
+    if (!googleClientId) {
+      setError("Google OAuth não está configurado.");
+      return;
     }
+    googleLogin();
   };
 
   const handleDiscordLogin = () => {
@@ -166,24 +175,22 @@ const Register = () => {
                   <span>ou continue com</span>
                 </div>
 
-                <div className="auth-google-wrapper">
-                  {googleClientId ? (
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={(error) => {
-                        console.error("Erro no login do Google:", error);
-                        setError("Erro ao entrar com Google. Verifique se o client ID está correto e se a origem http://localhost:5173 foi autorizada no Google Cloud Console.");
-                      }}
-                      text="continue_with"
-                      shape="rectangular"
-                      theme="outline"
-                      size="large"
-                      width="360"
-                    />
-                  ) : (
-                    <p className="auth-error">Google OAuth não está configurado.</p>
-                  )}
-                </div>
+                <button
+                  className="auth-social-button auth-social-button--google"
+                  type="button"
+                  onClick={handleGoogleClick}
+                  disabled={loading}
+                >
+                  <span className="google-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/>
+                      <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.92l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.95H1.26v3.11C3.24 21.3 7.28 24 12 24z"/>
+                      <path fill="#FBBC05" d="M5.27 14.28A7.2 7.2 0 0 1 4.89 12c0-.79.14-1.56.38-2.28V6.61H1.26A11.98 11.98 0 0 0 0 12c0 1.94.46 3.77 1.26 5.39l4.01-3.11z"/>
+                      <path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.59 1.79l3.44-3.44C17.95 1.19 15.24 0 12 0 7.28 0 3.24 2.7 1.26 6.61l4.01 3.11C6.22 6.88 8.87 4.77 12 4.77z"/>
+                    </svg>
+                  </span>
+                  Continuar com Google
+                </button>
 
                 <button
                   className="auth-social-button auth-social-button--discord"
