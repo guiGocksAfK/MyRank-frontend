@@ -31,6 +31,7 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
   const [modal, setModal] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [draggedItemId, setDraggedItemId] = useState(null);
   const mode    = getMode(sortBy, useTimeWeight);
   const maxNote = mode === 'weight' ? 12 : 10;
   const cols    = getColumnConfig(mode, true, viewMode === 'list');
@@ -38,29 +39,22 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
   const filteredItems = useMemo(() => applyFilters(table.items, filters), [table.items, filters]);
   const sorted = sortItems(filteredItems, sortBy, useTimeWeight);
 
-  function canMove(itemIndex, direction) {
-    if (sortBy === 'time') return false;
-    const target = sorted[itemIndex + direction];
-    return target && getDisplayedNote(sorted[itemIndex], useTimeWeight) === getDisplayedNote(target, useTimeWeight);
+  function canDropOn(target) {
+    const draggedItem = sorted.find(item => item.id === draggedItemId);
+    return sortBy !== 'time' && draggedItem && target.id !== draggedItem.id
+      && getDisplayedNote(draggedItem, useTimeWeight) === getDisplayedNote(target, useTimeWeight);
   }
 
-  function MoveButtons({ item, itemIndex }) {
-    return (
-      <>
-        <button
-          title="Mover para cima entre obras com a mesma nota"
-          onClick={() => onMoveItem(table.id, item.id, -1)}
-          disabled={!canMove(itemIndex, -1)}
-          style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: canMove(itemIndex, -1) ? 'pointer' : 'not-allowed', fontSize: '0.8rem', opacity: canMove(itemIndex, -1) ? 1 : 0.35 }}
-        >↑</button>
-        <button
-          title="Mover para baixo entre obras com a mesma nota"
-          onClick={() => onMoveItem(table.id, item.id, 1)}
-          disabled={!canMove(itemIndex, 1)}
-          style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: canMove(itemIndex, 1) ? 'pointer' : 'not-allowed', fontSize: '0.8rem', opacity: canMove(itemIndex, 1) ? 1 : 0.35 }}
-        >↓</button>
-      </>
-    );
+  function handleDragOver(event, target) {
+    if (!canDropOn(target)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }
+
+  function handleDrop(event, target) {
+    event.preventDefault();
+    if (canDropOn(target)) onMoveItem(table.id, draggedItemId, target.id);
+    setDraggedItemId(null);
   }
 
   async function handleSave(payload) {
@@ -109,10 +103,12 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
               showActions={true}
               onEdit={(it) => setModal(it)}
               onDelete={id => setConfirmAction({ type: 'item', id })}
-              onMoveUp={() => onMoveItem(table.id, item.id, -1)}
-              onMoveDown={() => onMoveItem(table.id, item.id, 1)}
-              canMoveUp={canMove(i, -1)}
-              canMoveDown={canMove(i, 1)}
+              draggable={sortBy !== 'time'}
+              onDragStart={() => setDraggedItemId(item.id)}
+              onDragEnd={() => setDraggedItemId(null)}
+              onDragOver={event => handleDragOver(event, item)}
+              onDrop={event => handleDrop(event, item)}
+              isDragging={draggedItemId === item.id}
             />
           ))}
         </div>
@@ -168,7 +164,12 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
             <div
               className="mr-table-row"
               key={item.id}
-              style={{ gridTemplateColumns: cols.gridTemplate, borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined, opacity: isDeleting ? 0.5 : 1 }}
+              draggable={sortBy !== 'time'}
+              onDragStart={() => setDraggedItemId(item.id)}
+              onDragEnd={() => setDraggedItemId(null)}
+              onDragOver={event => handleDragOver(event, item)}
+              onDrop={event => handleDrop(event, item)}
+              style={{ gridTemplateColumns: cols.gridTemplate, borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined, opacity: isDeleting ? 0.5 : (draggedItemId === item.id ? 0.45 : 1), cursor: sortBy !== 'time' ? 'grab' : undefined }}
             >
               <span style={{ fontWeight: 700, color: i < 3 ? 'var(--mr-gold)' : 'var(--mr-text-secondary)' }}>{i + 1}</span>
 
@@ -211,7 +212,6 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
               )}
 
               <div className="mr-flex mr-gap-1" style={{ justifyContent: 'flex-end' }}>
-                {sortBy !== 'time' && <MoveButtons item={item} itemIndex={i} />}
                 <button
                   title="Editar" onClick={() => setModal(item)} disabled={isDeleting}
                   style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mr-text-secondary)' }}

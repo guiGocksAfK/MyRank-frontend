@@ -148,15 +148,18 @@ export default function RankingsTab({ onNavigateToCreators }) {
     }));
   }
 
-  function handleMoveItem(tableId, itemId, direction) {
+  function handleMoveItem(tableId, itemId, targetId) {
     setTables(prev => prev.map(table => {
       if (table.id !== tableId) return table;
       const itemIndex = table.items.findIndex(item => item.id === itemId);
-      const targetIndex = itemIndex + direction;
-      if (itemIndex < 0 || targetIndex < 0 || targetIndex >= table.items.length) return table;
+      const targetIndex = table.items.findIndex(item => item.id === targetId);
+      if (itemIndex < 0 || targetIndex < 0 || itemIndex === targetIndex) return table;
 
       const nextItems = [...table.items];
-      [nextItems[itemIndex], nextItems[targetIndex]] = [nextItems[targetIndex], nextItems[itemIndex]];
+      const [draggedItem] = nextItems.splice(itemIndex, 1);
+      const targetPosition = nextItems.findIndex(item => item.id === targetId);
+      const insertIndex = itemIndex < targetIndex ? targetPosition + 1 : targetPosition;
+      nextItems.splice(insertIndex, 0, draggedItem);
       saveItemOrder(tableId, nextItems);
       return { ...table, items: nextItems };
     }));
