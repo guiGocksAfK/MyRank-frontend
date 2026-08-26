@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { formatTime, minutesToHHMM } from '../../utils/formatters';
-import { fetchMetadataSuggestion } from '../../data/mockData';
+import { searchByType, getDetailsByType } from '../../services/ExternalSearchService';
+
+const WORK_TYPES = [
+  { value: 'movie', label: '🎬 Filme', enabled: true },
+  { value: 'tv',    label: '📺 Série', enabled: true },
+  { value: 'game',  label: '🎮 Jogo (em breve)',  enabled: false },
+  { value: 'book',  label: '📚 Livro (em breve)', enabled: false },
+  { value: 'anime', label: '⛩️ Anime (em breve)', enabled: false },
+];
+
+const DEBOUNCE_MS = 400;
+const MIN_QUERY_LENGTH = 3; // evita disparar busca com 1-2 caracteres
 
 export default function ItemModal({ item, onSave, onClose }) {
   const isEdit = !!item;
 
   const initialHHMM = minutesToHHMM(item?.timeMinutes);
+  const [workType, setWorkType] = useState(item?.workType ?? '');
   const [title, setTitle]   = useState(item?.title       ?? '');
   const [sub,   setSub]     = useState(item?.sub         ?? '');
   const [note,  setNote]    = useState(item?.note        ?? '');
@@ -16,32 +28,74 @@ export default function ItemModal({ item, onSave, onClose }) {
 
   const [searching, setSearching] = useState(false);
   const [searchMsg, setSearchMsg] = useState('');
+  const [suggestions, setSuggestions] = useState([]); // resultados da busca, aguardando escolha
   const [saving, setSaving] = useState(false);
 
-  async function handleAutoFill() {
-    if (!title.trim()) {
-      setSearchMsg('⚠️ Digite um título primeiro');
+  // ── Busca automática (debounced) sempre que title ou workType mudam ──
+  const requestIdRef = useRef(0); // evita que uma resposta antiga sobrescreva uma mais nova
+  const skipNextSearchRef = useRef(false); // true logo após escolher uma sugestão, para não reabrir o painel
+
+  useEffect(() => {
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
       return;
     }
+
+    if (!workType || title.trim().length < MIN_QUERY_LENGTH) {
+      setSuggestions([]);
+      setSearchMsg('');
+      return;
+    }
+
+    const currentQuery = title.trim();
+    const timer = setTimeout(async () => {
+      const thisRequestId = ++requestIdRef.current;
+      setSearching(true);
+      setSearchMsg('🔎 Buscando...');
+      try {
+        const results = await searchByType(workType, currentQuery);
+        if (thisRequestId !== requestIdRef.current) return; // resposta obsoleta, ignora
+
+        if (!results || results.length === 0) {
+          setSuggestions([]);
+          setSearchMsg('❌ Nada encontrado. Tente o título original (em inglês).');
+        } else {
+          setSuggestions(results);
+          setSearchMsg('');
+        }
+      } catch {
+        if (thisRequestId !== requestIdRef.current) return;
+        setSuggestions([]);
+        setSearchMsg('❌ Erro ao buscar. Tente novamente.');
+      } finally {
+        if (thisRequestId === requestIdRef.current) setSearching(false);
+      }
+    }, DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [title, workType]);
+
+  async function handlePickSuggestion(suggestion) {
     setSearching(true);
-    setSearchMsg('🔎 Buscando metadados...');
+    setSearchMsg('🔎 Carregando detalhes...');
     try {
-      const data = await fetchMetadataSuggestion(title.trim());
-      if (!data) {
-        setSearchMsg('❌ Nenhuma obra encontrada com esse título');
-        return;
+      const details = await getDetailsByType(workType, suggestion.externalId);
+      if (details) {
+        skipNextSearchRef.current = true;
+        setTitle(details.title || title);
+        if (details.creator) setSub(details.creator);
+        if (details.timeMinutes) {
+          setHours(Math.floor(details.timeMinutes / 60) || '');
+          setMins(details.timeMinutes % 60 || '');
+        }
+        if (details.imageUrl) setImage(details.imageUrl);
+        if (details.releaseDate) setReleaseDate(details.releaseDate);
+        setSearchMsg('✓ Preenchido automaticamente!');
       }
-      if (data.director || data.studio || data.author) setSub(data.director || data.studio || data.author);
-      if (data.timeMinutes) {
-        setHours(Math.floor(data.timeMinutes / 60) || '');
-        setMins(data.timeMinutes % 60 || '');
-      }
-      if (data.image) setImage(data.image);
-      if (data.releaseDate) setReleaseDate(data.releaseDate);
-      setSearchMsg('✓ Metadados preenchidos automaticamente!');
     } catch {
-      setSearchMsg('❌ Erro ao buscar metadados');
+      setSearchMsg('❌ Erro ao buscar detalhes dessa obra.');
     } finally {
+      setSuggestions([]);
       setSearching(false);
     }
   }
@@ -90,15 +144,19 @@ export default function ItemModal({ item, onSave, onClose }) {
     display: 'block', marginBottom: 4,
   };
 
+  const showSidePanel = suggestions.length > 0;
+
   return (
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
         background: 'rgba(0,0,0,0.6)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
+        gap: 16,
       }}
       onClick={onClose}
     >
+      {/* Modal principal */}
       <div
         style={{
           background: 'var(--mr-surface)', border: '1px solid var(--mr-border)',
@@ -112,28 +170,51 @@ export default function ItemModal({ item, onSave, onClose }) {
         </h3>
 
         <div style={{ marginBottom: 12 }}>
+          <label style={labelStyle}>Tipo de obra</label>
+          <select
+            value={workType}
+            onChange={e => setWorkType(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="">Selecione...</option>
+            {WORK_TYPES.map(t => (
+              <option key={t.value} value={t.value} disabled={!t.enabled}>{t.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>Título</label>
-          <div className="mr-flex mr-gap-2">
+          <div style={{ position: 'relative' }}>
             <input
               type="text" value={title} placeholder="Ex: Interstellar"
               onChange={e => setTitle(e.target.value)}
               style={inputStyle}
+              disabled={!workType}
             />
-            <button
-              className="mr-btn mr-btn-outline mr-btn-sm"
-              onClick={handleAutoFill}
-              disabled={searching}
-              style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
-            >
-              {searching ? '⏳ Buscando...' : '🔍 Auto-preencher'}
-            </button>
+            {searching && (
+              <span style={{
+                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                fontSize: '0.8rem',
+              }}>⏳</span>
+            )}
           </div>
+          {!workType && (
+            <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
+              Escolha o tipo de obra acima para habilitar a busca.
+            </div>
+          )}
           {searchMsg && (
             <div style={{
               fontSize: '0.7rem', marginTop: 4,
               color: searchMsg.startsWith('✓') ? 'var(--mr-gold)' : 'var(--mr-text-secondary)',
             }}>
               {searchMsg}
+            </div>
+          )}
+          {!searchMsg && !showSidePanel && (
+            <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
+              Dica: se não encontrar, tente o título original (em inglês).
             </div>
           )}
         </div>
@@ -190,6 +271,75 @@ export default function ItemModal({ item, onSave, onClose }) {
           </button>
         </div>
       </div>
+
+      {/* Painel lateral de sugestões (flyout) */}
+      {showSidePanel && (
+        <div
+          style={{
+            background: 'var(--mr-surface)', border: '1px solid var(--mr-border)',
+            borderRadius: 12, width: 300, maxWidth: '85vw', maxHeight: '90vh',
+            display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{
+            padding: '12px 14px', borderBottom: '1px solid var(--mr-border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>
+              Resultados ({suggestions.length})
+            </span>
+            <button
+              onClick={() => setSuggestions([])}
+              style={{
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                color: 'var(--mr-text-secondary)', fontSize: '0.9rem', lineHeight: 1,
+              }}
+              title="Fechar"
+            >✕</button>
+          </div>
+
+          <div style={{ overflowY: 'auto', padding: 8 }}>
+            {suggestions.map(s => (
+              <div
+                key={s.externalId}
+                onClick={() => handlePickSuggestion(s)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '8px', cursor: 'pointer',
+                  borderRadius: 8,
+                  transition: 'background 0.15s',
+                  marginBottom: 4,
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(212,175,55,0.1)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <div style={{
+                  width: 46, height: 68, borderRadius: 6, overflow: 'hidden',
+                  flexShrink: 0, background: 'var(--mr-bg)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: '1px solid var(--mr-border)',
+                }}>
+                  {s.posterUrl ? (
+                    <img src={s.posterUrl} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: '1.2rem' }}>🎞️</span>
+                  )}
+                </div>
+                <div className="mr-min-w-0">
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, lineHeight: 1.3 }}>{s.title}</div>
+                  {s.releaseDate && (
+                    <div style={{ fontSize: '0.72rem', color: 'var(--mr-gold)', marginTop: 2 }}>
+                      {s.releaseDate.slice(0, 4)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
