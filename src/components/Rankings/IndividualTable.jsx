@@ -1,45 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Poster from './Poster';
 import GridCard from './GridCard';
 import ItemModal from './ItemModal';
-import { getNoteBarColor, formatTime, sortItems, getMode, applyFilters, getColumnConfig } from '../../utils/formatters';
+import ConfirmModal from './ConfirmModal';
+import { getNoteBarColor, formatTime, sortItems, getMode, getDisplayedNote, applyFilters, getColumnConfig } from '../../utils/formatters';
 
-export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode, filters, onSaveWork, onDeleteWork, onDeleteTable }) {
-  const [modal, setModal] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
-  const mode    = getMode(sortBy, useTimeWeight);
-  const maxNote = mode === 'weight' ? 12 : 10;
-  const cols    = getColumnConfig(mode, true, viewMode === 'list');
-
-  const filteredItems = useMemo(() => applyFilters(table.items, filters), [table.items, filters]);
-  const sorted = sortItems(filteredItems, sortBy, useTimeWeight);
-
-  async function handleSave(payload) {
-    await onSaveWork(table.id, payload);
-  }
-
-  async function handleDelete(id) {
-    if (!window.confirm('Remover esta obra do ranking?')) return;
-    setDeletingId(id);
-    try {
-      await onDeleteWork(table.id, id);
-    } catch (err) {
-      alert(err?.response?.data?.message || err.message || 'Erro ao excluir a obra.');
-    } finally {
-      setDeletingId(null);
-    }
-  }
-
-  async function handleDeleteTableClick() {
-    if (!window.confirm(`Excluir a tabela "${table.label}" e todos os seus itens?`)) return;
-    try {
-      await onDeleteTable(table.id);
-    } catch (err) {
-      alert(err?.response?.data?.message || err.message || 'Erro ao excluir a tabela.');
-    }
-  }
-
-  const Toolbar = () => (
+function TableToolbar({ table, onDeleteTable, onAddWork }) {
+  return (
     <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-2" style={{ marginBottom: '1rem' }}>
       <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>
         {table.items.length} obra{table.items.length !== 1 ? 's' : ''}
@@ -48,28 +15,104 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
         <button
           className="mr-btn mr-btn-outline mr-btn-sm"
           style={{ color: '#e24b4a', borderColor: 'rgba(226,75,74,0.35)' }}
-          onClick={handleDeleteTableClick}
+          onClick={onDeleteTable}
         >
           🗑️ Excluir tabela
         </button>
-        <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={() => setModal('add')}>
+        <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={onAddWork}>
           ➕ Adicionar obra
         </button>
       </div>
     </div>
   );
+}
+
+export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode, filters, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem }) {
+  const [modal, setModal] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const mode    = getMode(sortBy, useTimeWeight);
+  const maxNote = mode === 'weight' ? 12 : 10;
+  const cols    = getColumnConfig(mode, true, viewMode === 'list');
+
+  const filteredItems = useMemo(() => applyFilters(table.items, filters), [table.items, filters]);
+  const sorted = sortItems(filteredItems, sortBy, useTimeWeight);
+
+  function canMove(itemIndex, direction) {
+    if (sortBy === 'time') return false;
+    const target = sorted[itemIndex + direction];
+    return target && getDisplayedNote(sorted[itemIndex], useTimeWeight) === getDisplayedNote(target, useTimeWeight);
+  }
+
+  function MoveButtons({ item, itemIndex }) {
+    return (
+      <>
+        <button
+          title="Mover para cima entre obras com a mesma nota"
+          onClick={() => onMoveItem(table.id, item.id, -1)}
+          disabled={!canMove(itemIndex, -1)}
+          style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: canMove(itemIndex, -1) ? 'pointer' : 'not-allowed', fontSize: '0.8rem', opacity: canMove(itemIndex, -1) ? 1 : 0.35 }}
+        >↑</button>
+        <button
+          title="Mover para baixo entre obras com a mesma nota"
+          onClick={() => onMoveItem(table.id, item.id, 1)}
+          disabled={!canMove(itemIndex, 1)}
+          style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: canMove(itemIndex, 1) ? 'pointer' : 'not-allowed', fontSize: '0.8rem', opacity: canMove(itemIndex, 1) ? 1 : 0.35 }}
+        >↓</button>
+      </>
+    );
+  }
+
+  async function handleSave(payload) {
+    await onSaveWork(table.id, payload);
+  }
+
+  async function handleDelete(id) {
+    setDeletingId(id);
+    try {
+      await onDeleteWork(table.id, id);
+      return true;
+    } catch (err) {
+      alert(err?.response?.data?.message || err.message || 'Erro ao excluir a obra.');
+      return false;
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function handleDeleteTableClick() {
+    try {
+      await onDeleteTable(table.id);
+      return true;
+    } catch (err) {
+      alert(err?.response?.data?.message || err.message || 'Erro ao excluir a tabela.');
+      return false;
+    }
+  }
+
+  const toolbar = (
+    <TableToolbar
+      table={table}
+      onDeleteTable={() => setConfirmAction({ type: 'table' })}
+      onAddWork={() => setModal('add')}
+    />
+  );
 
   if (viewMode === 'grid') {
     return (
       <div>
-        <Toolbar />
+        {toolbar}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
           {sorted.map((item, i) => (
             <GridCard
               key={item.id} item={item} mode={mode} maxNote={maxNote} index={i}
               showActions={true}
               onEdit={(it) => setModal(it)}
-              onDelete={handleDelete}
+              onDelete={id => setConfirmAction({ type: 'item', id })}
+              onMoveUp={() => onMoveItem(table.id, item.id, -1)}
+              onMoveDown={() => onMoveItem(table.id, item.id, 1)}
+              canMoveUp={canMove(i, -1)}
+              canMoveDown={canMove(i, 1)}
             />
           ))}
         </div>
@@ -81,13 +124,29 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
         {modal && (
           <ItemModal item={modal === 'add' ? null : modal} onSave={handleSave} onClose={() => setModal(null)} />
         )}
+        {confirmAction?.type === 'item' && (
+          <ConfirmModal
+            title="Remover esta obra?"
+            message="A obra será removida deste ranking e essa ação não poderá ser desfeita."
+            onConfirm={() => handleDelete(confirmAction.id)}
+            onClose={() => setConfirmAction(null)}
+          />
+        )}
+        {confirmAction?.type === 'table' && (
+          <ConfirmModal
+            title="Excluir tabela?"
+            message={`A tabela "${table.label}" e todos os seus itens serão excluídos. Essa ação não poderá ser desfeita.`}
+            onConfirm={handleDeleteTableClick}
+            onClose={() => setConfirmAction(null)}
+          />
+        )}
       </div>
     );
   }
 
   return (
     <div>
-      <Toolbar />
+      {toolbar}
 
       <div className="mr-table-header" style={{ gridTemplateColumns: cols.gridTemplate }}>
         {cols.headers.map((h, i) => <span key={i}>{h}</span>)}
@@ -152,12 +211,13 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
               )}
 
               <div className="mr-flex mr-gap-1" style={{ justifyContent: 'flex-end' }}>
+                {sortBy !== 'time' && <MoveButtons item={item} itemIndex={i} />}
                 <button
                   title="Editar" onClick={() => setModal(item)} disabled={isDeleting}
                   style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mr-text-secondary)' }}
                 >✏️</button>
                 <button
-                  title="Excluir" onClick={() => handleDelete(item.id)} disabled={isDeleting}
+                  title="Excluir" onClick={() => setConfirmAction({ type: 'item', id: item.id })} disabled={isDeleting}
                   style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mr-text-secondary)' }}
                 >{isDeleting ? '⏳' : '🗑️'}</button>
               </div>
@@ -168,6 +228,22 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
 
       {modal && (
         <ItemModal item={modal === 'add' ? null : modal} onSave={handleSave} onClose={() => setModal(null)} />
+      )}
+      {confirmAction?.type === 'item' && (
+        <ConfirmModal
+          title="Remover esta obra?"
+          message="A obra será removida deste ranking e essa ação não poderá ser desfeita."
+          onConfirm={() => handleDelete(confirmAction.id)}
+          onClose={() => setConfirmAction(null)}
+        />
+      )}
+      {confirmAction?.type === 'table' && (
+        <ConfirmModal
+          title="Excluir tabela?"
+          message={`A tabela "${table.label}" e todos os seus itens serão excluídos. Essa ação não poderá ser desfeita.`}
+          onConfirm={handleDeleteTableClick}
+          onClose={() => setConfirmAction(null)}
+        />
       )}
     </div>
   );

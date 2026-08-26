@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import UnifiedTable from './UnifiedTable';
 import IndividualTable from './IndividualTable';
 import TableSelector from './TableSelector';
@@ -9,6 +9,56 @@ import { getCategories, createCategory, deleteCategory } from '../../services/Ca
 import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../services/WorkService.js';
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../utils/mapWork';
 import { applyFilters } from '../../utils/formatters';
+
+function getTableOrderKey() {
+  const userKey = localStorage.getItem('myrank_token') || 'anonymous';
+  return `myrank_table_order_${userKey}`;
+}
+
+function orderTables(nextTables) {
+  let parsedOrder;
+  try {
+    parsedOrder = JSON.parse(localStorage.getItem(getTableOrderKey()) || '[]');
+  } catch {
+    parsedOrder = [];
+  }
+  const savedIds = Array.isArray(parsedOrder) ? parsedOrder : [];
+
+  const tableById = new Map(nextTables.map(table => [String(table.id), table]));
+  const ordered = savedIds
+    .map(id => tableById.get(String(id)))
+    .filter(Boolean);
+  const orderedIds = new Set(ordered.map(table => String(table.id)));
+
+  return [...ordered, ...nextTables.filter(table => !orderedIds.has(String(table.id)))];
+}
+
+function saveTableOrder(nextTables) {
+  localStorage.setItem(getTableOrderKey(), JSON.stringify(nextTables.map(table => table.id)));
+}
+
+function getItemOrderKey(tableId) {
+  const userKey = localStorage.getItem('myrank_token') || 'anonymous';
+  return `myrank_item_order_${userKey}_${tableId}`;
+}
+
+function orderItems(tableId, items) {
+  let parsedOrder;
+  try {
+    parsedOrder = JSON.parse(localStorage.getItem(getItemOrderKey(tableId)) || '[]');
+  } catch {
+    parsedOrder = [];
+  }
+  const savedIds = Array.isArray(parsedOrder) ? parsedOrder : [];
+  const itemById = new Map(items.map(item => [String(item.id), item]));
+  const ordered = savedIds.map(id => itemById.get(String(id))).filter(Boolean);
+  const orderedIds = new Set(ordered.map(item => String(item.id)));
+  return [...ordered, ...items.filter(item => !orderedIds.has(String(item.id)))];
+}
+
+function saveItemOrder(tableId, items) {
+  localStorage.setItem(getItemOrderKey(tableId), JSON.stringify(items.map(item => item.id)));
+}
 
 export default function RankingsTab({ onNavigateToCreators }) {
   const [tables,           setTables]           = useState([]);
@@ -23,6 +73,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
   const [selectedTableIds, setSelectedTableIds] = useState([]);
   const [showNewTable,     setShowNewTable]     = useState(false);
   const [unifiedGroupId,   setUnifiedGroupId]   = useState(null);
+  const [draggedTableId,   setDraggedTableId]   = useState(null);
 
   // ── Carrega categorias + obras + grupo "Unificado" do backend ao montar ──
   useEffect(() => {
@@ -36,11 +87,11 @@ export default function RankingsTab({ onNavigateToCreators }) {
         const tablesWithItems = await Promise.all(
           categories.map(async (cat) => {
             const works = await getWorksByCategory(cat.id);
-            return mapCategoryToTable(cat, works.map(mapWorkToItem));
+            return mapCategoryToTable(cat, orderItems(cat.id, works.map(mapWorkToItem)));
           })
         );
         if (cancelled) return;
-        setTables(tablesWithItems);
+        setTables(orderTables(tablesWithItems));
 
         // Busca o grupo "Unificado" já existente, ou cria um novo com tudo selecionado
         const groups = await getGroups();
@@ -81,6 +132,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
       if (t.id !== categoryId) return t;
       const exists = t.items.find(x => x.id === item.id);
       const newItems = exists ? t.items.map(x => x.id === item.id ? item : x) : [...t.items, item];
+      saveItemOrder(categoryId, newItems);
       return { ...t, items: newItems };
     }));
   }
@@ -88,16 +140,37 @@ export default function RankingsTab({ onNavigateToCreators }) {
   // ── Excluir obra ──
   async function handleDeleteWork(categoryId, workId) {
     await deleteWork(workId);
-    setTables(prev => prev.map(t =>
-      t.id === categoryId ? { ...t, items: t.items.filter(x => x.id !== workId) } : t
-    ));
+    setTables(prev => prev.map(t => {
+      if (t.id !== categoryId) return t;
+      const nextItems = t.items.filter(x => x.id !== workId);
+      saveItemOrder(categoryId, nextItems);
+      return { ...t, items: nextItems };
+    }));
+  }
+
+  function handleMoveItem(tableId, itemId, direction) {
+    setTables(prev => prev.map(table => {
+      if (table.id !== tableId) return table;
+      const itemIndex = table.items.findIndex(item => item.id === itemId);
+      const targetIndex = itemIndex + direction;
+      if (itemIndex < 0 || targetIndex < 0 || targetIndex >= table.items.length) return table;
+
+      const nextItems = [...table.items];
+      [nextItems[itemIndex], nextItems[targetIndex]] = [nextItems[targetIndex], nextItems[itemIndex]];
+      saveItemOrder(tableId, nextItems);
+      return { ...table, items: nextItems };
+    }));
   }
 
   // ── Criar tabela (categoria) ──
   async function handleCreateTable(label) {
     const cat = await createCategory(label);
     const newTable = mapCategoryToTable(cat);
-    setTables(prev => [...prev, newTable]);
+    setTables(prev => {
+      const nextTables = [...prev, newTable];
+      saveTableOrder(nextTables);
+      return nextTables;
+    });
 
     const newSelectedIds = [...selectedTableIds, newTable.id];
     setSelectedTableIds(newSelectedIds);
@@ -110,6 +183,22 @@ export default function RankingsTab({ onNavigateToCreators }) {
         console.error('Erro ao atualizar grupo unificado:', err);
       }
     }
+  }
+
+  function moveTable(draggedId, targetId) {
+    if (!draggedId || !targetId || draggedId === targetId) return;
+
+    setTables(prev => {
+      const draggedIndex = prev.findIndex(table => table.id === draggedId);
+      const targetIndex = prev.findIndex(table => table.id === targetId);
+      if (draggedIndex < 0 || targetIndex < 0) return prev;
+
+      const nextTables = [...prev];
+      const [draggedTable] = nextTables.splice(draggedIndex, 1);
+      nextTables.splice(targetIndex, 0, draggedTable);
+      saveTableOrder(nextTables);
+      return nextTables;
+    });
   }
 
   // ── Excluir tabela (categoria) ──
@@ -181,8 +270,30 @@ export default function RankingsTab({ onNavigateToCreators }) {
         <button className={`mr-tab-trigger ${activeTab === 'unified' ? 'active' : ''}`} onClick={() => setActiveTab('unified')} style={{ borderRadius: '8px 8px 0 0' }}>
           🏆 Unificado
         </button>
-        {tables.map(t => (
-          <button key={t.id} className={`mr-tab-trigger ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)} style={{ borderRadius: '8px 8px 0 0' }}>
+        {tables.map((t, index) => (
+          <button
+            key={t.id}
+            className={`mr-tab-trigger ${activeTab === t.id ? 'active' : ''}`}
+            onClick={() => setActiveTab(t.id)}
+            draggable
+            onDragStart={() => setDraggedTableId(t.id)}
+            onDragEnd={() => setDraggedTableId(null)}
+            onDragOver={event => event.preventDefault()}
+            onDrop={() => {
+              moveTable(draggedTableId, t.id);
+              setDraggedTableId(null);
+            }}
+            onKeyDown={event => {
+              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+              event.preventDefault();
+              const targetIndex = event.key === 'ArrowLeft' ? index - 1 : index + 1;
+              if (targetIndex >= 0 && targetIndex < tables.length) {
+                moveTable(t.id, tables[targetIndex].id);
+              }
+            }}
+            title="Arraste para reordenar"
+            style={{ borderRadius: '8px 8px 0 0', opacity: draggedTableId === t.id ? 0.45 : 1, cursor: 'grab' }}
+          >
             {t.label}
           </button>
         ))}
@@ -242,6 +353,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
               onSaveWork={handleSaveWork}
               onDeleteWork={handleDeleteWork}
               onDeleteTable={handleDeleteTable}
+              onMoveItem={handleMoveItem}
             />
           );
         })()

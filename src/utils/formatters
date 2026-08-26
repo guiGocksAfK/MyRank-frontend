@@ -31,8 +31,13 @@ export function getYear(isoDate) {
 export function sortItems(items, sortBy, useTimeWeight) {
   return [...items].sort((a, b) => {
     if (sortBy === 'time') return b.timeMinutes - a.timeMinutes;
-    return useTimeWeight ? b.finalNote - a.finalNote : b.note - a.note;
+    const noteDifference = useTimeWeight ? b.finalNote - a.finalNote : b.note - a.note;
+    return noteDifference;
   });
+}
+
+export function getDisplayedNote(item, useTimeWeight) {
+  return useTimeWeight ? item.finalNote : item.note;
 }
 
 export function getMode(sortBy, useTimeWeight) {

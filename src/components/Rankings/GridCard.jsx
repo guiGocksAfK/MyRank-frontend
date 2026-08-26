@@ -1,7 +1,6 @@
-import React from 'react';
 import { getNoteBarColor, formatTime } from '../../utils/formatters';
 
-export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete, showActions }) {
+export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete, showActions, onMoveUp, onMoveDown, canMoveUp, canMoveDown }) {
   const displayNote = mode === 'weight' ? item.finalNote : item.note;
   const bonus = mode === 'weight' ? item.bonusTime : 0;
   const barWidth = Math.min((displayNote / maxNote) * 100, 100);
@@ -77,6 +76,8 @@ export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete,
 
         {showActions && (
           <div className="mr-flex mr-gap-1 mr-mt-2" style={{ justifyContent: 'flex-end' }}>
+            <button title="Mover para cima entre obras com a mesma nota" onClick={(e) => { e.stopPropagation(); onMoveUp?.(); }} disabled={!canMoveUp} style={{ width: 24, height: 24, borderRadius: 4, border: '1px solid var(--mr-border)', background: 'transparent', cursor: canMoveUp ? 'pointer' : 'not-allowed', fontSize: '0.7rem', opacity: canMoveUp ? 1 : 0.35 }}>↑</button>
+            <button title="Mover para baixo entre obras com a mesma nota" onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }} disabled={!canMoveDown} style={{ width: 24, height: 24, borderRadius: 4, border: '1px solid var(--mr-border)', background: 'transparent', cursor: canMoveDown ? 'pointer' : 'not-allowed', fontSize: '0.7rem', opacity: canMoveDown ? 1 : 0.35 }}>↓</button>
             <button
               title="Editar"
               onClick={(e) => { e.stopPropagation(); onEdit?.(item); }}
