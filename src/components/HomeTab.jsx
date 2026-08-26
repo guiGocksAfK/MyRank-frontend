@@ -1,6 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { mediaItems, badges } from '../data/mockData';
+import { useEffect, useMemo, useState } from 'react';
+import { badges } from '../data/mockData';
 import { getStoredUser } from '../services/authService';
+import { getCategories } from '../services/CategoryService';
+import { getWorksByCategory } from '../services/WorkService';
+import { mapWorkToItem } from '../utils/mapWork';
 
 const typeIcons = {
   filme: '🎬',
@@ -14,6 +17,7 @@ const typeLabels = {
   jogo: 'Jogo',
   serie: 'Série',
   livro: 'Livro',
+  outro: 'Outro',
 };
 
 function formatTime(minutes) {
@@ -41,15 +45,39 @@ function timeAgo(dateString) {
 export default function HomeTab() {
   const [weighted, setWeighted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [mediaItems, setMediaItems] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(true);
   const storedUser = useMemo(() => getStoredUser(), []);
   const userName = storedUser?.name || storedUser?.username || 'usuário';
 
-  const totalHours = Math.round(
-    mediaItems.reduce((sum, item) => sum + item.timeMinutes, 0) / 60
-  );
-  const avgNote = (
-    mediaItems.reduce((sum, item) => sum + item.finalNote, 0) / mediaItems.length
-  ).toFixed(1);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadItems() {
+      try {
+        const categories = await getCategories();
+        const itemsByCategory = await Promise.all(categories.map(async category => {
+          const works = await getWorksByCategory(category.id);
+          const normalizedCategory = category.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+          const type = Object.keys(typeLabels).find(value => normalizedCategory.includes(value)) || 'outro';
+          return works.map(work => ({ ...mapWorkToItem(work), type }));
+        }));
+        if (!cancelled) setMediaItems(itemsByCategory.flat());
+      } catch {
+        if (!cancelled) setMediaItems([]);
+      } finally {
+        if (!cancelled) setLoadingItems(false);
+      }
+    }
+
+    loadItems();
+    return () => { cancelled = true; };
+  }, []);
+
+  const totalHours = Math.round(mediaItems.reduce((sum, item) => sum + (item.timeMinutes || 0), 0) / 60);
+  const avgNote = mediaItems.length
+    ? (mediaItems.reduce((sum, item) => sum + (item.note || 0), 0) / mediaItems.length).toFixed(1)
+    : '0.0';
   const unlockedBadges = badges.filter((b) => b.unlocked).length;
   const totalBadges = badges.length;
 
@@ -59,12 +87,16 @@ export default function HomeTab() {
     .sort((a, b) => getNote(b) - getNote(a))
     .slice(0, 5);
 
+  const recentItems = [...mediaItems]
+    .sort((a, b) => new Date(b.addedDate || 0) - new Date(a.addedDate || 0))
+    .slice(0, 6);
+
   const recentBadges = badges.filter((b) => b.unlocked).slice(0, 4);
 
   const stats = [
-    { icon: '🎞️', value: mediaItems.length, label: 'Obras Avaliadas' },
-    { icon: '⭐', value: avgNote, label: 'Nota Média' },
-    { icon: '⏱️', value: `${totalHours}h`, label: 'Horas Consumidas' },
+    { icon: '🎞️', value: loadingItems ? '...' : mediaItems.length, label: 'Obras Avaliadas' },
+    { icon: '⭐', value: loadingItems ? '...' : avgNote, label: 'Nota Média' },
+    { icon: '⏱️', value: loadingItems ? '...' : `${totalHours}h`, label: 'Horas Consumidas' },
     { icon: '🏅', value: `${unlockedBadges}/${totalBadges}`, label: 'Badges Desbloqueados' },
   ];
 
@@ -101,27 +133,29 @@ export default function HomeTab() {
           <button className="mr-link-btn">Ver todas →</button>
         </div>
         <div className="mr-poster-grid">
-          {mediaItems.slice(0, 6).map((item) => (
+          {recentItems.map((item) => (
             <div className="mr-poster" key={item.id}>
-              <div className="mr-poster-rating">{item.finalNote.toFixed(1)}</div>
+              <div className="mr-poster-rating">{item.note.toFixed(1)}</div>
               <div className="mr-poster-inner">
-                <div className="mr-poster-placeholder">
-                  <span className="mr-poster-placeholder-icon">
-                    {typeIcons[item.type]}
-                  </span>
-                  <span className="mr-poster-placeholder-title">{item.title}</span>
-                </div>
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <div className="mr-poster-placeholder">
+                    <span className="mr-poster-placeholder-icon">{typeIcons[item.type] || '📦'}</span>
+                    <span className="mr-poster-placeholder-title">{item.title}</span>
+                  </div>
+                )}
                 <div className="mr-poster-overlay">
-                  <span className="mr-poster-overlay-type">
-                    {typeLabels[item.type]}
-                  </span>
+                  <span className="mr-poster-overlay-type">{typeLabels[item.type]}</span>
                   <span className="mr-poster-overlay-title">{item.title}</span>
                   <div className="mr-poster-overlay-badges">
                     <span className="mr-poster-overlay-note">
                       {item.note.toFixed(1)}
-                    </span>
-                    <span className="mr-poster-overlay-bonus">
-                      +{item.bonusTime.toFixed(1)} bônus
                     </span>
                   </div>
                   <span className="mr-poster-overlay-time">

@@ -54,8 +54,9 @@ export function applyFilters(items, filters) {
       if (filters.releaseYearMin != null && year < filters.releaseYearMin) return false;
       if (filters.releaseYearMax != null && year > filters.releaseYearMax) return false;
     }
-    if (filters.addedDateFrom != null && item.addedDate < filters.addedDateFrom) return false;
-    if (filters.addedDateTo != null && item.addedDate > filters.addedDateTo) return false;
+    const addedDay = item.addedDate?.slice(0, 10);
+    if (filters.addedDateFrom != null && addedDay < filters.addedDateFrom) return false;
+    if (filters.addedDateTo != null && addedDay > filters.addedDateTo) return false;
     return true;
   });
 }

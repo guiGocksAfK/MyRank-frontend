@@ -8,7 +8,7 @@ export function mapWorkToItem(work) {
     timeMinutes: work.timeMinutes,
     bonusTime: work.timeBonusScore,
     finalNote: work.finalScore,
-    addedDate: work.createdAt?.slice(0, 10) ?? null,
+    addedDate: work.createdAt ?? null,
     releaseDate: work.releaseDate,
     image: work.imageUrl ?? '',
   };
