@@ -10,6 +10,11 @@ export async function createCategory(name) {
   return res.data;
 }
 
+export async function updateCategory(id, name) {
+  const res = await api.put(`/categories/${id}`, { name });
+  return res.data;
+}
+
 export async function deleteCategory(id) {
   await api.delete(`/categories/${id}`);
 }

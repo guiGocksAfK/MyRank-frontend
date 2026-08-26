@@ -1,11 +1,39 @@
-import React, { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Poster from './Poster';
+import GridCard from './GridCard';
 import { getNoteBarColor, formatTime, sortItems, getMode, applyFilters, getColumnConfig, badgeStyle } from '../../utils/formatters';
+
+function getUnifiedOrderKey() {
+  const userKey = localStorage.getItem('myrank_token') || 'anonymous';
+  return `myrank_unified_item_order_${userKey}`;
+}
+
+function getItemKey(item) {
+  return `${item._tableId}:${item.id}`;
+}
+
+function readUnifiedOrder() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(getUnifiedOrderKey()) || '[]');
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+}
+
+function applyUnifiedOrder(items, savedOrder) {
+  const itemByKey = new Map(items.map(item => [getItemKey(item), item]));
+  const ordered = savedOrder.map(key => itemByKey.get(key)).filter(Boolean);
+  const orderedKeys = new Set(ordered.map(getItemKey));
+  return [...ordered, ...items.filter(item => !orderedKeys.has(getItemKey(item)))];
+}
 
 export default function UnifiedTable({ tables, selectedTableIds, sortBy, useTimeWeight, viewMode, filters }) {
   const mode    = getMode(sortBy, useTimeWeight);
   const maxNote = mode === 'weight' ? 12 : 10;
   const cols    = getColumnConfig(mode, false, viewMode === 'list');
+  const [unifiedOrder, setUnifiedOrder] = useState(readUnifiedOrder);
+  const [draggedItemKey, setDraggedItemKey] = useState(null);
 
   const selectedTables = tables.filter(t => selectedTableIds.includes(t.id));
 
@@ -15,15 +43,59 @@ export default function UnifiedTable({ tables, selectedTableIds, sortBy, useTime
     ),
   [selectedTables]);
 
-  const filteredItems = useMemo(() => applyFilters(allItems, filters), [allItems, filters]);
+  const orderedItems = useMemo(() => applyUnifiedOrder(allItems, unifiedOrder), [allItems, unifiedOrder]);
+  const filteredItems = useMemo(() => applyFilters(orderedItems, filters), [orderedItems, filters]);
   const sorted = sortItems(filteredItems, sortBy, useTimeWeight);
+
+  function canDropOn(target) {
+    const draggedItem = sorted.find(item => getItemKey(item) === draggedItemKey);
+    return sortBy !== 'time' && draggedItem && getItemKey(target) !== draggedItemKey
+      && (useTimeWeight ? draggedItem.finalNote : draggedItem.note) === (useTimeWeight ? target.finalNote : target.note);
+  }
+
+  function handleDragOver(event, target) {
+    if (!canDropOn(target)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }
+
+  function handleDrop(event, target) {
+    event.preventDefault();
+    if (!canDropOn(target)) {
+      setDraggedItemKey(null);
+      return;
+    }
+
+    const draggedIndex = orderedItems.findIndex(item => getItemKey(item) === draggedItemKey);
+    const targetIndex = orderedItems.findIndex(item => getItemKey(item) === getItemKey(target));
+    if (draggedIndex < 0 || targetIndex < 0) return;
+
+    const nextItems = [...orderedItems];
+    const [draggedItem] = nextItems.splice(draggedIndex, 1);
+    const targetPosition = nextItems.findIndex(item => getItemKey(item) === getItemKey(target));
+    const insertIndex = draggedIndex < targetIndex ? targetPosition + 1 : targetPosition;
+    nextItems.splice(insertIndex, 0, draggedItem);
+    const nextOrder = nextItems.map(getItemKey);
+    setUnifiedOrder(nextOrder);
+    localStorage.setItem(getUnifiedOrderKey(), JSON.stringify(nextOrder));
+    setDraggedItemKey(null);
+  }
 
   if (viewMode === 'grid') {
     return (
       <div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
           {sorted.map((item, i) => (
-            <GridCardWrapper key={item.id + item._tableId} item={item} mode={mode} maxNote={maxNote} index={i} />
+            <GridCard
+              key={item.id + item._tableId}
+              item={item} mode={mode} maxNote={maxNote} index={i} showActions={false}
+              draggable={sortBy !== 'time'}
+              onDragStart={() => setDraggedItemKey(getItemKey(item))}
+              onDragEnd={() => setDraggedItemKey(null)}
+              onDragOver={event => handleDragOver(event, item)}
+              onDrop={event => handleDrop(event, item)}
+              isDragging={draggedItemKey === getItemKey(item)}
+            />
           ))}
         </div>
         {sorted.length === 0 && (
@@ -65,7 +137,12 @@ export default function UnifiedTable({ tables, selectedTableIds, sortBy, useTime
               <div
                 className="mr-table-row"
                 key={item.id + item._tableId}
-                style={{ gridTemplateColumns: cols.gridTemplate, borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined }}
+                draggable={sortBy !== 'time'}
+                onDragStart={() => setDraggedItemKey(getItemKey(item))}
+                onDragEnd={() => setDraggedItemKey(null)}
+                onDragOver={event => handleDragOver(event, item)}
+                onDrop={event => handleDrop(event, item)}
+                style={{ gridTemplateColumns: cols.gridTemplate, borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined, opacity: draggedItemKey === getItemKey(item) ? 0.45 : 1, cursor: sortBy !== 'time' ? 'grab' : undefined }}
               >
                 <span style={{ fontWeight: 700, color: i < 3 ? 'var(--mr-gold)' : 'var(--mr-text-secondary)' }}>{i + 1}</span>
 
@@ -120,9 +197,4 @@ export default function UnifiedTable({ tables, selectedTableIds, sortBy, useTime
       </div>
     </div>
   );
-}
-
-function GridCardWrapper({ item, mode, maxNote, index }) {
-  const GridCard = require('./GridCard').default;
-  return <GridCard item={item} mode={mode} maxNote={maxNote} index={index} showActions={false} />;
 }

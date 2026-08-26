@@ -5,7 +5,7 @@ import TableSelector from './TableSelector';
 import FilterPanel from './FilterPanel';
 import NewTableModal from './NewTableModal';
 import { getGroups, createGroup, updateGroup } from '../../services/masterTableGroupService';
-import { getCategories, createCategory, deleteCategory } from '../../services/CategoryService.js';
+import { getCategories, createCategory, updateCategory, deleteCategory } from '../../services/CategoryService.js';
 import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../services/WorkService.js';
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../utils/mapWork';
 import { applyFilters } from '../../utils/formatters';
@@ -65,7 +65,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
   const [loadingTables,    setLoadingTables]    = useState(true);
   const [loadError,        setLoadError]        = useState(null);
   const [activeTab,        setActiveTab]        = useState('unified');
-  const [useTimeWeight,    setUseTimeWeight]    = useState(true);
+  const [useTimeWeight,    setUseTimeWeight]    = useState(false);
   const [sortBy,           setSortBy]           = useState('nota');
   const [viewMode,         setViewMode]         = useState('list');
   const [showFilters,      setShowFilters]      = useState(false);
@@ -210,6 +210,12 @@ export default function RankingsTab({ onNavigateToCreators }) {
     setTables(prev => prev.filter(t => t.id !== id));
     setSelectedTableIds(prev => prev.filter(x => x !== id));
     setActiveTab('unified');
+  }
+
+  async function handleRenameTable(id, name) {
+    const updatedCategory = await updateCategory(id, name);
+    const updatedName = updatedCategory?.name || name;
+    setTables(prev => prev.map(table => table.id === id ? { ...table, label: updatedName } : table));
   }
 
   // ── Mudar seleção do Unificado (persiste no master_table_group) ──
@@ -357,6 +363,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
               onDeleteWork={handleDeleteWork}
               onDeleteTable={handleDeleteTable}
               onMoveItem={handleMoveItem}
+              onRenameTable={handleRenameTable}
             />
           );
         })()

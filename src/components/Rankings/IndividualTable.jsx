@@ -3,9 +3,10 @@ import Poster from './Poster';
 import GridCard from './GridCard';
 import ItemModal from './ItemModal';
 import ConfirmModal from './ConfirmModal';
+import EditTableModal from './EditTableModal';
 import { getNoteBarColor, formatTime, sortItems, getMode, getDisplayedNote, applyFilters, getColumnConfig } from '../../utils/formatters';
 
-function TableToolbar({ table, onDeleteTable, onAddWork }) {
+function TableToolbar({ table, onDeleteTable, onEditTable, onAddWork }) {
   return (
     <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-2" style={{ marginBottom: '1rem' }}>
       <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>
@@ -19,6 +20,9 @@ function TableToolbar({ table, onDeleteTable, onAddWork }) {
         >
           🗑️ Excluir tabela
         </button>
+        <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onEditTable}>
+          ✏️ Editar tabela
+        </button>
         <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={onAddWork}>
           ➕ Adicionar obra
         </button>
@@ -27,11 +31,12 @@ function TableToolbar({ table, onDeleteTable, onAddWork }) {
   );
 }
 
-export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode, filters, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem }) {
+export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode, filters, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem, onRenameTable }) {
   const [modal, setModal] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [draggedItemId, setDraggedItemId] = useState(null);
+  const [showEditTable, setShowEditTable] = useState(false);
   const mode    = getMode(sortBy, useTimeWeight);
   const maxNote = mode === 'weight' ? 12 : 10;
   const cols    = getColumnConfig(mode, true, viewMode === 'list');
@@ -87,6 +92,7 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
   const toolbar = (
     <TableToolbar
       table={table}
+      onEditTable={() => setShowEditTable(true)}
       onDeleteTable={() => setConfirmAction({ type: 'table' })}
       onAddWork={() => setModal('add')}
     />
@@ -134,6 +140,13 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
             message={`A tabela "${table.label}" e todos os seus itens serão excluídos. Essa ação não poderá ser desfeita.`}
             onConfirm={handleDeleteTableClick}
             onClose={() => setConfirmAction(null)}
+          />
+        )}
+        {showEditTable && (
+          <EditTableModal
+            table={table}
+            onSave={name => onRenameTable(table.id, name)}
+            onClose={() => setShowEditTable(false)}
           />
         )}
       </div>
@@ -243,6 +256,13 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
           message={`A tabela "${table.label}" e todos os seus itens serão excluídos. Essa ação não poderá ser desfeita.`}
           onConfirm={handleDeleteTableClick}
           onClose={() => setConfirmAction(null)}
+        />
+      )}
+      {showEditTable && (
+        <EditTableModal
+          table={table}
+          onSave={name => onRenameTable(table.id, name)}
+          onClose={() => setShowEditTable(false)}
         />
       )}
     </div>
