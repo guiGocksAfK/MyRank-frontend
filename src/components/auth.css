@@ -500,15 +500,29 @@
 }
 
 .auth-google-wrapper {
+  position: relative;
   display: flex;
   justify-content: center;
   width: 100%;
+  min-height: 54px;
 }
 
-.auth-google-wrapper > div {
-  width: 100% !important;
+.auth-google-trigger {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
 }
 
-.auth-google-wrapper iframe {
+.auth-google-provider {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  opacity: 0;
+}
+
+.auth-google-provider > div,
+.auth-google-provider iframe {
   width: 100% !important;
+  height: 100% !important;
 }

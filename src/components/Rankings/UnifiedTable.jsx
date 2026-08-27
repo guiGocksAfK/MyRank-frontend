@@ -5,7 +5,7 @@ import AnimatedNumber from './AnimatedNumber';
 import { getNoteBarColor, formatTime, sortItems, getMode, applyFilters, getColumnConfig, badgeStyle } from '../../utils/formatters';
 
 function getUnifiedOrderKey() {
-  const userKey = localStorage.getItem('myrank_token') || 'anonymous';
+  const userKey = localStorage.getItem('myrank_username') || 'anonymous';
   return `myrank_unified_item_order_${userKey}`;
 }
 

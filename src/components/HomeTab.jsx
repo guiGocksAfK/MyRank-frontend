@@ -3,7 +3,9 @@ import { badges } from '../data/mockData';
 import { getStoredUser } from '../services/authService';
 import { getCategories } from '../services/CategoryService';
 import { getWorksByCategory } from '../services/WorkService';
+import { getGroups } from '../services/masterTableGroupService';
 import { mapWorkToItem } from '../utils/mapWork';
+import { sortItems } from '../utils/formatters';
 import AnimatedNumber from './Rankings/AnimatedNumber';
 
 const typeIcons = {
@@ -43,6 +45,52 @@ function timeAgo(dateString) {
   return `há ${Math.floor(diffDays / 30)} meses`;
 }
 
+function getUnifiedOrderKey() {
+  const userKey = localStorage.getItem('myrank_username') || 'anonymous';
+  return `myrank_unified_item_order_${userKey}`;
+}
+
+function getTableOrderKey() {
+  const userKey = localStorage.getItem('myrank_username') || 'anonymous';
+  return `myrank_table_order_${userKey}`;
+}
+
+function orderCategories(categories) {
+  const savedOrder = (() => {
+    try {
+      const parsedOrder = JSON.parse(localStorage.getItem(getTableOrderKey()) || '[]');
+      return Array.isArray(parsedOrder) ? parsedOrder : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const categoryById = new Map(categories.map(category => [String(category.id), category]));
+  const ordered = savedOrder.map(id => categoryById.get(String(id))).filter(Boolean);
+  const orderedIds = new Set(ordered.map(category => String(category.id)));
+  return [...ordered, ...categories.filter(category => !orderedIds.has(String(category.id)))];
+}
+
+function getUnifiedItemKey(item) {
+  return `${item._tableId}:${item.id}`;
+}
+
+function applyUnifiedOrder(items) {
+  const savedOrder = (() => {
+    try {
+      const parsedOrder = JSON.parse(localStorage.getItem(getUnifiedOrderKey()) || '[]');
+      return Array.isArray(parsedOrder) ? parsedOrder : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const itemByKey = new Map(items.map(item => [getUnifiedItemKey(item), item]));
+  const ordered = savedOrder.map(key => itemByKey.get(key)).filter(Boolean);
+  const orderedKeys = new Set(ordered.map(getUnifiedItemKey));
+  return [...ordered, ...items.filter(item => !orderedKeys.has(getUnifiedItemKey(item)))];
+}
+
 export default function HomeTab() {
   const [weighted, setWeighted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -56,12 +104,23 @@ export default function HomeTab() {
 
     async function loadItems() {
       try {
-        const categories = await getCategories();
+        const categories = orderCategories(await getCategories());
+        let selectedCategoryIds = categories.map(category => String(category.id));
+        try {
+          const groups = await getGroups();
+          const unifiedGroup = groups.find(group => group.name === 'Unificado');
+          if (unifiedGroup?.categoryIds?.length) {
+            selectedCategoryIds = unifiedGroup.categoryIds.map(categoryId => String(categoryId));
+          }
+        } catch {
+          // A Home continua funcional mesmo se o grupo unificado não estiver disponível.
+        }
         const itemsByCategory = await Promise.all(categories.map(async category => {
           const works = await getWorksByCategory(category.id);
           const normalizedCategory = category.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
           const type = Object.keys(typeLabels).find(value => normalizedCategory.includes(value)) || 'outro';
-          return works.map(work => ({ ...mapWorkToItem(work), type }));
+          if (!selectedCategoryIds.includes(String(category.id))) return [];
+          return works.map(work => ({ ...mapWorkToItem(work), type, _tableId: category.id }));
         }));
         if (!cancelled) setMediaItems(itemsByCategory.flat());
       } catch {
@@ -77,7 +136,6 @@ export default function HomeTab() {
 
   const unlockedBadges = badges.filter((b) => b.unlocked).length;
   const totalBadges = badges.length;
-
   const getNote = (item) => weighted ? item.finalNote : item.note;
 
   const { totalHours, avgNote, top6, recentItems } = useMemo(() => ({
@@ -85,7 +143,7 @@ export default function HomeTab() {
     avgNote: mediaItems.length
       ? (mediaItems.reduce((sum, item) => sum + (item.note || 0), 0) / mediaItems.length).toFixed(1)
       : '0.0',
-    top6: [...mediaItems].sort((a, b) => getNote(b) - getNote(a)).slice(0, 6),
+    top6: sortItems(applyUnifiedOrder(mediaItems), 'nota', weighted).slice(0, 6),
     recentItems: [...mediaItems]
       .sort((a, b) => new Date(b.addedDate || 0) - new Date(a.addedDate || 0))
       .slice(0, 5),
@@ -183,7 +241,7 @@ export default function HomeTab() {
               <div className="mr-poster-inner" />
             </div>
           )) : top6.map((item, index) => (
-            <div className="mr-poster mr-rankings-enter" style={{ '--rank-delay': `${index * 35}ms` }} key={item.id}>
+            <div className="mr-poster mr-rankings-enter" style={{ '--rank-delay': `${index * 35}ms` }} key={getUnifiedItemKey(item)}>
               <div className="mr-poster-rating"><AnimatedNumber value={getNote(item)} /></div>
               <div className="mr-poster-inner">
                 {item.image ? (

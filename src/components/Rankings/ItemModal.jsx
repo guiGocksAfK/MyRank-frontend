@@ -6,7 +6,7 @@ const WORK_TYPES = [
   { value: 'movie', label: '🎬 Filme', enabled: true },
   { value: 'tv',    label: '📺 Série', enabled: true },
   { value: 'game',  label: '🎮 Jogo', enabled: true },
-  { value: 'book',  label: '📚 Livro (em breve)', enabled: false },
+  { value: 'book',  label: '📚 Livro', enabled: true },
   { value: 'anime', label: '⛩️ Anime', enabled: true },
 ];
 
@@ -190,7 +190,6 @@ export default function ItemModal({ item, onSave, onClose }) {
               type="text" value={title} placeholder="Ex: Interstellar"
               onChange={e => setTitle(e.target.value)}
               style={inputStyle}
-              disabled={!workType}
             />
             {searching && (
               <span style={{

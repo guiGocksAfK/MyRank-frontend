@@ -11,7 +11,7 @@ import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../utils
 import { applyFilters } from '../../utils/formatters';
 
 function getTableOrderKey() {
-  const userKey = localStorage.getItem('myrank_token') || 'anonymous';
+  const userKey = localStorage.getItem('myrank_username') || 'anonymous';
   return `myrank_table_order_${userKey}`;
 }
 
@@ -38,7 +38,7 @@ function saveTableOrder(nextTables) {
 }
 
 function getItemOrderKey(tableId) {
-  const userKey = localStorage.getItem('myrank_token') || 'anonymous';
+  const userKey = localStorage.getItem('myrank_username') || 'anonymous';
   return `myrank_item_order_${userKey}_${tableId}`;
 }
 

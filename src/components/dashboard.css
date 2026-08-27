@@ -7,7 +7,7 @@
 :root {
   --mr-bg: #000000;
   --mr-surface: #0d0d0d;
-  --mr-card: rgba(17, 17, 17, 0.94);
+  --mr-card: rgba(9, 9, 9, 0.97);
   --mr-card-hover: rgba(24, 24, 24, 0.98);
   --mr-border: #303030;
   --mr-border-light: #1e1e1e;
@@ -471,13 +471,31 @@
 }
 
 .mr-stat-card {
+  position: relative;
+  overflow: hidden;
   background: var(--mr-card);
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius);
-  padding: 20px;
+  padding: 18px 20px 20px;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
   transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
+
+.mr-stat-card::after {
+  content: '';
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 0;
+  height: 2px;
+  background: var(--stat-accent, var(--mr-gold));
+  opacity: 0.45;
+}
+
+.mr-stat-card:nth-child(1),
+.mr-stat-card:nth-child(2),
+.mr-stat-card:nth-child(3),
+.mr-stat-card:nth-child(4) { --stat-accent: var(--mr-gold); }
 
 .mr-stat-card:hover {
   border-color: rgba(212, 175, 55, 0.3);
@@ -492,7 +510,17 @@
   margin-bottom: 12px;
 }
 
-.mr-stat-icon { font-size: 1.5rem; }
+.mr-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--stat-accent, var(--mr-gold)) 18%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--stat-accent, var(--mr-gold)) 7%, transparent);
+  font-size: 1.25rem;
+}
 
 .mr-stat-dot {
   width: 8px;
@@ -503,19 +531,20 @@
 }
 
 .mr-stat-value {
-  font-size: 1.75rem;
+  font-size: clamp(1.75rem, 2.3vw, 2.25rem);
   font-weight: 800;
-  color: var(--mr-gold);
+  color: var(--stat-accent, var(--mr-gold));
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: 7px;
   font-family: 'DM Sans', sans-serif;
   animation: mr-countUp 0.6s ease-out;
 }
 
 .mr-stat-label {
-  font-size: 0.8125rem;
-  color: var(--mr-text-secondary);
-  font-weight: 500;
+  font-size: 0.75rem;
+  color: var(--mr-text);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 /* ============ SECTION HEADERS ============ */
