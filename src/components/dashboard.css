@@ -1002,6 +1002,8 @@
   align-items: center;
   border-radius: var(--mr-radius-sm);
   transition: background 0.2s;
+  min-height: 78px;
+  overflow: hidden;
 }
 
 .mr-rankings-enter {
@@ -1010,6 +1012,16 @@
 }
 
 .mr-table-row:hover { background: var(--mr-gold-10); }
+
+.mr-poster-image-thumb {
+  width: 36px !important;
+  height: 54px !important;
+  max-width: 36px;
+  max-height: 54px;
+  object-fit: cover;
+  flex: 0 0 36px;
+  display: block;
+}
 
 .mr-note-bar {
   flex: 1;

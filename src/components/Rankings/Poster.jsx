@@ -17,6 +17,7 @@ export default function Poster({ src, title, size = 'thumb' }) {
 
   return (
     <img
+      className={`mr-poster-image mr-poster-image-${size}`}
       src={src}
       alt={title}
       loading="lazy"

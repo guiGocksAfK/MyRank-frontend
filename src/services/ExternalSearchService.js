@@ -53,23 +53,42 @@ export async function getGameDetails(externalId) {
 }
 
 /**
+ * Busca anime por título (autocomplete). Mesmo formato de retorno.
+ */
+export async function searchAnime(query) {
+  const { data } = await api.get('/external/search/anime', { params: { query } });
+  return data;
+}
+
+/**
+ * Detalhes completos de um anime já selecionado pelo usuário.
+ * Mesmo formato de retorno.
+ */
+export async function getAnimeDetails(externalId) {
+  const { data } = await api.get(`/external/anime/${externalId}`);
+  return data;
+}
+
+/**
  * Dispara a busca certa de acordo com o tipo escolhido no dropdown do modal.
- * type: 'movie' | 'tv' | 'game'
+ * type: 'movie' | 'tv' | 'game' | 'anime'
  */
 export async function searchByType(type, query) {
   if (type === 'movie') return searchMovies(query);
   if (type === 'tv') return searchTvShows(query);
   if (type === 'game') return searchGames(query);
+  if (type === 'anime') return searchAnime(query);
   return [];
 }
 
 /**
  * Dispara a busca de detalhes certa de acordo com o tipo escolhido.
- * type: 'movie' | 'tv' | 'game'
+ * type: 'movie' | 'tv' | 'game' | 'anime'
  */
 export async function getDetailsByType(type, externalId) {
   if (type === 'movie') return getMovieDetails(externalId);
   if (type === 'tv') return getTvShowDetails(externalId);
   if (type === 'game') return getGameDetails(externalId);
+  if (type === 'anime') return getAnimeDetails(externalId);
   return null;
 }

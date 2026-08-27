@@ -84,7 +84,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
 
   if (viewMode === 'grid') {
     return (
-      <div>
+      <div key="unified-grid-view">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
           {sorted.map((item, i) => (
             <GridCard
@@ -109,7 +109,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
   }
 
   return (
-    <div>
+    <div key="unified-list-view">
       <div className="mr-space-y-4">
         <div
           className="mr-flex mr-items-center mr-gap-2"

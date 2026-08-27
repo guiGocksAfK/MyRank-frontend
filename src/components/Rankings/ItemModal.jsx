@@ -7,7 +7,7 @@ const WORK_TYPES = [
   { value: 'tv',    label: '📺 Série', enabled: true },
   { value: 'game',  label: '🎮 Jogo', enabled: true },
   { value: 'book',  label: '📚 Livro (em breve)', enabled: false },
-  { value: 'anime', label: '⛩️ Anime (em breve)', enabled: false },
+  { value: 'anime', label: '⛩️ Anime', enabled: true },
 ];
 
 const DEBOUNCE_MS = 400;
