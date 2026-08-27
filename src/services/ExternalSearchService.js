@@ -70,6 +70,22 @@ export async function getAnimeDetails(externalId) {
 }
 
 /**
+ * Busca livros por título (autocomplete). Mesmo formato de retorno.
+ */
+export async function searchBooks(query) {
+  const { data } = await api.get('/external/search/books', { params: { query } });
+  return data;
+}
+
+/**
+ * Detalhes completos de um livro já selecionado pelo usuário.
+ */
+export async function getBookDetails(externalId) {
+  const { data } = await api.get(`/external/books/${externalId}`);
+  return data;
+}
+
+/**
  * Dispara a busca certa de acordo com o tipo escolhido no dropdown do modal.
  * type: 'movie' | 'tv' | 'game' | 'anime'
  */
@@ -78,6 +94,7 @@ export async function searchByType(type, query) {
   if (type === 'tv') return searchTvShows(query);
   if (type === 'game') return searchGames(query);
   if (type === 'anime') return searchAnime(query);
+  if (type === 'book') return searchBooks(query);
   return [];
 }
 
@@ -90,5 +107,6 @@ export async function getDetailsByType(type, externalId) {
   if (type === 'tv') return getTvShowDetails(externalId);
   if (type === 'game') return getGameDetails(externalId);
   if (type === 'anime') return getAnimeDetails(externalId);
+  if (type === 'book') return getBookDetails(externalId);
   return null;
 }

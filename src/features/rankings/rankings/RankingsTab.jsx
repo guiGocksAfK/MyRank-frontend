@@ -4,11 +4,11 @@ import IndividualTable from './IndividualTable';
 import TableSelector from './TableSelector';
 import FilterPanel from './FilterPanel';
 import NewTableModal from './NewTableModal';
-import { getGroups, createGroup, updateGroup } from '../../services/masterTableGroupService';
-import { getCategories, createCategory, updateCategory, deleteCategory } from '../../services/CategoryService.js';
-import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../services/WorkService.js';
-import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../utils/mapWork';
-import { applyFilters } from '../../utils/formatters';
+import { getGroups, createGroup, updateGroup } from '../../../services/masterTableGroupService';
+import { getCategories, createCategory, updateCategory, deleteCategory } from '../../../services/CategoryService.js';
+import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../../services/WorkService.js';
+import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../../utils/mapWork';
+import { applyFilters } from '../../../utils/formatters';
 
 function getTableOrderKey() {
   const userKey = localStorage.getItem('myrank_username') || 'anonymous';

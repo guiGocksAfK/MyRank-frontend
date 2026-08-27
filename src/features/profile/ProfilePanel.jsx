@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { mediaItems, badges } from '../data/mockData';
-import { getMe, updateMe } from '../services/userService';
+import { mediaItems, badges } from '../../data/mockData';
+import { getMe, updateMe } from '../../services/userService';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 const typeIcons = {
@@ -97,7 +97,7 @@ function BadgeCard({ badge }) {
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────
-export default function ProfileTab({ isDark, onThemeToggle }) {
+export default function ProfilePanel({ isDark, onThemeToggle }) {
   const [profileUsername, setProfileUsername] = useState('usuario');
   const [profileBio,      setProfileBio]      = useState('Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
   const [profilePlan,     setProfilePlan]     = useState('FREE');

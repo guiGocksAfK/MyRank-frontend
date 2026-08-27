@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { authorRankings, mediaItems } from '../data/mockData';
+import { authorRankings, mediaItems } from '../../data/mockData';
+import './creators.css';
 
 // Recreated from scratch to match RankingsTab visuals — read-only view with expandable works
 
@@ -153,7 +154,7 @@ export default function CreatorsTab({ onBack }) {
   const COLS = '44px 1fr 130px 220px 90px';
 
   return (
-    <div className="mr-space-y-6">
+    <div className="mr-space-y-6 creators-panel">
       <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
         <div className="mr-flex mr-items-center mr-gap-3">
           {onBack && (
@@ -166,7 +167,7 @@ export default function CreatorsTab({ onBack }) {
         </div>
 
         <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
-          <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
+          <div className="creators-toolbar-divider" />
           <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>Ponderação por tempo</span>
           <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', position: 'relative' }}>
             <input
@@ -199,7 +200,7 @@ export default function CreatorsTab({ onBack }) {
           <button className={`mr-btn mr-btn-sm ${sortBy === 'works' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('works')}>Nº de obras</button>
         </div>
 
-        <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
+        <div className="creators-toolbar-divider" />
 
         <div className="mr-flex mr-gap-1">
           <button className={`mr-btn mr-btn-sm ${selectedTypes.includes('Todos') ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => toggleType('Todos')}>Todos</button>
@@ -208,14 +209,14 @@ export default function CreatorsTab({ onBack }) {
           ))}
         </div>
 
-        <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
+        <div className="creators-toolbar-divider" />
 
         <div className="mr-flex mr-gap-1">
           <button className={`mr-btn mr-btn-sm ${viewMode === 'list' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('list')} title="Visualização em lista">📋</button>
           <button className={`mr-btn mr-btn-sm ${viewMode === 'grid' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('grid')} title="Visualização em grid">🎞️</button>
         </div>
 
-        <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
+        <div className="creators-toolbar-divider" />
         <button className={`mr-btn mr-btn-sm ${showFilters ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setShowFilters(v => !v)}>🔎 Filtros</button>
 
         <div style={{ marginLeft: 'auto', fontSize: '0.8125rem', color: 'var(--mr-text-muted)' }}>{sorted.length} de {stats.total} criadores</div>

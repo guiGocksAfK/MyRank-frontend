@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { mediaItems, badges } from '../data/mockData';
-import { getStoredUser } from '../services/authService';
+import { mediaItems, badges } from '../../data/mockData';
+import { getStoredUser } from '../../services/authService';
 
 const navTabs = [
   { id: 'home', label: 'Dashboard', icon: '📊' },
@@ -31,7 +31,7 @@ const notifications = [
   },
 ];
 
-export default function DashboardNavbar({ activeTab, onTabChange }) {
+export default function DashboardHeader({ activeTab, onTabChange }) {
   const storedUser = useMemo(() => getStoredUser(), []);
   const profileSummary = useMemo(() => ({
     name: storedUser?.name || storedUser?.username || 'Usuário',

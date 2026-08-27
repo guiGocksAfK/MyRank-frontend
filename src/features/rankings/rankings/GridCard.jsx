@@ -1,4 +1,4 @@
-import { getNoteBarColor, formatTime } from '../../utils/formatters';
+import { getNoteBarColor, formatTime } from '../../../utils/formatters';
 
 export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete, showActions, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragging }) {
   const displayNote = mode === 'weight' ? item.finalNote : item.note;

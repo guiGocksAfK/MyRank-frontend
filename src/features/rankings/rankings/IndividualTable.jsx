@@ -5,7 +5,7 @@ import ItemModal from './ItemModal';
 import ConfirmModal from './ConfirmModal';
 import EditTableModal from './EditTableModal';
 import AnimatedNumber from './AnimatedNumber';
-import { getNoteBarColor, formatTime, sortItems, getMode, getDisplayedNote, applyFilters, getColumnConfig } from '../../utils/formatters';
+import { getNoteBarColor, formatTime, sortItems, getMode, getDisplayedNote, applyFilters, getColumnConfig } from '../../../utils/formatters';
 
 function TableToolbar({ table, onDeleteTable, onEditTable, onAddWork }) {
   return (

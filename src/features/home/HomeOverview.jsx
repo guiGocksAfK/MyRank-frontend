@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { badges } from '../data/mockData';
-import { getStoredUser } from '../services/authService';
-import { getCategories } from '../services/CategoryService';
-import { getWorksByCategory } from '../services/WorkService';
-import { getGroups } from '../services/masterTableGroupService';
-import { mapWorkToItem } from '../utils/mapWork';
-import { sortItems } from '../utils/formatters';
-import AnimatedNumber from './Rankings/AnimatedNumber';
+import { badges } from '../../data/mockData';
+import { getStoredUser } from '../../services/authService';
+import { getCategories } from '../../services/CategoryService';
+import { getWorksByCategory } from '../../services/WorkService';
+import { getGroups } from '../../services/masterTableGroupService';
+import { mapWorkToItem } from '../../utils/mapWork';
+import { sortItems } from '../../utils/formatters';
+import AnimatedNumber from '../rankings/rankings/AnimatedNumber';
 
 const typeIcons = {
   filme: '🎬',
@@ -91,7 +91,7 @@ function applyUnifiedOrder(items) {
   return [...ordered, ...items.filter(item => !orderedKeys.has(getUnifiedItemKey(item)))];
 }
 
-export default function HomeTab() {
+export default function HomeOverview() {
   const [weighted, setWeighted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [mediaItems, setMediaItems] = useState([]);

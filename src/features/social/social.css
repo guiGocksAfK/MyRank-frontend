@@ -1,0 +1,23 @@
+.social-panel {
+  position: relative;
+}
+
+.social-tabs {
+  border-bottom: 1px solid var(--mr-border);
+  padding-bottom: 0;
+}
+
+.social-tab-trigger {
+  border-radius: 8px 8px 0 0;
+}
+
+@media (max-width: 720px) {
+  .social-panel .mr-table-header,
+  .social-panel .mr-table-row {
+    min-width: 620px;
+  }
+
+  .social-panel .mr-card {
+    overflow-x: auto;
+  }
+}

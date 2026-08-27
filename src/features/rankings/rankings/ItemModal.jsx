@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { formatTime, minutesToHHMM } from '../../utils/formatters';
-import { searchByType, getDetailsByType } from '../../services/ExternalSearchService';
+import { formatTime, minutesToHHMM } from '../../../utils/formatters';
+import { searchByType, getDetailsByType } from '../../../services/ExternalSearchService';
 
 const WORK_TYPES = [
   { value: 'movie', label: '🎬 Filme', enabled: true },
@@ -30,6 +30,8 @@ export default function ItemModal({ item, onSave, onClose }) {
   const [searchMsg, setSearchMsg] = useState('');
   const [suggestions, setSuggestions] = useState([]); // resultados da busca, aguardando escolha
   const [saving, setSaving] = useState(false);
+  const [attentionFields, setAttentionFields] = useState({});
+  const [validationError, setValidationError] = useState('');
 
   // ── Busca automática (debounced) sempre que title ou workType mudam ──
   const requestIdRef = useRef(0); // evita que uma resposta antiga sobrescreva uma mais nova
@@ -58,15 +60,19 @@ export default function ItemModal({ item, onSave, onClose }) {
 
         if (!results || results.length === 0) {
           setSuggestions([]);
-          setSearchMsg('❌ Nada encontrado. Tente o título original (em inglês).');
+          setSearchMsg(workType === 'anime'
+            ? '❌ Anime não encontrado. Tente o filtro Séries; ele também inclui animes, mas com dados menos completos.'
+            : '❌ Nada encontrado. Tente outro título ou o título original (em inglês).');
         } else {
           setSuggestions(results);
           setSearchMsg('');
         }
-      } catch {
+      } catch (err) {
         if (thisRequestId !== requestIdRef.current) return;
         setSuggestions([]);
-        setSearchMsg('❌ Erro ao buscar. Tente novamente.');
+        setSearchMsg(`❌ ${workType === 'anime'
+          ? 'Não foi possível buscar este anime agora. Tente o filtro Séries; ele também inclui animes, mas com dados menos completos.'
+          : err.response?.data?.message || 'Não foi possível buscar agora. Tente novamente em instantes.'}`);
       } finally {
         if (thisRequestId === requestIdRef.current) setSearching(false);
       }
@@ -90,10 +96,17 @@ export default function ItemModal({ item, onSave, onClose }) {
         }
         if (details.imageUrl) setImage(details.imageUrl);
         if (details.releaseDate) setReleaseDate(details.releaseDate);
+        setAttentionFields({
+          creator: !details.creator,
+          time: !details.timeMinutes,
+          image: !details.imageUrl,
+          releaseDate: !details.releaseDate,
+          note: true,
+        });
         setSearchMsg('✓ Preenchido automaticamente!');
       }
-    } catch {
-      setSearchMsg('❌ Erro ao buscar detalhes dessa obra.');
+    } catch (err) {
+      setSearchMsg(`❌ ${err.response?.data?.message || 'Erro ao buscar detalhes dessa obra.'}`);
     } finally {
       setSuggestions([]);
       setSearching(false);
@@ -106,10 +119,21 @@ export default function ItemModal({ item, onSave, onClose }) {
     const m = parseInt(mins, 10) || 0;
     const t = h * 60 + m;
 
-    if (!title.trim() || isNaN(n) || n < 0 || n > 10 || t <= 0) {
-      alert('Preencha título, uma nota entre 0 e 10, e um tempo maior que zero.');
+    const missingFields = [];
+    if (!title.trim()) missingFields.push('título');
+    if (Number.isNaN(n)) missingFields.push('nota');
+
+    if (missingFields.length > 0) {
+      setValidationError(`Preencha ${missingFields.join(' e ')}.`);
       return;
     }
+
+    if (n < 0 || n > 10) {
+      setValidationError('A nota deve estar entre 0 e 10.');
+      return;
+    }
+
+    setValidationError('');
 
     const payload = {
       id: item?.id ?? null,
@@ -137,6 +161,15 @@ export default function ItemModal({ item, onSave, onClose }) {
     borderRadius: 7, border: '1px solid var(--mr-border)',
     background: 'var(--mr-bg)', color: 'var(--mr-text)',
     fontSize: '0.875rem',
+  };
+
+  const getFieldStyle = (field) => attentionFields[field]
+    ? { ...inputStyle, borderColor: 'rgba(212,175,55,0.55)', boxShadow: '0 0 0 2px rgba(212,175,55,0.06), 0 0 9px rgba(212,175,55,0.08)' }
+    : inputStyle;
+
+  const clearAttention = (field) => {
+    if (!attentionFields[field]) return;
+    setAttentionFields(current => ({ ...current, [field]: false }));
   };
 
   const labelStyle = {
@@ -188,7 +221,7 @@ export default function ItemModal({ item, onSave, onClose }) {
           <div style={{ position: 'relative' }}>
             <input
               type="text" value={title} placeholder="Ex: Interstellar"
-              onChange={e => setTitle(e.target.value)}
+              onChange={e => { setTitle(e.target.value); setValidationError(''); }}
               style={inputStyle}
             />
             {searching && (
@@ -220,20 +253,20 @@ export default function ItemModal({ item, onSave, onClose }) {
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>Autor / Diretor / Estúdio</label>
-          <input type="text" value={sub} placeholder="Ex: Christopher Nolan" onChange={e => setSub(e.target.value)} style={inputStyle} />
+          <input type="text" value={sub} placeholder="Ex: Christopher Nolan" onChange={e => { setSub(e.target.value); clearAttention('creator'); }} style={getFieldStyle('creator')} />
         </div>
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>Nota (0,0 – 10,0)</label>
-          <input type="number" step="0.1" min="0" max="10" value={note} placeholder="Ex: 9.2" onChange={e => setNote(e.target.value)} style={inputStyle} />
+          <input type="number" step="0.1" min="0" max="10" value={note} placeholder="Ex: 9.2" onChange={e => { setNote(e.target.value); clearAttention('note'); setValidationError(''); }} style={getFieldStyle('note')} />
         </div>
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>Tempo de consumo</label>
           <div className="mr-flex mr-items-center mr-gap-2">
-            <input type="number" min="0" value={hours} placeholder="0" onChange={e => setHours(e.target.value)} style={{ ...inputStyle, width: 80 }} />
+            <input type="number" min="0" value={hours} placeholder="0" onChange={e => { setHours(e.target.value); clearAttention('time'); }} style={{ ...getFieldStyle('time'), width: 80 }} />
             <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>h</span>
-            <input type="number" min="0" max="59" value={mins} placeholder="0" onChange={e => setMins(e.target.value)} style={{ ...inputStyle, width: 80 }} />
+            <input type="number" min="0" max="59" value={mins} placeholder="0" onChange={e => { setMins(e.target.value); clearAttention('time'); }} style={{ ...getFieldStyle('time'), width: 80 }} />
             <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>min</span>
           </div>
           {(parseInt(hours, 10) > 0 || parseInt(mins, 10) > 0) && (
@@ -245,13 +278,13 @@ export default function ItemModal({ item, onSave, onClose }) {
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>Data de lançamento</label>
-          <input type="date" value={releaseDate} onChange={e => setReleaseDate(e.target.value)} style={inputStyle} />
+          <input type="date" value={releaseDate} onChange={e => { setReleaseDate(e.target.value); clearAttention('releaseDate'); }} style={getFieldStyle('releaseDate')} />
         </div>
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>URL da imagem</label>
           <div className="mr-flex mr-gap-2">
-            <input type="text" value={image} placeholder="https://..." onChange={e => setImage(e.target.value)} style={inputStyle} />
+            <input type="text" value={image} placeholder="https://..." onChange={e => { setImage(e.target.value); clearAttention('image'); }} style={getFieldStyle('image')} />
             {image && (
               <div style={{ flexShrink: 0, width: 36, height: 54, borderRadius: 4, overflow: 'hidden' }}>
                 <img src={image} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -262,6 +295,15 @@ export default function ItemModal({ item, onSave, onClose }) {
             Deixe vazio para usar placeholder automático
           </div>
         </div>
+
+        {validationError && (
+          <div style={{
+            marginTop: 4, color: '#ff6b6b', fontSize: '0.75rem',
+            lineHeight: 1.4,
+          }} role="alert">
+            {validationError}
+          </div>
+        )}
 
         <div className="mr-flex mr-gap-2" style={{ justifyContent: 'flex-end', marginTop: '1rem' }}>
           <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={saving}>Cancelar</button>

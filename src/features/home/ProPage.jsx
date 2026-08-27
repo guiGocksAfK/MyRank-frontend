@@ -79,7 +79,7 @@ const comparacao = [
   { feature: "Sugestões baseadas no seu ranking", free: false, pro: true },
 ];
 
-const Pro = () => {
+const ProPage = () => {
   return (
     <main style={{
       minHeight: "100vh",
@@ -436,4 +436,4 @@ const Pro = () => {
   );
 };
 
-export default Pro;
+export default ProPage;

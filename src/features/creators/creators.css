@@ -1,0 +1,25 @@
+.creators-panel {
+  position: relative;
+}
+
+.creators-toolbar-divider {
+  width: 1px;
+  height: 24px;
+  flex: 0 0 1px;
+  background: var(--mr-border);
+}
+
+@media (max-width: 640px) {
+  .creators-toolbar-divider {
+    display: none;
+  }
+
+  .creators-panel .mr-table-header,
+  .creators-panel .mr-table-row {
+    min-width: 680px;
+  }
+
+  .creators-panel .mr-card {
+    overflow-x: auto;
+  }
+}

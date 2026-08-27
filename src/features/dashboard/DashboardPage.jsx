@@ -1,16 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import DashboardNavbar from './DashboardNavbar';
-import HomeTab from './HomeTab';
-import RankingsTab from './Rankings/RankingsTab';
-import CreatorsTab from './CreatorsTab';
-import SocialTab from './SocialTab';
-import AIInsightsTab from './AIInsightsTab';
-import ProfileTab from './ProfileTab';
-import Footer from './Footer';
-import { INITIAL_TABLES } from '../data/mockData';   // ← pega as tabelas pra calcular stats
+import DashboardHeader from './DashboardHeader';
+import HomeOverview from '../home/HomeOverview';
+import RankingsTab from '../rankings/rankings/RankingsTab';
+import CreatorsPanel from '../creators/CreatorsPanel';
+import SocialPanel from '../social/SocialPanel';
+import InsightsPanel from '../insights/InsightsPanel';
+import ProfilePanel from '../profile/ProfilePanel';
+import DashboardFooter from './DashboardFooter';
+import { INITIAL_TABLES } from '../../data/mockData';
 import './dashboard.css';
 
-export default function Dashboard() {
+export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('home');
   const [isDark, setIsDark] = useState(true);
   const [creatorsView, setCreatorsView] = useState(false);
@@ -40,30 +40,30 @@ export default function Dashboard() {
   const renderTab = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab />;
+        return <HomeOverview />;
       case 'rankings':
-        if (creatorsView) return <CreatorsTab onBack={() => setCreatorsView(false)} />;
+        if (creatorsView) return <CreatorsPanel onBack={() => setCreatorsView(false)} />;
         return <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />;
       case 'social':
-        return <SocialTab />;
+        return <SocialPanel />;
       case 'ai':
-        return <AIInsightsTab />;
+        return <InsightsPanel />;
       case 'profile':
-        return <ProfileTab isDark={isDark} onThemeToggle={handleThemeToggle} />;
+        return <ProfilePanel isDark={isDark} onThemeToggle={handleThemeToggle} />;
       default:
-        return <HomeTab />;
+        return <HomeOverview />;
     }
   };
 
   return (
     <div className={`myrank-dashboard ${themeClass}`}>
-      <DashboardNavbar
+      <DashboardHeader
         activeTab={activeTab}
         onTabChange={handleTabChange}
       />
       <div className="mr-main">
         <div style={{ display: activeTab === 'home' ? 'block' : 'none' }}>
-          <HomeTab />
+          <HomeOverview />
         </div>
         {rankingsVisited && (
           <div style={{ display: activeTab === 'rankings' && !creatorsView ? 'block' : 'none' }}>
@@ -71,12 +71,12 @@ export default function Dashboard() {
           </div>
         )}
         {activeTab === 'home' || (activeTab === 'rankings' && rankingsVisited)
-          ? creatorsView && <CreatorsTab onBack={() => setCreatorsView(false)} />
+          ? creatorsView && <CreatorsPanel onBack={() => setCreatorsView(false)} />
           : renderTab()}
       </div>
 
       {/* ← NOVO: ribbon no fim de todas as abas */}
-      <Footer
+      <DashboardFooter
         stats={footerStats}
       />
     </div>

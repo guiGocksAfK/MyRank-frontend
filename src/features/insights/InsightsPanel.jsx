@@ -1,5 +1,6 @@
 ﻿import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './insights.css';
 
 const USER_RANKINGS = [
   { title: 'The Witcher 3', note: 9.8, category: 'Jogo', timeMinutes: 6000 },
@@ -16,7 +17,7 @@ const USER_RANKINGS = [
 
 const ALL_CATEGORIES = ['Todos', ...Array.from(new Set(USER_RANKINGS.map((item) => item.category)))];
 
-export default function AIInsightsTab() {
+export default function InsightsPanel() {
   const navigate = useNavigate();
   const [category, setCategory] = useState('Todos');
   const [selectedItems, setSelectedItems] = useState(USER_RANKINGS);
@@ -52,7 +53,7 @@ export default function AIInsightsTab() {
   };
 
   return (
-    <div className="mr-space-y-6" style={{ position: 'relative' }}>
+    <div className="mr-space-y-6 insights-panel">
       <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--mr-text)' }}>🤖 IA Insights</h1>
@@ -91,22 +92,24 @@ export default function AIInsightsTab() {
             </button>
           </div>
 
-          <div style={{ display: 'grid', gap: 14, gridTemplateColumns: '1.45fr 1fr' }}>
+          <div className="insights-layout">
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+              <div className="insights-summary">
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginBottom: 6 }}>
+                  <div className="insights-summary-label">
                     Obras disponíveis
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: '1.4rem', color: 'var(--mr-text)' }}>{filteredRankings.length}</div>
+                  <div className="insights-summary-value">{filteredRankings.length}</div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>Selecionadas</div>
-                  <div style={{ fontWeight: 700, fontSize: '1.4rem', color: 'var(--mr-text)' }}>{selectedItems.length}</div>
+                <div className="insights-summary insights-summary--selected">
+                  <div>
+                    <div className="insights-summary-label">Selecionadas</div>
+                    <div className="insights-summary-value">{selectedItems.length}</div>
+                  </div>
                 </div>
               </div>
 
-              <div className="mr-space-y-2" style={{ marginTop: 12 }}>
+              <div className="mr-space-y-2 insights-ranking-list">
                 {filteredRankings.map((item) => {
                   const selected = selectedTitles.has(item.title);
                   return (
@@ -147,25 +150,25 @@ export default function AIInsightsTab() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gap: 14 }}>
+            <div className="insights-side-column">
               <div className="mr-info-card-blue">
                 <div className="mr-card-body">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div className="insights-selection-header">
                     <div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>Seleção atual</div>
-                      <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--mr-text)' }}>{selectedItems.length} obras</div>
+                      <div className="insights-summary-label">Seleção atual</div>
+                      <div className="insights-selection-count">{selectedItems.length} obras</div>
                     </div>
                     <div className="mr-badge mr-badge-green">{category}</div>
                   </div>
                   <div className="mr-space-y-2">
                     {selectedItems.slice(0, 5).map((item) => (
-                      <div key={item.title} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, color: 'var(--mr-text)' }}>
+                      <div key={item.title} className="insights-selection-item">
                         <span>{item.title}</span>
-                        <span style={{ color: 'var(--mr-text-secondary)' }}>{item.note.toFixed(1)}</span>
+                        <span className="insights-selection-note">{item.note.toFixed(1)}</span>
                       </div>
                     ))}
                     {selectedItems.length > 5 && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginTop: 10 }}>
+                      <div className="insights-selection-more">
                         + {selectedItems.length - 5} outras obras selecionadas
                       </div>
                     )}
@@ -175,8 +178,8 @@ export default function AIInsightsTab() {
 
               <div className="mr-info-card-gold">
                 <div className="mr-card-body">
-                  <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginBottom: 10 }}>Último passo</div>
-                  <p style={{ lineHeight: 1.7, color: 'var(--mr-text)' }}>
+                  <div className="insights-summary-label insights-step-label">Último passo</div>
+                  <p className="insights-step-copy">
                     Clique em gerar análise para abrir a página separada de insights com base na sua seleção.
                   </p>
                 </div>

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import { getDiscordAuthUrl, login, loginWithGoogle } from "../services/authService";
+import { getDiscordAuthUrl, login, loginWithGoogle } from "../../services/authService";
 import "./auth.css";
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
 
-const Login = () => {
+const LoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -195,4 +195,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

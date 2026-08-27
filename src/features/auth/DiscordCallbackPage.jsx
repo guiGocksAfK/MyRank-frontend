@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginWithDiscord } from "../services/authService";
+import { loginWithDiscord } from "../../services/authService";
 import "./auth.css";
 
-export default function DiscordCallback() {
+export default function DiscordCallbackPage() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
 

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import Poster from './Poster';
 import GridCard from './GridCard';
 import AnimatedNumber from './AnimatedNumber';
-import { getNoteBarColor, formatTime, sortItems, getMode, applyFilters, getColumnConfig, badgeStyle } from '../../utils/formatters';
+import { getNoteBarColor, formatTime, sortItems, getMode, applyFilters, getColumnConfig, badgeStyle } from '../../../utils/formatters';
 
 function getUnifiedOrderKey() {
   const userKey = localStorage.getItem('myrank_username') || 'anonymous';

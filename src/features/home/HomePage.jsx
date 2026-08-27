@@ -1,6 +1,7 @@
-import logo from '../assets/logo.png'
+import logo from '../../assets/logo.png'
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import './homePage.css';
 
 const medias = [
   { icon: "🎬", label: "Filmes" },
@@ -22,202 +23,55 @@ const FAQItem = ({ question, answer }) => {
 
   return (
     <div
+      className={`home-faq-item ${open ? 'is-open' : ''}`}
       onClick={() => setOpen(!open)}
-      style={{
-        backgroundColor: open ? "#1a1a1a" : "#111111",
-        border: `1px solid ${open ? "#d4af37" : "#2a2a2a"}`,
-        borderRadius: "12px",
-        padding: "24px 28px",
-        cursor: "pointer",
-        transition: "all 0.2s",
-      }}
-      onMouseEnter={(e) => {
-        if (!open) e.currentTarget.style.borderColor = "#555";
-      }}
-      onMouseLeave={(e) => {
-        if (!open) e.currentTarget.style.borderColor = "#2a2a2a";
-      }}
     >
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "16px",
-      }}>
-        <span style={{
-          fontSize: "15px",
-          fontWeight: "600",
-          color: "#e5e5e5",
-          fontFamily: "'DM Sans', sans-serif",
-        }}>{question}</span>
-        <span style={{
-          color: "#d4af37",
-          fontSize: "22px",
-          fontWeight: "300",
-          flexShrink: 0,
-          transition: "transform 0.2s",
-          transform: open ? "rotate(45deg)" : "rotate(0deg)",
-        }}>+</span>
+      <div className="home-faq-row">
+        <span className="home-faq-question">{question}</span>
+        <span className="home-faq-plus">+</span>
       </div>
-      {open && (
-        <p style={{
-          fontSize: "14px",
-          color: "#888",
-          fontFamily: "'DM Sans', sans-serif",
-          lineHeight: "1.7",
-          marginTop: "16px",
-        }}>{answer}</p>
-      )}
+      {open && <p className="home-faq-answer">{answer}</p>}
     </div>
   );
 };
 
-const Home = () => {
+const HomePage = () => {
   return (
-    <main style={{ backgroundColor: "#000000", minHeight: "100vh" }}>
+    <main className="home-page">
 
-      {/* Hero Section */}
-      <section style={{
-        position: "relative",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        overflow: "hidden",
-        padding: "0 2rem",
-      }}>
-
-        {/* Poster grid background */}
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          display: "grid",
-          gridTemplateColumns: "repeat(5, 1fr)",
-          gridTemplateRows: "repeat(4, 1fr)",
-          gap: "6px",
-          padding: "6px",
-          zIndex: 0,
-        }}>
+      <section className="home-hero">
+        <div className="home-poster-grid">
           {posters.map((color, i) => (
-            <div key={i} style={{
-              backgroundColor: color,
-              borderRadius: "6px",
-              opacity: 0.6,
-            }} />
+            <div key={i} className="home-poster-tile" style={{ backgroundColor: color }} />
           ))}
         </div>
 
-        {/* Overlay escuro */}
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(to bottom, rgba(15,15,15,0.6) 0%, rgba(15,15,15,0.85) 60%, #0f0f0f 100%)",
-          zIndex: 1,
-        }} />
+        <div className="home-overlay" />
 
-        {/* Conteúdo */}
-        <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", gap: "24px" }}>
-          <h1 style={{
-            fontSize: "56px",
-            fontWeight: "800",
-            color: "#e5e5e5",
-            fontFamily: "'DM Sans', sans-serif",
-            lineHeight: "1.15",
-            maxWidth: "700px",
-          }}>
+        <div className="home-content">
+          <h1 className="home-title">
             Seu gosto.<br />
             Seu ranking.<br />
-            <span style={{ color: "#d4af37" }}>Sua identidade.</span>
+            <span className="home-title-accent">Sua identidade.</span>
           </h1>
 
-          <p style={{
-            fontSize: "16px",
-            color: "#aaa",
-            fontFamily: "'DM Sans', sans-serif",
-            maxWidth: "480px",
-            lineHeight: "1.7",
-          }}>
+          <p className="home-subtitle">
             Avalie filmes, séries, jogos, livros e animes em um só lugar. Compare com amigos e descubra seu perfil de consumo.
           </p>
 
-          <Link
-            to="/cadastrar"
-            style={{
-              backgroundColor: "#d4af37",
-              border: "none",
-              borderRadius: "8px",
-              color: "#0f0f0f",
-              fontSize: "15px",
-              fontWeight: "700",
-              padding: "14px 36px",
-              cursor: "pointer",
-              fontFamily: "'DM Sans', sans-serif",
-              marginTop: "8px",
-              transition: "all 0.2s",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              textDecoration: "none",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = "0.85";
-              e.currentTarget.style.boxShadow = "0 0 20px rgba(212,175,55,0.4)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = "1";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-            onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.92)")}
-            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-          >
+          <Link to="/cadastrar" className="home-cta">
             Criar conta grátis
           </Link>
 
-          {/* Cards de mídia */}
-          <div style={{
-            display: "flex",
-            gap: "16px",
-            marginTop: "24px",
-            flexWrap: "wrap",
-            justifyContent: "center",
-          }}>
+          <div className="home-media-grid">
             {medias.map((m) => (
-              <div key={m.label} style={{
-                     backgroundColor: "rgba(255,255,255,0.05)",
-                     border: "1px solid rgba(255,255,255,0.1)",
-                     borderRadius: "12px",
-                     padding: "16px 24px",
-                     display: "flex",
-                     flexDirection: "column",
-                     alignItems: "center",
-                     gap: "8px",
-                     fontFamily: "'DM Sans', sans-serif",
-                     color: "#e5e5e5",
-                     fontSize: "13px",
-                     fontWeight: "500",
-                     cursor: "pointer",
-                     transition: "all 0.2s",
-              }}
-             onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(212,175,55,0.1)";
-                e.currentTarget.style.borderColor = "rgba(212,175,55,0.4)";
-                e.currentTarget.style.transform = "translateY(-4px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)";
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
-                e.currentTarget.style.transform = "translateY(0)";
-               }}
-    >
-                <span style={{ fontSize: "28px" }}>{m.icon}</span>
+              <div key={m.label} className="home-media-item">
+                <span className="home-media-icon">{m.icon}</span>
                 {m.label}
               </div>
             ))}
           </div>
         </div>
-
       </section>
 
   {/* Como funciona */}
@@ -489,4 +343,4 @@ const Home = () => {
   )
 }
 
-export default Home
+export default HomePage

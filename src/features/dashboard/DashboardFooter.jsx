@@ -1,7 +1,7 @@
 import React from 'react';
 
-export default function Footer({
-  // Stats opcionais — vem do Dashboard.jsx
+export default function DashboardFooter({
+  // Stats opcionais — vem do DashboardPage.jsx
   stats = { obras: 0, horas: 0, amigos: 0 },
 }) {
   const year = new Date().getFullYear();

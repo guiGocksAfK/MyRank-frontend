@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import './social.css';
 
 // ─── Mock data ─────────────────────────────────────────────────────────────
 const MOCK_FRIENDS = [
@@ -157,7 +158,7 @@ function CompareView({ friend, onClose }) {
     : 0;
 
   return (
-    <div className="mr-space-y-6">
+    <div className="mr-space-y-6 social-panel">
 
       {/* Header */}
       <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
@@ -275,7 +276,7 @@ function CompareView({ friend, onClose }) {
 }
 
 // ─── Componente principal ──────────────────────────────────────────────────
-export default function SocialTab() {
+export default function SocialPanel() {
   const [friends,       setFriends]       = useState(MOCK_FRIENDS);
   const [activeTab,     setActiveTab]     = useState('feed');
   const [searchQuery,   setSearchQuery]   = useState('');
@@ -357,8 +358,7 @@ export default function SocialTab() {
 
       {/* ── Tabs internas ── */}
       <div
-        className="mr-flex mr-items-center mr-gap-1"
-        style={{ borderBottom: '1px solid var(--mr-border)', paddingBottom: 0 }}
+        className="mr-flex mr-items-center mr-gap-1 social-tabs"
       >
         {[
           { id: 'feed',    label: '📡 Feed' },
@@ -367,9 +367,8 @@ export default function SocialTab() {
         ].map(tab => (
           <button
             key={tab.id}
-            className={`mr-tab-trigger ${activeTab === tab.id ? 'active' : ''}`}
+            className={`mr-tab-trigger social-tab-trigger ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.id)}
-            style={{ borderRadius: '8px 8px 0 0' }}
           >
             {tab.label}
           </button>

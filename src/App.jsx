@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
-import Navbar from './components/Navbar'
-import Home from './components/Home'
-import Login from './components/Login'
-import Register from './components/Register'
-import Dashboard from './components/Dashboard'
-import InsightsResult from './components/InsightsResult'
-import DiscordCallback from './components/DiscordCallback'
-import Pro from "./components/Pro";
+import Navbar from './shared/components/Navbar'
+import Home from './features/home/HomePage'
+import Login from './features/auth/LoginPage'
+import Register from './features/auth/RegisterPage'
+import Dashboard from './features/dashboard/DashboardPage'
+import InsightsResult from './features/insights/InsightsResultPage'
+import DiscordCallback from './features/auth/DiscordCallbackPage'
+import Pro from './features/home/ProPage';
 
 
 
