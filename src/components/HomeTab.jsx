@@ -80,15 +80,15 @@ export default function HomeTab() {
 
   const getNote = (item) => weighted ? item.finalNote : item.note;
 
-  const { totalHours, avgNote, top5, recentItems } = useMemo(() => ({
+  const { totalHours, avgNote, top6, recentItems } = useMemo(() => ({
     totalHours: Math.round(mediaItems.reduce((sum, item) => sum + (item.timeMinutes || 0), 0) / 60),
     avgNote: mediaItems.length
       ? (mediaItems.reduce((sum, item) => sum + (item.note || 0), 0) / mediaItems.length).toFixed(1)
       : '0.0',
-    top5: [...mediaItems].sort((a, b) => getNote(b) - getNote(a)).slice(0, 5),
+    top6: [...mediaItems].sort((a, b) => getNote(b) - getNote(a)).slice(0, 6),
     recentItems: [...mediaItems]
       .sort((a, b) => new Date(b.addedDate || 0) - new Date(a.addedDate || 0))
-      .slice(0, 6),
+      .slice(0, 5),
   }), [mediaItems, weighted]);
 
   const recentBadges = badges.filter((b) => b.unlocked).slice(0, 4);
@@ -135,17 +135,56 @@ export default function HomeTab() {
       {/* Poster Grid */}
       <div>
         <div className="mr-section-header">
-          <h2 className="mr-section-title">🔥 Avaliações Recentes</h2>
-          <button className="mr-link-btn">Ver todas →</button>
+          <h2 className="mr-section-title">🏆 Suas Favoritas</h2>
+          <div className="mr-flex mr-items-center mr-gap-2">
+            <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>Ponderada</span>
+            <div style={{ position: 'relative' }}>
+              <button
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+                aria-label="Mostrar cálculo da nota ponderada"
+                style={{
+                  width: 18, height: 18, borderRadius: '50%',
+                  border: '1px solid var(--mr-border)', background: 'transparent',
+                  color: 'var(--mr-text-muted)', fontSize: '0.6875rem', fontWeight: 700,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', lineHeight: 1, padding: 0,
+                }}
+              >?</button>
+              {showTooltip && (
+                <div style={{
+                  position: 'absolute', right: 0, bottom: 'calc(100% + 8px)', width: 230,
+                  background: '#1a1a1a', border: '1px solid #303030', borderRadius: 10,
+                  padding: '10px 12px', fontSize: '0.75rem', color: 'var(--mr-text-secondary)',
+                  lineHeight: 1.5, zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                }}>
+                  <span style={{ color: 'var(--mr-gold)', fontWeight: 700, display: 'block', marginBottom: 4 }}>
+                    Nota ponderada
+                  </span>
+                  Nota original + bônus logarítmico baseado no tempo investido:
+                  <span style={{ color: 'var(--mr-gold)', fontFamily: 'monospace', display: 'block', marginTop: 4 }}>
+                    Nota + log₁₀(Tempo / 60min)
+                  </span>
+                </div>
+              )}
+            </div>
+            <button
+              className={`mr-switch ${weighted ? 'checked' : ''}`}
+              onClick={() => setWeighted((prev) => !prev)}
+              aria-label="Ativar ponderação por tempo"
+            >
+              <div className="mr-switch-thumb" />
+            </button>
+          </div>
         </div>
         <div className="mr-poster-grid">
           {loadingItems ? Array.from({ length: 6 }, (_, index) => (
             <div className="mr-poster mr-skeleton-poster" key={`skeleton-${index}`} aria-hidden="true">
               <div className="mr-poster-inner" />
             </div>
-          )) : recentItems.map((item, index) => (
+          )) : top6.map((item, index) => (
             <div className="mr-poster mr-rankings-enter" style={{ '--rank-delay': `${index * 35}ms` }} key={item.id}>
-              <div className="mr-poster-rating"><AnimatedNumber value={item.note} /></div>
+              <div className="mr-poster-rating"><AnimatedNumber value={getNote(item)} /></div>
               <div className="mr-poster-inner">
                 {item.image ? (
                   <img
@@ -165,7 +204,7 @@ export default function HomeTab() {
                   <span className="mr-poster-overlay-title">{item.title}</span>
                   <div className="mr-poster-overlay-badges">
                     <span className="mr-poster-overlay-note">
-                      <AnimatedNumber value={item.note} />
+                      <AnimatedNumber value={getNote(item)} />
                     </span>
                   </div>
                   <span className="mr-poster-overlay-time">
@@ -181,17 +220,16 @@ export default function HomeTab() {
       {/* Two Column Layout */}
       <div className="mr-two-col">
 
-        {/* Top 5 */}
+        {/* Recent works */}
         <div className="mr-card">
           <div className="mr-card-body">
 
             {/* Header do card com switch */}
             <div className="mr-flex mr-items-center mr-justify-between mr-mb-4">
-              <h3 className="mr-section-title">🏆 Top 5 Obras</h3>
-              <div className="mr-flex mr-items-center mr-gap-2">
-                <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', whiteSpace: 'nowrap' }}>
-                  Ponderada
-                </span>
+              <h3 className="mr-section-title">🔥 Avaliações Recentes</h3>
+              <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>Últimas 5 adicionadas</span>
+
+              <div className="mr-flex mr-items-center mr-gap-2" style={{ display: 'none' }}>
 
                 {/* Botão de info com tooltip */}
                 <div style={{ position: 'relative' }}>
@@ -271,10 +309,10 @@ export default function HomeTab() {
               </div>
             </div>
 
-            {/* Lista Top 5 */}
+            {/* Lista de obras recentes */}
             <div className="mr-space-y-2">
-              {top5.map((item, i) => (
-                <div className="mr-rank-item" key={item.id}>
+              {recentItems.map((item, i) => (
+                <div className="mr-rank-item mr-rankings-enter" style={{ '--rank-delay': `${i * 35}ms` }} key={item.id}>
                   <span
                     className={`mr-rank-number ${
                       i === 0 ? 'mr-rank-number-1'
@@ -288,18 +326,13 @@ export default function HomeTab() {
                   <div className="mr-rank-info">
                     <div className="mr-rank-title">{item.title}</div>
                     <div className="mr-rank-subtitle">
-                      {typeLabels[item.type]} • {formatTime(item.timeMinutes)}
+                      {typeLabels[item.type]} • {timeAgo(item.addedDate)}
                     </div>
                   </div>
                   <div className="mr-rank-note-area mr-flex mr-items-center mr-gap-2">
                     <span style={{ color: 'var(--mr-gold)', fontWeight: 700 }}>
-                      {getNote(item).toFixed(1)}
+                      <AnimatedNumber value={item.note} />
                     </span>
-                    {weighted && (
-                      <span style={{ fontSize: '0.7rem', color: 'var(--mr-text-muted)' }}>
-                        +{item.bonusTime.toFixed(1)}
-                      </span>
-                    )}
                   </div>
                 </div>
               ))}

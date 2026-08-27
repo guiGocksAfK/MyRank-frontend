@@ -38,10 +38,17 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
 
   const selectedTables = tables.filter(t => selectedTableIds.includes(t.id));
 
-  const allItems = useMemo(() =>
-    selectedTables.flatMap(t =>
-      t.items.map(item => ({ ...item, _tableLabel: t.label, _tableId: t.id }))
-    ),
+  const allItems = useMemo(() => {
+    const uniqueItems = new Map();
+    selectedTables.forEach(table => {
+      table.items.forEach(item => {
+        const unifiedItem = { ...item, _tableLabel: table.label, _tableId: table.id };
+        const key = getItemKey(unifiedItem);
+        if (!uniqueItems.has(key)) uniqueItems.set(key, unifiedItem);
+      });
+    });
+    return [...uniqueItems.values()];
+  },
   [selectedTables]);
 
   const orderedItems = useMemo(() => applyUnifiedOrder(allItems, unifiedOrder), [allItems, unifiedOrder]);
@@ -88,7 +95,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
           {sorted.map((item, i) => (
             <GridCard
-              key={item.id + item._tableId}
+              key={getItemKey(item)}
               item={item} mode={mode} maxNote={maxNote} index={i} showActions={false}
               draggable={sortBy !== 'time'}
               onDragStart={() => setDraggedItemKey(getItemKey(item))}
@@ -139,7 +146,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
             return (
               <div
                 className="mr-table-row mr-rankings-enter"
-                key={item.id + item._tableId}
+                key={getItemKey(item)}
                 draggable={sortBy !== 'time'}
                 onDragStart={() => setDraggedItemKey(getItemKey(item))}
                 onDragEnd={() => setDraggedItemKey(null)}
