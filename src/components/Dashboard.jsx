@@ -14,12 +14,14 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('home');
   const [isDark, setIsDark] = useState(true);
   const [creatorsView, setCreatorsView] = useState(false);
+  const [rankingsVisited, setRankingsVisited] = useState(false);
 
   const handleThemeToggle = () => setIsDark((prev) => !prev);
   const themeClass = isDark ? '' : 'myrank-light';
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    if (tab === 'rankings') setRankingsVisited(true);
     setCreatorsView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -40,9 +42,7 @@ export default function Dashboard() {
       case 'home':
         return <HomeTab />;
       case 'rankings':
-        if (creatorsView) {
-          return <CreatorsTab onBack={() => setCreatorsView(false)} />;
-        }
+        if (creatorsView) return <CreatorsTab onBack={() => setCreatorsView(false)} />;
         return <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />;
       case 'social':
         return <SocialTab />;
@@ -62,7 +62,17 @@ export default function Dashboard() {
         onTabChange={handleTabChange}
       />
       <div className="mr-main">
-        {renderTab()}
+        <div style={{ display: activeTab === 'home' ? 'block' : 'none' }}>
+          <HomeTab />
+        </div>
+        {rankingsVisited && (
+          <div style={{ display: activeTab === 'rankings' && !creatorsView ? 'block' : 'none' }}>
+            <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />
+          </div>
+        )}
+        {activeTab === 'home' || (activeTab === 'rankings' && rankingsVisited)
+          ? creatorsView && <CreatorsTab onBack={() => setCreatorsView(false)} />
+          : renderTab()}
       </div>
 
       {/* ← NOVO: ribbon no fim de todas as abas */}

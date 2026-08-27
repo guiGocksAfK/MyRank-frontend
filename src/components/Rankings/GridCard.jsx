@@ -6,8 +6,9 @@ export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete,
   const barWidth = Math.min((displayNote / maxNote) * 100, 100);
 
   return (
-    <div style={{
+    <div className="mr-rankings-enter" style={{
       position: 'relative', borderRadius: 8, overflow: 'hidden',
+      '--rank-delay': `${Math.min(index, 12) * 35}ms`,
       border: index < 3 ? '2px solid var(--mr-gold)' : '1px solid var(--mr-border)',
       background: 'var(--mr-surface)', cursor: draggable ? 'grab' : (showActions ? 'pointer' : 'default'),
       opacity: isDragging ? 0.45 : 1,

@@ -1,4 +1,4 @@
-import api from './api.js';
+import api from './api'; // ajuste o caminho se o arquivo da instância axios tiver outro nome
 
 /**
  * Busca filmes por título (autocomplete). Retorna lista de:
@@ -36,21 +36,40 @@ export async function getTvShowDetails(externalId) {
 }
 
 /**
+ * Busca jogos por título (autocomplete). Mesmo formato de retorno.
+ */
+export async function searchGames(query) {
+  const { data } = await api.get('/external/search/games', { params: { query } });
+  return data;
+}
+
+/**
+ * Detalhes completos de um jogo já selecionado pelo usuário.
+ * Mesmo formato de retorno.
+ */
+export async function getGameDetails(externalId) {
+  const { data } = await api.get(`/external/games/${externalId}`);
+  return data;
+}
+
+/**
  * Dispara a busca certa de acordo com o tipo escolhido no dropdown do modal.
- * type: 'movie' | 'tv'
+ * type: 'movie' | 'tv' | 'game'
  */
 export async function searchByType(type, query) {
   if (type === 'movie') return searchMovies(query);
   if (type === 'tv') return searchTvShows(query);
+  if (type === 'game') return searchGames(query);
   return [];
 }
 
 /**
  * Dispara a busca de detalhes certa de acordo com o tipo escolhido.
- * type: 'movie' | 'tv'
+ * type: 'movie' | 'tv' | 'game'
  */
 export async function getDetailsByType(type, externalId) {
   if (type === 'movie') return getMovieDetails(externalId);
   if (type === 'tv') return getTvShowDetails(externalId);
+  if (type === 'game') return getGameDetails(externalId);
   return null;
 }

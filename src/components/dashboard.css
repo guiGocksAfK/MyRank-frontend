@@ -595,6 +595,22 @@
   aspect-ratio: 2 / 3;
 }
 
+.mr-skeleton-poster {
+  cursor: default;
+}
+
+.mr-skeleton-poster:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.mr-skeleton-poster .mr-poster-inner,
+.mr-skeleton {
+  background: linear-gradient(110deg, var(--mr-surface) 28%, var(--mr-gold-10) 42%, var(--mr-surface) 56%);
+  background-size: 200% 100%;
+  animation: mr-skeleton-shimmer 1.4s linear infinite;
+}
+
 .mr-poster-placeholder {
   width: 100%;
   height: 100%;
@@ -988,6 +1004,11 @@
   transition: background 0.2s;
 }
 
+.mr-rankings-enter {
+  animation: mr-rankings-rise 0.45s ease-out both;
+  animation-delay: var(--rank-delay, 0ms);
+}
+
 .mr-table-row:hover { background: var(--mr-gold-10); }
 
 .mr-note-bar {
@@ -1225,6 +1246,20 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes mr-rankings-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ============ STATUS RIBBON FOOTER ============ */
 .mr-status-footer {
   margin-top: 48px;
@@ -1410,4 +1445,8 @@
     padding: 8px 0;
     gap: 4px;
   }
+}
+
+@keyframes mr-skeleton-shimmer {
+  to { background-position: -200% 0; }
 }

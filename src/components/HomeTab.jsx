@@ -4,6 +4,7 @@ import { getStoredUser } from '../services/authService';
 import { getCategories } from '../services/CategoryService';
 import { getWorksByCategory } from '../services/WorkService';
 import { mapWorkToItem } from '../utils/mapWork';
+import AnimatedNumber from './Rankings/AnimatedNumber';
 
 const typeIcons = {
   filme: '🎬',
@@ -74,29 +75,28 @@ export default function HomeTab() {
     return () => { cancelled = true; };
   }, []);
 
-  const totalHours = Math.round(mediaItems.reduce((sum, item) => sum + (item.timeMinutes || 0), 0) / 60);
-  const avgNote = mediaItems.length
-    ? (mediaItems.reduce((sum, item) => sum + (item.note || 0), 0) / mediaItems.length).toFixed(1)
-    : '0.0';
   const unlockedBadges = badges.filter((b) => b.unlocked).length;
   const totalBadges = badges.length;
 
   const getNote = (item) => weighted ? item.finalNote : item.note;
 
-  const top5 = [...mediaItems]
-    .sort((a, b) => getNote(b) - getNote(a))
-    .slice(0, 5);
-
-  const recentItems = [...mediaItems]
-    .sort((a, b) => new Date(b.addedDate || 0) - new Date(a.addedDate || 0))
-    .slice(0, 6);
+  const { totalHours, avgNote, top5, recentItems } = useMemo(() => ({
+    totalHours: Math.round(mediaItems.reduce((sum, item) => sum + (item.timeMinutes || 0), 0) / 60),
+    avgNote: mediaItems.length
+      ? (mediaItems.reduce((sum, item) => sum + (item.note || 0), 0) / mediaItems.length).toFixed(1)
+      : '0.0',
+    top5: [...mediaItems].sort((a, b) => getNote(b) - getNote(a)).slice(0, 5),
+    recentItems: [...mediaItems]
+      .sort((a, b) => new Date(b.addedDate || 0) - new Date(a.addedDate || 0))
+      .slice(0, 6),
+  }), [mediaItems, weighted]);
 
   const recentBadges = badges.filter((b) => b.unlocked).slice(0, 4);
 
   const stats = [
-    { icon: '🎞️', value: loadingItems ? '...' : mediaItems.length, label: 'Obras Avaliadas' },
-    { icon: '⭐', value: loadingItems ? '...' : avgNote, label: 'Nota Média' },
-    { icon: '⏱️', value: loadingItems ? '...' : `${totalHours}h`, label: 'Horas Consumidas' },
+    { icon: '🎞️', value: mediaItems.length, label: 'Obras Avaliadas' },
+    { icon: '⭐', value: Number(avgNote), label: 'Nota Média', decimals: 1 },
+    { icon: '⏱️', value: totalHours, label: 'Horas Consumidas', suffix: 'h' },
     { icon: '🏅', value: `${unlockedBadges}/${totalBadges}`, label: 'Badges Desbloqueados' },
   ];
 
@@ -120,7 +120,13 @@ export default function HomeTab() {
               <span className="mr-stat-icon">{stat.icon}</span>
               <div className="mr-stat-dot" />
             </div>
-            <div className="mr-stat-value">{stat.value}</div>
+            <div className="mr-stat-value">
+              {loadingItems && i < 3
+                ? '...'
+                : typeof stat.value === 'number'
+                ? <AnimatedNumber value={stat.value} decimals={stat.decimals ?? 0} suffix={stat.suffix} />
+                : stat.value}
+            </div>
             <div className="mr-stat-label">{stat.label}</div>
           </div>
         ))}
@@ -133,9 +139,13 @@ export default function HomeTab() {
           <button className="mr-link-btn">Ver todas →</button>
         </div>
         <div className="mr-poster-grid">
-          {recentItems.map((item) => (
-            <div className="mr-poster" key={item.id}>
-              <div className="mr-poster-rating">{item.note.toFixed(1)}</div>
+          {loadingItems ? Array.from({ length: 6 }, (_, index) => (
+            <div className="mr-poster mr-skeleton-poster" key={`skeleton-${index}`} aria-hidden="true">
+              <div className="mr-poster-inner" />
+            </div>
+          )) : recentItems.map((item, index) => (
+            <div className="mr-poster mr-rankings-enter" style={{ '--rank-delay': `${index * 35}ms` }} key={item.id}>
+              <div className="mr-poster-rating"><AnimatedNumber value={item.note} /></div>
               <div className="mr-poster-inner">
                 {item.image ? (
                   <img
@@ -155,7 +165,7 @@ export default function HomeTab() {
                   <span className="mr-poster-overlay-title">{item.title}</span>
                   <div className="mr-poster-overlay-badges">
                     <span className="mr-poster-overlay-note">
-                      {item.note.toFixed(1)}
+                      <AnimatedNumber value={item.note} />
                     </span>
                   </div>
                   <span className="mr-poster-overlay-time">

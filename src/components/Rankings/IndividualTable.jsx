@@ -4,6 +4,7 @@ import GridCard from './GridCard';
 import ItemModal from './ItemModal';
 import ConfirmModal from './ConfirmModal';
 import EditTableModal from './EditTableModal';
+import AnimatedNumber from './AnimatedNumber';
 import { getNoteBarColor, formatTime, sortItems, getMode, getDisplayedNote, applyFilters, getColumnConfig } from '../../utils/formatters';
 
 function TableToolbar({ table, onDeleteTable, onEditTable, onAddWork }) {
@@ -31,7 +32,7 @@ function TableToolbar({ table, onDeleteTable, onEditTable, onAddWork }) {
   );
 }
 
-export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode, filters, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem, onRenameTable }) {
+export default function IndividualTable({ table, loading, sortBy, useTimeWeight, viewMode, filters, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem, onRenameTable }) {
   const [modal, setModal] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
@@ -102,7 +103,9 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
     return (
       <div>
         {toolbar}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
+        {loading ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>⏳ Carregando obras...</div>
+        ) : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
           {sorted.map((item, i) => (
             <GridCard
               key={item.id} item={item} mode={mode} maxNote={maxNote} index={i}
@@ -117,8 +120,8 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
               isDragging={draggedItemId === item.id}
             />
           ))}
-        </div>
-        {sorted.length === 0 && (
+        </div>}
+        {!loading && sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
             Nenhuma obra encontrada com os filtros atuais. 🔍
           </div>
@@ -162,7 +165,9 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
       </div>
 
       <div className="mr-space-y-2">
-        {sorted.length === 0 && (
+        {loading ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>⏳ Carregando obras...</div>
+        ) : sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
             Nenhuma obra encontrada com os filtros atuais. 🔍
           </div>
@@ -175,14 +180,14 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
 
           return (
             <div
-              className="mr-table-row"
+              className="mr-table-row mr-rankings-enter"
               key={item.id}
               draggable={sortBy !== 'time'}
               onDragStart={() => setDraggedItemId(item.id)}
               onDragEnd={() => setDraggedItemId(null)}
               onDragOver={event => handleDragOver(event, item)}
               onDrop={event => handleDrop(event, item)}
-              style={{ gridTemplateColumns: cols.gridTemplate, borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined, opacity: isDeleting ? 0.5 : (draggedItemId === item.id ? 0.45 : 1), cursor: sortBy !== 'time' ? 'grab' : undefined }}
+              style={{ gridTemplateColumns: cols.gridTemplate, '--rank-delay': `${Math.min(i, 12) * 35}ms`, borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined, opacity: isDeleting ? 0.5 : (draggedItemId === item.id ? 0.45 : 1), cursor: sortBy !== 'time' ? 'grab' : undefined }}
             >
               <span style={{ fontWeight: 700, color: i < 3 ? 'var(--mr-gold)' : 'var(--mr-text-secondary)' }}>{i + 1}</span>
 
@@ -195,12 +200,12 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
 
               {mode === 'weight' && (
                 <>
-                  <span style={{ fontWeight: 600 }}>{item.note.toFixed(1)}</span>
+                  <span style={{ fontWeight: 600 }}><AnimatedNumber value={item.note} /></span>
                   <span style={{ color: 'var(--mr-blue-light)', fontWeight: 500, fontSize: '0.875rem' }}>
-                    {bonus > 0 ? `+${bonus.toFixed(1)}` : '—'}
+                    {bonus > 0 ? <AnimatedNumber value={bonus} prefix="+" /> : '—'}
                   </span>
                   <div className="mr-flex mr-items-center mr-gap-3">
-                    <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36 }}>{displayNote.toFixed(1)}</span>
+                    <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36 }}><AnimatedNumber value={displayNote} /></span>
                     <div className="mr-note-bar">
                       <div className={`mr-note-bar-fill ${getNoteBarColor(displayNote)}`} style={{ width: `${barWidth}%` }} />
                     </div>
@@ -210,7 +215,7 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
 
               {mode === 'simple' && (
                 <div className="mr-flex mr-items-center mr-gap-3">
-                  <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36 }}>{item.note.toFixed(1)}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36 }}><AnimatedNumber value={item.note} /></span>
                   <div className="mr-note-bar">
                     <div className={`mr-note-bar-fill ${getNoteBarColor(item.note)}`} style={{ width: `${barWidth}%` }} />
                   </div>
@@ -219,7 +224,7 @@ export default function IndividualTable({ table, sortBy, useTimeWeight, viewMode
 
               {mode === 'time' && (
                 <>
-                  <span style={{ fontWeight: 600 }}>{item.note.toFixed(1)}</span>
+                  <span style={{ fontWeight: 600 }}><AnimatedNumber value={item.note} /></span>
                   <span style={{ fontWeight: 600, color: 'var(--mr-blue-light)' }}>{formatTime(item.timeMinutes)}</span>
                 </>
               )}

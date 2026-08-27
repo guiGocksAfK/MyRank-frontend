@@ -62,7 +62,7 @@ function saveItemOrder(tableId, items) {
 
 export default function RankingsTab({ onNavigateToCreators }) {
   const [tables,           setTables]           = useState([]);
-  const [loadingTables,    setLoadingTables]    = useState(true);
+  const [loadingTableIds,  setLoadingTableIds]  = useState([]);
   const [loadError,        setLoadError]        = useState(null);
   const [activeTab,        setActiveTab]        = useState('unified');
   const [useTimeWeight,    setUseTimeWeight]    = useState(false);
@@ -80,25 +80,38 @@ export default function RankingsTab({ onNavigateToCreators }) {
     let cancelled = false;
 
     async function loadAll() {
-      setLoadingTables(true);
       setLoadError(null);
       try {
         const categories = await getCategories();
-        const tablesWithItems = await Promise.all(
-          categories.map(async (cat) => {
-            const works = await getWorksByCategory(cat.id);
-            return mapCategoryToTable(cat, orderItems(cat.id, works.map(mapWorkToItem)));
-          })
-        );
+        const tablesWithoutItems = categories.map(cat => mapCategoryToTable(cat));
         if (cancelled) return;
-        setTables(orderTables(tablesWithItems));
+        setTables(orderTables(tablesWithoutItems));
+        setSelectedTableIds(tablesWithoutItems.map(table => table.id));
+        setLoadingTableIds(tablesWithoutItems.map(table => table.id));
+
+        await Promise.all(tablesWithoutItems.map(async table => {
+          try {
+            const works = await getWorksByCategory(table.id);
+            if (!cancelled) {
+              setTables(prev => prev.map(current => current.id === table.id
+                ? { ...current, items: orderItems(table.id, works.map(mapWorkToItem)) }
+                : current));
+            }
+          } finally {
+            if (!cancelled) {
+              setLoadingTableIds(prev => prev.filter(id => id !== table.id));
+            }
+          }
+        }));
+
+        if (cancelled) return;
 
         // Busca o grupo "Unificado" já existente, ou cria um novo com tudo selecionado
         const groups = await getGroups();
         let unifiedGroup = groups.find(g => g.name === 'Unificado');
 
-        if (!unifiedGroup && tablesWithItems.length > 0) {
-          unifiedGroup = await createGroup('Unificado', tablesWithItems.map(t => t.id));
+        if (!unifiedGroup && tablesWithoutItems.length > 0) {
+          unifiedGroup = await createGroup('Unificado', tablesWithoutItems.map(t => t.id));
         }
 
         if (cancelled) return;
@@ -106,13 +119,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
         if (unifiedGroup) {
           setUnifiedGroupId(unifiedGroup.id);
           setSelectedTableIds(unifiedGroup.categoryIds);
-        } else {
-          setSelectedTableIds(tablesWithItems.map(t => t.id));
         }
       } catch (err) {
         if (!cancelled) setLoadError(err?.response?.data?.message || err.message || 'Erro ao carregar suas tabelas.');
-      } finally {
-        if (!cancelled) setLoadingTables(false);
       }
     }
 
@@ -240,10 +249,6 @@ export default function RankingsTab({ onNavigateToCreators }) {
     return applyFilters(table.items, filters).length;
   }, [activeTab, tables, selectedTableIds, filters]);
 
-  if (loadingTables) {
-    return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>⏳ Carregando suas tabelas...</div>;
-  }
-
   if (loadError) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: '#e24b4a' }}>
@@ -343,6 +348,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
         <UnifiedTable
           tables={tables}
           selectedTableIds={selectedTableIds}
+          loading={loadingTableIds.length > 0}
           sortBy={sortBy}
           useTimeWeight={useTimeWeight}
           viewMode={viewMode}
@@ -355,6 +361,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
           return (
             <IndividualTable
               table={table}
+              loading={loadingTableIds.includes(table.id)}
               sortBy={sortBy}
               useTimeWeight={useTimeWeight}
               viewMode={viewMode}

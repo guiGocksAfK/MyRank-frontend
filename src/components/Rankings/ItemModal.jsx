@@ -5,7 +5,7 @@ import { searchByType, getDetailsByType } from '../../services/ExternalSearchSer
 const WORK_TYPES = [
   { value: 'movie', label: '🎬 Filme', enabled: true },
   { value: 'tv',    label: '📺 Série', enabled: true },
-  { value: 'game',  label: '🎮 Jogo (em breve)',  enabled: false },
+  { value: 'game',  label: '🎮 Jogo', enabled: true },
   { value: 'book',  label: '📚 Livro (em breve)', enabled: false },
   { value: 'anime', label: '⛩️ Anime (em breve)', enabled: false },
 ];

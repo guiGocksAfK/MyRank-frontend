@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import Poster from './Poster';
 import GridCard from './GridCard';
+import AnimatedNumber from './AnimatedNumber';
 import { getNoteBarColor, formatTime, sortItems, getMode, applyFilters, getColumnConfig, badgeStyle } from '../../utils/formatters';
 
 function getUnifiedOrderKey() {
@@ -28,7 +29,7 @@ function applyUnifiedOrder(items, savedOrder) {
   return [...ordered, ...items.filter(item => !orderedKeys.has(getItemKey(item)))];
 }
 
-export default function UnifiedTable({ tables, selectedTableIds, sortBy, useTimeWeight, viewMode, filters }) {
+export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy, useTimeWeight, viewMode, filters }) {
   const mode    = getMode(sortBy, useTimeWeight);
   const maxNote = mode === 'weight' ? 12 : 10;
   const cols    = getColumnConfig(mode, false, viewMode === 'list');
@@ -128,21 +129,23 @@ export default function UnifiedTable({ tables, selectedTableIds, sortBy, useTime
         </div>
 
         <div className="mr-space-y-2">
-          {sorted.map((item, i) => {
+          {loading ? (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>⏳ Carregando obras...</div>
+          ) : sorted.map((item, i) => {
             const displayNote = mode === 'weight' ? item.finalNote : item.note;
             const bonus       = mode === 'weight' ? item.bonusTime : 0;
             const barWidth    = Math.min((displayNote / maxNote) * 100, 100);
 
             return (
               <div
-                className="mr-table-row"
+                className="mr-table-row mr-rankings-enter"
                 key={item.id + item._tableId}
                 draggable={sortBy !== 'time'}
                 onDragStart={() => setDraggedItemKey(getItemKey(item))}
                 onDragEnd={() => setDraggedItemKey(null)}
                 onDragOver={event => handleDragOver(event, item)}
                 onDrop={event => handleDrop(event, item)}
-                style={{ gridTemplateColumns: cols.gridTemplate, borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined, opacity: draggedItemKey === getItemKey(item) ? 0.45 : 1, cursor: sortBy !== 'time' ? 'grab' : undefined }}
+                style={{ gridTemplateColumns: cols.gridTemplate, '--rank-delay': `${Math.min(i, 12) * 35}ms`, borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined, opacity: draggedItemKey === getItemKey(item) ? 0.45 : 1, cursor: sortBy !== 'time' ? 'grab' : undefined }}
               >
                 <span style={{ fontWeight: 700, color: i < 3 ? 'var(--mr-gold)' : 'var(--mr-text-secondary)' }}>{i + 1}</span>
 
@@ -156,12 +159,12 @@ export default function UnifiedTable({ tables, selectedTableIds, sortBy, useTime
 
                 {mode === 'weight' && (
                   <>
-                    <span style={{ fontWeight: 600 }}>{item.note.toFixed(1)}</span>
+                    <span style={{ fontWeight: 600 }}><AnimatedNumber value={item.note} /></span>
                     <span style={{ color: 'var(--mr-blue-light)', fontWeight: 500, fontSize: '0.875rem' }}>
-                      {bonus > 0 ? `+${bonus.toFixed(1)}` : '—'}
+                      {bonus > 0 ? <AnimatedNumber value={bonus} prefix="+" /> : '—'}
                     </span>
                     <div className="mr-flex mr-items-center mr-gap-3">
-                      <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36 }}>{displayNote.toFixed(1)}</span>
+                      <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36 }}><AnimatedNumber value={displayNote} /></span>
                       <div className="mr-note-bar">
                         <div className={`mr-note-bar-fill ${getNoteBarColor(displayNote)}`} style={{ width: `${barWidth}%` }} />
                       </div>
@@ -171,7 +174,7 @@ export default function UnifiedTable({ tables, selectedTableIds, sortBy, useTime
 
                 {mode === 'simple' && (
                   <div className="mr-flex mr-items-center mr-gap-3">
-                    <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36 }}>{item.note.toFixed(1)}</span>
+                    <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36 }}><AnimatedNumber value={item.note} /></span>
                     <div className="mr-note-bar">
                       <div className={`mr-note-bar-fill ${getNoteBarColor(item.note)}`} style={{ width: `${barWidth}%` }} />
                     </div>
@@ -180,7 +183,7 @@ export default function UnifiedTable({ tables, selectedTableIds, sortBy, useTime
 
                 {mode === 'time' && (
                   <>
-                    <span style={{ fontWeight: 600 }}>{item.note.toFixed(1)}</span>
+                    <span style={{ fontWeight: 600 }}><AnimatedNumber value={item.note} /></span>
                     <span style={{ fontWeight: 600, color: 'var(--mr-blue-light)' }}>{formatTime(item.timeMinutes)}</span>
                   </>
                 )}
@@ -189,7 +192,7 @@ export default function UnifiedTable({ tables, selectedTableIds, sortBy, useTime
           })}
         </div>
 
-        {sorted.length === 0 && (
+        {!loading && sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
             Nenhuma obra encontrada com os filtros atuais. 🔍
           </div>
