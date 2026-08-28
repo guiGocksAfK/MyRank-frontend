@@ -4,7 +4,13 @@ import { getMe, updateMe } from '../../services/userService';
 import Avatar from '../../shared/components/Avatar';
 import AvatarUploadModal from './AvatarUploadModal';
 import { useUser } from '../../shared/userContext';
-import { useUnifiedItems, computeStats, relativeTime } from '../../shared/useUnifiedItems';
+import {
+  useUnifiedItems,
+  computeStats,
+  computeBreakdown,
+  computeHighlights,
+  relativeTime,
+} from '../../shared/useUnifiedItems';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 const safeStringify = (v) => {
@@ -48,6 +54,27 @@ function SettingRow({ label, desc, children }) {
         {desc && <div className="mr-setting-desc">{desc}</div>}
       </div>
       {children}
+    </div>
+  );
+}
+
+// ─── Componente: linha rótulo → valor (destaques / dados da conta) ─────────
+function KVRow({ label, value, meta }) {
+  return (
+    <div
+      className="mr-flex mr-items-center mr-justify-between mr-gap-3"
+      style={{ fontSize: '0.85rem' }}
+    >
+      <span style={{ color: 'var(--mr-text-secondary)', flexShrink: 0 }}>{label}</span>
+      <span
+        className="mr-flex mr-items-center mr-gap-2"
+        style={{ minWidth: 0, justifyContent: 'flex-end', textAlign: 'right' }}
+      >
+        <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {value ?? '—'}
+        </span>
+        {meta ? <strong style={{ color: 'var(--mr-gold)', flexShrink: 0 }}>{meta}</strong> : null}
+      </span>
     </div>
   );
 }
@@ -184,7 +211,11 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   // ── Stats reais das obras do usuário (GET /works/unified) ──
   const { items: works, loading: loadingWorks } = useUnifiedItems();
   const stats = computeStats(works || []);
+  const breakdown = computeBreakdown(works || []);
+  const highlights = computeHighlights(works || []);
   const unlockedCount = badges.filter(b => b.unlocked).length;
+
+  const hoursLabel = (min) => `${Math.round((min || 0) / 60)}h`;
 
   // Histórico = obras mais recentes por data de adição
   const activities = (works || [])
@@ -344,26 +375,39 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>@{profileUsername}</div>
+                  <div className="mr-flex mr-items-center mr-justify-center mr-gap-2">
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>@{profileUsername}</span>
+                    {profilePlan === 'PRO' && (
+                      <span className="mr-badge mr-badge-gold" style={{ fontSize: '0.65rem' }}>PRO</span>
+                    )}
+                  </div>
+
                   {createdAt && (
                     <div style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginTop: 6 }}>
                       Membro desde {formatDate(createdAt)}
                     </div>
                   )}
-                  {profilePlan && (
-                    <div style={{ marginTop: 8 }}>
-                      <span className={`mr-badge ${profilePlan === 'PRO' ? 'mr-badge-gold' : 'mr-badge-outline'}`}>
-                        {profilePlan === 'PRO' ? 'PRO' : 'FREE'}
-                      </span>
-                    </div>
-                  )}
+
                   <button
                     className="mr-btn mr-btn-sm mr-btn-outline"
-                    style={{ marginTop: 12 }}
+                    style={{ marginTop: 12, display: 'block', marginLeft: 'auto', marginRight: 'auto' }}
                     onClick={() => setEditMode(true)}
                   >
                     Editar perfil
                   </button>
+
+                  <div
+                    className="mr-flex mr-items-center mr-justify-center mr-gap-2"
+                    style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginTop: 12, flexWrap: 'wrap' }}
+                  >
+                    <span>{profile?.isPublic ? '🌐 Perfil público' : '🔒 Perfil privado'}</span>
+                    {profilePlan !== 'PRO' && (
+                      <>
+                        <span style={{ color: 'var(--mr-text-muted)' }}>·</span>
+                        <span style={{ color: 'var(--mr-text-muted)' }}>🆓 Plano gratuito</span>
+                      </>
+                    )}
+                  </div>
                 </>
               )}
             </div>
@@ -469,55 +513,73 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
             </div>
           </div>
 
-          {/* APIs Conectadas */}
+          {/* Destaques */}
           <div className="mr-card">
             <div className="mr-card-body mr-space-y-4">
-              <div className="mr-flex mr-items-center mr-justify-between">
-                <h3 style={{ fontWeight: 700 }}>🔌 APIs Conectadas</h3>
-              </div>
-
-              {/* Tabela de APIs — mesmo padrão das outras tabelas */}
-              <div
-                className="mr-table-header"
-                style={{ gridTemplateColumns: '28px 1fr 1fr 90px' }}
-              >
-                <span />
-                <span>Serviço</span>
-                <span>Cobertura</span>
-                <span style={{ textAlign: 'right' }}>Status</span>
-              </div>
-
-              {[
-                { icon: '🎬', name: 'TMDB',          desc: 'Filmes e Séries',  status: 'Conectado', ok: true  },
-                { icon: '🎮', name: 'RAWG',           desc: 'Jogos',            status: 'Conectado', ok: true  },
-                { icon: '📚', name: 'Open Library',   desc: 'Livros',           status: 'Conectado', ok: true  },
-                { icon: '🤖', name: 'Claude AI',      desc: 'Insights e Análises', status: 'Ativo', ok: true   },
-              ].map((api, i) => (
-                <div
-                  key={i}
-                  className="mr-table-row"
-                  style={{ gridTemplateColumns: '28px 1fr 1fr 90px' }}
-                >
-                  <span style={{ fontSize: '1rem' }}>{api.icon}</span>
-
-                  <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                    {api.name}
-                  </span>
-
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--mr-text-secondary)' }}>
-                    {api.desc}
-                  </span>
-
-                  <div style={{ textAlign: 'right' }}>
-                    <span
-                      className={`mr-badge ${api.ok ? 'mr-badge-green' : 'mr-badge-outline'}`}
-                      style={{ fontSize: '0.7rem' }}
-                    >
-                      {api.status}
-                    </span>
-                  </div>
+              <h3 style={{ fontWeight: 700 }}>⭐ Destaques</h3>
+              {loadingWorks ? (
+                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>Carregando…</div>
+              ) : !highlights ? (
+                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
+                  Adicione obras pra ver seus destaques.
                 </div>
-              ))}
+              ) : (
+                <div className="mr-space-y-3">
+                  <KVRow
+                    label="Melhor avaliada"
+                    value={highlights.byNote?.title}
+                    meta={highlights.byNote ? Number(highlights.byNote.note).toFixed(1) : null}
+                  />
+                  <KVRow
+                    label="Mais horas"
+                    value={highlights.byTime?.title}
+                    meta={highlights.byTime ? hoursLabel(highlights.byTime.timeMinutes) : null}
+                  />
+                  <KVRow
+                    label="Última adicionada"
+                    value={highlights.byRecent?.title}
+                    meta={highlights.byRecent ? relativeTime(highlights.byRecent.addedDate) : null}
+                  />
+                  <KVRow
+                    label="Categoria favorita"
+                    value={highlights.favCategory ? `${highlights.favCategory.icon} ${highlights.favCategory.label}` : '—'}
+                    meta={highlights.favCategory ? `${highlights.favCategory.count}` : null}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Distribuição por categoria */}
+          <div className="mr-card">
+            <div className="mr-card-body mr-space-y-4">
+              <h3 style={{ fontWeight: 700 }}>📊 Distribuição por categoria</h3>
+              {loadingWorks ? (
+                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>Carregando…</div>
+              ) : breakdown.length === 0 ? (
+                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
+                  Nenhuma obra ainda.
+                </div>
+              ) : (
+                <div className="mr-space-y-3">
+                  {breakdown.map((b) => (
+                    <div key={b.type}>
+                      <div
+                        className="mr-flex mr-items-center mr-justify-between"
+                        style={{ fontSize: '0.85rem', marginBottom: 4 }}
+                      >
+                        <span>{b.icon} {b.label}</span>
+                        <span style={{ color: 'var(--mr-text-secondary)' }}>
+                          {b.count} {b.count === 1 ? 'obra' : 'obras'} · média {b.avgLabel}
+                        </span>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 3, background: 'var(--mr-surface)', border: '1px solid var(--mr-border)', overflow: 'hidden' }}>
+                        <div style={{ width: `${Math.round(b.share * 100)}%`, height: '100%', background: 'var(--mr-gold)' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

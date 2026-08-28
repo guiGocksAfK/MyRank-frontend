@@ -74,6 +74,59 @@ export function computeStats(items = []) {
   };
 }
 
+export const TYPE_META = {
+  filme: { icon: '🎬', label: 'Filmes' },
+  serie: { icon: '📺', label: 'Séries' },
+  jogo:  { icon: '🎮', label: 'Jogos' },
+  livro: { icon: '📚', label: 'Livros' },
+  anime: { icon: '🌸', label: 'Animes' },
+  outro: { icon: '📦', label: 'Outros' },
+};
+
+const avgOf = (list) => {
+  const notes = list.map((i) => num(i.note)).filter((n) => n > 0);
+  return notes.length ? notes.reduce((s, n) => s + n, 0) / notes.length : 0;
+};
+
+/** Contagem + média simples por tipo de obra, ordenado por quantidade. */
+export function computeBreakdown(items = []) {
+  const groups = new Map();
+  for (const it of items) {
+    const t = TYPE_META[it.type] ? it.type : 'outro';
+    if (!groups.has(t)) groups.set(t, []);
+    groups.get(t).push(it);
+  }
+  const total = items.length || 1;
+  return [...groups.entries()]
+    .map(([type, list]) => {
+      const avg = avgOf(list);
+      return {
+        type,
+        ...TYPE_META[type],
+        count: list.length,
+        share: list.length / total,
+        avgLabel: avg ? avg.toFixed(1) : '—',
+      };
+    })
+    .sort((a, b) => b.count - a.count);
+}
+
+/** Melhor nota, mais horas, adição mais recente e categoria favorita. */
+export function computeHighlights(items = []) {
+  if (!items.length) return null;
+  const rated = items.filter((i) => num(i.note) > 0);
+  const byNote = rated.length
+    ? rated.reduce((best, i) => (num(i.note) > num(best.note) ? i : best))
+    : null;
+  const byTime = items.reduce((top, i) => (num(i.timeMinutes) > num(top.timeMinutes) ? i : top));
+  const dated = items.filter((i) => i.addedDate);
+  const byRecent = dated.length
+    ? dated.reduce((r, i) => (new Date(i.addedDate) > new Date(r.addedDate) ? i : r))
+    : null;
+  const favCategory = computeBreakdown(items)[0] || null;
+  return { byNote, byTime, byRecent, favCategory };
+}
+
 /** "há X" curto em pt-BR, a partir de um ISO. */
 export function relativeTime(iso) {
   if (!iso) return '';
