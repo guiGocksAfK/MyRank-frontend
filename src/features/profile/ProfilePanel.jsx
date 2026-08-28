@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { badges } from '../../data/mockData';
 import { getMe, updateMe } from '../../services/userService';
 import Avatar from '../../shared/components/Avatar';
 import AvatarUploadModal from './AvatarUploadModal';
@@ -11,6 +10,7 @@ import {
   computeHighlights,
   relativeTime,
 } from '../../shared/useUnifiedItems';
+import { useBadges, groupByBucket } from '../../shared/useBadges';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 const safeStringify = (v) => {
@@ -82,7 +82,7 @@ function KVRow({ label, value, meta }) {
 // ─── Componente: Badge card ───────────────────────────────────────────────
 function BadgeCard({ badge }) {
   const pct = Math.min(
-    Math.round((badge.progress / badge.maxProgress) * 100),
+    Math.round((badge.progress / Math.max(badge.maxProgress, 1)) * 100),
     100
   );
 
@@ -109,7 +109,7 @@ function BadgeCard({ badge }) {
             Desbloqueado
           </span>
         </div>
-      ) : (
+      ) : badge.hasProgress ? (
         <div>
           <div className="mr-flex mr-justify-between mr-mb-1" style={{ fontSize: '0.6875rem' }}>
             <span style={{ color: 'var(--mr-text-secondary)' }}>
@@ -126,6 +126,10 @@ function BadgeCard({ badge }) {
               }}
             />
           </div>
+        </div>
+      ) : (
+        <div className="mr-flex mr-items-center mr-justify-center mr-gap-2">
+          <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)' }}>🔒 Bloqueado</span>
         </div>
       )}
     </div>
@@ -213,7 +217,10 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const stats = computeStats(works || []);
   const breakdown = computeBreakdown(works || []);
   const highlights = computeHighlights(works || []);
-  const unlockedCount = badges.filter(b => b.unlocked).length;
+
+  const { badges, loading: loadingBadges } = useBadges();
+  const badgeList = badges || [];
+  const unlockedCount = badgeList.filter(b => b.unlocked).length;
 
   const hoursLabel = (min) => `${Math.round((min || 0) / 60)}h`;
 
@@ -230,9 +237,10 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
 
   // Filtro de badges
   const visibleBadges =
-    badgeFilter === 'unlocked' ? badges.filter(b =>  b.unlocked) :
-    badgeFilter === 'locked'   ? badges.filter(b => !b.unlocked) :
-    badges;
+    badgeFilter === 'unlocked' ? badgeList.filter(b =>  b.unlocked) :
+    badgeFilter === 'locked'   ? badgeList.filter(b => !b.unlocked) :
+    badgeList;
+  const visibleGroups = groupByBucket(visibleBadges);
 
   if (loadingProfile) {
     return (
@@ -438,25 +446,27 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
               <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginBottom: 12 }}>
                 Conquistas rápidas
               </div>
-              <div className="mr-flex mr-flex-wrap mr-justify-center mr-gap-2">
-                {badges.slice(0, 5).map(badge => (
-                  <span
-                    key={badge.id}
-                    title={badge.name}
-                    style={{
-                      fontSize: '1.4rem',
-                      opacity: badge.unlocked ? 1 : 0.22,
-                      filter: badge.unlocked ? 'none' : 'grayscale(100%)',
-                      cursor: 'default',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {badge.icon}
+              <div className="mr-flex mr-flex-wrap mr-justify-center mr-gap-2" style={{ minHeight: '1.4rem' }}>
+                {loadingBadges ? (
+                  <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>Carregando…</span>
+                ) : unlockedCount === 0 ? (
+                  <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
+                    Nenhuma conquista ainda.
                   </span>
-                ))}
+                ) : (
+                  badgeList.filter(b => b.unlocked).slice(0, 6).map(badge => (
+                    <span
+                      key={badge.id}
+                      title={badge.name}
+                      style={{ fontSize: '1.4rem', cursor: 'default', lineHeight: 1 }}
+                    >
+                      {badge.icon}
+                    </span>
+                  ))
+                )}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)', marginTop: 10 }}>
-                {unlockedCount} de {badges.length} desbloqueados
+                {unlockedCount} de {badgeList.length} desbloqueadas
               </div>
             </div>
 
@@ -586,20 +596,17 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
         </div>
       </div>
 
-      {/* ── Badges e Conquistas (RF-012) — largura total ── */}
+      {/* ── Badges e Conquistas — largura total ── */}
       <div>
         <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap" style={{ marginBottom: 16 }}>
-          <h2 style={{ fontWeight: 700, fontSize: '1.25rem' }}>🏅 Badges e Conquistas</h2>
-          <span style={{ fontSize: '0.8125rem', color: 'var(--mr-text-muted)', marginRight: 'auto' }}>
-            RF-012
-          </span>
+          <h2 style={{ fontWeight: 700, fontSize: '1.25rem', marginRight: 'auto' }}>🏅 Badges e Conquistas</h2>
 
           {/* Filtro de badges — mesmo padrão toolbar */}
           <div className="mr-flex mr-gap-1">
             {[
-              { id: 'all',      label: 'Todos'          },
-              { id: 'unlocked', label: '✓ Desbloqueados' },
-              { id: 'locked',   label: '🔒 Bloqueados'   },
+              { id: 'all',      label: 'Todas'           },
+              { id: 'unlocked', label: '✓ Desbloqueadas' },
+              { id: 'locked',   label: '🔒 Bloqueadas'   },
             ].map(f => (
               <button
                 key={f.id}
@@ -612,20 +619,41 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
           </div>
 
           <div style={{ fontSize: '0.8125rem', color: 'var(--mr-text-muted)' }}>
-            {visibleBadges.length} de {badges.length}
+            {loadingBadges ? '…' : `${unlockedCount} de ${badgeList.length}`}
           </div>
         </div>
 
-        {visibleBadges.length === 0 ? (
+        {loadingBadges ? (
           <div className="mr-card">
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-              Nenhum badge encontrado para este filtro. 🔍
+              Carregando conquistas…
+            </div>
+          </div>
+        ) : visibleBadges.length === 0 ? (
+          <div className="mr-card">
+            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
+              Nenhuma badge neste filtro. 🔍
             </div>
           </div>
         ) : (
-          <div className="mr-badge-grid">
-            {visibleBadges.map(badge => (
-              <BadgeCard key={badge.id} badge={badge} />
+          <div className="mr-space-y-6">
+            {visibleGroups.map(group => (
+              <div key={group.key}>
+                <div
+                  className="mr-flex mr-items-center mr-gap-2"
+                  style={{ marginBottom: 10, fontSize: '0.95rem', fontWeight: 700 }}
+                >
+                  <span>{group.icon} {group.label}</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--mr-text-muted)' }}>
+                    {group.items.filter(b => b.unlocked).length}/{group.items.length}
+                  </span>
+                </div>
+                <div className="mr-badge-grid">
+                  {group.items.map(badge => (
+                    <BadgeCard key={badge.id} badge={badge} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}

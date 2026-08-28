@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { badges } from '../../data/mockData';
+import { useBadges } from '../../shared/useBadges';
 import { getStoredUser } from '../../services/authService';
 import { useUser } from '../../shared/userContext';
 import { getCategories } from '../../services/CategoryService';
@@ -136,6 +136,8 @@ export default function HomeOverview() {
     return () => { cancelled = true; };
   }, []);
 
+  const { badges: badgeData } = useBadges();
+  const badges = badgeData || [];
   const unlockedBadges = badges.filter((b) => b.unlocked).length;
   const totalBadges = badges.length;
   const getNote = (item) => weighted ? item.finalNote : item.note;
@@ -151,7 +153,15 @@ export default function HomeOverview() {
       .slice(0, 5),
   }), [mediaItems, weighted]);
 
-  const recentBadges = badges.filter((b) => b.unlocked).slice(0, 4);
+  const recentBadges = badges
+    .filter((b) => b.unlocked)
+    .sort((a, b) => new Date(b.unlockedAt || 0) - new Date(a.unlockedAt || 0))
+    .slice(0, 4);
+
+  const upcomingBadges = badges
+    .filter((b) => !b.unlocked && b.hasProgress && b.progress > 0)
+    .sort((a, b) => (b.progress / b.maxProgress) - (a.progress / a.maxProgress))
+    .slice(0, 6);
 
   const stats = [
     { icon: '🎞️', value: mediaItems.length, label: 'Obras Avaliadas' },
@@ -405,6 +415,11 @@ export default function HomeOverview() {
           <div className="mr-card-body">
             <h3 className="mr-section-title mr-mb-4">🎖️ Badges Recentes</h3>
             <div className="mr-space-y-3">
+              {recentBadges.length === 0 && (
+                <span style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
+                  Nenhuma conquista ainda. Avalie obras pra desbloquear. ✨
+                </span>
+              )}
               {recentBadges.map((badge) => (
                 <div className="mr-flex mr-items-center mr-gap-3" key={badge.id}>
                   <div className="mr-dot-green" />
@@ -443,8 +458,12 @@ export default function HomeOverview() {
             <button className="mr-link-btn">Ver todas →</button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            {badges
-              .filter((b) => !b.unlocked)
+            {upcomingBadges.length === 0 && (
+              <span style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
+                Sem conquistas em progresso no momento.
+              </span>
+            )}
+            {upcomingBadges
               .map((badge) => {
                 const pct = Math.min((badge.progress / badge.maxProgress) * 100, 100);
                 const remaining = badge.maxProgress - badge.progress;

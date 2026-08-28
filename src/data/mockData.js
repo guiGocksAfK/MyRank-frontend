@@ -109,53 +109,7 @@ export const friends = [
   },
 ];
 
-export const badges = [
-  {
-    id: "b1", name: "Entusiasta de Ficção Científica",
-    description: "Mais de 10 filmes de ficção científica com nota > 8.0",
-    icon: "🚀", unlocked: true, progress: 12, maxProgress: 10,
-    unlockedAt: "2026-06-12",
-  },
-  {
-    id: "b2", name: "Maratonista de Elite",
-    description: "Mais de 500 horas registradas em jogos",
-    icon: "🎮", unlocked: true, progress: 612, maxProgress: 500,
-    unlockedAt: "2026-06-05",
-  },
-  {
-    id: "b3", name: "Cinéfilo Avidamente",
-    description: "Avalie mais de 50 filmes",
-    icon: "🎬", unlocked: true, progress: 67, maxProgress: 50,
-    unlockedAt: "2026-05-20",
-  },
-  {
-    id: "b4", name: "Leitor Dedicado",
-    description: "Avalie mais de 20 livros",
-    icon: "📚", unlocked: false, progress: 14, maxProgress: 20,
-  },
-  {
-    id: "b5", name: "Colecionador de Séries",
-    description: "Complete mais de 15 séries",
-    icon: "📺", unlocked: true, progress: 18, maxProgress: 15,
-    unlockedAt: "2026-04-30",
-  },
-  {
-    id: "b6", name: "Crítico Rigoroso",
-    description: "Dê nota máxima (10.0) para menos de 5 obras",
-    icon: "⚖️", unlocked: false, progress: 6, maxProgress: 5,
-  },
-  {
-    id: "b7", name: "Explorador de Mundos",
-    description: "Avalie obras de 10 diretores/autores diferentes",
-    icon: "🌍", unlocked: true, progress: 15, maxProgress: 10,
-    unlockedAt: "2026-04-10",
-  },
-  {
-    id: "b8", name: "Social Butterfly",
-    description: "Siga mais de 20 amigos",
-    icon: "🦋", unlocked: false, progress: 8, maxProgress: 20,
-  },
-];
+// As badges agora vêm do backend (GET /api/badges) via useBadges().
 
 // Deriva `authorRankings` dinamicamente a partir de `mediaItems` para garantir consistência
 export const authorRankings = (() => {
