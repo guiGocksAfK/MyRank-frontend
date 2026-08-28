@@ -1,6 +1,22 @@
-import React, { useMemo, useState } from 'react';
-import { mediaItems, badges } from '../../data/mockData';
+import React, { useEffect, useMemo, useState } from 'react';
 import { getStoredUser } from '../../services/authService';
+import { getMe } from '../../services/userService';
+import { getUnifiedWorks } from '../../services/WorkService';
+
+const initialsFrom = (value) =>
+  (value || 'U')
+    .trim()
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase() || 'U';
+
+const num = (value) => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+};
 
 const navTabs = [
   { id: 'home', label: 'Dashboard', icon: '📊' },
@@ -33,21 +49,45 @@ const notifications = [
 
 export default function DashboardHeader({ activeTab, onTabChange }) {
   const storedUser = useMemo(() => getStoredUser(), []);
-  const profileSummary = useMemo(() => ({
-    name: storedUser?.name || storedUser?.username || 'Usuário',
-    username: storedUser?.username || 'usuario',
-    bio: storedUser?.bio || 'Apaixonado por jogos, filmes e livros.',
-  }), [storedUser]);
+  const [me, setMe] = useState(null);
+  const [works, setWorks] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  const totalMinutes = mediaItems.reduce((sum, item) => sum + (item.timeMinutes ?? 0), 0);
-  const totalHours = Math.round(totalMinutes / 60);
-  const avgNote = (
-    mediaItems.reduce((sum, item) => sum + item.finalNote, 0) / mediaItems.length
-  ).toFixed(1);
-  const unlockedCount = badges.filter((badge) => badge.unlocked).length;
-  const topBadges = badges.filter((badge) => badge.unlocked).slice(0, 4);
+  useEffect(() => {
+    let active = true;
+    getMe().then((data) => active && setMe(data)).catch(() => {});
+    getUnifiedWorks().then((data) => active && setWorks(Array.isArray(data) ? data : [])).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const profileSummary = useMemo(() => ({
+    username: me?.username || storedUser?.username || 'usuario',
+    bio: me?.bio?.trim() || 'Sem bio ainda.',
+    avatarUrl: me?.avatarUrl || null,
+  }), [me, storedUser]);
+
+  // Stats reais, calculados a partir das obras do usuário (/works/unified)
+  const stats = useMemo(() => {
+    if (!works) return { obras: '—', horas: '—', media: '—' };
+    if (works.length === 0) return { obras: 0, horas: 0, media: '—' };
+    const totalMinutes = works.reduce((sum, w) => sum + num(w.timeMinutes), 0);
+    const totalScore = works.reduce((sum, w) => sum + num(w.finalScore ?? w.score), 0);
+    return {
+      obras: works.length,
+      horas: Math.round(totalMinutes / 60),
+      media: (totalScore / works.length).toFixed(1),
+    };
+  }, [works]);
+
+  // Categorias que o usuário realmente acompanha
+  const categories = useMemo(() => {
+    if (!works) return [];
+    return [...new Set(works.map((w) => w.categoryName).filter(Boolean))];
+  }, [works]);
+  const topCategories = categories.slice(0, 4);
+
+  const avatarInitials = initialsFrom(profileSummary.username);
 
   const toggleNotifications = () => {
     setShowProfileMenu(false);
@@ -129,15 +169,21 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
               aria-expanded={showProfileMenu}
               aria-label="Abrir menu do perfil"
             >
-              LS
+              {profileSummary.avatarUrl
+                ? <img src={profileSummary.avatarUrl} alt="" className="mr-avatar-img" />
+                : avatarInitials}
             </button>
 
             {showProfileMenu && (
               <div className="mr-profile-panel">
                 <div className="mr-profile-compact-header">
-                  <div className="mr-avatar">{profileSummary.name.split(' ').map((p) => p[0]).join('')}</div>
+                  <div className="mr-avatar">
+                    {profileSummary.avatarUrl
+                      ? <img src={profileSummary.avatarUrl} alt="" className="mr-avatar-img" />
+                      : avatarInitials}
+                  </div>
                   <div>
-                    <div className="mr-profile-compact-name">{profileSummary.name}</div>
+                    <div className="mr-profile-compact-name">{profileSummary.username}</div>
                     <div className="mr-profile-compact-username">@{profileSummary.username}</div>
                   </div>
                 </div>
@@ -146,27 +192,35 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
 
                 <div className="mr-profile-compact-grid">
                   <div>
-                    <div className="mr-profile-compact-value">{mediaItems.length}</div>
+                    <div className="mr-profile-compact-value">{stats.obras}</div>
                     <div className="mr-profile-compact-label">Obras</div>
                   </div>
                   <div>
-                    <div className="mr-profile-compact-value">{totalHours}h</div>
+                    <div className="mr-profile-compact-value">
+                      {stats.horas === '—' ? '—' : `${stats.horas}h`}
+                    </div>
                     <div className="mr-profile-compact-label">Tempo</div>
                   </div>
                   <div>
-                    <div className="mr-profile-compact-value">{avgNote}</div>
+                    <div className="mr-profile-compact-value">{stats.media}</div>
                     <div className="mr-profile-compact-label">Média</div>
                   </div>
                 </div>
 
-                <div className="mr-profile-badges-row">
-                  {topBadges.map((badge) => (
-                    <span key={badge.id} className="mr-profile-badge-icon" title={badge.name}>
-                      {badge.icon}
-                    </span>
-                  ))}
-                  <span className="mr-profile-badge-more">+{unlockedCount - topBadges.length}</span>
-                </div>
+                {topCategories.length > 0 && (
+                  <div className="mr-profile-badges-row">
+                    {topCategories.map((name) => (
+                      <span key={name} className="mr-profile-cat-chip" title={name}>
+                        {name}
+                      </span>
+                    ))}
+                    {categories.length > topCategories.length && (
+                      <span className="mr-profile-badge-more">
+                        +{categories.length - topCategories.length}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <button type="button" className="mr-panel-action" onClick={handleViewProfile}>
                   Ver perfil completo
