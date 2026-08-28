@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { authorRankings, mediaItems } from '../../data/mockData';
+import React, { useEffect, useState, useMemo } from 'react';
+import { getUnifiedWorks } from '../../services/WorkService';
+import { mapWorkToItem } from '../../utils/mapWork';
 import './creators.css';
 
-// Recreated from scratch to match RankingsTab visuals — read-only view with expandable works
+// Ranking de criadores derivado das obras reais do usuário (/works/unified),
+// agrupadas por `creator`. Nada de hardcode.
 
 function getAuthorTypeInfo(type) {
   const map = {
@@ -25,6 +27,34 @@ function getAuthorTypeInfo(type) {
   return map[type] ?? { label: type, icon: '👤', badgeStyle: { background: 'var(--mr-muted-bg)', color: 'var(--mr-text-secondary)' }, avatarStyle: { background: 'var(--mr-muted-bg)', color: 'var(--mr-text-secondary)' } };
 }
 
+const TYPE_OPTIONS = ['Diretor', 'Escritor', 'Studio', 'Criador'];
+
+/** Infere o "tipo" do criador a partir do nome da categoria da obra. */
+function categoryNameToType(categoryName) {
+  const s = (categoryName || '').toLowerCase();
+  if (/livro|book/.test(s)) return 'Escritor';
+  if (/jogo|game/.test(s)) return 'Studio';
+  if (/anime/.test(s) && !/s[ée]rie|filme/.test(s)) return 'Studio';
+  if (/filme|s[ée]rie|movie|show|\btv\b/.test(s)) return 'Diretor';
+  return 'Criador';
+}
+
+/** Tipo predominante entre as obras de um criador. */
+function dominantType(works) {
+  const counts = {};
+  works.forEach(w => {
+    const t = categoryNameToType(w.categoryName);
+    counts[t] = (counts[t] || 0) + 1;
+  });
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Criador';
+}
+
+const num = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
+const mean = (arr) => (arr.length ? arr.reduce((s, x) => s + x, 0) / arr.length : 0);
+
 function getAuthorInitials(name) {
   if (!name) return '?';
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -42,26 +72,21 @@ function getNoteBarColor(note) {
 
 function getYear(isoDate) {
   if (!isoDate) return null;
-  return parseInt(isoDate.split('-')[0], 10);
+  return parseInt(String(isoDate).split('-')[0], 10);
 }
 
-function applyFilters(items, filters) {
-  if (!filters) return items;
-  return items.filter(item => {
-    if (filters.releaseYearMin != null || filters.releaseYearMax != null) {
-      const year = getYear(item.releaseDate);
-      if (year == null) return false;
-      if (filters.releaseYearMin != null && year < filters.releaseYearMin) return false;
-      if (filters.releaseYearMax != null && year > filters.releaseYearMax) return false;
-    }
-    if (filters.addedDateFrom != null) {
-      if (item.addedDate < filters.addedDateFrom) return false;
-    }
-    if (filters.addedDateTo != null) {
-      if (item.addedDate > filters.addedDateTo) return false;
-    }
-    return true;
-  });
+function matchesFilters(item, filters) {
+  if (!filters || Object.keys(filters).length === 0) return true;
+  if (filters.releaseYearMin != null || filters.releaseYearMax != null) {
+    const year = getYear(item.releaseDate);
+    if (year == null) return false;
+    if (filters.releaseYearMin != null && year < filters.releaseYearMin) return false;
+    if (filters.releaseYearMax != null && year > filters.releaseYearMax) return false;
+  }
+  const added = (item.addedDate || '').slice(0, 10); // createdAt ISO → yyyy-MM-dd
+  if (filters.addedDateFrom != null && added && added < filters.addedDateFrom) return false;
+  if (filters.addedDateTo != null && added && added > filters.addedDateTo) return false;
+  return true;
 }
 
 function Poster({ src, title, size = 'thumb' }) {
@@ -92,64 +117,98 @@ export default function CreatorsTab({ onBack }) {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({});
   const [expanded, setExpanded] = useState([]);
-    const [useTimeWeight, setUseTimeWeight] = useState(true);
+  const [useTimeWeight, setUseTimeWeight] = useState(true);
 
-  const typeOptions = ['Diretor', 'Escritor', 'Studio'];
+  const [works, setWorks] = useState(null); // obras mapeadas + creator/categoryName; null = carregando
+
+  useEffect(() => {
+    let active = true;
+    getUnifiedWorks()
+      .then((data) => {
+        if (!active) return;
+        const list = (Array.isArray(data) ? data : []).map((w) => ({
+          ...mapWorkToItem(w),
+          creator: (w.creator || '').trim(),
+          categoryName: w.categoryName,
+        }));
+        setWorks(list);
+      })
+      .catch(() => active && setWorks([]));
+    return () => { active = false; };
+  }, []);
+
+  const loading = works === null;
+
+  // Agrupa por criador
+  const allCreators = useMemo(() => {
+    if (!works) return [];
+    const groups = new Map();
+    for (const w of works) {
+      if (!w.creator) continue;
+      if (!groups.has(w.creator)) groups.set(w.creator, []);
+      groups.get(w.creator).push(w);
+    }
+    return [...groups.entries()].map(([name, ws]) => ({
+      name,
+      type: dominantType(ws),
+      count: ws.length,
+      avgNote: mean(ws.map((w) => num(w.note))),
+      weightedAvg: mean(ws.map((w) => num(w.finalNote ?? w.note))),
+      works: ws,
+    }));
+  }, [works]);
 
   const toggleType = (type) => {
     if (type === 'Todos') { setSelectedTypes(['Todos']); return; }
     setSelectedTypes(prev => {
       const base = prev.includes('Todos') ? [] : prev;
       const next = base.includes(type) ? base.filter(x => x !== type) : [...base, type];
-      if (next.length === 0 || next.length === typeOptions.length) return ['Todos'];
+      if (next.length === 0 || next.length === TYPE_OPTIONS.length) return ['Todos'];
       return next;
     });
   };
 
-  const filteredAuthors = useMemo(() => {
-    const byType = selectedTypes.includes('Todos') ? [...authorRankings] : authorRankings.filter(a => selectedTypes.includes(a.type));
-    if (Object.keys(filters).length === 0) return byType;
-    // keep authors that have at least one work matching the filters
-    return byType.filter(author => {
-      const works = mediaItems.filter(m => m.director === author.name || m.studio === author.name || m.author === author.name);
-      return applyFilters(works, filters).length > 0;
-    });
-  }, [selectedTypes, filters]);
+  const hasFilters = Object.keys(filters).length > 0;
 
-  const authorAverages = useMemo(() => {
+  const filteredCreators = useMemo(() => {
+    const byType = selectedTypes.includes('Todos')
+      ? allCreators
+      : allCreators.filter(a => selectedTypes.includes(a.type));
+    if (!hasFilters) return byType;
+    return byType.filter(a => a.works.some(w => matchesFilters(w, filters)));
+  }, [allCreators, selectedTypes, filters, hasFilters]);
+
+  // Média exibida por criador (respeita filtros e ponderação por tempo)
+  const creatorAverages = useMemo(() => {
     const map = {};
-    filteredAuthors.forEach(author => {
-      const works = mediaItems.filter(m => m.director === author.name || m.studio === author.name || m.author === author.name)
-        .filter(m => applyFilters([m], filters).length > 0 || Object.keys(filters).length === 0);
-      if (works.length === 0) {
-        map[author.name] = useTimeWeight ? (author.weightedAvg ?? author.avgNote) : author.avgNote;
-      } else {
-        const sum = works.reduce((s, w) => s + (useTimeWeight ? (w.finalNote ?? w.note) : w.note), 0);
-        map[author.name] = sum / works.length;
-      }
+    filteredCreators.forEach(a => {
+      const ws = hasFilters ? a.works.filter(w => matchesFilters(w, filters)) : a.works;
+      const notes = ws.map(w => (useTimeWeight ? num(w.finalNote ?? w.note) : num(w.note)));
+      map[a.name] = notes.length ? mean(notes) : (useTimeWeight ? a.weightedAvg : a.avgNote);
     });
     return map;
-  }, [filteredAuthors, useTimeWeight, filters]);
+  }, [filteredCreators, useTimeWeight, filters, hasFilters]);
 
   const sorted = useMemo(() => {
-    return [...filteredAuthors].sort((a, b) => {
+    return [...filteredCreators].sort((a, b) => {
       if (sortBy === 'works') return b.count - a.count;
-      const aAvg = authorAverages[a.name] ?? (useTimeWeight ? (a.weightedAvg ?? a.avgNote) : a.avgNote);
-      const bAvg = authorAverages[b.name] ?? (useTimeWeight ? (b.weightedAvg ?? b.avgNote) : b.avgNote);
-      return bAvg - aAvg;
+      return (creatorAverages[b.name] ?? 0) - (creatorAverages[a.name] ?? 0);
     });
-  }, [filteredAuthors, sortBy, useTimeWeight, authorAverages]);
+  }, [filteredCreators, sortBy, creatorAverages]);
 
   const maxAvg = useMemo(() => {
-    const values = (filteredAuthors.length ? filteredAuthors : authorRankings).map(a => authorAverages[a.name] ?? (useTimeWeight ? (a.weightedAvg ?? a.avgNote) : a.avgNote));
+    const values = filteredCreators.map(a => creatorAverages[a.name] ?? 0);
     return Math.max(...values, 1);
-  }, [useTimeWeight, filteredAuthors, authorAverages]);
+  }, [filteredCreators, creatorAverages]);
 
   const stats = useMemo(() => {
-    const acc = { Diretor: 0, Escritor: 0, Studio: 0, obras: 0, somaNotas: 0 };
-    authorRankings.forEach(a => { if (acc[a.type] !== undefined) acc[a.type]++; acc.obras += a.count; acc.somaNotas += a.avgNote; });
-    return { total: authorRankings.length, ...acc, mediaGeral: authorRankings.length ? (acc.somaNotas / authorRankings.length) : 0 };
-  }, []);
+    const acc = { Diretor: 0, Escritor: 0, Studio: 0, Criador: 0, obras: 0 };
+    allCreators.forEach(a => {
+      if (acc[a.type] !== undefined) acc[a.type]++;
+      acc.obras += a.count;
+    });
+    return { total: allCreators.length, ...acc };
+  }, [allCreators]);
 
   const COLS = '44px 1fr 130px 220px 90px';
 
@@ -204,7 +263,7 @@ export default function CreatorsTab({ onBack }) {
 
         <div className="mr-flex mr-gap-1">
           <button className={`mr-btn mr-btn-sm ${selectedTypes.includes('Todos') ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => toggleType('Todos')}>Todos</button>
-          {typeOptions.map(t => (
+          {TYPE_OPTIONS.map(t => (
             <button key={t} className={`mr-btn mr-btn-sm ${selectedTypes.includes(t) ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => toggleType(t)}>{t}</button>
           ))}
         </div>
@@ -226,7 +285,6 @@ export default function CreatorsTab({ onBack }) {
         <div style={{ padding: '1rem', borderRadius: 8, marginBottom: '1rem', background: 'var(--mr-surface)', border: '1px solid var(--mr-border)' }}>
           <div className="mr-flex mr-items-center mr-justify-between mr-mb-3">
             <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>🔎 Filtros</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{/* result count */}</span>
           </div>
 
           <div className="mr-flex mr-flex-wrap mr-gap-4">
@@ -260,10 +318,16 @@ export default function CreatorsTab({ onBack }) {
 
           <div style={{ padding: '8px 14px', borderRadius: 8, background: 'var(--mr-gold-subtle, rgba(201,162,39,0.08))', border: '1px solid rgba(201,162,39,0.25)', fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginBottom: 8 }}>
             <span>🔒</span>
-            <span style={{ marginLeft: 8 }}>Este ranking é gerado automaticamente a partir das suas avaliações. Para detalhes, veja os criadores individuais.</span>
+            <span style={{ marginLeft: 8 }}>Este ranking é gerado automaticamente a partir das obras que você avaliou. Cadastre o criador ao adicionar uma obra pra ela aparecer aqui.</span>
           </div>
 
-          {viewMode === 'list' ? (
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>Carregando criadores…</div>
+          ) : allCreators.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
+              Nenhum criador ainda. Adicione obras com o campo <strong>criador</strong> preenchido pra montar o ranking. ✨
+            </div>
+          ) : viewMode === 'list' ? (
             <>
               <div className="mr-table-header" style={{ gridTemplateColumns: COLS }}>
                 <span>#</span>
@@ -280,7 +344,7 @@ export default function CreatorsTab({ onBack }) {
               {sorted.map((author, i) => {
                 const { label, icon, badgeStyle, avatarStyle } = getAuthorTypeInfo(author.type);
                 const rank = i + 1;
-                const displayAvg = authorAverages[author.name] ?? (useTimeWeight ? (author.weightedAvg ?? author.avgNote) : author.avgNote);
+                const displayAvg = creatorAverages[author.name] ?? 0;
                 const barWidth = Math.min((displayAvg / maxAvg) * 100, 100);
                 const barColorClass = getNoteBarColor(displayAvg);
                 const rankClass = rank === 1 ? 'mr-rank-number-1' : rank === 2 ? 'mr-rank-number-2' : rank === 3 ? 'mr-rank-number-3' : '';
@@ -320,27 +384,27 @@ export default function CreatorsTab({ onBack }) {
                     {expanded.includes(author.name) && (
                       <div style={{ gridColumn: '1 / -1', padding: '0.5rem 1rem 1rem 1rem' }}>
                         <div className="mr-flex mr-flex-col mr-gap-2">
-                          {mediaItems.filter(m => (m.director === author.name || m.studio === author.name || m.author === author.name))
-                            .filter(m => applyFilters([m], filters).length > 0 || Object.keys(filters).length === 0)
-                            .sort((a,b) => {
-                              const na = useTimeWeight ? (a.finalNote ?? a.note) : a.note;
-                              const nb = useTimeWeight ? (b.finalNote ?? b.note) : b.note;
+                          {author.works
+                            .filter(w => matchesFilters(w, filters))
+                            .sort((a, b) => {
+                              const na = useTimeWeight ? num(a.finalNote ?? a.note) : num(a.note);
+                              const nb = useTimeWeight ? num(b.finalNote ?? b.note) : num(b.note);
                               return nb - na;
                             })
                             .map(work => {
-                              const displayWorkNote = useTimeWeight ? (work.finalNote ?? work.note) : work.note;
+                              const displayWorkNote = useTimeWeight ? num(work.finalNote ?? work.note) : num(work.note);
                               return (
                               <div key={work.id} className="mr-flex mr-items-center mr-justify-between" style={{ padding: '8px', borderRadius: 8, background: 'var(--mr-bg)', border: '1px solid var(--mr-border)' }}>
                                 <div className="mr-flex mr-items-center mr-gap-3">
                                   <Poster src={work.image} title={work.title} />
                                   <div>
                                     <div style={{ fontWeight: 600 }}>{work.title}</div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{work.director || work.studio || work.author}</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{work.creator || work.categoryName}</div>
                                   </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
                                   <div style={{ fontWeight: 700, color: 'var(--mr-gold)' }}>{displayWorkNote.toFixed(1)}</div>
-                                  <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{work.note.toFixed(1)} • {Math.round((work.timeMinutes||0)/60)}h</div>
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{num(work.note).toFixed(1)} • {Math.round((work.timeMinutes || 0) / 60)}h</div>
                                 </div>
                               </div>
                               );
@@ -358,8 +422,8 @@ export default function CreatorsTab({ onBack }) {
               {sorted.length === 0 ? (
                 <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>Nenhum criador encontrado para este filtro. 🔍</div>
               ) : sorted.map((author, i) => {
-                const { label, icon, badgeStyle, avatarStyle } = getAuthorTypeInfo(author.type);
-                const displayAvg = authorAverages[author.name] ?? (useTimeWeight ? (author.weightedAvg ?? author.avgNote) : author.avgNote);
+                const { label, icon } = getAuthorTypeInfo(author.type);
+                const displayAvg = creatorAverages[author.name] ?? 0;
                 const barWidth = Math.min((displayAvg / maxAvg) * 100, 100);
 
                 return (
