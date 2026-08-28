@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
+import "./proPage.css";
 
-const CheckIcon = ({ size = 16, color = "#d4af37" }) => (
+const CheckIcon = ({ size = 18, color = "#d4af37" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 6 9 17 4 12" />
   </svg>
 );
 
 const DashIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#444" strokeWidth="2.5" strokeLinecap="round">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round">
     <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
@@ -81,357 +82,117 @@ const comparacao = [
 
 const ProPage = () => {
   return (
-    <main style={{
-      minHeight: "100vh",
-      color: "#e5e5e5",
-      fontFamily: "'DM Sans', sans-serif",
-      background:
-        "linear-gradient(115deg, rgba(212, 175, 55, 0.16), rgba(0, 0, 0, 0) 34%), radial-gradient(circle at 80% 18%, rgba(212, 175, 55, 0.13), transparent 28%), #000",
-    }}>
+    <main className="pro-page">
+      <div className="pro-container">
 
-      <style>{`
-        @keyframes proFadeUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .pro-fade-1 { animation: proFadeUp 0.55s ease both; }
-        .pro-fade-2 { animation: proFadeUp 0.55s ease 0.08s both; }
-        .pro-fade-3 { animation: proFadeUp 0.55s ease 0.16s both; }
-        .pro-fade-4 { animation: proFadeUp 0.55s ease 0.24s both; }
-        .pro-fade-5 { animation: proFadeUp 0.55s ease 0.32s both; }
-        .pro-fade-6 { animation: proFadeUp 0.55s ease 0.4s both; }
-        @media (prefers-reduced-motion: reduce) {
-          .pro-fade-1, .pro-fade-2, .pro-fade-3, .pro-fade-4, .pro-fade-5, .pro-fade-6 {
-            animation: none;
-          }
-        }
-      `}</style>
-
-      {/* Hero + card de preço, lado a lado */}
-      <section style={{
-        position: "relative",
-        maxWidth: "1180px",
-        margin: "0 auto",
-        padding: "56px 24px 40px",
-      }}>
-        {/* glow ambiente */}
-        <div style={{
-          position: "absolute",
-          top: "-40px",
-          left: "-10%",
-          width: "640px",
-          height: "440px",
-          background: "radial-gradient(ellipse, rgba(212,175,55,0.13), transparent 70%)",
-          filter: "blur(10px)",
-          zIndex: -1,
-          pointerEvents: "none",
-        }} />
-
-        <div className="pro-hero-grid">
-          {/* Coluna de texto */}
+        {/* Hero + card de preço */}
+        <section className="pro-hero">
           <div className="pro-hero-copy">
-            <Link
-              to="/"
-              className="pro-fade-1"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                color: "#888",
-                fontSize: "13px",
-                fontWeight: "600",
-                textDecoration: "none",
-                border: "1px solid #2a2a2a",
-                borderRadius: "8px",
-                padding: "8px 14px",
-                transition: "color 0.2s, border-color 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#e5e5e5";
-                e.currentTarget.style.borderColor = "#555";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "#888";
-                e.currentTarget.style.borderColor = "#2a2a2a";
-              }}
-            >
-              ← Voltar
-            </Link>
+            <Link to="/" className="pro-back pro-fade-1">← Voltar</Link>
 
-            <span className="pro-fade-2" style={{
-              color: "#d4af37",
-              fontSize: "13px",
-              fontWeight: "800",
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              marginTop: "22px",
-            }}>
-              MyRank Pro
-            </span>
+            <span className="pro-eyebrow pro-fade-2">MyRank Pro</span>
 
-            <h1 className="pro-fade-3" style={{
-              fontSize: "clamp(30px, 4vw, 46px)",
-              fontWeight: "800",
-              lineHeight: "1.15",
-              margin: "10px 0 0",
-              color: "#f5f5f5",
-            }}>
+            <h1 className="pro-title pro-fade-3">
               Seu ranking mostra<br />o que você consumiu.<br />
-              <span style={{ color: "#d4af37" }}>A IA mostra quem você é.</span>
+              <span className="pro-title-accent">A IA mostra quem você é.</span>
             </h1>
 
-            <p className="pro-fade-4" style={{
-              fontSize: "16px",
-              color: "#a5a5a5",
-              lineHeight: "1.7",
-              maxWidth: "440px",
-              margin: "18px 0 0",
-            }}>
+            <p className="pro-lead pro-fade-4">
               Uma IA analisa seu perfil completo e transforma isso em insights personalizados
               sobre o seu estilo, suas tendências e o que provavelmente vem a seguir.
             </p>
 
-            {/* chips de destaque */}
-            <div className="pro-fade-5 pro-chips" style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "10px",
-              marginTop: "22px",
-            }}>
+            <div className="pro-chips pro-fade-5">
               {["Perfil por IA", "Sugestões personalizadas", "Atualização automática"].map((chip) => (
-                <span key={chip} style={{
-                  border: "1px solid rgba(212, 175, 55, 0.16)",
-                  borderRadius: "999px",
-                  background: "rgba(17, 17, 17, 0.82)",
-                  color: "#d8d8d8",
-                  padding: "9px 14px",
-                  fontSize: "12px",
-                  fontWeight: "700",
-                  boxShadow: "0 6px 14px rgba(0, 0, 0, 0.18)",
-                  transition: "border-color 0.16s ease, color 0.16s ease, background-color 0.16s ease",
-                }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "#f1d98a";
-                    e.currentTarget.style.borderColor = "rgba(212, 175, 55, 0.42)";
-                    e.currentTarget.style.backgroundColor = "rgba(24, 24, 24, 0.95)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "#d8d8d8";
-                    e.currentTarget.style.borderColor = "rgba(212, 175, 55, 0.16)";
-                    e.currentTarget.style.backgroundColor = "rgba(17, 17, 17, 0.82)";
-                  }}
-                >
-                  {chip}
-                </span>
+                <span key={chip} className="pro-chip">{chip}</span>
               ))}
             </div>
           </div>
 
-          {/* Card de preço */}
-          <div className="pro-fade-6" style={{ position: "relative" }}>
-            <div style={{
-              position: "absolute",
-              top: "8%",
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: "340px",
-              height: "340px",
-              background: "radial-gradient(circle, rgba(212,175,55,0.16), transparent 70%)",
-              filter: "blur(10px)",
-              zIndex: 0,
-            }} />
-
-            <div style={{
-              position: "relative",
-              zIndex: 1,
-              width: "100%",
-              background: "rgba(17, 17, 17, 0.94)",
-              border: "1px solid rgba(212, 175, 55, 0.35)",
-              borderRadius: "18px",
-              padding: "36px 32px",
-              boxShadow: "0 22px 70px rgba(0, 0, 0, 0.5)",
-              display: "flex",
-              flexDirection: "column",
-              gap: "22px",
-              boxSizing: "border-box",
-            }}>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "6px" }}>
-                  <span style={{ fontSize: "clamp(38px, 6vw, 48px)", fontWeight: "800", color: "#d4af37", lineHeight: 1 }}>R$ 19,90</span>
-                  <span style={{ fontSize: "15px", color: "#888" }}>/mês</span>
-                </div>
-                <span style={{ fontSize: "13px", color: "#666" }}>Cancele quando quiser</span>
+          <div className="pro-price-card pro-fade-6">
+            <div className="pro-price-head">
+              <div className="pro-price-row">
+                <span className="pro-price-value">R$ 19,90</span>
+                <span className="pro-price-period">/mês</span>
               </div>
+              <span className="pro-price-sub">Cancele quando quiser</span>
+            </div>
 
-              <div style={{ height: "1px", background: "#2a2a2a" }} />
+            <div className="pro-divider" />
 
-              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                {checklist.map((item) => (
-                  <li key={item} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", color: "#d5d5d5" }}>
-                    <CheckIcon />
-                    {item}
-                  </li>
-                ))}
+            <ul className="pro-check-list">
+              {checklist.map((item) => (
+                <li key={item}><CheckIcon />{item}</li>
+              ))}
+            </ul>
+
+            <Link to="/cadastrar" className="pro-cta">Assinar MyRank Pro</Link>
+
+            <span className="pro-fineprint">
+              O resto do MyRank continua 100% grátis, pra sempre.
+            </span>
+          </div>
+        </section>
+
+        {/* Benefícios */}
+        <section className="pro-section">
+          <div className="pro-benefits">
+            {beneficios.map((b) => (
+              <div key={b.title} className="pro-benefit">
+                <div className="pro-benefit-icon">{b.icon}</div>
+                <h3>{b.title}</h3>
+                <p>{b.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Comparação Grátis vs Pro */}
+        <section className="pro-section pro-compare-section">
+          <div className="pro-compare-layout">
+            <div className="pro-compare-copy">
+              <h2 className="pro-compare-title">Grátis vs Pro</h2>
+              <p className="pro-compare-lead">
+                O núcleo do MyRank é grátis pra sempre — tabelas, ranking unificado e
+                comparação com amigos. O Pro acrescenta a camada de IA que lê seu
+                histórico e devolve perfil, padrões e sugestões.
+              </p>
+
+              <ul className="pro-compare-points">
+                <li><CheckIcon size={16} />Plano grátis sem limite de uso</li>
+                <li><CheckIcon size={16} />Assine e cancele quando quiser</li>
+                <li><CheckIcon size={16} />Seus dados são seus — nunca vendidos</li>
               </ul>
 
-              <Link
-                to="/cadastrar"
-                style={{
-                  backgroundColor: "#d4af37",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#0f0f0f",
-                  fontSize: "15px",
-                  fontWeight: "700",
-                  padding: "15px 0",
-                  cursor: "pointer",
-                  textDecoration: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = "0.85";
-                  e.currentTarget.style.boxShadow = "0 0 20px rgba(212,175,55,0.4)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = "1";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-                onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.97)")}
-                onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-              >
-                Assinar MyRank Pro
-              </Link>
-
-              <span style={{ fontSize: "12px", color: "#555", textAlign: "center" }}>
-                O resto do MyRank continua 100% grátis, pra sempre.
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Benefícios detalhados */}
-      <section style={{
-        padding: "56px 2rem 24px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "36px",
-      }}>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "20px",
-          width: "100%",
-          maxWidth: "1240px",
-        }}>
-          {beneficios.map((b) => (
-            <div key={b.title} style={{
-              backgroundColor: "#111111",
-              border: "1px solid #2a2a2a",
-              borderRadius: "12px",
-              padding: "26px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "14px",
-              transition: "all 0.2s",
-            }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-4px)";
-                e.currentTarget.style.borderColor = "rgba(212,175,55,0.5)";
-                e.currentTarget.style.boxShadow = "0 8px 32px rgba(212,175,55,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.borderColor = "#2a2a2a";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            >
-              <div style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "10px",
-                background: "rgba(212, 175, 55, 0.1)",
-                border: "1px solid rgba(212, 175, 55, 0.25)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
-                {b.icon}
+              <div className="pro-compare-actions">
+                <Link to="/cadastrar" className="pro-cta pro-cta--inline">Assinar MyRank Pro</Link>
+                <Link to="/#faq" className="pro-faq-link pro-faq-link--inline">Ver perguntas frequentes</Link>
               </div>
-              <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#e5e5e5", margin: 0 }}>{b.title}</h3>
-              <p style={{ fontSize: "14px", color: "#888", lineHeight: "1.7", margin: 0 }}>{b.desc}</p>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Comparação Grátis vs Pro */}
-      <section style={{
-        padding: "56px 2rem 80px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "32px",
-      }}>
-        <h2 style={{
-          fontSize: "clamp(24px, 4vw, 32px)",
-          fontWeight: "800",
-          color: "#e5e5e5",
-          textAlign: "center",
-          margin: 0,
-        }}>
-          Grátis vs Pro
-        </h2>
+            <div className="pro-compare">
+              <div className="pro-compare-row pro-compare-head">
+                <span />
+                <span className="pro-compare-col">Grátis</span>
+                <span className="pro-compare-col is-pro">Pro</span>
+              </div>
 
-        <div style={{
-          width: "100%",
-          maxWidth: "640px",
-          border: "1px solid #2a2a2a",
-          borderRadius: "14px",
-          overflow: "hidden",
-        }}>
-          {/* Header */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 90px 90px",
-            padding: "16px 24px",
-            borderBottom: "1px solid #2a2a2a",
-            backgroundColor: "#0d0d0d",
-          }}>
-            <span></span>
-            <span style={{ fontSize: "13px", fontWeight: "700", color: "#888", textAlign: "center" }}>Grátis</span>
-            <span style={{ fontSize: "13px", fontWeight: "800", color: "#d4af37", textAlign: "center" }}>Pro</span>
+              {comparacao.map((row) => (
+                <div key={row.feature} className="pro-compare-row">
+                  <span className="pro-compare-feature">{row.feature}</span>
+                  <span className="pro-compare-cell">
+                    {row.free ? <CheckIcon color="#888" /> : <DashIcon />}
+                  </span>
+                  <span className="pro-compare-cell">
+                    {row.pro ? <CheckIcon /> : <DashIcon />}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
+        </section>
 
-          {comparacao.map((row, i) => (
-            <div key={row.feature} style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 90px 90px",
-              alignItems: "center",
-              padding: "16px 24px",
-              backgroundColor: i % 2 === 0 ? "#111111" : "#0d0d0d",
-              borderBottom: i === comparacao.length - 1 ? "none" : "1px solid #232323",
-            }}>
-              <span style={{ fontSize: "14px", color: "#d5d5d5" }}>{row.feature}</span>
-              <span style={{ display: "flex", justifyContent: "center" }}>
-                {row.free ? <CheckIcon color="#888" /> : <DashIcon />}
-              </span>
-              <span style={{ display: "flex", justifyContent: "center" }}>
-                {row.pro ? <CheckIcon /> : <DashIcon />}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <Link to="/#faq" style={{ fontSize: "13px", color: "#666", textDecoration: "underline" }}>
-          Ver perguntas frequentes
-        </Link>
-      </section>
-
+      </div>
     </main>
   );
 };
