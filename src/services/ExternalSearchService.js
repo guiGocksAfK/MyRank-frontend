@@ -86,6 +86,16 @@ export async function getBookDetails(externalId) {
 }
 
 /**
+ * Grid decorativo da home pública: lista de URLs de pôster de obras populares.
+ * Endpoint aberto (sem auth). Pode vir vazio/parcial se as bases externas
+ * estiverem instáveis — quem chama completa com o fallback estático.
+ */
+export async function getShowcasePosters() {
+  const { data } = await api.get('/external/showcase');
+  return Array.isArray(data) ? data : [];
+}
+
+/**
  * Dispara a busca certa de acordo com o tipo escolhido no dropdown do modal.
  * type: 'movie' | 'tv' | 'game' | 'anime'
  */

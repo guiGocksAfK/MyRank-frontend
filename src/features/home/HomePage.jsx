@@ -1,7 +1,9 @@
 import logo from '../../assets/logo.png'
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import './homePage.css';
+import { getShowcasePosters } from '../../services/ExternalSearchService';
+import { SHOWCASE_FALLBACK } from './showcaseFallback';
 
 const medias = [
   { icon: "🎬", label: "Filmes" },
@@ -11,12 +13,10 @@ const medias = [
   { icon: "⛩️", label: "Animes" },
 ];
 
-const posters = [
-  "#1a0a2e", "#0a1a2e", "#2e1a0a", "#0a2e1a", "#2e0a1a",
-  "#1a2e0a", "#0a0a2e", "#2e2e0a", "#0a2e2e", "#2e0a2e",
-  "#1a1a0a", "#0a1a1a", "#2e1a1a", "#1a2e1a", "#1a1a2e",
-  "#2e2e2e", "#0a2e0a", "#2e0a0a", "#0a0a0a", "#1a0a1a",
-];
+const POSTER_TILES = 20; // grid 5x4 do hero
+
+/** Junta os pôsteres ao vivo com o fallback estático, sem repetir, até 24 tiles. */
+const buildTiles = (live) => [...new Set([...live, ...SHOWCASE_FALLBACK])].slice(0, POSTER_TILES);
 
 const FAQItem = ({ question, answer }) => {
   const [open, setOpen] = useState(false);
@@ -36,13 +36,29 @@ const FAQItem = ({ question, answer }) => {
 };
 
 const HomePage = () => {
+  const [tiles, setTiles] = useState(() => buildTiles([]));
+
+  useEffect(() => {
+    let active = true;
+    getShowcasePosters()
+      .then((live) => {
+        if (active && live.length) setTiles(buildTiles(live));
+      })
+      .catch(() => { /* mantém o fallback estático */ });
+    return () => { active = false; };
+  }, []);
+
   return (
     <main className="home-page">
 
       <section className="home-hero">
         <div className="home-poster-grid">
-          {posters.map((color, i) => (
-            <div key={i} className="home-poster-tile" style={{ backgroundColor: color }} />
+          {tiles.map((url, i) => (
+            <div
+              key={i}
+              className="home-poster-tile"
+              style={{ backgroundImage: `url(${url})` }}
+            />
           ))}
         </div>
 

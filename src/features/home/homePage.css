@@ -29,7 +29,10 @@
 }
 
 .home-poster-tile {
-  background-color: inherit;
+  background-color: #141414;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border-radius: 6px;
   opacity: 0.6;
 }
