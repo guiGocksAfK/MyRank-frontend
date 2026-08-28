@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getStoredUser } from '../../services/authService';
-import { getMe } from '../../services/userService';
 import { getUnifiedWorks } from '../../services/WorkService';
+import { useUser } from '../../shared/userContext';
 import Avatar from '../../shared/components/Avatar';
 
 const num = (value) => {
@@ -40,14 +40,13 @@ const notifications = [
 
 export default function DashboardHeader({ activeTab, onTabChange }) {
   const storedUser = useMemo(() => getStoredUser(), []);
-  const [me, setMe] = useState(null);
+  const { user: me } = useUser();
   const [works, setWorks] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
     let active = true;
-    getMe().then((data) => active && setMe(data)).catch(() => {});
     getUnifiedWorks().then((data) => active && setWorks(Array.isArray(data) ? data : [])).catch(() => {});
     return () => { active = false; };
   }, []);

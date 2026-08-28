@@ -8,6 +8,7 @@ import InsightsPanel from '../insights/InsightsPanel';
 import ProfilePanel from '../profile/ProfilePanel';
 import DashboardFooter from './DashboardFooter';
 import { INITIAL_TABLES } from '../../data/mockData';
+import { UserProvider } from '../../shared/userContext';
 import './dashboard.css';
 
 export default function DashboardPage() {
@@ -56,6 +57,7 @@ export default function DashboardPage() {
   };
 
   return (
+    <UserProvider>
     <div className={`myrank-dashboard ${themeClass}`}>
       <DashboardHeader
         activeTab={activeTab}
@@ -80,5 +82,6 @@ export default function DashboardPage() {
         stats={footerStats}
       />
     </div>
+    </UserProvider>
   );
 }

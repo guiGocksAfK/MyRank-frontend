@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { badges } from '../../data/mockData';
 import { getStoredUser } from '../../services/authService';
+import { useUser } from '../../shared/userContext';
 import { getCategories } from '../../services/CategoryService';
 import { getWorksByCategory } from '../../services/WorkService';
 import { getGroups } from '../../services/masterTableGroupService';
@@ -96,8 +97,9 @@ export default function HomeOverview() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [mediaItems, setMediaItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(true);
+  const { user } = useUser();
   const storedUser = useMemo(() => getStoredUser(), []);
-  const userName = storedUser?.name || storedUser?.username || 'usuário';
+  const userName = user?.username || storedUser?.username || 'usuário';
 
   useEffect(() => {
     let cancelled = false;

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { mediaItems, badges } from '../../data/mockData';
 import { getMe, updateMe, uploadAvatar, deleteAvatar } from '../../services/userService';
 import Avatar from '../../shared/components/Avatar';
+import { useUser } from '../../shared/userContext';
 
 const AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const AVATAR_MAX_BYTES = 1_000_000;
@@ -118,12 +119,19 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const [avatarBusy,      setAvatarBusy]      = useState(false);
   const [avatarError,     setAvatarError]     = useState('');
   const fileInputRef = useRef(null);
+  const { setUser } = useUser();
+
+  // atualiza o form local + o usuário compartilhado (header, saudação da home)
+  const applyUser = (u) => {
+    setProfile(u);
+    setUser(u);
+  };
 
   useEffect(() => {
     const loadProfile = async () => {
       try {
         const user = await getMe();
-        setProfile(user);
+        applyUser(user);
         setProfileUsername(user.username || 'usuario');
         setProfileBio(user.bio || 'Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
         setProfilePlan(user.plan || 'FREE');
@@ -153,7 +161,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
     setAvatarBusy(true);
     try {
       await uploadAvatar(file);
-      setProfile(await getMe());
+      applyUser(await getMe());
       setAvatarVersion((v) => v + 1);
     } catch (err) {
       setAvatarError(err.response?.data?.message || 'Erro ao enviar a foto.');
@@ -167,7 +175,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
     setAvatarBusy(true);
     try {
       await deleteAvatar();
-      setProfile(await getMe());
+      applyUser(await getMe());
       setAvatarVersion((v) => v + 1);
     } catch (err) {
       setAvatarError('Erro ao remover a foto.');
@@ -190,7 +198,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
         bio: draftBio.trim() || profileBio,
       });
 
-      setProfile(updated);
+      applyUser(updated);
       setProfileUsername(updated.username || profileUsername);
       setProfileBio(updated.bio || profileBio);
       setEditMode(false);

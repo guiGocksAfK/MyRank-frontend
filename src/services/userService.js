@@ -39,7 +39,7 @@ export const avatarUrlFor = (user, cacheKey) => {
   if (user.avatarUrl) return user.avatarUrl;
   if (!user.id) return null;
   const base = (api.defaults.baseURL || "").replace(/\/$/, "");
-  const bust = cacheKey ?? user.updatedAt;
+  const bust = cacheKey ?? user._v ?? user.updatedAt;
   const suffix = bust ? `?t=${encodeURIComponent(bust)}` : "";
   return `${base}/users/${user.id}/avatar${suffix}`;
 };
