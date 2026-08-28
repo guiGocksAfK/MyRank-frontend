@@ -14,9 +14,26 @@ const medias = [
 ];
 
 const POSTER_TILES = 20; // grid 5x4 do hero
+const GRID_COLS = 5;
+const SHOWCASE_WAIT_MS = 600;   // espera curta pelo /showcase antes de decidir a lista
+const REVEAL_CAP_MS = 1200;     // teto: revela o grid mesmo que alguma imagem trave
 
-/** Junta os pôsteres ao vivo com o fallback estático, sem repetir, até 24 tiles. */
+/** Junta os pôsteres ao vivo com o fallback estático, sem repetir, até 20 tiles. */
 const buildTiles = (live) => [...new Set([...live, ...SHOWCASE_FALLBACK])].slice(0, POSTER_TILES);
+
+/** Pré-carrega todas as URLs; resolve quando todas terminam (load ou erro). */
+const preloadAll = (urls) =>
+  Promise.all(
+    urls.map(
+      (url) =>
+        new Promise((resolve) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = resolve;
+          img.src = url;
+        })
+    )
+  );
 
 const FAQItem = ({ question, answer }) => {
   const [open, setOpen] = useState(false);
@@ -37,27 +54,48 @@ const FAQItem = ({ question, answer }) => {
 
 const HomePage = () => {
   const [tiles, setTiles] = useState(() => buildTiles([]));
+  const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
     let active = true;
-    getShowcasePosters()
+
+    // 1. Decide a lista final: usa o /showcase se responder rápido, senão o fallback.
+    Promise.race([
+      getShowcasePosters().catch(() => []),
+      new Promise((resolve) => setTimeout(() => resolve(null), SHOWCASE_WAIT_MS)),
+    ])
       .then((live) => {
-        if (active && live.length) setTiles(buildTiles(live));
+        const finalTiles = Array.isArray(live) && live.length ? buildTiles(live) : buildTiles([]);
+        if (active) setTiles(finalTiles);
+        // 2. Pré-carrega tudo antes de revelar — sem "pipoca".
+        return preloadAll(finalTiles);
       })
-      .catch(() => { /* mantém o fallback estático */ });
-    return () => { active = false; };
+      .then(() => {
+        if (active) setRevealed(true);
+      });
+
+    // 3. Teto de segurança: revela mesmo que o preload trave.
+    const cap = setTimeout(() => active && setRevealed(true), REVEAL_CAP_MS);
+
+    return () => {
+      active = false;
+      clearTimeout(cap);
+    };
   }, []);
 
   return (
     <main className="home-page">
 
       <section className="home-hero">
-        <div className="home-poster-grid">
+        <div className={`home-poster-grid${revealed ? ' is-revealed' : ''}`}>
           {tiles.map((url, i) => (
             <div
               key={i}
               className="home-poster-tile"
-              style={{ backgroundImage: `url(${url})` }}
+              style={{
+                backgroundImage: `url(${url})`,
+                '--tile-delay': `${(Math.floor(i / GRID_COLS) + (i % GRID_COLS)) * 45}ms`,
+              }}
             />
           ))}
         </div>

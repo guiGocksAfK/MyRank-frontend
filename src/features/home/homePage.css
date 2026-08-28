@@ -34,7 +34,23 @@
   background-position: center;
   background-repeat: no-repeat;
   border-radius: 6px;
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition-delay: var(--tile-delay, 0ms);
+}
+
+/* revela em cascata diagonal depois que as imagens pré-carregaram */
+.home-poster-grid.is-revealed .home-poster-tile {
   opacity: 0.6;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-poster-tile {
+    transition: none;
+    transition-delay: 0ms;
+  }
 }
 
 .home-overlay {
