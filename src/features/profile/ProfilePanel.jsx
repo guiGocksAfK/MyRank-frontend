@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { mediaItems, badges } from '../../data/mockData';
-import { getMe, updateMe } from '../../services/userService';
+import { getMe, updateMe, uploadAvatar, deleteAvatar } from '../../services/userService';
+import Avatar from '../../shared/components/Avatar';
+
+const AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+const AVATAR_MAX_BYTES = 1_000_000;
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 const typeIcons = {
@@ -109,11 +113,17 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const [saving,          setSaving]          = useState(false);
   const [error,           setError]           = useState('');
   const [badgeFilter,     setBadgeFilter]     = useState('all'); // 'all' | 'unlocked' | 'locked'
+  const [profile,         setProfile]         = useState(null);  // objeto /users/me completo (id, avatarUrl, updatedAt...)
+  const [avatarVersion,   setAvatarVersion]   = useState(0);     // muda pra furar o cache do <img> após upload
+  const [avatarBusy,      setAvatarBusy]      = useState(false);
+  const [avatarError,     setAvatarError]     = useState('');
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const loadProfile = async () => {
       try {
         const user = await getMe();
+        setProfile(user);
         setProfileUsername(user.username || 'usuario');
         setProfileBio(user.bio || 'Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
         setProfilePlan(user.plan || 'FREE');
@@ -126,6 +136,45 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
     };
     loadProfile();
   }, []);
+
+  const handleAvatarPick = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!AVATAR_TYPES.includes(file.type)) {
+      setAvatarError('Formato inválido. Use PNG, JPEG ou WebP.');
+      return;
+    }
+    if (file.size > AVATAR_MAX_BYTES) {
+      setAvatarError('Imagem muito grande. O limite é 1 MB.');
+      return;
+    }
+    setAvatarError('');
+    setAvatarBusy(true);
+    try {
+      await uploadAvatar(file);
+      setProfile(await getMe());
+      setAvatarVersion((v) => v + 1);
+    } catch (err) {
+      setAvatarError(err.response?.data?.message || 'Erro ao enviar a foto.');
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    setAvatarError('');
+    setAvatarBusy(true);
+    try {
+      await deleteAvatar();
+      setProfile(await getMe());
+      setAvatarVersion((v) => v + 1);
+    } catch (err) {
+      setAvatarError('Erro ao remover a foto.');
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
 
   useEffect(() => {
     setDraftUsername(profileUsername);
@@ -141,6 +190,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
         bio: draftBio.trim() || profileBio,
       });
 
+      setProfile(updated);
       setProfileUsername(updated.username || profileUsername);
       setProfileBio(updated.bio || profileBio);
       setEditMode(false);
@@ -206,8 +256,42 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
           <div className="mr-card-body mr-text-center mr-space-y-4">
 
             {/* Avatar */}
-            <div className="mr-flex mr-justify-center">
-              <div className="mr-avatar-lg">LS</div>
+            <div className="mr-flex mr-justify-center" style={{ flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+              <Avatar
+                user={profile || { username: profileUsername }}
+                cacheKey={avatarVersion}
+                className="mr-avatar-lg"
+              />
+
+              {editMode && (
+                <div className="mr-flex mr-gap-2 mr-items-center" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleAvatarPick}
+                    style={{ display: 'none' }}
+                  />
+                  <button
+                    type="button"
+                    className="mr-btn mr-btn-sm mr-btn-outline"
+                    disabled={avatarBusy}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {avatarBusy ? 'Enviando…' : 'Trocar foto'}
+                  </button>
+                  <button
+                    type="button"
+                    className="mr-btn mr-btn-sm mr-btn-outline"
+                    disabled={avatarBusy}
+                    onClick={handleAvatarRemove}
+                  >
+                    Remover
+                  </button>
+                </div>
+              )}
+
+              {avatarError && <p className="auth-error" style={{ margin: 0 }}>{avatarError}</p>}
             </div>
 
             <div style={{ textAlign: 'left', width: '100%' }}>

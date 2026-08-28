@@ -122,7 +122,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
           className="mr-flex mr-items-center mr-gap-2"
           style={{
             padding: '8px 14px', borderRadius: 8,
-            background: 'var(--mr-gold-subtle, rgba(201,162,39,0.08))',
+            background: 'var(--mr-surface)',
             border: '1px solid rgba(201,162,39,0.25)',
             fontSize: '0.8rem', color: 'var(--mr-text-secondary)',
           }}
@@ -152,7 +152,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
                 onDragEnd={() => setDraggedItemKey(null)}
                 onDragOver={event => handleDragOver(event, item)}
                 onDrop={event => handleDrop(event, item)}
-                style={{ gridTemplateColumns: cols.gridTemplate, '--rank-delay': `${Math.min(i, 12) * 35}ms`, borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined, opacity: draggedItemKey === getItemKey(item) ? 0.45 : 1, cursor: sortBy !== 'time' ? 'grab' : undefined }}
+                style={{ gridTemplateColumns: cols.gridTemplate, '--rank-delay': `${Math.min(i, 12) * 35}ms`, background: 'var(--mr-surface)', borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined, opacity: draggedItemKey === getItemKey(item) ? 0.45 : 1, cursor: sortBy !== 'time' ? 'grab' : undefined }}
               >
                 <span style={{ fontWeight: 700, color: i < 3 ? 'var(--mr-gold)' : 'var(--mr-text-secondary)' }}>{i + 1}</span>
 

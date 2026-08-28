@@ -378,6 +378,15 @@
   border-radius: inherit;
 }
 
+.mr-avatar-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 50%;
+}
+
 .mr-avatar-lg {
   width: 80px;
   height: 80px;
@@ -391,6 +400,7 @@
   font-weight: 800;
   margin: 0 auto;
   font-family: 'DM Sans', sans-serif;
+  overflow: hidden;
 }
 
 .mr-avatar-sm {

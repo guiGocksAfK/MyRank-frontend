@@ -2,16 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { getStoredUser } from '../../services/authService';
 import { getMe } from '../../services/userService';
 import { getUnifiedWorks } from '../../services/WorkService';
-
-const initialsFrom = (value) =>
-  (value || 'U')
-    .trim()
-    .split(/[\s._-]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase() || 'U';
+import Avatar from '../../shared/components/Avatar';
 
 const num = (value) => {
   const n = Number(value);
@@ -64,7 +55,6 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
   const profileSummary = useMemo(() => ({
     username: me?.username || storedUser?.username || 'usuario',
     bio: me?.bio?.trim() || 'Sem bio ainda.',
-    avatarUrl: me?.avatarUrl || null,
   }), [me, storedUser]);
 
   // Stats reais, calculados a partir das obras do usuário (/works/unified)
@@ -87,7 +77,8 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
   }, [works]);
   const topCategories = categories.slice(0, 4);
 
-  const avatarInitials = initialsFrom(profileSummary.username);
+  // objeto de avatar: usa o /users/me quando carregou, senão só o username pro fallback
+  const avatarUser = me || { username: profileSummary.username };
 
   const toggleNotifications = () => {
     setShowProfileMenu(false);
@@ -164,24 +155,18 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
           <div className="mr-action-group">
             <button
               type="button"
-              className="mr-avatar"
+              className="mr-avatar-btn"
               onClick={toggleProfileMenu}
               aria-expanded={showProfileMenu}
               aria-label="Abrir menu do perfil"
             >
-              {profileSummary.avatarUrl
-                ? <img src={profileSummary.avatarUrl} alt="" className="mr-avatar-img" />
-                : avatarInitials}
+              <Avatar user={avatarUser} className="mr-avatar" />
             </button>
 
             {showProfileMenu && (
               <div className="mr-profile-panel">
                 <div className="mr-profile-compact-header">
-                  <div className="mr-avatar">
-                    {profileSummary.avatarUrl
-                      ? <img src={profileSummary.avatarUrl} alt="" className="mr-avatar-img" />
-                      : avatarInitials}
-                  </div>
+                  <Avatar user={avatarUser} className="mr-avatar" />
                   <div>
                     <div className="mr-profile-compact-name">{profileSummary.username}</div>
                     <div className="mr-profile-compact-username">@{profileSummary.username}</div>
