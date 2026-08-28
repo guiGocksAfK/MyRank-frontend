@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useBadges } from '../../shared/useBadges';
+import { useBadges } from '../../shared/badges';
 import { getStoredUser } from '../../services/authService';
 import { useUser } from '../../shared/userContext';
 import { getCategories } from '../../services/CategoryService';

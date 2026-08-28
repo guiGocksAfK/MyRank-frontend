@@ -10,7 +10,7 @@ import {
   computeHighlights,
   relativeTime,
 } from '../../shared/useUnifiedItems';
-import { useBadges, groupByBucket } from '../../shared/useBadges';
+import { useBadges, groupByBucket } from '../../shared/badges';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 const safeStringify = (v) => {

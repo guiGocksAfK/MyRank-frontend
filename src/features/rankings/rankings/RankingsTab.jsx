@@ -9,6 +9,7 @@ import { getCategories, createCategory, updateCategory, deleteCategory } from '.
 import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../../services/WorkService.js';
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../../utils/mapWork';
 import { applyFilters } from '../../../utils/formatters';
+import { useBadges } from '../../../shared/badges';
 
 function getTableOrderKey() {
   const userKey = localStorage.getItem('myrank_username') || 'anonymous';
@@ -61,6 +62,7 @@ function saveItemOrder(tableId, items) {
 }
 
 export default function RankingsTab({ onNavigateToCreators }) {
+  const { refresh: refreshBadges } = useBadges();
   const [tables,           setTables]           = useState([]);
   const [loadingTableIds,  setLoadingTableIds]  = useState([]);
   const [loadError,        setLoadError]        = useState(null);
@@ -144,6 +146,8 @@ export default function RankingsTab({ onNavigateToCreators }) {
       saveItemOrder(categoryId, newItems);
       return { ...t, items: newItems };
     }));
+
+    refreshBadges(); // pode ter desbloqueado badge → dispara o toast
   }
 
   // ── Excluir obra ──
@@ -155,6 +159,8 @@ export default function RankingsTab({ onNavigateToCreators }) {
       saveItemOrder(categoryId, nextItems);
       return { ...t, items: nextItems };
     }));
+
+    refreshBadges();
   }
 
   function handleMoveItem(tableId, itemId, targetId) {

@@ -8,6 +8,7 @@ import InsightsPanel from '../insights/InsightsPanel';
 import ProfilePanel from '../profile/ProfilePanel';
 import DashboardFooter from './DashboardFooter';
 import { UserProvider } from '../../shared/userContext';
+import { BadgeProvider } from '../../shared/badges';
 import './dashboard.css';
 
 export default function DashboardPage() {
@@ -46,6 +47,7 @@ export default function DashboardPage() {
 
   return (
     <UserProvider>
+    <BadgeProvider>
     <div className={`myrank-dashboard ${themeClass}`}>
       <DashboardHeader
         activeTab={activeTab}
@@ -68,6 +70,7 @@ export default function DashboardPage() {
       {/* ribbon no fim de todas as abas — stats reais vêm de /works/unified */}
       <DashboardFooter />
     </div>
+    </BadgeProvider>
     </UserProvider>
   );
 }
