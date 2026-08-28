@@ -30,7 +30,7 @@ export default function DashboardPage() {
   const renderTab = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeOverview />;
+        return <HomeOverview onNavigate={handleTabChange} />;
       case 'rankings':
         if (creatorsView) return <CreatorsPanel onBack={() => setCreatorsView(false)} />;
         return <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />;
@@ -41,7 +41,7 @@ export default function DashboardPage() {
       case 'profile':
         return <ProfilePanel isDark={isDark} onThemeToggle={handleThemeToggle} />;
       default:
-        return <HomeOverview />;
+        return <HomeOverview onNavigate={handleTabChange} />;
     }
   };
 
@@ -55,7 +55,7 @@ export default function DashboardPage() {
       />
       <div className="mr-main">
         <div style={{ display: activeTab === 'home' ? 'block' : 'none' }}>
-          <HomeOverview />
+          <HomeOverview onNavigate={handleTabChange} />
         </div>
         {rankingsVisited && (
           <div style={{ display: activeTab === 'rankings' && !creatorsView ? 'block' : 'none' }}>

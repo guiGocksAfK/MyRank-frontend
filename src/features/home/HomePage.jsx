@@ -15,6 +15,22 @@ const medias = [
 
 const POSTER_TILES = 20; // grid 5x4 do hero
 const GRID_COLS = 5;
+const GRID_ROWS = POSTER_TILES / GRID_COLS;            // 4
+const MAX_DIAG = (GRID_ROWS - 1) + (GRID_COLS - 1);    // 7 — diagonal do canto NO ao SE
+const TILE_STEP_MS = 85;
+
+/**
+ * Revela em duas frentes: uma vinda do canto noroeste, outra do sudeste,
+ * que se encontram na diagonal central. `wave` é a distância até o canto
+ * (NO ou SE) mais próximo; `shift` diz de que lado o tile entra deslizando.
+ */
+const tileReveal = (i) => {
+  const diag = Math.floor(i / GRID_COLS) + (i % GRID_COLS);
+  const wave = Math.min(diag, MAX_DIAG - diag);
+  const half = MAX_DIAG / 2;
+  const shift = diag < half ? '-14px' : diag > half ? '14px' : '0px';
+  return { '--tile-delay': `${wave * TILE_STEP_MS}ms`, '--tile-shift': shift };
+};
 const SHOWCASE_WAIT_MS = 600;   // espera curta pelo /showcase antes de decidir a lista
 const REVEAL_CAP_MS = 1200;     // teto: revela o grid mesmo que alguma imagem trave
 
@@ -94,7 +110,7 @@ const HomePage = () => {
               className="home-poster-tile"
               style={{
                 backgroundImage: `url(${url})`,
-                '--tile-delay': `${(Math.floor(i / GRID_COLS) + (i % GRID_COLS)) * 45}ms`,
+                ...tileReveal(i),
               }}
             />
           ))}

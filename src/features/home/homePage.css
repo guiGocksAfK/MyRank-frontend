@@ -35,21 +35,22 @@
   background-repeat: no-repeat;
   border-radius: 6px;
   opacity: 0;
-  transform: scale(0.96);
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transform: translate(var(--tile-shift, 0px), var(--tile-shift, 0px)) scale(0.94);
+  transition: opacity 0.55s ease, transform 0.55s ease;
   transition-delay: var(--tile-delay, 0ms);
 }
 
-/* revela em cascata diagonal depois que as imagens pré-carregaram */
+/* revela em duas frentes (noroeste + sudeste) que se encontram no meio */
 .home-poster-grid.is-revealed .home-poster-tile {
   opacity: 0.6;
-  transform: scale(1);
+  transform: translate(0, 0) scale(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .home-poster-tile {
     transition: none;
     transition-delay: 0ms;
+    transform: none;
   }
 }
 

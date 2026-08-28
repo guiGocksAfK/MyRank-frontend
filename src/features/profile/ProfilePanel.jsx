@@ -597,7 +597,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
       </div>
 
       {/* ── Badges e Conquistas — largura total ── */}
-      <div>
+      <div id="mr-badges" style={{ scrollMarginTop: 80 }}>
         <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap" style={{ marginBottom: 16 }}>
           <h2 style={{ fontWeight: 700, fontSize: '1.25rem', marginRight: 'auto' }}>🏅 Badges e Conquistas</h2>
 

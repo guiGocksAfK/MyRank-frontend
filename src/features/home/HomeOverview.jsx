@@ -92,7 +92,7 @@ function applyUnifiedOrder(items) {
   return [...ordered, ...items.filter(item => !orderedKeys.has(getUnifiedItemKey(item)))];
 }
 
-export default function HomeOverview() {
+export default function HomeOverview({ onNavigate }) {
   const [weighted, setWeighted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [mediaItems, setMediaItems] = useState([]);
@@ -455,7 +455,19 @@ export default function HomeOverview() {
         <div className="mr-card-body">
           <div className="mr-section-header">
             <h3 className="mr-section-title">🎯 Próximas Conquistas</h3>
-            <button className="mr-link-btn">Ver todas →</button>
+            <button
+              className="mr-link-btn"
+              onClick={() => {
+                onNavigate?.('profile');
+                setTimeout(
+                  () => document.getElementById('mr-badges')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+                  140,
+                );
+              }}
+            >
+              Ver todas →
+            </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
             {upcomingBadges.length === 0 && (
