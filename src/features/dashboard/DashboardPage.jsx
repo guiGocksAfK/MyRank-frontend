@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import DashboardHeader from './DashboardHeader';
 import HomeOverview from '../home/HomeOverview';
 import RankingsTab from '../rankings/rankings/RankingsTab';
@@ -7,7 +7,6 @@ import SocialPanel from '../social/SocialPanel';
 import InsightsPanel from '../insights/InsightsPanel';
 import ProfilePanel from '../profile/ProfilePanel';
 import DashboardFooter from './DashboardFooter';
-import { INITIAL_TABLES } from '../../data/mockData';
 import { UserProvider } from '../../shared/userContext';
 import './dashboard.css';
 
@@ -26,17 +25,6 @@ export default function DashboardPage() {
     setCreatorsView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  // ← NOVO: calcula os stats do rodapé a partir das tabelas mockadas
-  const footerStats = useMemo(() => {
-    const allItems = INITIAL_TABLES.flatMap(t => t.items);
-    const totalMinutes = allItems.reduce((acc, i) => acc + (i.timeMinutes || 0), 0);
-    return {
-      obras: allItems.length,
-      horas: Math.round(totalMinutes / 60),
-      amigos: 12,   // ← troca pelo número real de amigos quando tiver essa lista
-    };
-  }, []);
 
   const renderTab = () => {
     switch (activeTab) {
@@ -77,10 +65,8 @@ export default function DashboardPage() {
           : renderTab()}
       </div>
 
-      {/* ← NOVO: ribbon no fim de todas as abas */}
-      <DashboardFooter
-        stats={footerStats}
-      />
+      {/* ribbon no fim de todas as abas — stats reais vêm de /works/unified */}
+      <DashboardFooter />
     </div>
     </UserProvider>
   );

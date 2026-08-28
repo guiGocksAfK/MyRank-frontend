@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { mediaItems, badges } from '../../data/mockData';
-import { getMe, updateMe, uploadAvatar, deleteAvatar } from '../../services/userService';
+import React, { useState, useEffect } from 'react';
+import { badges } from '../../data/mockData';
+import { getMe, updateMe } from '../../services/userService';
 import Avatar from '../../shared/components/Avatar';
+import AvatarUploadModal from './AvatarUploadModal';
 import { useUser } from '../../shared/userContext';
-
-const AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
-const AVATAR_MAX_BYTES = 1_000_000;
+import { useUnifiedItems, computeStats, relativeTime } from '../../shared/useUnifiedItems';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
+const safeStringify = (v) => {
+  try { return JSON.stringify(v, null, 2); }
+  catch { return String(v); }
+};
+
 const typeIcons = {
   filme:  '🎬',
   jogo:   '🎮',
@@ -116,9 +120,8 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const [badgeFilter,     setBadgeFilter]     = useState('all'); // 'all' | 'unlocked' | 'locked'
   const [profile,         setProfile]         = useState(null);  // objeto /users/me completo (id, avatarUrl, updatedAt...)
   const [avatarVersion,   setAvatarVersion]   = useState(0);     // muda pra furar o cache do <img> após upload
-  const [avatarBusy,      setAvatarBusy]      = useState(false);
-  const [avatarError,     setAvatarError]     = useState('');
-  const fileInputRef = useRef(null);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [avatarError,     setAvatarError]     = useState(null); // objeto de detalhe; PERSISTE mesmo após o modal fechar
   const { setUser } = useUser();
 
   // atualiza o form local + o usuário compartilhado (header, saudação da home)
@@ -145,43 +148,11 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
     loadProfile();
   }, []);
 
-  const handleAvatarPick = async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    if (!AVATAR_TYPES.includes(file.type)) {
-      setAvatarError('Formato inválido. Use PNG, JPEG ou WebP.');
-      return;
-    }
-    if (file.size > AVATAR_MAX_BYTES) {
-      setAvatarError('Imagem muito grande. O limite é 1 MB.');
-      return;
-    }
-    setAvatarError('');
-    setAvatarBusy(true);
-    try {
-      await uploadAvatar(file);
-      applyUser(await getMe());
-      setAvatarVersion((v) => v + 1);
-    } catch (err) {
-      setAvatarError(err.response?.data?.message || 'Erro ao enviar a foto.');
-    } finally {
-      setAvatarBusy(false);
-    }
-  };
-
-  const handleAvatarRemove = async () => {
-    setAvatarError('');
-    setAvatarBusy(true);
-    try {
-      await deleteAvatar();
-      applyUser(await getMe());
-      setAvatarVersion((v) => v + 1);
-    } catch (err) {
-      setAvatarError('Erro ao remover a foto.');
-    } finally {
-      setAvatarBusy(false);
-    }
+  const handleAvatarDone = (freshUser) => {
+    applyUser(freshUser);
+    setAvatarVersion((v) => v + 1);
+    setAvatarError(null);
+    setAvatarModalOpen(false);
   };
 
   useEffect(() => {
@@ -210,24 +181,21 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
     }
   };
 
-  // ── Stats derivados dos dados ──
-  const totalMinutes  = mediaItems.reduce((s, item) => s + (item.timeMinutes ?? 0), 0);
-  const totalHours    = Math.round(totalMinutes / 60);
-  const avgNote       = (
-    mediaItems.reduce((s, item) => s + item.finalNote, 0) / mediaItems.length
-  ).toFixed(1);
+  // ── Stats reais das obras do usuário (GET /works/unified) ──
+  const { items: works, loading: loadingWorks } = useUnifiedItems();
+  const stats = computeStats(works || []);
   const unlockedCount = badges.filter(b => b.unlocked).length;
-  const bestItem      = mediaItems.reduce((best, item) => (!best || item.finalNote > best.finalNote ? item : best), null);
-  const longestItem   = mediaItems.reduce((top, item) => (!top || (item.timeMinutes ?? 0) > (top.timeMinutes ?? 0) ? item : top), null);
-  const typeCounts    = mediaItems.reduce((acc, item) => {
-    acc[item.type] = (acc[item.type] || 0) + 1;
-    return acc;
-  }, {});
-  const activities = [
-    { text: `Avaliou ${bestItem?.title ?? 'uma obra'} com ${bestItem?.finalNote?.toFixed(1) ?? '—'}`, time: '2h atrás' },
-    { text: `Adicionou ${mediaItems[0]?.title ?? 'uma obra'} ao ranking`, time: '1 dia atrás' },
-    { text: `Destravou badge ${badges.find(b => b.unlocked)?.name ?? 'Novo badge'}`, time: '3 dias atrás' },
-  ];
+
+  // Histórico = obras mais recentes por data de adição
+  const activities = (works || [])
+    .filter(w => w.addedDate)
+    .slice()
+    .sort((a, b) => new Date(b.addedDate) - new Date(a.addedDate))
+    .slice(0, 6)
+    .map(w => ({
+      text: `Adicionou ${w.title}`,
+      time: relativeTime(w.addedDate),
+    }));
 
   // Filtro de badges
   const visibleBadges =
@@ -272,34 +240,69 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
               />
 
               {editMode && (
-                <div className="mr-flex mr-gap-2 mr-items-center" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    onChange={handleAvatarPick}
-                    style={{ display: 'none' }}
-                  />
+                <button
+                  type="button"
+                  className="mr-btn mr-btn-sm mr-btn-outline"
+                  onClick={() => setAvatarModalOpen(true)}
+                >
+                  Trocar foto
+                </button>
+              )}
+
+              {avatarError && (
+                <div
+                  style={{
+                    width: '100%', textAlign: 'left', marginTop: 4,
+                    padding: '0.7rem 0.8rem', borderRadius: 8,
+                    background: 'rgba(226,75,74,0.10)', border: '1px solid rgba(226,75,74,0.4)',
+                  }}
+                >
+                  <div className="mr-flex mr-items-center mr-justify-between" style={{ gap: 8, marginBottom: 4 }}>
+                    <strong style={{ color: '#ff8d8b', fontSize: '0.8rem' }}>
+                      {avatarError.kind === 'http'
+                        ? `Falha no upload — HTTP ${avatarError.status} ${avatarError.statusText || ''}`
+                        : avatarError.kind === 'no-response'
+                          ? 'Falha no upload — servidor não respondeu'
+                          : 'Falha no upload — erro no cliente'}
+                    </strong>
+                    <button
+                      type="button"
+                      className="mr-btn mr-btn-ghost mr-btn-sm"
+                      onClick={() => setAvatarError(null)}
+                      style={{ flexShrink: 0 }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  {(avatarError.serverMessage || avatarError.hint || avatarError.message) && (
+                    <p style={{ margin: '0 0 6px', fontSize: '0.8rem' }}>
+                      {avatarError.serverMessage || avatarError.hint || avatarError.message}
+                    </p>
+                  )}
+                  <details>
+                    <summary style={{ cursor: 'pointer', fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
+                      Ver detalhes técnicos
+                    </summary>
+                    <pre
+                      style={{
+                        margin: '6px 0 0', maxHeight: 240, overflow: 'auto',
+                        fontSize: '0.7rem', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                        color: 'var(--mr-text-secondary)',
+                      }}
+                    >
+                      {safeStringify(avatarError)}
+                    </pre>
+                  </details>
                   <button
                     type="button"
-                    className="mr-btn mr-btn-sm mr-btn-outline"
-                    disabled={avatarBusy}
-                    onClick={() => fileInputRef.current?.click()}
+                    className="mr-btn mr-btn-outline mr-btn-sm"
+                    style={{ marginTop: 6 }}
+                    onClick={() => navigator.clipboard?.writeText(safeStringify(avatarError))}
                   >
-                    {avatarBusy ? 'Enviando…' : 'Trocar foto'}
-                  </button>
-                  <button
-                    type="button"
-                    className="mr-btn mr-btn-sm mr-btn-outline"
-                    disabled={avatarBusy}
-                    onClick={handleAvatarRemove}
-                  >
-                    Remover
+                    Copiar detalhes
                   </button>
                 </div>
               )}
-
-              {avatarError && <p className="auth-error" style={{ margin: 0 }}>{avatarError}</p>}
             </div>
 
             <div style={{ textAlign: 'left', width: '100%' }}>
@@ -368,9 +371,9 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
             {/* Mini stats inline */}
             <div className="mr-grid-3col" style={{ textAlign: 'center' }}>
               {[
-                { label: 'Obras',      value: mediaItems.length },
-                { label: 'Horas',      value: `${totalHours}h`  },
-                { label: 'Média',      value: avgNote            },
+                { label: 'Obras', value: loadingWorks ? '—' : stats.obras },
+                { label: 'Horas', value: loadingWorks ? '—' : `${stats.totalHours}h` },
+                { label: 'Média', value: loadingWorks ? '—' : stats.avgNoteLabel },
               ].map((s, i) => (
                 <div key={i}>
                   <div style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--mr-gold)' }}>
@@ -448,12 +451,20 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
               </div>
 
               <div className="mr-space-y-3">
-                {activities.map((activity, idx) => (
-                  <div key={idx} style={{ borderRadius: 8, padding: '10px 12px', background: 'var(--mr-surface)', border: '1px solid var(--mr-border)' }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{activity.text}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>{activity.time}</div>
+                {loadingWorks ? (
+                  <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>Carregando…</div>
+                ) : activities.length === 0 ? (
+                  <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
+                    Nenhuma atividade ainda. Adicione obras pra começar. ✨
                   </div>
-                ))}
+                ) : (
+                  activities.map((activity, idx) => (
+                    <div key={idx} style={{ borderRadius: 8, padding: '10px 12px', background: 'var(--mr-surface)', border: '1px solid var(--mr-border)' }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{activity.text}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>{activity.time}</div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -557,6 +568,15 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
           </div>
         )}
       </div>
+
+      {avatarModalOpen && (
+        <AvatarUploadModal
+          currentUser={profile}
+          onClose={() => setAvatarModalOpen(false)}
+          onDone={handleAvatarDone}
+          onError={setAvatarError}
+        />
+      )}
 
     </div>
   );

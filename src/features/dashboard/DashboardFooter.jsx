@@ -1,10 +1,15 @@
 import React from 'react';
+import { useUnifiedItems, computeStats } from '../../shared/useUnifiedItems';
 
 export default function DashboardFooter({
-  // Stats opcionais — vem do DashboardPage.jsx
-  stats = { obras: 0, horas: 0, amigos: 0 },
+  // Override opcional; por padrão os números vêm de /works/unified.
+  stats: statsOverride,
 }) {
   const year = new Date().getFullYear();
+  const { items, loading } = useUnifiedItems();
+  const derived = computeStats(items || []);
+  const stats = statsOverride ?? { obras: derived.obras, horas: derived.totalHours };
+  const dash = loading && !statsOverride ? '—' : null;
 
   return (
     <footer className="mr-status-footer">
@@ -26,18 +31,13 @@ export default function DashboardFooter({
           {/* Centro: stats ao vivo (some no mobile) */}
           <div className="mr-status-stats">
             <span className="mr-status-stat">
-              <span className="mr-status-stat-num">{stats.obras}</span>
+              <span className="mr-status-stat-num">{dash ?? stats.obras}</span>
               <span className="mr-status-stat-label">obras</span>
             </span>
             <span className="mr-status-divider" />
             <span className="mr-status-stat">
-              <span className="mr-status-stat-num">{stats.horas}h</span>
+              <span className="mr-status-stat-num">{dash ?? `${stats.horas}h`}</span>
               <span className="mr-status-stat-label">registradas</span>
-            </span>
-            <span className="mr-status-divider" />
-            <span className="mr-status-stat">
-              <span className="mr-status-stat-num">{stats.amigos}</span>
-              <span className="mr-status-stat-label">amigos</span>
             </span>
           </div>
 
