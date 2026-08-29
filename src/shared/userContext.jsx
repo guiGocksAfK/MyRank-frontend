@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { getMe } from '../services/userService';
+import { useLanguage } from './i18n';
 
 /**
  * Usuário logado, compartilhado pelo dashboard. Sem isso, cada tela buscava
@@ -10,6 +11,7 @@ const UserContext = createContext(null);
 export function UserProvider({ children }) {
   const [user, setUserState] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { setLang } = useLanguage();
 
   const setUser = useCallback((next) => {
     // _v: carimbo que muda a cada atualização, usado pra furar o cache do <img> do avatar
@@ -23,13 +25,15 @@ export function UserProvider({ children }) {
     try {
       const fresh = await getMe();
       setUser(fresh);
+      // Idioma salvo no banco manda: sincroniza sem re-persistir.
+      if (fresh?.language) setLang(fresh.language, { persist: false });
       return fresh;
     } catch {
       return null;
     } finally {
       setLoading(false);
     }
-  }, [setUser]);
+  }, [setUser, setLang]);
 
   useEffect(() => { refreshUser(); }, [refreshUser]);
 

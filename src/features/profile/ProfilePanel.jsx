@@ -3,6 +3,7 @@ import { getMe, updateMe } from '../../services/userService';
 import Avatar from '../../shared/components/Avatar';
 import AvatarUploadModal from './AvatarUploadModal';
 import { useUser } from '../../shared/userContext';
+import { useLanguage, LANGUAGES } from '../../shared/i18n';
 import {
   useUnifiedItems,
   computeStats,
@@ -17,6 +18,9 @@ const safeStringify = (v) => {
   try { return JSON.stringify(v, null, 2); }
   catch { return String(v); }
 };
+
+/** Interpola {chaves} de uma string de tradução. */
+const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 const typeIcons = {
   filme:  '🎬',
@@ -34,11 +38,11 @@ function formatTime(totalMinutes) {
   return m > 0 ? `${h}h ${m}min` : `${h}h`;
 }
 
-function formatDate(dateString) {
+function formatDate(dateString, locale) {
   if (!dateString) return null;
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString('pt-BR', {
+  return date.toLocaleDateString(locale || 'pt-BR', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -81,6 +85,8 @@ function KVRow({ label, value, meta }) {
 
 // ─── Componente: Badge card ───────────────────────────────────────────────
 function BadgeCard({ badge }) {
+  const { t } = useLanguage();
+  const tp = t.profile;
   const pct = Math.min(
     Math.round((badge.progress / Math.max(badge.maxProgress, 1)) * 100),
     100
@@ -106,7 +112,7 @@ function BadgeCard({ badge }) {
         <div className="mr-flex mr-items-center mr-justify-center mr-gap-2">
           <div className="mr-dot-green" />
           <span style={{ fontSize: '0.75rem', color: 'var(--mr-green)', fontWeight: 500 }}>
-            Desbloqueado
+            {tp.badgeUnlocked}
           </span>
         </div>
       ) : badge.hasProgress ? (
@@ -129,7 +135,7 @@ function BadgeCard({ badge }) {
         </div>
       ) : (
         <div className="mr-flex mr-items-center mr-justify-center mr-gap-2">
-          <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)' }}>🔒 Bloqueado</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)' }}>{tp.badgeLocked}</span>
         </div>
       )}
     </div>
@@ -138,8 +144,11 @@ function BadgeCard({ badge }) {
 
 // ─── Componente principal ─────────────────────────────────────────────────
 export default function ProfilePanel({ isDark, onThemeToggle }) {
+  const { t, lang, setLang, locale } = useLanguage();
+  const tp = t.profile;
+
   const [profileUsername, setProfileUsername] = useState('usuario');
-  const [profileBio,      setProfileBio]      = useState('Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
+  const [profileBio,      setProfileBio]      = useState('');
   const [profilePlan,     setProfilePlan]     = useState('FREE');
   const [createdAt,       setCreatedAt]       = useState(null);
   const [loadingProfile,  setLoadingProfile]  = useState(true);
@@ -167,16 +176,17 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
         const user = await getMe();
         applyUser(user);
         setProfileUsername(user.username || 'usuario');
-        setProfileBio(user.bio || 'Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.');
+        setProfileBio(user.bio || tp.defaultBio);
         setProfilePlan(user.plan || 'FREE');
         setCreatedAt(user.createdAt || null);
       } catch (err) {
-        setError('Não foi possível carregar seu perfil.');
+        setError(tp.loadError);
       } finally {
         setLoadingProfile(false);
       }
     };
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAvatarDone = (freshUser) => {
@@ -205,7 +215,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
       setProfileBio(updated.bio || profileBio);
       setEditMode(false);
     } catch (err) {
-      const message = err.response?.data?.message || 'Erro ao salvar perfil.';
+      const message = err.response?.data?.message || tp.saveError;
       setError(message);
     } finally {
       setSaving(false);
@@ -231,7 +241,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
     .sort((a, b) => new Date(b.addedDate) - new Date(a.addedDate))
     .slice(0, 6)
     .map(w => ({
-      text: `Adicionou ${w.title}`,
+      text: fmt(tp.added, { title: w.title }),
       time: relativeTime(w.addedDate),
     }));
 
@@ -245,7 +255,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   if (loadingProfile) {
     return (
       <div className="mr-card">
-        <div className="mr-card-body">Carregando perfil...</div>
+        <div className="mr-card-body">{tp.loading}</div>
       </div>
     );
   }
@@ -256,9 +266,9 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
       {/* ── Header ── */}
       <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>⚙️ Perfil</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{tp.title}</h1>
           <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', marginTop: 4 }}>
-            Configurações, conquistas e dados da sua conta
+            {tp.subtitle}
           </p>
         </div>
       </div>
@@ -284,7 +294,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                   className="mr-btn mr-btn-sm mr-btn-outline"
                   onClick={() => setAvatarModalOpen(true)}
                 >
-                  Trocar foto
+                  {tp.changePhoto}
                 </button>
               )}
 
@@ -299,10 +309,10 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                   <div className="mr-flex mr-items-center mr-justify-between" style={{ gap: 8, marginBottom: 4 }}>
                     <strong style={{ color: '#ff8d8b', fontSize: '0.8rem' }}>
                       {avatarError.kind === 'http'
-                        ? `Falha no upload — HTTP ${avatarError.status} ${avatarError.statusText || ''}`
+                        ? fmt(tp.uploadFailHttp, { status: avatarError.status, statusText: avatarError.statusText || '' })
                         : avatarError.kind === 'no-response'
-                          ? 'Falha no upload — servidor não respondeu'
-                          : 'Falha no upload — erro no cliente'}
+                          ? tp.uploadFailNoResponse
+                          : tp.uploadFailClient}
                     </strong>
                     <button
                       type="button"
@@ -320,7 +330,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                   )}
                   <details>
                     <summary style={{ cursor: 'pointer', fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
-                      Ver detalhes técnicos
+                      {tp.techDetails}
                     </summary>
                     <pre
                       style={{
@@ -338,7 +348,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                     style={{ marginTop: 6 }}
                     onClick={() => navigator.clipboard?.writeText(safeStringify(avatarError))}
                   >
-                    Copiar detalhes
+                    {tp.copyDetails}
                   </button>
                 </div>
               )}
@@ -348,7 +358,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
               {editMode ? (
                 <div className="mr-space-y-3">
                   <div>
-                    <label className="mr-setting-label" style={{ marginBottom: 6 }}>Usuário</label>
+                    <label className="mr-setting-label" style={{ marginBottom: 6 }}>{tp.usernameLabel}</label>
                     <input
                       className="mr-input"
                       value={draftUsername}
@@ -357,7 +367,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                     />
                   </div>
                   <div>
-                    <label className="mr-setting-label" style={{ marginBottom: 6 }}>Bio</label>
+                    <label className="mr-setting-label" style={{ marginBottom: 6 }}>{tp.bioLabel}</label>
                     <textarea
                       className="mr-input"
                       value={draftBio}
@@ -374,10 +384,10 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                       setDraftBio(profileBio);
                       setError('');
                     }}>
-                      Cancelar
+                      {tp.cancel}
                     </button>
                     <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving}>
-                      {saving ? 'Salvando...' : 'Salvar'}
+                      {saving ? tp.saving : tp.save}
                     </button>
                   </div>
                 </div>
@@ -392,7 +402,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
 
                   {createdAt && (
                     <div style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginTop: 6 }}>
-                      Membro desde {formatDate(createdAt)}
+                      {fmt(tp.memberSince, { date: formatDate(createdAt, locale) })}
                     </div>
                   )}
 
@@ -401,18 +411,18 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                     style={{ marginTop: 12, display: 'block', marginLeft: 'auto', marginRight: 'auto' }}
                     onClick={() => setEditMode(true)}
                   >
-                    Editar perfil
+                    {tp.editProfile}
                   </button>
 
                   <div
                     className="mr-flex mr-items-center mr-justify-center mr-gap-2"
                     style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginTop: 12, flexWrap: 'wrap' }}
                   >
-                    <span>{profile?.isPublic ? '🌐 Perfil público' : '🔒 Perfil privado'}</span>
+                    <span>{profile?.isPublic ? tp.publicProfile : tp.privateProfile}</span>
                     {profilePlan !== 'PRO' && (
                       <>
                         <span style={{ color: 'var(--mr-text-muted)' }}>·</span>
-                        <span style={{ color: 'var(--mr-text-muted)' }}>🆓 Plano gratuito</span>
+                        <span style={{ color: 'var(--mr-text-muted)' }}>{tp.freePlan}</span>
                       </>
                     )}
                   </div>
@@ -423,9 +433,9 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
             {/* Mini stats inline */}
             <div className="mr-grid-3col" style={{ textAlign: 'center' }}>
               {[
-                { label: 'Obras', value: loadingWorks ? '—' : stats.obras },
-                { label: 'Horas', value: loadingWorks ? '—' : `${stats.totalHours}h` },
-                { label: 'Média', value: loadingWorks ? '—' : stats.avgNoteLabel },
+                { label: tp.statWorks, value: loadingWorks ? '—' : stats.obras },
+                { label: tp.statHours, value: loadingWorks ? '—' : `${stats.totalHours}h` },
+                { label: tp.statAvg,   value: loadingWorks ? '—' : stats.avgNoteLabel },
               ].map((s, i) => (
                 <div key={i}>
                   <div style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--mr-gold)' }}>
@@ -444,14 +454,14 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                 {profileBio}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginBottom: 12 }}>
-                Conquistas rápidas
+                {tp.quickBadges}
               </div>
               <div className="mr-flex mr-flex-wrap mr-justify-center mr-gap-2" style={{ minHeight: '1.4rem' }}>
                 {loadingBadges ? (
-                  <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>Carregando…</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{tp.loadingShort}</span>
                 ) : unlockedCount === 0 ? (
                   <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
-                    Nenhuma conquista ainda.
+                    {tp.noBadgesYet}
                   </span>
                 ) : (
                   badgeList.filter(b => b.unlocked).slice(0, 6).map(badge => (
@@ -466,7 +476,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                 )}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)', marginTop: 10 }}>
-                {unlockedCount} de {badgeList.length} desbloqueadas
+                {fmt(tp.unlockedOf, { n: unlockedCount, m: badgeList.length })}
               </div>
             </div>
 
@@ -476,21 +486,35 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
         {/* ── Coluna direita: configurações ── */}
         <div className="mr-space-y-6">
 
-          {/* Aparência (RF-012) */}
+          {/* Aparência (RF-012) — modo escuro + idioma, meia a meia */}
           <div className="mr-card">
             <div className="mr-card-body mr-space-y-4">
-              <h3 style={{ fontWeight: 700 }}>🎨 Aparência</h3>
-              <SettingRow
-                label="Modo escuro"
-                desc="Alternar entre tema claro e escuro"
-              >
-                <button
-                  className={`mr-switch ${isDark ? 'checked' : ''}`}
-                  onClick={onThemeToggle}
-                >
-                  <span className="mr-switch-thumb" />
-                </button>
-              </SettingRow>
+              <h3 style={{ fontWeight: 700 }}>{tp.appearance}</h3>
+              <div className="mr-appearance-split">
+                <SettingRow label={tp.darkMode} desc={tp.darkModeDesc}>
+                  <button
+                    className={`mr-switch ${isDark ? 'checked' : ''}`}
+                    onClick={onThemeToggle}
+                  >
+                    <span className="mr-switch-thumb" />
+                  </button>
+                </SettingRow>
+
+                <SettingRow label={tp.language} desc={tp.languageDesc}>
+                  <div className="mr-lang-seg" role="group" aria-label={tp.language}>
+                    {LANGUAGES.map((code) => (
+                      <button
+                        key={code}
+                        type="button"
+                        className={`mr-lang-seg-btn ${lang === code ? 'is-active' : ''}`}
+                        onClick={() => setLang(code)}
+                      >
+                        {code}
+                      </button>
+                    ))}
+                  </div>
+                </SettingRow>
+              </div>
             </div>
           </div>
 
@@ -498,18 +522,18 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
           <div className="mr-card">
             <div className="mr-card-body mr-space-y-4">
               <div className="mr-flex mr-items-center mr-justify-between">
-                <h3 style={{ fontWeight: 700 }}>🕒 Histórico</h3>
+                <h3 style={{ fontWeight: 700 }}>{tp.history}</h3>
                 <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)' }}>
-                  Últimas ações
+                  {tp.lastActions}
                 </span>
               </div>
 
               <div className="mr-space-y-3">
                 {loadingWorks ? (
-                  <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>Carregando…</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>{tp.loadingShort}</div>
                 ) : activities.length === 0 ? (
                   <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
-                    Nenhuma atividade ainda. Adicione obras pra começar. ✨
+                    {tp.noActivity}
                   </div>
                 ) : (
                   activities.map((activity, idx) => (
@@ -526,32 +550,32 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
           {/* Destaques */}
           <div className="mr-card">
             <div className="mr-card-body mr-space-y-4">
-              <h3 style={{ fontWeight: 700 }}>⭐ Destaques</h3>
+              <h3 style={{ fontWeight: 700 }}>{tp.highlights}</h3>
               {loadingWorks ? (
-                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>Carregando…</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>{tp.loadingShort}</div>
               ) : !highlights ? (
                 <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
-                  Adicione obras pra ver seus destaques.
+                  {tp.noHighlights}
                 </div>
               ) : (
                 <div className="mr-space-y-3">
                   <KVRow
-                    label="Melhor avaliada"
+                    label={tp.bestRated}
                     value={highlights.byNote?.title}
                     meta={highlights.byNote ? Number(highlights.byNote.note).toFixed(1) : null}
                   />
                   <KVRow
-                    label="Mais horas"
+                    label={tp.mostHours}
                     value={highlights.byTime?.title}
                     meta={highlights.byTime ? hoursLabel(highlights.byTime.timeMinutes) : null}
                   />
                   <KVRow
-                    label="Última adicionada"
+                    label={tp.lastAdded}
                     value={highlights.byRecent?.title}
                     meta={highlights.byRecent ? relativeTime(highlights.byRecent.addedDate) : null}
                   />
                   <KVRow
-                    label="Categoria favorita"
+                    label={tp.favCategory}
                     value={highlights.favCategory ? `${highlights.favCategory.icon} ${highlights.favCategory.label}` : '—'}
                     meta={highlights.favCategory ? `${highlights.favCategory.count}` : null}
                   />
@@ -563,12 +587,12 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
           {/* Distribuição por categoria */}
           <div className="mr-card">
             <div className="mr-card-body mr-space-y-4">
-              <h3 style={{ fontWeight: 700 }}>📊 Distribuição por categoria</h3>
+              <h3 style={{ fontWeight: 700 }}>{tp.distribution}</h3>
               {loadingWorks ? (
-                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>Carregando…</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>{tp.loadingShort}</div>
               ) : breakdown.length === 0 ? (
                 <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
-                  Nenhuma obra ainda.
+                  {tp.noWorks}
                 </div>
               ) : (
                 <div className="mr-space-y-3">
@@ -580,7 +604,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                       >
                         <span>{b.icon} {b.label}</span>
                         <span style={{ color: 'var(--mr-text-secondary)' }}>
-                          {b.count} {b.count === 1 ? 'obra' : 'obras'} · média {b.avgLabel}
+                          {fmt(b.count === 1 ? tp.distLineOne : tp.distLineMany, { count: b.count, avg: b.avgLabel })}
                         </span>
                       </div>
                       <div style={{ height: 6, borderRadius: 3, background: 'var(--mr-surface)', border: '1px solid var(--mr-border)', overflow: 'hidden' }}>
@@ -599,14 +623,14 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
       {/* ── Badges e Conquistas — largura total ── */}
       <div id="mr-badges" style={{ scrollMarginTop: 80 }}>
         <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap" style={{ marginBottom: 16 }}>
-          <h2 style={{ fontWeight: 700, fontSize: '1.25rem', marginRight: 'auto' }}>🏅 Badges e Conquistas</h2>
+          <h2 style={{ fontWeight: 700, fontSize: '1.25rem', marginRight: 'auto' }}>{tp.badgesTitle}</h2>
 
           {/* Filtro de badges — mesmo padrão toolbar */}
           <div className="mr-flex mr-gap-1">
             {[
-              { id: 'all',      label: 'Todas'           },
-              { id: 'unlocked', label: '✓ Desbloqueadas' },
-              { id: 'locked',   label: '🔒 Bloqueadas'   },
+              { id: 'all',      label: tp.filterAll      },
+              { id: 'unlocked', label: tp.filterUnlocked },
+              { id: 'locked',   label: tp.filterLocked   },
             ].map(f => (
               <button
                 key={f.id}
@@ -619,20 +643,20 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
           </div>
 
           <div style={{ fontSize: '0.8125rem', color: 'var(--mr-text-muted)' }}>
-            {loadingBadges ? '…' : `${unlockedCount} de ${badgeList.length}`}
+            {loadingBadges ? '…' : fmt(tp.unlockedShort, { n: unlockedCount, m: badgeList.length })}
           </div>
         </div>
 
         {loadingBadges ? (
           <div className="mr-card">
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-              Carregando conquistas…
+              {tp.loadingBadges}
             </div>
           </div>
         ) : visibleBadges.length === 0 ? (
           <div className="mr-card">
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-              Nenhuma badge neste filtro. 🔍
+              {tp.noBadgesFilter}
             </div>
           </div>
         ) : (

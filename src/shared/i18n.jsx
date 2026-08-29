@@ -1,16 +1,78 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import api from '../services/api';
 
 /**
- * i18n mínimo, sem lib. Só a Home está traduzida por enquanto.
- * O idioma escolhido no seletor do Navbar fica em localStorage (myrank_lang).
+ * i18n mínimo, sem lib. Traduzido: Home, páginas de auth e painel de Perfil.
+ * O idioma fica em localStorage (myrank_lang) para resposta imediata e, quando
+ * o usuário está logado, é persistido em users.language via PUT /users/me.
  */
 
 const STORAGE_KEY = 'myrank_lang';
 export const LANGUAGES = ['PT', 'EN', 'ES'];
+export const LANGUAGE_LABELS = { PT: 'Português', EN: 'English', ES: 'Español' };
 
 const TRANSLATIONS = {
   PT: {
     nav: { home: 'Home', login: 'Entrar', signup: 'Cadastrar' },
+    profile: {
+      title: '⚙️ Perfil',
+      subtitle: 'Configurações, conquistas e dados da sua conta',
+      defaultBio: 'Apaixonado por jogos, filmes e livros. Avaliador e colecionador de favoritos.',
+      loading: 'Carregando perfil...',
+      loadError: 'Não foi possível carregar seu perfil.',
+      changePhoto: 'Trocar foto',
+      usernameLabel: 'Usuário',
+      bioLabel: 'Bio',
+      cancel: 'Cancelar',
+      save: 'Salvar',
+      saving: 'Salvando...',
+      saveError: 'Erro ao salvar perfil.',
+      editProfile: 'Editar perfil',
+      memberSince: 'Membro desde {date}',
+      publicProfile: '🌐 Perfil público',
+      privateProfile: '🔒 Perfil privado',
+      freePlan: '🆓 Plano gratuito',
+      statWorks: 'Obras',
+      statHours: 'Horas',
+      statAvg: 'Média',
+      quickBadges: 'Conquistas rápidas',
+      loadingShort: 'Carregando…',
+      noBadgesYet: 'Nenhuma conquista ainda.',
+      unlockedOf: '{n} de {m} desbloqueadas',
+      unlockedShort: '{n} de {m}',
+      appearance: '🎨 Aparência',
+      darkMode: 'Modo escuro',
+      darkModeDesc: 'Alternar entre tema claro e escuro',
+      language: 'Idioma',
+      languageDesc: 'Idioma da interface',
+      history: '🕒 Histórico',
+      lastActions: 'Últimas ações',
+      noActivity: 'Nenhuma atividade ainda. Adicione obras pra começar. ✨',
+      added: 'Adicionou {title}',
+      highlights: '⭐ Destaques',
+      noHighlights: 'Adicione obras pra ver seus destaques.',
+      bestRated: 'Melhor avaliada',
+      mostHours: 'Mais horas',
+      lastAdded: 'Última adicionada',
+      favCategory: 'Categoria favorita',
+      distribution: '📊 Distribuição por categoria',
+      noWorks: 'Nenhuma obra ainda.',
+      distLineOne: '{count} obra · média {avg}',
+      distLineMany: '{count} obras · média {avg}',
+      badgesTitle: '🏅 Badges e Conquistas',
+      filterAll: 'Todas',
+      filterUnlocked: '✓ Desbloqueadas',
+      filterLocked: '🔒 Bloqueadas',
+      loadingBadges: 'Carregando conquistas…',
+      noBadgesFilter: 'Nenhuma badge neste filtro. 🔍',
+      badgeUnlocked: 'Desbloqueado',
+      badgeLocked: '🔒 Bloqueado',
+      uploadFailHttp: 'Falha no upload — HTTP {status} {statusText}',
+      uploadFailNoResponse: 'Falha no upload — servidor não respondeu',
+      uploadFailClient: 'Falha no upload — erro no cliente',
+      techDetails: 'Ver detalhes técnicos',
+      copyDetails: 'Copiar detalhes',
+    },
     auth: {
       back: '← Voltar',
       emailLabel: 'Email',
@@ -159,6 +221,65 @@ const TRANSLATIONS = {
 
   EN: {
     nav: { home: 'Home', login: 'Sign in', signup: 'Sign up' },
+    profile: {
+      title: '⚙️ Profile',
+      subtitle: 'Settings, achievements and your account data',
+      defaultBio: 'Passionate about games, movies and books. Rater and collector of favorites.',
+      loading: 'Loading profile...',
+      loadError: 'Could not load your profile.',
+      changePhoto: 'Change photo',
+      usernameLabel: 'Username',
+      bioLabel: 'Bio',
+      cancel: 'Cancel',
+      save: 'Save',
+      saving: 'Saving...',
+      saveError: 'Error saving profile.',
+      editProfile: 'Edit profile',
+      memberSince: 'Member since {date}',
+      publicProfile: '🌐 Public profile',
+      privateProfile: '🔒 Private profile',
+      freePlan: '🆓 Free plan',
+      statWorks: 'Titles',
+      statHours: 'Hours',
+      statAvg: 'Avg',
+      quickBadges: 'Quick achievements',
+      loadingShort: 'Loading…',
+      noBadgesYet: 'No achievements yet.',
+      unlockedOf: '{n} of {m} unlocked',
+      unlockedShort: '{n} of {m}',
+      appearance: '🎨 Appearance',
+      darkMode: 'Dark mode',
+      darkModeDesc: 'Switch between light and dark theme',
+      language: 'Language',
+      languageDesc: 'Interface language',
+      history: '🕒 History',
+      lastActions: 'Latest actions',
+      noActivity: 'No activity yet. Add titles to get started. ✨',
+      added: 'Added {title}',
+      highlights: '⭐ Highlights',
+      noHighlights: 'Add titles to see your highlights.',
+      bestRated: 'Best rated',
+      mostHours: 'Most hours',
+      lastAdded: 'Last added',
+      favCategory: 'Favorite category',
+      distribution: '📊 Distribution by category',
+      noWorks: 'No titles yet.',
+      distLineOne: '{count} title · avg {avg}',
+      distLineMany: '{count} titles · avg {avg}',
+      badgesTitle: '🏅 Badges & Achievements',
+      filterAll: 'All',
+      filterUnlocked: '✓ Unlocked',
+      filterLocked: '🔒 Locked',
+      loadingBadges: 'Loading achievements…',
+      noBadgesFilter: 'No badges in this filter. 🔍',
+      badgeUnlocked: 'Unlocked',
+      badgeLocked: '🔒 Locked',
+      uploadFailHttp: 'Upload failed — HTTP {status} {statusText}',
+      uploadFailNoResponse: 'Upload failed — server did not respond',
+      uploadFailClient: 'Upload failed — client error',
+      techDetails: 'Show technical details',
+      copyDetails: 'Copy details',
+    },
     auth: {
       back: '← Back',
       emailLabel: 'Email',
@@ -307,6 +428,65 @@ const TRANSLATIONS = {
 
   ES: {
     nav: { home: 'Inicio', login: 'Iniciar sesión', signup: 'Registrarse' },
+    profile: {
+      title: '⚙️ Perfil',
+      subtitle: 'Ajustes, logros y datos de tu cuenta',
+      defaultBio: 'Apasionado por los juegos, las películas y los libros. Evaluador y coleccionista de favoritos.',
+      loading: 'Cargando perfil...',
+      loadError: 'No se pudo cargar tu perfil.',
+      changePhoto: 'Cambiar foto',
+      usernameLabel: 'Usuario',
+      bioLabel: 'Bio',
+      cancel: 'Cancelar',
+      save: 'Guardar',
+      saving: 'Guardando...',
+      saveError: 'Error al guardar el perfil.',
+      editProfile: 'Editar perfil',
+      memberSince: 'Miembro desde {date}',
+      publicProfile: '🌐 Perfil público',
+      privateProfile: '🔒 Perfil privado',
+      freePlan: '🆓 Plan gratuito',
+      statWorks: 'Obras',
+      statHours: 'Horas',
+      statAvg: 'Media',
+      quickBadges: 'Logros rápidos',
+      loadingShort: 'Cargando…',
+      noBadgesYet: 'Aún no hay logros.',
+      unlockedOf: '{n} de {m} desbloqueados',
+      unlockedShort: '{n} de {m}',
+      appearance: '🎨 Apariencia',
+      darkMode: 'Modo oscuro',
+      darkModeDesc: 'Alternar entre tema claro y oscuro',
+      language: 'Idioma',
+      languageDesc: 'Idioma de la interfaz',
+      history: '🕒 Historial',
+      lastActions: 'Últimas acciones',
+      noActivity: 'Aún no hay actividad. Agrega obras para empezar. ✨',
+      added: 'Agregó {title}',
+      highlights: '⭐ Destacados',
+      noHighlights: 'Agrega obras para ver tus destacados.',
+      bestRated: 'Mejor valorada',
+      mostHours: 'Más horas',
+      lastAdded: 'Última agregada',
+      favCategory: 'Categoría favorita',
+      distribution: '📊 Distribución por categoría',
+      noWorks: 'Aún no hay obras.',
+      distLineOne: '{count} obra · media {avg}',
+      distLineMany: '{count} obras · media {avg}',
+      badgesTitle: '🏅 Insignias y Logros',
+      filterAll: 'Todas',
+      filterUnlocked: '✓ Desbloqueadas',
+      filterLocked: '🔒 Bloqueadas',
+      loadingBadges: 'Cargando logros…',
+      noBadgesFilter: 'Ninguna insignia en este filtro. 🔍',
+      badgeUnlocked: 'Desbloqueado',
+      badgeLocked: '🔒 Bloqueado',
+      uploadFailHttp: 'Fallo al subir — HTTP {status} {statusText}',
+      uploadFailNoResponse: 'Fallo al subir — el servidor no respondió',
+      uploadFailClient: 'Fallo al subir — error del cliente',
+      techDetails: 'Ver detalles técnicos',
+      copyDetails: 'Copiar detalles',
+    },
     auth: {
       back: '← Volver',
       emailLabel: 'Email',
@@ -466,26 +646,45 @@ function readStoredLang() {
   return 'PT';
 }
 
+const LOCALES = { PT: 'pt-BR', EN: 'en-US', ES: 'es-ES' };
+
 export function LanguageProvider({ children }) {
   const [lang, setLangState] = useState(readStoredLang);
 
-  const setLang = (next) => {
+  /**
+   * @param next  'PT' | 'EN' | 'ES'
+   * @param opts.persist  quando true (default) e há sessão, salva em users.language.
+   *   Passe false ao sincronizar a partir do /users/me (evita PUT redundante).
+   */
+  const setLang = useCallback((next, opts = {}) => {
     if (!LANGUAGES.includes(next)) return;
-    setLangState(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      /* ignora */
+    setLangState((current) => {
+      if (current === next) return current;
+      try { localStorage.setItem(STORAGE_KEY, next); } catch { /* ignora */ }
+      return next;
+    });
+
+    const persist = opts.persist !== false;
+    if (persist) {
+      try { localStorage.setItem(STORAGE_KEY, next); } catch { /* ignora */ }
+      if (localStorage.getItem('myrank_token')) {
+        api.put('/users/me', { language: next }).catch(() => { /* best-effort */ });
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = lang.toLowerCase();
   }, [lang]);
 
   const value = useMemo(
-    () => ({ lang, setLang, t: TRANSLATIONS[lang] || TRANSLATIONS.PT }),
-    [lang],
+    () => ({
+      lang,
+      setLang,
+      t: TRANSLATIONS[lang] || TRANSLATIONS.PT,
+      locale: LOCALES[lang] || LOCALES.PT,
+    }),
+    [lang, setLang],
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
@@ -495,7 +694,7 @@ export function useLanguage() {
   const ctx = useContext(LanguageContext);
   if (!ctx) {
     // Fallback seguro se algum componente for montado fora do provider.
-    return { lang: 'PT', setLang: () => {}, t: TRANSLATIONS.PT };
+    return { lang: 'PT', setLang: () => {}, t: TRANSLATIONS.PT, locale: 'pt-BR' };
   }
   return ctx;
 }
