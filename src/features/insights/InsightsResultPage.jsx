@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { generateInsights, getLatestInsights } from '../../services/insightsService';
+import DashboardFooter from '../dashboard/DashboardFooter';
 import { BAR_COLORS, relativeFromNow } from './aiInsightsHelpers';
+import '../dashboard/dashboard.css';
 import './insights.css';
 
 export default function InsightsResult() {
@@ -21,17 +23,12 @@ export default function InsightsResult() {
     let active = true;
     setStatus('loading');
 
-    const load = workIds
-      ? generateInsights(workIds, false)
-      : getLatestInsights();
+    const load = workIds ? generateInsights(workIds, false) : getLatestInsights();
 
     load
       .then((data) => {
         if (!active) return;
-        if (!data) {
-          setStatus('empty');
-          return;
-        }
+        if (!data) { setStatus('empty'); return; }
         setResult(data);
         setStatus('ready');
       })
@@ -47,9 +44,9 @@ export default function InsightsResult() {
     return () => { active = false; };
   }, [workIds]);
 
-  const handleBack = () => navigate('/dashboard');
+  const goBack = () => navigate('/dashboard', { state: { tab: 'ai' } });
 
-  const handleRegenerate = async () => {
+  const regenerate = async () => {
     if (!workIds || regenerating) return;
     setRegenerating(true);
     setErrorMessage('');
@@ -67,165 +64,182 @@ export default function InsightsResult() {
     }
   };
 
-  if (status === 'loading') {
-    return (
-      <Shell onBack={handleBack}>
-        <div className="mr-card">
-          <div className="mr-card-body" style={{ textAlign: 'center', padding: 48 }}>
-            <div className="insights-spinner" />
-            <p style={{ color: 'var(--mr-text-secondary)', marginTop: 16 }}>
-              Analisando seu perfil de consumo…
-            </p>
-          </div>
-        </div>
-      </Shell>
-    );
-  }
-
-  if (status === 'empty') {
-    return (
-      <Shell onBack={handleBack}>
-        <div className="mr-card">
-          <div className="mr-card-body" style={{ textAlign: 'center', padding: 40 }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🤖</div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 8 }}>Nenhuma análise ainda</h1>
-            <p style={{ color: 'var(--mr-text-secondary)', marginBottom: 18 }}>
-              Volte ao painel de IA Insights, selecione suas obras e gere sua primeira análise.
-            </p>
-            <button className="mr-btn mr-btn-gold" onClick={handleBack}>Voltar ao Dashboard</button>
-          </div>
-        </div>
-      </Shell>
-    );
-  }
-
-  if (status === 'error') {
-    return (
-      <Shell onBack={handleBack}>
-        <div className="mr-card">
-          <div className="mr-card-body" style={{ textAlign: 'center', padding: 40 }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>⚠️</div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 8 }}>Erro ao gerar a análise</h1>
-            <p style={{ color: 'var(--mr-text-secondary)', marginBottom: 18 }}>{errorMessage}</p>
-            <div className="mr-flex mr-gap-3" style={{ justifyContent: 'center' }}>
-              {workIds && (
-                <button className="mr-btn mr-btn-gold" onClick={handleRegenerate} disabled={regenerating}>
-                  {regenerating ? 'Tentando…' : 'Tentar de novo'}
-                </button>
-              )}
-              <button className="mr-btn mr-btn-outline" onClick={handleBack}>Voltar ao Dashboard</button>
-            </div>
-          </div>
-        </div>
-      </Shell>
-    );
-  }
-
-  const { analysis, model, workCount, cached, generatedAt } = result;
-  const maxPercent = Math.max(1, ...(analysis.tasteProfile || []).map((s) => s.percent || 0));
-
   return (
-    <Shell onBack={handleBack}>
-      <div className="mr-card">
-        <div className="mr-card-body mr-space-y-2">
-          <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
-            <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginBottom: 6 }}>
-                Perfil de consumo · {workCount} obras · {model}
-                {cached ? ' · reaproveitado' : ''}
-              </div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>{analysis.summaryTitle}</h1>
-            </div>
-            {workIds && (
-              <button className="mr-btn mr-btn-outline" onClick={handleRegenerate} disabled={regenerating}>
-                {regenerating ? 'Gerando…' : '↻ Gerar novamente'}
-              </button>
-            )}
-          </div>
-          <p style={{ color: 'var(--mr-text-secondary)', lineHeight: 1.7, maxWidth: 720 }}>
-            {analysis.summaryText}
-          </p>
-          {generatedAt && (
-            <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
-              Gerado {relativeFromNow(generatedAt)}
-            </div>
-          )}
+    <div className="insights-result-page">
+      <div className="insights-result-inner">
+        <div className="insights-topbar">
+          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={goBack}>← IA Insights</button>
+          <span className="insights-brand">My<span className="g">Rank</span></span>
         </div>
+
+        {status === 'loading' && <LoadingView />}
+        {status === 'empty' && <EmptyView onBack={goBack} />}
+        {status === 'error' && (
+          <ErrorView
+            message={errorMessage}
+            canRetry={Boolean(workIds)}
+            retrying={regenerating}
+            onRetry={regenerate}
+            onBack={goBack}
+          />
+        )}
+        {status === 'ready' && result && (
+          <ReadyView
+            result={result}
+            canRegenerate={Boolean(workIds)}
+            regenerating={regenerating}
+            onRegenerate={regenerate}
+          />
+        )}
       </div>
 
-      {Array.isArray(analysis.traits) && analysis.traits.length > 0 && (
-        <div className="insights-traits-grid">
-          {analysis.traits.map((trait, i) => (
-            <div key={`${trait.label}-${i}`} className="mr-card">
-              <div className="mr-card-body">
-                <div style={{ fontSize: '1.6rem', marginBottom: 8 }}>{trait.icon}</div>
-                <div style={{ fontWeight: 700, marginBottom: 4 }}>{trait.label}</div>
-                <div style={{ color: 'var(--mr-text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
-                  {trait.description}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {Array.isArray(analysis.tasteProfile) && analysis.tasteProfile.length > 0 && (
-        <div className="mr-card">
-          <div className="mr-card-body mr-space-y-3">
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Perfil de gosto</h2>
-            <div className="mr-space-y-3">
-              {analysis.tasteProfile.map((slice, i) => (
-                <div key={`${slice.name}-${i}`}>
-                  <div className="mr-flex mr-justify-between" style={{ fontSize: '0.9rem', marginBottom: 4 }}>
-                    <span>{slice.name}</span>
-                    <span style={{ color: 'var(--mr-text-secondary)' }}>{slice.percent}%</span>
-                  </div>
-                  <div className="insights-bar-track">
-                    <div
-                      className="insights-bar-fill"
-                      style={{
-                        width: `${Math.round(((slice.percent || 0) / maxPercent) * 100)}%`,
-                        background: BAR_COLORS[i % BAR_COLORS.length],
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {analysis.recommendation && (
-        <div className="mr-info-card-gold">
-          <div className="mr-card-body mr-space-y-2">
-            <div className="insights-summary-label">Recomendação para você</div>
-            <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
-              <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>{analysis.recommendation.title}</span>
-              {analysis.recommendation.year && (
-                <span className="mr-badge mr-badge-outline">{analysis.recommendation.year}</span>
-              )}
-              {analysis.recommendation.category && (
-                <span className="mr-badge mr-badge-green">{analysis.recommendation.category}</span>
-              )}
-              {typeof analysis.recommendation.compatPercent === 'number' && (
-                <span className="mr-badge mr-badge-gold">{analysis.recommendation.compatPercent}% compatível</span>
-              )}
-            </div>
-            <p style={{ color: 'var(--mr-text)', lineHeight: 1.7 }}>{analysis.recommendation.reason}</p>
-          </div>
-        </div>
-      )}
-    </Shell>
+      <DashboardFooter />
+    </div>
   );
 }
 
-function Shell({ children, onBack }) {
+function ReadyView({ result, canRegenerate, regenerating, onRegenerate }) {
+  const { analysis, model, workCount, cached, generatedAt } = result;
+  const traits = Array.isArray(analysis.traits) ? analysis.traits : [];
+  const taste = Array.isArray(analysis.tasteProfile) ? analysis.tasteProfile : [];
+  const maxPercent = Math.max(1, ...taste.map((s) => s.percent || 0));
+  const reco = analysis.recommendation;
+
   return (
-    <div className="myrank-dashboard">
-      <div className="mr-main mr-space-y-6" style={{ paddingTop: 24 }}>
-        <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onBack}>← Voltar ao Dashboard</button>
-        {children}
+    <>
+      <section className="insights-hero insights-enter">
+        <div className="mr-flex mr-justify-between mr-gap-4" style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 0 }}>
+            <span className="insights-hero-eyebrow">✨ Perfil de consumo</span>
+            <h1 className="insights-hero-title">{analysis.summaryTitle}</h1>
+            <p className="insights-hero-text">{analysis.summaryText}</p>
+          </div>
+        </div>
+
+        <div className="insights-hero-meta">
+          <span>{workCount} obras analisadas</span>
+          <span className="dot">•</span>
+          <span>{model}</span>
+          {generatedAt && <><span className="dot">•</span><span>gerado {relativeFromNow(generatedAt)}</span></>}
+          {cached && <><span className="dot">•</span><span>reaproveitado do cache</span></>}
+        </div>
+
+        {canRegenerate && (
+          <div className="insights-hero-actions">
+            <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onRegenerate} disabled={regenerating}>
+              {regenerating ? 'Gerando…' : '↻ Gerar novamente'}
+            </button>
+          </div>
+        )}
+      </section>
+
+      {traits.length > 0 && (
+        <section className="insights-enter" style={{ '--d': '60ms' }}>
+          <h2 className="insights-section-title">🧬 Seus traços</h2>
+          <div className="insights-traits-grid">
+            {traits.map((trait, i) => (
+              <div key={`${trait.label}-${i}`} className="insights-trait">
+                <div className="insights-trait-icon">{trait.icon || '•'}</div>
+                <div className="insights-trait-label">{trait.label}</div>
+                <div className="insights-trait-desc">{trait.description}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {(taste.length > 0 || reco) && (
+        <div className="insights-bottom-grid">
+          {taste.length > 0 && (
+            <section className="mr-card insights-enter" style={{ '--d': '120ms' }}>
+              <div className="mr-card-body">
+                <h2 className="insights-section-title">🎯 Perfil de gosto</h2>
+                {taste.map((slice, i) => (
+                  <div key={`${slice.name}-${i}`} className="insights-taste-row">
+                    <div className="insights-taste-head">
+                      <span>{slice.name}</span>
+                      <span className="pct">{slice.percent}%</span>
+                    </div>
+                    <div className="mr-progress">
+                      <div
+                        className="mr-progress-bar"
+                        style={{
+                          width: `${Math.round(((slice.percent || 0) / maxPercent) * 100)}%`,
+                          background: BAR_COLORS[i % BAR_COLORS.length],
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {reco && (
+            <section className="insights-reco insights-enter" style={{ '--d': '180ms' }}>
+              <span className="insights-hero-eyebrow">💡 Recomendação para você</span>
+              <div className="insights-reco-title">{reco.title}</div>
+              <div className="insights-reco-badges">
+                {reco.year && <span className="mr-badge mr-badge-outline">{reco.year}</span>}
+                {reco.category && <span className="mr-badge mr-badge-green">{reco.category}</span>}
+                {typeof reco.compatPercent === 'number' && (
+                  <span className="mr-badge mr-badge-gold">{reco.compatPercent}% compatível</span>
+                )}
+              </div>
+              <p className="insights-reco-reason">{reco.reason}</p>
+            </section>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+function LoadingView() {
+  return (
+    <>
+      <section className="insights-hero">
+        <div className="insights-spinner" />
+        <p style={{ textAlign: 'center', color: 'var(--mr-text-secondary)', marginTop: 12 }}>
+          Analisando seu perfil de consumo…
+        </p>
+      </section>
+      <div className="insights-traits-grid">
+        {[0, 1, 2].map((i) => <div key={i} className="insights-skel" style={{ height: 130 }} />)}
+      </div>
+      <div className="insights-skel" style={{ height: 220 }} />
+    </>
+  );
+}
+
+function EmptyView({ onBack }) {
+  return (
+    <div className="insights-state-card">
+      <div className="insights-state-emoji">🤖</div>
+      <div className="insights-state-title">Nenhuma análise ainda</div>
+      <div className="insights-state-text">
+        Volte ao painel de IA Insights, selecione suas obras e gere sua primeira análise.
+      </div>
+      <div className="insights-state-actions">
+        <button className="mr-btn mr-btn-gold" onClick={onBack}>Voltar ao IA Insights</button>
+      </div>
+    </div>
+  );
+}
+
+function ErrorView({ message, canRetry, retrying, onRetry, onBack }) {
+  return (
+    <div className="insights-state-card">
+      <div className="insights-state-emoji">⚠️</div>
+      <div className="insights-state-title">Erro ao gerar a análise</div>
+      <div className="insights-state-text">{message}</div>
+      <div className="insights-state-actions">
+        {canRetry && (
+          <button className="mr-btn mr-btn-gold" onClick={onRetry} disabled={retrying}>
+            {retrying ? 'Tentando…' : 'Tentar de novo'}
+          </button>
+        )}
+        <button className="mr-btn mr-btn-outline" onClick={onBack}>Voltar ao IA Insights</button>
       </div>
     </div>
   );

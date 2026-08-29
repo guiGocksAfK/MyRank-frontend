@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import DashboardHeader from './DashboardHeader';
 import HomeOverview from '../home/HomeOverview';
 import RankingsTab from '../rankings/rankings/RankingsTab';
@@ -12,8 +13,12 @@ import { BadgeProvider } from '../../shared/badges';
 import { NotificationsProvider } from '../../shared/notifications';
 import './dashboard.css';
 
+const VALID_TABS = ['home', 'rankings', 'social', 'ai', 'profile'];
+
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState('home');
+  const location = useLocation();
+  const initialTab = VALID_TABS.includes(location.state?.tab) ? location.state.tab : 'home';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isDark, setIsDark] = useState(true);
   const [creatorsView, setCreatorsView] = useState(false);
   const [rankingsVisited, setRankingsVisited] = useState(false);

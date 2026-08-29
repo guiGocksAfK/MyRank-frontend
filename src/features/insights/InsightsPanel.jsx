@@ -31,8 +31,7 @@ export default function InsightsPanel() {
   );
 
   const [category, setCategory] = useState('Todos');
-  // ids selecionados; null enquanto não carregou (aí selecionamos tudo por padrão)
-  const [selectedIds, setSelectedIds] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(null); // null = tudo (default)
 
   const visible = useMemo(
     () => (category === 'Todos' ? works : works.filter((w) => w.category === category)),
@@ -41,7 +40,7 @@ export default function InsightsPanel() {
 
   const effectiveSelected = useMemo(() => {
     if (selectedIds !== null) return selectedIds;
-    return new Set(works.map((w) => w.id)); // default: tudo
+    return new Set(works.map((w) => w.id));
   }, [selectedIds, works]);
 
   const selectedWorks = useMemo(
@@ -49,23 +48,16 @@ export default function InsightsPanel() {
     [works, effectiveSelected],
   );
 
-  const toggle = (id) => {
+  const mutate = (fn) => {
     setSelectedIds((current) => {
       const base = current !== null ? new Set(current) : new Set(works.map((w) => w.id));
-      if (base.has(id)) base.delete(id);
-      else base.add(id);
+      fn(base);
       return base;
     });
   };
 
-  const selectAllVisible = () => {
-    setSelectedIds((current) => {
-      const base = current !== null ? new Set(current) : new Set(works.map((w) => w.id));
-      visible.forEach((w) => base.add(w.id));
-      return base;
-    });
-  };
-
+  const toggle = (id) => mutate((s) => (s.has(id) ? s.delete(id) : s.add(id)));
+  const selectAllVisible = () => mutate((s) => visible.forEach((w) => s.add(w.id)));
   const clearSelection = () => setSelectedIds(new Set());
 
   const generate = () => {
@@ -79,25 +71,34 @@ export default function InsightsPanel() {
   };
 
   if (loading) {
-    return <div className="mr-card"><div className="mr-card-body">Carregando suas obras…</div></div>;
+    return (
+      <div className="mr-space-y-4">
+        <div className="insights-skel" style={{ height: 40, width: 240 }} />
+        <div className="insights-metrics">
+          {[0, 1, 2].map((i) => <div key={i} className="insights-skel" style={{ height: 78 }} />)}
+        </div>
+        <div className="insights-skel" style={{ height: 320 }} />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="mr-card">
-        <div className="mr-card-body">Não foi possível carregar suas obras. Recarregue a página.</div>
+      <div className="insights-state-card">
+        <div className="insights-state-emoji">⚠️</div>
+        <div className="insights-state-title">Não foi possível carregar suas obras</div>
+        <div className="insights-state-text">Recarregue a página e tente de novo.</div>
       </div>
     );
   }
 
   if (works.length === 0) {
     return (
-      <div className="mr-card">
-        <div className="mr-card-body mr-space-y-2">
-          <h1 style={{ fontSize: '1.4rem', fontWeight: 700 }}>🤖 IA Insights</h1>
-          <p style={{ color: 'var(--mr-text-secondary)' }}>
-            Você ainda não avaliou nenhuma obra. Adicione algumas nos seus rankings e volte aqui.
-          </p>
+      <div className="insights-state-card">
+        <div className="insights-state-emoji">🤖</div>
+        <div className="insights-state-title">Sem obras para analisar ainda</div>
+        <div className="insights-state-text">
+          Avalie algumas obras nos seus rankings e a IA monta seu perfil de consumo aqui.
         </div>
       </div>
     );
@@ -105,10 +106,10 @@ export default function InsightsPanel() {
 
   return (
     <div className="mr-space-y-6 insights-panel">
-      <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
+      <div className="mr-section-header" style={{ alignItems: 'flex-start' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--mr-text)' }}>🤖 IA Insights</h1>
-          <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.95rem', marginTop: 4 }}>
+          <h1 className="mr-section-title" style={{ fontSize: '1.4rem' }}>🤖 IA Insights</h1>
+          <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.9rem', marginTop: 4 }}>
             Selecione as obras que você quer analisar e gere seu perfil de consumo.
           </p>
         </div>
@@ -122,9 +123,24 @@ export default function InsightsPanel() {
         </button>
       </div>
 
+      <div className="insights-metrics">
+        <div className="insights-metric">
+          <div className="insights-metric-label">Obras disponíveis</div>
+          <div className="insights-metric-value">{visible.length}</div>
+        </div>
+        <div className="insights-metric insights-metric--accent">
+          <div className="insights-metric-label">Selecionadas</div>
+          <div className="insights-metric-value">{selectedWorks.length}</div>
+        </div>
+        <div className="insights-metric">
+          <div className="insights-metric-label">Categoria</div>
+          <div className="insights-metric-value" style={{ fontSize: '1.05rem' }}>{category}</div>
+        </div>
+      </div>
+
       <div className="mr-card">
         <div className="mr-card-body mr-space-y-4">
-          <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
+          <div className="insights-filters">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -135,6 +151,7 @@ export default function InsightsPanel() {
                 {cat}
               </button>
             ))}
+            <span className="insights-filter-sep" />
             <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={selectAllVisible}>
               Selecionar tudo
             </button>
@@ -144,93 +161,75 @@ export default function InsightsPanel() {
           </div>
 
           <div className="insights-layout">
-            <div>
-              <div className="insights-summary">
-                <div>
-                  <div className="insights-summary-label">Obras disponíveis</div>
-                  <div className="insights-summary-value">{visible.length}</div>
-                </div>
-                <div className="insights-summary insights-summary--selected">
-                  <div>
-                    <div className="insights-summary-label">Selecionadas</div>
-                    <div className="insights-summary-value">{selectedWorks.length}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mr-space-y-2 insights-ranking-list">
-                {visible.map((item, idx) => {
-                  const selected = effectiveSelected.has(item.id);
-                  return (
-                    <div
-                      key={item.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => toggle(item.id)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          toggle(item.id);
-                        }
-                      }}
-                      className="mr-rank-item"
-                      style={{
-                        width: '100%',
-                        cursor: 'pointer',
-                        background: selected ? 'rgba(212, 175, 55, 0.14)' : 'transparent',
-                        border: '1px solid',
-                        borderColor: selected ? 'rgba(212, 175, 55, 0.35)' : 'var(--mr-border)',
-                        color: 'var(--mr-text)',
-                      }}
-                    >
-                      <div className={`mr-rank-number ${selected ? 'mr-rank-number-1' : ''}`}>
-                        {idx + 1}
-                      </div>
-                      <div className="mr-rank-info">
-                        <div className="mr-rank-title" style={{ color: 'var(--mr-text)' }}>{item.title}</div>
-                        <div className="mr-rank-subtitle" style={{ color: 'var(--mr-text-secondary)' }}>{item.category}</div>
-                      </div>
-                      <div className="mr-rank-note-area">
-                        <span className="mr-badge mr-badge-gold">{item.note.toFixed(1)}</span>
-                      </div>
+            <div className="insights-list">
+              {visible.map((item, idx) => {
+                const selected = effectiveSelected.has(item.id);
+                const rankClass = idx === 0 ? 'top-1' : idx === 1 ? 'top-2' : idx === 2 ? 'top-3' : '';
+                return (
+                  <div
+                    key={item.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={selected}
+                    className={`insights-row insights-enter ${selected ? 'is-selected' : ''}`}
+                    style={{ '--d': `${Math.min(idx, 12) * 22}ms` }}
+                    onClick={() => toggle(item.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        toggle(item.id);
+                      }
+                    }}
+                  >
+                    <span className="insights-check">{selected ? '✓' : ''}</span>
+                    <span className={`insights-rank-num ${rankClass}`}>{idx + 1}</span>
+                    <div className="insights-row-info">
+                      <div className="insights-row-title">{item.title}</div>
+                      <div className="insights-row-sub">{item.category}</div>
                     </div>
-                  );
-                })}
-              </div>
+                    <span className="mr-badge mr-badge-gold">{item.note.toFixed(1)}</span>
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="insights-side-column">
+            <div className="insights-aside">
               <div className="mr-info-card-blue">
                 <div className="mr-card-body">
-                  <div className="insights-selection-header">
+                  <div className="insights-aside-head">
                     <div>
-                      <div className="insights-summary-label">Seleção atual</div>
-                      <div className="insights-selection-count">{selectedWorks.length} obras</div>
+                      <div className="insights-metric-label">Seleção atual</div>
+                      <div className="insights-aside-count">{selectedWorks.length} obras</div>
                     </div>
-                    <div className="mr-badge mr-badge-green">{category}</div>
+                    <span className="mr-badge mr-badge-green">{category}</span>
                   </div>
-                  <div className="mr-space-y-2">
-                    {selectedWorks.slice(0, 5).map((item) => (
-                      <div key={item.id} className="insights-selection-item">
-                        <span>{item.title}</span>
-                        <span className="insights-selection-note">{item.note.toFixed(1)}</span>
-                      </div>
-                    ))}
-                    {selectedWorks.length > 5 && (
-                      <div className="insights-selection-more">
-                        + {selectedWorks.length - 5} outras obras selecionadas
-                      </div>
-                    )}
-                  </div>
+                  {selectedWorks.length === 0 ? (
+                    <div className="insights-step-copy">Nenhuma obra selecionada.</div>
+                  ) : (
+                    <div className="insights-aside-list">
+                      {selectedWorks.slice(0, 6).map((item) => (
+                        <div key={item.id} className="insights-aside-item">
+                          <span>{item.title}</span>
+                          <span className="note">{item.note.toFixed(1)}</span>
+                        </div>
+                      ))}
+                      {selectedWorks.length > 6 && (
+                        <div className="insights-aside-more">
+                          + {selectedWorks.length - 6} outras obras
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="mr-info-card-gold">
                 <div className="mr-card-body">
-                  <div className="insights-summary-label insights-step-label">Último passo</div>
+                  <div className="insights-metric-label" style={{ marginBottom: 8 }}>Como funciona</div>
                   <p className="insights-step-copy">
-                    Clique em gerar análise para abrir a página de resultados com base na sua seleção.
-                    O resultado fica salvo — reabrir não gasta uma nova geração.
+                    A IA analisa suas notas e monta um perfil de consumo com traços, gêneros
+                    favoritos e uma recomendação. O resultado fica salvo — reabrir não gasta
+                    uma nova geração.
                   </p>
                 </div>
               </div>
