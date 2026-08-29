@@ -102,14 +102,13 @@
 }
 
 .auth-highlights span {
-  border: 1px solid rgba(212, 175, 55, 0.16);
+  border: 1px solid #303030;
   border-radius: 999px;
   background: rgba(17, 17, 17, 0.82);
-  color: #d8d8d8;
-  padding: 9px 14px;
+  color: #a5a5a5;
+  padding: 8px 14px;
   font-size: 13px;
-  font-weight: 700;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+  font-weight: 600;
   transition: border-color 0.16s ease, color 0.16s ease, background-color 0.16s ease;
 }
 
@@ -124,10 +123,10 @@
   width: 100%;
   max-width: 500px;
   padding: 28px 26px;
-  background: rgba(17, 17, 17, 0.94);
+  background: rgba(9, 9, 9, 0.97);
   border: 1px solid #303030;
-  border-radius: 18px;
-  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.48);
+  border-radius: 14px;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.5);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -176,15 +175,21 @@
 
 .auth-secondary-button {
   flex: 1;
-  height: 58px;
-  border: 1px solid #2d2d2d;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.02);
+  height: 52px;
+  border: 1px solid #303030;
+  border-radius: 7px;
+  background: transparent;
   color: #e5e5e5;
   font: inherit;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.auth-secondary-button:hover {
+  border-color: rgba(212, 175, 55, 0.3);
+  background: rgba(212, 175, 55, 0.1);
 }
 
 .auth-submit--inline {
@@ -218,20 +223,20 @@
 
 .auth-field input {
   width: 100%;
-  height: 54px;
-  padding: 0 18px;
+  height: 52px;
+  padding: 0 16px;
   background: #121212;
   border: 1px solid #303030;
-  border-radius: 9px;
+  border-radius: 10px;
   color: #f5f5f5;
   font: inherit;
-  font-size: 16px;
+  font-size: 15px;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .auth-field input::placeholder {
-  color: #777;
+  color: #666;
 }
 
 .auth-field input:focus {
@@ -240,15 +245,32 @@
   box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
 }
 
+/* Trava o autofill do Chrome (fundo lavanda) no tema escuro */
+.auth-field input:-webkit-autofill,
+.auth-field input:-webkit-autofill:hover,
+.auth-field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f5f5f5;
+  caret-color: #f5f5f5;
+  -webkit-box-shadow: 0 0 0 1000px #121212 inset;
+  box-shadow: 0 0 0 1000px #121212 inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.auth-field input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #151515 inset, 0 0 0 3px rgba(212, 175, 55, 0.12);
+  box-shadow: 0 0 0 1000px #151515 inset, 0 0 0 3px rgba(212, 175, 55, 0.12);
+}
+
 /* Divider */
 .auth-divider {
-  margin: 24px 0;
+  margin: 22px 0;
   display: flex;
   align-items: center;
   gap: 14px;
-  color: #777;
-  font-size: 12px;
-  font-weight: 800;
+  color: #666;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -275,19 +297,19 @@
   color: #d4af37;
 }
 
-/* Submit */
+/* Submit — mesmo estilo do botão "Cadastrar" do Navbar */
 .auth-submit {
   width: 100%;
-  height: 58px;
+  height: 52px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 7px;
   background: #d4af37;
-  color: #050505;
+  color: #0f0f0f;
   font: inherit;
-  font-size: 18px;
-  font-weight: 900;
+  font-size: 14px;
+  font-weight: 800;
   cursor: pointer;
-  transition: box-shadow 0.16s ease, opacity 0.16s ease;
+  transition: box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 .auth-submit--compact {
@@ -295,18 +317,17 @@
   min-height: 46px;
   height: 46px;
   align-self: stretch;
-  font-size: 15px;
-  font-weight: 800;
-  border-radius: 8px;
-  background: #c1a24b;
-  color: #171717;
-  box-shadow: none;
-  opacity: 0.95;
 }
 
 .auth-submit:hover {
-  box-shadow: 0 0 28px rgba(212, 175, 55, 0.28);
-  opacity: 0.92;
+  opacity: 0.88;
+  box-shadow: 0 0 22px rgba(212, 175, 55, 0.32);
+}
+
+.auth-submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+  box-shadow: none;
 }
 
 .auth-submit:active {
@@ -327,55 +348,42 @@
 
 .auth-social-button {
   width: 100%;
-  min-height: 54px;
+  min-height: 50px;
   border: 1px solid #303030;
-  border-radius: 9px;
-  background: #f5f5f5;
-  color: #111;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #e5e5e5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   font: inherit;
-  font-size: 16px;
-  font-weight: 900;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.16s ease, opacity 0.16s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, opacity 0.16s ease;
 }
 
 .auth-social-button:hover {
-  border-color: rgba(212, 175, 55, 0.55);
-  box-shadow: 0 0 24px rgba(212, 175, 55, 0.16);
-  opacity: 0.94;
+  border-color: rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.08);
 }
 
 .auth-social-button:active {
   transform: none;
 }
 
-.auth-social-button--google {
-  background: #ffffff;
-  color: #111111;
-  border-color: #d8d8d8;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
 .auth-social-button--google:hover {
-  border-color: rgba(212, 175, 55, 0.55);
-  box-shadow: 0 0 24px rgba(212, 175, 55, 0.16);
+  border-color: rgba(212, 175, 55, 0.35);
 }
 
 .auth-social-button--discord {
-  background: #5865F2;
-  color: #fff;
-  border-color: #5865F2;
   margin-top: 12px;
 }
 
 .auth-social-button--discord:hover {
-  opacity: 0.9;
-  border-color: #5865F2;
-  box-shadow: 0 0 24px rgba(88, 101, 242, 0.3);
+  border-color: rgba(88, 101, 242, 0.6);
+  background: rgba(88, 101, 242, 0.12);
 }
 
 /* Icons */
@@ -396,24 +404,25 @@
 /* Botão voltar */
 .auth-back {
   position: fixed;
-  top: 30px;
+  top: 28px;
   left: 24px;
   background: transparent;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  color: #888;
+  border: 1px solid #303030;
+  border-radius: 999px;
+  color: #a5a5a5;
   font-family: "DM Sans", Arial, sans-serif;
   font-size: 13px;
-  font-weight: 600;
-  padding: 8px 14px;
+  font-weight: 700;
+  padding: 8px 16px;
   cursor: pointer;
   z-index: 100;
-  transition: color 0.2s, border-color 0.2s;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
 
 .auth-back:hover {
-  color: #e5e5e5;
-  border-color: #555;
+  color: #f5f5f5;
+  border-color: rgba(212, 175, 55, 0.3);
+  background: rgba(212, 175, 55, 0.1);
 }
 
 /* Link signup/login */
