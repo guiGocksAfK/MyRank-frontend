@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useLanguage, LANGUAGES } from "../i18n";
 import "./Navbar.css";
 
 const UserIcon = () => (
@@ -21,8 +22,7 @@ const UserIcon = () => (
 
 const Navbar = () => {
   const [langOpen, setLangOpen] = useState(false);
-  const [lang, setLang] = useState("PT");
-  const languages = ["PT", "EN", "ES"];
+  const { lang, setLang, t } = useLanguage();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -37,7 +37,7 @@ const Navbar = () => {
 
       <div className="navbar-actions">
         <Link className="navbar-link hide-on-small" to="/" onClick={scrollToTop}>
-          Home
+          {t.nav.home}
         </Link>
 
         <div className="navbar-language">
@@ -53,7 +53,7 @@ const Navbar = () => {
 
           {langOpen && (
             <div className="navbar-menu">
-              {languages.map((language) => (
+              {LANGUAGES.map((language) => (
                 <button
                   key={language}
                   className={language === lang ? "active" : ""}
@@ -71,11 +71,11 @@ const Navbar = () => {
         </div>
 
         <Link className="navbar-ghost hide-on-small" to="/entrar">
-          Entrar
+          {t.nav.login}
         </Link>
 
         <Link className="navbar-primary" to="/cadastrar">
-          Cadastrar
+          {t.nav.signup}
         </Link>
       </div>
     </nav>

@@ -4,14 +4,10 @@ import { Link } from "react-router-dom";
 import './homePage.css';
 import { getShowcasePosters } from '../../services/ExternalSearchService';
 import { SHOWCASE_FALLBACK } from './showcaseFallback';
+import { useLanguage } from '../../shared/i18n';
 
-const medias = [
-  { icon: "🎬", label: "Filmes" },
-  { icon: "📺", label: "Séries" },
-  { icon: "🎮", label: "Jogos" },
-  { icon: "📚", label: "Livros" },
-  { icon: "⛩️", label: "Animes" },
-];
+const MEDIA_ICONS = ["🎬", "📺", "🎮", "📚", "⛩️"];
+const STEP_NUMS = ["01", "02", "03", "04"];
 
 const POSTER_TILES = 20; // grid 5x4 do hero
 const GRID_COLS = 5;
@@ -69,6 +65,7 @@ const FAQItem = ({ question, answer }) => {
 };
 
 const HomePage = () => {
+  const { t } = useLanguage();
   const [tiles, setTiles] = useState(() => buildTiles([]));
   const [revealed, setRevealed] = useState(false);
 
@@ -120,24 +117,24 @@ const HomePage = () => {
 
         <div className="home-content">
           <h1 className="home-title">
-            Seu gosto.<br />
-            Seu ranking.<br />
-            <span className="home-title-accent">Sua identidade.</span>
+            {t.home.hero.title1}<br />
+            {t.home.hero.title2}<br />
+            <span className="home-title-accent">{t.home.hero.title3}</span>
           </h1>
 
           <p className="home-subtitle">
-            Avalie filmes, séries, jogos, livros e animes em um só lugar. Compare com amigos e descubra seu perfil de consumo.
+            {t.home.hero.subtitle}
           </p>
 
           <Link to="/cadastrar" className="home-cta">
-            Criar conta grátis
+            {t.home.hero.cta}
           </Link>
 
           <div className="home-media-grid">
-            {medias.map((m) => (
-              <div key={m.label} className="home-media-item">
-                <span className="home-media-icon">{m.icon}</span>
-                {m.label}
+            {t.home.medias.map((label, i) => (
+              <div key={label} className="home-media-item">
+                <span className="home-media-icon">{MEDIA_ICONS[i]}</span>
+                {label}
               </div>
             ))}
           </div>
@@ -159,7 +156,7 @@ const HomePage = () => {
     fontFamily: "'DM Sans', sans-serif",
     textAlign: "center",
   }}>
-    Como funciona?
+    {t.home.how.title}
   </h2>
 
   <div style={{
@@ -169,28 +166,7 @@ const HomePage = () => {
     justifyContent: "center",
     maxWidth: "1400px",
   }}>
-   {[
-  {
-    num: "01",
-    title: "Crie sua conta",
-    desc: "Comece de graça, sem cartão e sem pegadinha. Acesso completo a todas as funcionalidades — suas tabelas, seu ranking e sua identidade, tudo seu desde o primeiro login.",
-  },
-  {
-    num: "02",
-    title: "Monte suas tabelas",
-    desc: "Crie tabelas do jeito que fizer sentido pra você — uma só de séries, uma só de animes, ou misture os dois. Prefere separar por categoria? Animes Shonen, Animes de Sci-Fi, Filmes de Máfia. Você define a estrutura, sem limites.",
-  },
-  {
-    num: "03",
-    title: "Avalie do seu jeito",
-    desc: "Dê notas de 0 a 10 para qualquer obra. Se quiser ir além, registre o tempo que dedicou — e a gente cria uma média ponderada especial, valorizando o que você realmente consumiu com atenção.",
-  },
-  {
-    num: "04",
-    title: "Unifique tudo",
-    desc: "Junte as tabelas que quiser num ranking unificado com média ponderada — opcional, mas poderoso. Compare filmes com jogos, séries com animes, e descubra o que realmente te marcou.",
-  },
-    ].map((step) => (
+   {t.home.how.steps.map((rawStep, stepIndex) => ({ ...rawStep, num: STEP_NUMS[stepIndex] })).map((step) => (
           <div key={step.num} style={{
         backgroundColor: "#111111",
         borderTop: "2px solid #d4af37",
@@ -251,13 +227,7 @@ const HomePage = () => {
   borderTop: "1px solid #2a2a2a",
   borderBottom: "1px solid #2a2a2a",
 }}>
-  {[
-    { num: "100%", label: "Gratuito" },
-  { num: "99+", label: "Tabelas por usuário" },
-  {num: "5", label: "Categorias de mídia"},
-  { num: "99+", label: "Obras por tabela" },
-  { num: "0–10", label: "Escala de avaliação" },
-  ].map((item) => (
+  {t.home.impact.map((item) => (
     <div key={item.label} style={{
       display: "flex",
       flexDirection: "column",
@@ -295,7 +265,7 @@ const HomePage = () => {
     fontFamily: "'DM Sans', sans-serif",
     textAlign: "center",
   }}>
-    Perguntas frequentes
+    {t.home.faq.title}
   </h2>
 
   <div style={{
@@ -305,18 +275,7 @@ const HomePage = () => {
     width: "100%",
     maxWidth: "800px",
   }}>
-    {[
-      { q: "O MyRank é gratuito?", a: "Sim, 100% gratuito e sem anúncios. Criar conta, montar tabelas, avaliar obras, usar o ranking unificado e comparar com amigos não custa nada. Sempre." },
-      { q: "Como funciona o ranking unificado?", a: "Você escolhe quais tabelas quer unir — pode ser todas de uma vez ou só uma seleção específica, como suas tabelas de filmes e séries juntas, ou filmes e jogos. O MyRank funde tudo em uma única lista ordenada, onde cada obra recebe sua posição com base na nota — e opcionalmente na média ponderada por tempo consumido. O resultado é um ranking personalizado que cruza mídias diferentes e mostra o que realmente ficou no topo da sua história como consumidor." },
-      { q: "Como funciona a média ponderada por tempo?", a: "Quando você registra o tempo dedicado a uma obra, a nota recebe um bônus proporcional. Um filme de 2h com nota 8.0 praticamente não é afetado — continua quase o mesmo 8.0. Já uma série que você maratonou por 30h com nota 8.0 sobe para 8.3, reconhecendo o tempo real que você investiu. O bônus é calibrado para não distorcer as notas — obras longas sobem com justiça, obras curtas não são punidas." },
-      { q: "Posso comparar meu ranking com o de amigos?", a: "Sim! Você pode seguir outros usuários e comparar suas notas individuais, rankings gerais e ver as últimas alterações que eles fizeram nas tabelas públicas deles. É a melhor forma de descobrir o que seus amigos estão consumindo e onde vocês concordam ou discordam." },
-      { q: "As tabelas são públicas ou privadas?", a: "Você decide. Cada tabela pode ser configurada como pública — visível para seus seguidores — ou privada, visível só para você. Seu perfil também pode ser público ou privado, te dando controle total sobre o que compartilha." },
-      { q: "Como é o dashboard visual?", a: "Suas obras são exibidas em um grid de posters — visual, organizado e fácil de navegar. Você também conta com filtros para ordenar por data de lançamento, data em que adicionou a obra, e até ver o que seus amigos mais consumiram." },
-      { q: "Como as informações das obras são cadastradas?", a: "Automaticamente. O MyRank usa APIs externas para buscar os metadados de cada obra assim que você a adiciona — diretor do filme, produtora do jogo, autor do livro, estúdio do anime e muito mais. Você não precisa preencher nada na mão." },
-      { q: "Existe um ranking por autor ou empresa?", a: "Sim! O MyRank gera rankings automáticos por criador — seja um diretor, uma produtora de jogos ou um autor de livros. Cada um recebe uma nota média ponderada, que favorece criadores com mais obras avaliadas por você. É a forma mais honesta de descobrir quem realmente domina o seu gosto." },
-      { q: "Conquistas e badges", a: "O MyRank gera badges automáticos baseados no seu consumo. Maratonou mais de 500 horas em jogos? Você é um \"Maratonista de Elite\". Consumiu mais de 50 obras de ficção científica? Vira \"Explorador do Futuro\". Seu perfil vira um reflexo real do que você consome." },
-      { q: "O que é o MyRank Pro?", a: "O MyRank Pro é o plano premium para quem quer ir além. Com ele, uma IA analisa seu perfil completo — suas notas, mídias favoritas e padrões de consumo — e gera insights personalizados: seu estilo como consumidor, suas tendências, e sugestões de próxima obra baseadas no seu ranking atual. O restante do site permanece 100% gratuito." },
-    ].map((item, i) => (
+    {t.home.faq.items.map((item, i) => (
       <FAQItem key={i} question={item.q} answer={item.a} />
     ))}
   </div>
@@ -344,14 +303,14 @@ const HomePage = () => {
   <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "180px" }}>
     <img src={logo} alt="MyRank" style={{ height: "48px", objectFit: "contain" }} />
     <p style={{ fontSize: "13px", color: "#555", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.7, textAlign: "center" }}>
-      Tudo em um só lugar.
+      {t.home.footer.tagline}
     </p>
   </div>
 
   {/* Coluna 2 — Produto */}
   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-    <span style={{ fontSize: "11px", fontWeight: "700", color: "#555", fontFamily: "'DM Sans', sans-serif", textTransform: "uppercase", letterSpacing: "1.5px" }}>Produto</span>
-    {["Sobre", "Contato", "Termos de uso", "Privacidade"].map((link) => (
+    <span style={{ fontSize: "11px", fontWeight: "700", color: "#555", fontFamily: "'DM Sans', sans-serif", textTransform: "uppercase", letterSpacing: "1.5px" }}>{t.home.footer.colProduct}</span>
+    {t.home.footer.productLinks.map((link) => (
       <a key={link} href="#" style={{ fontSize: "14px", color: "#888", fontFamily: "'DM Sans', sans-serif", textDecoration: "none" }}
         onMouseEnter={(e) => (e.currentTarget.style.color = "#e5e5e5")}
         onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
@@ -361,9 +320,9 @@ const HomePage = () => {
 
   {/* Coluna 3 — MyRank Pro */}
   <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxWidth: "200px" }}>
-    <span style={{ fontSize: "11px", fontWeight: "700", color: "#555", fontFamily: "'DM Sans', sans-serif", textTransform: "uppercase", letterSpacing: "1.5px" }}>MyRank Pro</span>
+    <span style={{ fontSize: "11px", fontWeight: "700", color: "#555", fontFamily: "'DM Sans', sans-serif", textTransform: "uppercase", letterSpacing: "1.5px" }}>{t.home.footer.colPro}</span>
     <p style={{ fontSize: "13px", color: "#888", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.7 }}>
-      IA que analisa seu perfil e sugere obras baseadas no seu ranking.
+      {t.home.footer.proText}
     </p>
     <Link to="/pro" style={{
       fontSize: "13px",
@@ -374,12 +333,12 @@ const HomePage = () => {
     }}
       onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
       onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-    >Saiba mais →</Link>
+    >{t.home.footer.proCta}</Link>
   </div>
 
   {/* Coluna 4 — Redes */}
   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-    <span style={{ fontSize: "11px", fontWeight: "700", color: "#555", fontFamily: "'DM Sans', sans-serif", textTransform: "uppercase", letterSpacing: "1.5px" }}>Redes</span>
+    <span style={{ fontSize: "11px", fontWeight: "700", color: "#555", fontFamily: "'DM Sans', sans-serif", textTransform: "uppercase", letterSpacing: "1.5px" }}>{t.home.footer.colSocial}</span>
     {[
       { label: "GitHub", href: "https://github.com/guiGocksAfK", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="#888"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg> },
       { label: "Instagram", href: "https://www.instagram.com/guilhermegocks/", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="#888"/></svg> },
@@ -403,7 +362,7 @@ const HomePage = () => {
     justifyContent: "center",
   }}>
     <span style={{ fontSize: "13px", color: "#444", fontFamily: "'DM Sans', sans-serif" }}>
-      © 2026 MyRank. Todos os direitos reservados.
+      {t.home.footer.copyright}
     </span>
   </div>
 

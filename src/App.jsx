@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
+import { LanguageProvider } from './shared/i18n'
 import Navbar from './shared/components/Navbar'
 import Home from './features/home/HomePage'
 import Login from './features/auth/LoginPage'
@@ -46,16 +47,18 @@ function Layout() {
 }
 
 function App() {
-  return isGoogleOauthConfigured ? (
-    <GoogleOAuthProvider clientId={googleClientId}>
+  const tree = (
+    <LanguageProvider>
       <BrowserRouter>
         <Layout />
       </BrowserRouter>
-    </GoogleOAuthProvider>
+    </LanguageProvider>
+  )
+
+  return isGoogleOauthConfigured ? (
+    <GoogleOAuthProvider clientId={googleClientId}>{tree}</GoogleOAuthProvider>
   ) : (
-    <BrowserRouter>
-      <Layout />
-    </BrowserRouter>
+    tree
   )
 }
 
