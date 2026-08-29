@@ -23,7 +23,7 @@ export default function UserPill({ user, onToggleFollow, onOpen }) {
 
   return (
     <div className="social-userpill" onClick={() => onOpen?.(user.id)} role="button" tabIndex={0}>
-      <SocialAvatar name={user.username} initials={user.initials} color={user.color} size={40} />
+      <SocialAvatar name={user.username} initials={user.initials} color={user.color} src={user.avatarSrc} size={40} />
       <div className="mr-min-w-0" style={{ flex: 1 }}>
         <div className="mr-flex mr-items-center mr-gap-2" style={{ flexWrap: 'wrap' }}>
           <span style={{ fontWeight: 600 }} className="mr-truncate">{user.username}</span>

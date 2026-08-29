@@ -31,14 +31,11 @@ function ScoreChip({ value }) {
 
 /** Corpo do card conforme o tipo da atividade. */
 function Body({ item, onOpenUser }) {
-  const name =
-    item.actor.id === 'me' ? (
-      <strong>{item.actor.username}</strong>
-    ) : (
-      <button className="social-link" onClick={() => onOpenUser?.(item.actor.id)}>
-        {item.actor.username}
-      </button>
-    );
+  const name = (
+    <button className="social-link" onClick={() => onOpenUser?.(item.actor.id)}>
+      {item.actor.username}
+    </button>
+  );
 
   switch (item.type) {
     case 'RATED':
@@ -101,6 +98,7 @@ export default function ActivityCard({ item, onReact, onOpenUser }) {
         name={item.actor.username}
         initials={item.actor.initials}
         color={item.actor.color}
+        src={item.actor.avatarSrc}
         size={38}
       />
       <div className="mr-min-w-0" style={{ flex: 1 }}>

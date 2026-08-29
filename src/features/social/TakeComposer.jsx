@@ -31,12 +31,13 @@ export default function TakeComposer({ onPost }) {
     setBusy(true);
     try {
       await onPost({
+        workId: chosen.id,
+        text,
         work: {
           title: chosen.title,
           type: chosen.type || 'outro',
           score: Number(chosen.note) || null,
         },
-        text,
       });
       setText('');
       setWorkKey('');

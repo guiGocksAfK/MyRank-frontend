@@ -253,8 +253,13 @@
 }
 
 .mr-notification-item {
-  padding: 10px 0;
+  padding: 10px 0 10px 12px;
   border-bottom: 1px solid var(--mr-border);
+  border-left: 2px solid transparent;
+}
+
+.mr-notification-item.is-unread {
+  border-left-color: var(--mr-gold);
 }
 
 .mr-notification-item:last-child {

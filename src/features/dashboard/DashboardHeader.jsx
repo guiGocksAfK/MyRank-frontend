@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { getStoredUser } from '../../services/authService';
 import { getUnifiedWorks } from '../../services/WorkService';
 import { useUser } from '../../shared/userContext';
+import { useNotifications } from '../../shared/notifications';
+import { relativeTime } from '../../shared/useUnifiedItems';
 import Avatar from '../../shared/components/Avatar';
 
 const num = (value) => {
@@ -17,33 +19,13 @@ const navTabs = [
   { id: 'profile', label: 'Perfil', icon: '👤' },
 ];
 
-const notifications = [
-  {
-    id: 1,
-    title: 'Nova avaliação recebida',
-    description: 'Seu último post está bombando.',
-    time: '2m',
-  },
-  {
-    id: 2,
-    title: 'Meta alcançada',
-    description: 'Você ganhou um novo seguidor VIP.',
-    time: '1h',
-  },
-  {
-    id: 3,
-    title: 'Sugestão de conteúdo',
-    description: 'Verifique os rankings de hoje.',
-    time: '3h',
-  },
-];
-
 export default function DashboardHeader({ activeTab, onTabChange }) {
   const storedUser = useMemo(() => getStoredUser(), []);
   const { user: me } = useUser();
   const [works, setWorks] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const { unreadCount, list: notifications, loadingList: loadingNotifications, openPanel } = useNotifications();
 
   useEffect(() => {
     let active = true;
@@ -81,7 +63,11 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
 
   const toggleNotifications = () => {
     setShowProfileMenu(false);
-    setShowNotifications((value) => !value);
+    setShowNotifications((value) => {
+      const next = !value;
+      if (next) openPanel();
+      return next;
+    });
   };
 
   const toggleProfileMenu = () => {
@@ -124,19 +110,34 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
               aria-label="Abrir notificações"
             >
               🔔
-              <span className="mr-notification-badge">3</span>
+              {unreadCount > 0 && (
+                <span className="mr-notification-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+              )}
             </button>
 
             {showNotifications && (
               <div className="mr-notification-panel">
                 <div className="mr-panel-header">Notificações</div>
-                {notifications.map((item) => (
-                  <div key={item.id} className="mr-notification-item">
-                    <div className="mr-notification-title">{item.title}</div>
-                    <div className="mr-notification-desc">{item.description}</div>
-                    <div className="mr-notification-time">{item.time}</div>
+                {loadingNotifications && (notifications == null || notifications.length === 0) ? (
+                  <div className="mr-notification-item">
+                    <div className="mr-notification-desc">Carregando…</div>
                   </div>
-                ))}
+                ) : !notifications || notifications.length === 0 ? (
+                  <div className="mr-notification-item">
+                    <div className="mr-notification-desc">Nada por aqui ainda.</div>
+                  </div>
+                ) : (
+                  notifications.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`mr-notification-item${item.read ? '' : ' is-unread'}`}
+                    >
+                      <div className="mr-notification-title">{item.title}</div>
+                      <div className="mr-notification-desc">{item.message}</div>
+                      <div className="mr-notification-time">{relativeTime(item.updatedAt || item.createdAt)}</div>
+                    </div>
+                  ))
+                )}
                 <button
                   type="button"
                   className="mr-panel-action"

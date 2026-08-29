@@ -68,7 +68,7 @@ export default function CompareView({ userId, onBack, onOpenUser }) {
         <span style={{ fontWeight: 700 }}>Você</span>
         <span className="social-muted">vs</span>
         <button className="social-link" onClick={() => onOpenUser?.(friend.id)}>
-          <SocialAvatar name={friend.username} initials={friend.initials} color={friend.color} size={22} />
+          <SocialAvatar name={friend.username} initials={friend.initials} color={friend.color} src={friend.avatarSrc} size={22} />
           <span style={{ marginLeft: 6, fontWeight: 700 }}>{firstName}</span>
         </button>
       </div>

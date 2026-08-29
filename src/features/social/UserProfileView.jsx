@@ -65,7 +65,7 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
       <div className="mr-card">
         <div className="mr-card-body">
           <div className="mr-flex mr-items-center mr-gap-4 mr-flex-wrap">
-            <SocialAvatar name={profile.username} initials={profile.initials} color={profile.color} size={64} />
+            <SocialAvatar name={profile.username} initials={profile.initials} color={profile.color} src={profile.avatarSrc} size={64} />
             <div className="mr-min-w-0" style={{ flex: 1 }}>
               <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap">
                 <span style={{ fontSize: '1.15rem', fontWeight: 700 }}>{profile.username}</span>

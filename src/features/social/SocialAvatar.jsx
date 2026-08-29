@@ -1,5 +1,10 @@
-/** Avatar de iniciais coloridas pra usuários do mock social. */
-export default function SocialAvatar({ name = '?', color = 'var(--mr-gold)', initials, size = 36 }) {
+import { useEffect, useState } from 'react';
+
+/** Avatar de usuário: foto quando disponível, senão iniciais coloridas. */
+export default function SocialAvatar({ name = '?', color = 'var(--mr-gold)', initials, src, size = 36 }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
+
   const text =
     initials ||
     name
@@ -9,19 +14,37 @@ export default function SocialAvatar({ name = '?', color = 'var(--mr-gold)', ini
       .join('')
       .toUpperCase();
 
+  const base = {
+    width: size,
+    height: size,
+    flexShrink: 0,
+    borderRadius: '50%',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  };
+
+  if (src && !failed) {
+    return (
+      <span aria-hidden="true" style={base}>
+        <img
+          src={src}
+          alt=""
+          onError={() => setFailed(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </span>
+    );
+  }
+
   return (
     <span
       aria-hidden="true"
       style={{
-        width: size,
-        height: size,
-        flexShrink: 0,
-        borderRadius: '50%',
+        ...base,
         background: color,
         color: '#fff',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         fontWeight: 700,
         fontSize: size * 0.4,
         lineHeight: 1,
