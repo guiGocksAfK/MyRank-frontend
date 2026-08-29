@@ -1,15 +1,14 @@
 import { useState } from 'react';
+import { useLanguage } from '../../../shared/i18n';
 
-const TYPE_OPTIONS = [
-  { value: 'filme', label: '🎬 Filmes', emoji: '🎬' },
-  { value: 'jogo',  label: '🎮 Jogos',  emoji: '🎮' },
-  { value: 'serie', label: '📺 Séries', emoji: '📺' },
-  { value: 'livro', label: '📚 Livros', emoji: '📚' },
-  { value: 'anime', label: '🎌 Animes', emoji: '🎌' },
-  { value: 'outro', label: '📦 Outro',  emoji: '📦' },
-];
+const TYPE_EMOJI = { filme: '🎬', jogo: '🎮', serie: '📺', livro: '📚', anime: '🎌', outro: '📦' };
 
 export default function EditTableModal({ table, onSave, onClose }) {
+  const { t } = useLanguage();
+  const tm = t.rankings.editTableModal;
+  const TYPE_OPTIONS = Object.keys(TYPE_EMOJI).map((value) => ({
+    value, emoji: TYPE_EMOJI[value], label: t.rankings.types[value],
+  }));
   const labelParts = table.label.split(' ');
   const currentEmoji = labelParts.shift() || '📦';
   const currentType = TYPE_OPTIONS.find(option => option.emoji === currentEmoji)?.value || 'outro';
@@ -28,7 +27,7 @@ export default function EditTableModal({ table, onSave, onClose }) {
       await onSave(`${emoji} ${nextName}`);
       onClose();
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || 'Erro ao renomear a tabela.');
+      alert(err?.response?.data?.message || err.message || tm.renameError);
     } finally {
       setSaving(false);
     }
@@ -54,10 +53,10 @@ export default function EditTableModal({ table, onSave, onClose }) {
         onClick={event => event.stopPropagation()}
       >
         <h2 id="mr-edit-table-title" style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>
-          ✏️ Editar tabela
+          {tm.title}
         </h2>
         <label htmlFor="mr-edit-table-name" style={{ display: 'block', marginBottom: 5, color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>
-          Nome
+          {tm.name}
         </label>
         <input
           id="mr-edit-table-name"
@@ -69,7 +68,7 @@ export default function EditTableModal({ table, onSave, onClose }) {
           disabled={saving}
         />
         <label htmlFor="mr-edit-table-type" style={{ display: 'block', margin: '1rem 0 5px', color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>
-          Tipo de mídia
+          {tm.mediaType}
         </label>
         <select id="mr-edit-table-type" value={type} onChange={event => setType(event.target.value)} style={inputStyle} disabled={saving}>
           {TYPE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
@@ -77,15 +76,15 @@ export default function EditTableModal({ table, onSave, onClose }) {
         {type === 'outro' && (
           <>
             <label htmlFor="mr-edit-table-emoji" style={{ display: 'block', margin: '1rem 0 5px', color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>
-              Emoji da tabela
+              {tm.tableEmoji}
             </label>
             <input id="mr-edit-table-emoji" value={customEmoji} onChange={event => setCustomEmoji(event.target.value)} maxLength={4} style={{ ...inputStyle, width: 90, textAlign: 'center', fontSize: '1.1rem' }} disabled={saving} />
           </>
         )}
         <div className="mr-flex mr-gap-2" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={saving}>Cancelar</button>
+          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={saving}>{tm.cancel}</button>
           <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving || !name.trim()}>
-            {saving ? '⏳ Salvando...' : 'Salvar'}
+            {saving ? tm.saving : tm.save}
           </button>
         </div>
       </div>

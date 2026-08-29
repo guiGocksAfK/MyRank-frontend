@@ -61,35 +61,41 @@ export function applyFilters(items, filters) {
   });
 }
 
-export function getColumnConfig(mode, withActions = false, hasImage = false) {
+const DEFAULT_COL_LABELS = {
+  rank: '#', title: 'Título', table: 'Tabela', score: 'Nota',
+  bonus: 'Bônus', finalScore: 'Nota Final', time: 'Tempo', actions: 'Ações',
+};
+
+export function getColumnConfig(mode, withActions = false, hasImage = false, labels = DEFAULT_COL_LABELS) {
+  const L = { ...DEFAULT_COL_LABELS, ...labels };
   const showTableCol = !withActions;
   const imgCol = hasImage ? ['40px'] : [];
   const imgHeader = hasImage ? [''] : [];
 
   if (mode === 'weight') {
     const grid = ['2rem', ...imgCol, '1fr'];
-    const headers = ['#', ...imgHeader, 'Título'];
-    if (showTableCol) { grid.push('120px'); headers.push('Tabela'); }
+    const headers = [L.rank, ...imgHeader, L.title];
+    if (showTableCol) { grid.push('120px'); headers.push(L.table); }
     grid.push('70px', '70px', '140px');
-    headers.push('Nota', 'Bônus', 'Nota Final');
-    if (withActions) { grid.push('80px'); headers.push('Ações'); }
+    headers.push(L.score, L.bonus, L.finalScore);
+    if (withActions) { grid.push('80px'); headers.push(L.actions); }
     return { gridTemplate: grid.join(' '), headers };
   }
   if (mode === 'time') {
     const grid = ['2rem', ...imgCol, '1fr'];
-    const headers = ['#', ...imgHeader, 'Título'];
-    if (showTableCol) { grid.push('120px'); headers.push('Tabela'); }
+    const headers = [L.rank, ...imgHeader, L.title];
+    if (showTableCol) { grid.push('120px'); headers.push(L.table); }
     grid.push('70px', '110px');
-    headers.push('Nota', 'Tempo');
-    if (withActions) { grid.push('80px'); headers.push('Ações'); }
+    headers.push(L.score, L.time);
+    if (withActions) { grid.push('80px'); headers.push(L.actions); }
     return { gridTemplate: grid.join(' '), headers };
   }
   const grid = ['2rem', ...imgCol, '1fr'];
-  const headers = ['#', ...imgHeader, 'Título'];
-  if (showTableCol) { grid.push('120px'); headers.push('Tabela'); }
+  const headers = [L.rank, ...imgHeader, L.title];
+  if (showTableCol) { grid.push('120px'); headers.push(L.table); }
   grid.push('180px');
-  headers.push('Nota');
-  if (withActions) { grid.push('80px'); headers.push('Ações'); }
+  headers.push(L.score);
+  if (withActions) { grid.push('80px'); headers.push(L.actions); }
   return { gridTemplate: grid.join(' '), headers };
 }
 

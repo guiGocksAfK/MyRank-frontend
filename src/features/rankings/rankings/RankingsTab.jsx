@@ -10,6 +10,7 @@ import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../..
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../../utils/mapWork';
 import { applyFilters } from '../../../utils/formatters';
 import { useBadges } from '../../../shared/badges';
+import { useLanguage } from '../../../shared/i18n';
 
 function getTableOrderKey() {
   const userKey = localStorage.getItem('myrank_username') || 'anonymous';
@@ -63,6 +64,8 @@ function saveItemOrder(tableId, items) {
 
 export default function RankingsTab({ onNavigateToCreators }) {
   const { refresh: refreshBadges } = useBadges();
+  const { t } = useLanguage();
+  const tr = t.rankings;
   const [tables,           setTables]           = useState([]);
   const [loadingTableIds,  setLoadingTableIds]  = useState([]);
   const [loadError,        setLoadError]        = useState(null);
@@ -123,7 +126,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
           setSelectedTableIds(unifiedGroup.categoryIds);
         }
       } catch (err) {
-        if (!cancelled) setLoadError(err?.response?.data?.message || err.message || 'Erro ao carregar suas tabelas.');
+        if (!cancelled) setLoadError(err?.response?.data?.message || err.message || tr.loadError);
       }
     }
 
@@ -240,7 +243,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
     try {
       await updateGroup(unifiedGroupId, 'Unificado', newIds);
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || 'Erro ao salvar seleção de tabelas.');
+      alert(err?.response?.data?.message || err.message || tr.saveSelectionError);
     }
   }
 
@@ -267,19 +270,19 @@ export default function RankingsTab({ onNavigateToCreators }) {
     <div className="mr-space-y-6">
       <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>🏆 Rankings</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{tr.title}</h1>
           <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', marginTop: 4 }}>
-            Compare e analise suas avaliações
+            {tr.subtitle}
           </p>
         </div>
         <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
           {onNavigateToCreators && (
-            <button className="mr-btn mr-btn-outline" onClick={onNavigateToCreators} title="Ver ranking de diretores, escritores e studios">
-              ✨ Ver criadores →
+            <button className="mr-btn mr-btn-outline" onClick={onNavigateToCreators} title={tr.seeCreatorsTitle}>
+              {tr.seeCreators}
             </button>
           )}
           <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
-          <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>Ponderação por tempo</span>
+          <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>{tr.timeWeight}</span>
           <button className={`mr-switch ${useTimeWeight ? 'checked' : ''}`} onClick={() => setUseTimeWeight(v => !v)}>
             <span className="mr-switch-thumb" />
           </button>
@@ -288,7 +291,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
 
       <div className="mr-flex mr-items-center mr-gap-1 mr-flex-wrap" style={{ borderBottom: '1px solid var(--mr-border)', paddingBottom: 0 }}>
         <button className={`mr-tab-trigger ${activeTab === 'unified' ? 'active' : ''}`} onClick={() => setActiveTab('unified')} style={{ borderRadius: '8px 8px 0 0' }}>
-          🏆 Unificado
+          {tr.unifiedTab}
         </button>
         {tables.map((t, index) => (
           <button
@@ -311,30 +314,30 @@ export default function RankingsTab({ onNavigateToCreators }) {
                 moveTable(t.id, tables[targetIndex].id);
               }
             }}
-            title="Arraste para reordenar"
+            title={tr.reorderHint}
             style={{ borderRadius: '8px 8px 0 0', opacity: draggedTableId === t.id ? 0.45 : 1, cursor: 'grab' }}
           >
             {t.label}
           </button>
         ))}
         <button className="mr-btn mr-btn-outline mr-btn-sm" style={{ marginLeft: 'auto', marginBottom: 2 }} onClick={() => setShowNewTable(true)}>
-          ➕ Nova tabela
+          {tr.newTable}
         </button>
       </div>
 
       <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap">
         <div className="mr-flex mr-gap-2">
-          <button className={`mr-btn mr-btn-sm ${sortBy === 'nota' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('nota')}>Notas</button>
-          <button className={`mr-btn mr-btn-sm ${sortBy === 'time' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('time')}>Tempo</button>
+          <button className={`mr-btn mr-btn-sm ${sortBy === 'nota' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('nota')}>{tr.sortScores}</button>
+          <button className={`mr-btn mr-btn-sm ${sortBy === 'time' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('time')}>{tr.sortTime}</button>
         </div>
         <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
         <div className="mr-flex mr-gap-1">
-          <button className={`mr-btn mr-btn-sm ${viewMode === 'list' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('list')} title="Visualização em lista">📋</button>
-          <button className={`mr-btn mr-btn-sm ${viewMode === 'grid' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('grid')} title="Visualização em grid">🎞️</button>
+          <button className={`mr-btn mr-btn-sm ${viewMode === 'list' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('list')} title={tr.viewList}>📋</button>
+          <button className={`mr-btn mr-btn-sm ${viewMode === 'grid' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('grid')} title={tr.viewGrid}>🎞️</button>
         </div>
         <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
         <button className={`mr-btn mr-btn-sm ${showFilters ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setShowFilters(v => !v)}>
-          🔎 Filtros {Object.keys(filters).length > 0 && '•'}
+          {tr.filters} {Object.keys(filters).length > 0 && '•'}
         </button>
       </div>
 

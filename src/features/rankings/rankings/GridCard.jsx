@@ -1,6 +1,9 @@
 import { getNoteBarColor, formatTime } from '../../../utils/formatters';
+import { useLanguage } from '../../../shared/i18n';
 
 export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete, showActions, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragging }) {
+  const { t } = useLanguage();
+  const tr = t.rankings;
   const displayNote = mode === 'weight' ? item.finalNote : item.note;
   const bonus = mode === 'weight' ? item.bonusTime : 0;
   const barWidth = Math.min((displayNote / maxNote) * 100, 100);
@@ -72,7 +75,7 @@ export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete,
 
         {mode === 'weight' && (
           <div style={{ fontSize: '0.7rem', color: 'var(--mr-blue-light)', marginTop: 4 }}>
-            +{bonus.toFixed(1)} bônus
+            {tr.gridBonus.replace('{n}', bonus.toFixed(1))}
           </div>
         )}
         {mode === 'time' && (
@@ -84,7 +87,7 @@ export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete,
         {showActions && (
           <div className="mr-flex mr-gap-1 mr-mt-2" style={{ justifyContent: 'flex-end' }}>
             <button
-              title="Editar"
+              title={tr.edit}
               onClick={(e) => { e.stopPropagation(); onEdit?.(item); }}
               style={{
                 width: 24, height: 24, borderRadius: 4,
@@ -95,7 +98,7 @@ export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete,
               }}
             >✏️</button>
             <button
-              title="Excluir"
+              title={tr.delete}
               onClick={(e) => { e.stopPropagation(); onDelete?.(item.id); }}
               style={{
                 width: 24, height: 24, borderRadius: 4,

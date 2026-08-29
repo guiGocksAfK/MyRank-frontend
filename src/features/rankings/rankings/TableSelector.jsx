@@ -1,6 +1,8 @@
 import React from 'react';
+import { useLanguage } from '../../../shared/i18n';
 
 export default function TableSelector({ tables, selectedIds, onChange }) {
+  const { t } = useLanguage();
   function toggle(id) {
     if (selectedIds.includes(id)) {
       if (selectedIds.length === 1) return;
@@ -16,7 +18,7 @@ export default function TableSelector({ tables, selectedIds, onChange }) {
       background: 'var(--mr-surface)', border: '1px solid var(--mr-border)',
     }}>
       <div style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginBottom: 8 }}>
-        Selecione quais tabelas incluir no ranking unificado:
+        {t.rankings.selectorLabel}
       </div>
       <div className="mr-flex mr-flex-wrap mr-gap-2">
         {tables.map(t => {

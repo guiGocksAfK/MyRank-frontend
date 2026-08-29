@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { getUnifiedWorks } from '../../services/WorkService';
 import { mapWorkToItem } from '../../utils/mapWork';
+import { useLanguage } from '../../shared/i18n';
 import './creators.css';
+
+const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 // Ranking de criadores derivado das obras reais do usuário (/works/unified),
 // agrupadas por `creator`. Nada de hardcode.
@@ -111,6 +114,8 @@ function StatCard({ icon, value, label }) {
 }
 
 export default function CreatorsTab({ onBack }) {
+  const { t } = useLanguage();
+  const tc = t.creators;
   const [sortBy, setSortBy] = useState('avg');
   const [selectedTypes, setSelectedTypes] = useState(['Todos']);
   const [viewMode, setViewMode] = useState('list');
@@ -217,17 +222,17 @@ export default function CreatorsTab({ onBack }) {
       <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
         <div className="mr-flex mr-items-center mr-gap-3">
           {onBack && (
-            <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onBack}>← Voltar</button>
+            <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onBack}>{tc.back}</button>
           )}
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>✨ Ranking de Criadores</h1>
-            <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', marginTop: 4 }}>Diretores, escritores e studios — ranqueados pelas suas avaliações</p>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{tc.title}</h1>
+            <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', marginTop: 4 }}>{tc.subtitle}</p>
           </div>
         </div>
 
         <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
           <div className="creators-toolbar-divider" />
-          <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>Ponderação por tempo</span>
+          <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>{tc.timeWeight}</span>
           <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', position: 'relative' }}>
             <input
               type="checkbox"
@@ -247,49 +252,49 @@ export default function CreatorsTab({ onBack }) {
       </div>
 
       <div className="mr-stats-grid">
-        <StatCard icon="✨" value={stats.total} label="Criadores no total" />
-        <StatCard icon="🎬" value={stats.Diretor} label="Diretores" />
-        <StatCard icon="✍️" value={stats.Escritor} label="Escritores" />
-        <StatCard icon="🏢" value={stats.Studio} label="Studios" />
+        <StatCard icon="✨" value={stats.total} label={tc.statTotal} />
+        <StatCard icon="🎬" value={stats.Diretor} label={tc.statDirectors} />
+        <StatCard icon="✍️" value={stats.Escritor} label={tc.statWriters} />
+        <StatCard icon="🏢" value={stats.Studio} label={tc.statStudios} />
       </div>
 
       <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap">
         <div className="mr-flex mr-gap-2">
-          <button className={`mr-btn mr-btn-sm ${sortBy === 'avg' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('avg')}>Média</button>
-          <button className={`mr-btn mr-btn-sm ${sortBy === 'works' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('works')}>Nº de obras</button>
+          <button className={`mr-btn mr-btn-sm ${sortBy === 'avg' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('avg')}>{tc.sortAvg}</button>
+          <button className={`mr-btn mr-btn-sm ${sortBy === 'works' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('works')}>{tc.sortWorks}</button>
         </div>
 
         <div className="creators-toolbar-divider" />
 
         <div className="mr-flex mr-gap-1">
-          <button className={`mr-btn mr-btn-sm ${selectedTypes.includes('Todos') ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => toggleType('Todos')}>Todos</button>
-          {TYPE_OPTIONS.map(t => (
-            <button key={t} className={`mr-btn mr-btn-sm ${selectedTypes.includes(t) ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => toggleType(t)}>{t}</button>
+          <button className={`mr-btn mr-btn-sm ${selectedTypes.includes('Todos') ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => toggleType('Todos')}>{tc.all}</button>
+          {TYPE_OPTIONS.map(type => (
+            <button key={type} className={`mr-btn mr-btn-sm ${selectedTypes.includes(type) ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => toggleType(type)}>{tc.typeLabels[type] || type}</button>
           ))}
         </div>
 
         <div className="creators-toolbar-divider" />
 
         <div className="mr-flex mr-gap-1">
-          <button className={`mr-btn mr-btn-sm ${viewMode === 'list' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('list')} title="Visualização em lista">📋</button>
-          <button className={`mr-btn mr-btn-sm ${viewMode === 'grid' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('grid')} title="Visualização em grid">🎞️</button>
+          <button className={`mr-btn mr-btn-sm ${viewMode === 'list' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('list')} title={tc.viewList}>📋</button>
+          <button className={`mr-btn mr-btn-sm ${viewMode === 'grid' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('grid')} title={tc.viewGrid}>🎞️</button>
         </div>
 
         <div className="creators-toolbar-divider" />
-        <button className={`mr-btn mr-btn-sm ${showFilters ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setShowFilters(v => !v)}>🔎 Filtros</button>
+        <button className={`mr-btn mr-btn-sm ${showFilters ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setShowFilters(v => !v)}>{tc.filters}</button>
 
-        <div style={{ marginLeft: 'auto', fontSize: '0.8125rem', color: 'var(--mr-text-muted)' }}>{sorted.length} de {stats.total} criadores</div>
+        <div style={{ marginLeft: 'auto', fontSize: '0.8125rem', color: 'var(--mr-text-muted)' }}>{fmt(tc.countOfTotal, { n: sorted.length, total: stats.total })}</div>
       </div>
 
       {showFilters && (
         <div style={{ padding: '1rem', borderRadius: 8, marginBottom: '1rem', background: 'var(--mr-surface)', border: '1px solid var(--mr-border)' }}>
           <div className="mr-flex mr-items-center mr-justify-between mr-mb-3">
-            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>🔎 Filtros</span>
+            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{tc.filters}</span>
           </div>
 
           <div className="mr-flex mr-flex-wrap mr-gap-4">
             <div>
-              <label style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', display: 'block', marginBottom: 3 }}>Ano de lançamento (min/max)</label>
+              <label style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', display: 'block', marginBottom: 3 }}>{tc.filterYear}</label>
               <div className="mr-flex mr-items-center mr-gap-1">
                 <input type="number" placeholder="1900" value={filters.releaseYearMin ?? ''} onChange={e => setFilters({ ...filters, releaseYearMin: e.target.value ? parseInt(e.target.value, 10) : null })} style={{ width: 80, padding: '5px 8px', borderRadius: 6, border: '1px solid var(--mr-border)', background: 'var(--mr-bg)', color: 'var(--mr-text)', fontSize: '0.8rem' }} />
                 <span style={{ color: 'var(--mr-text-secondary)' }}>—</span>
@@ -298,7 +303,7 @@ export default function CreatorsTab({ onBack }) {
             </div>
 
             <div>
-              <label style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', display: 'block', marginBottom: 3 }}>Adicionada entre</label>
+              <label style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', display: 'block', marginBottom: 3 }}>{tc.filterAdded}</label>
               <div className="mr-flex mr-items-center mr-gap-1">
                 <input type="date" value={filters.addedDateFrom ?? ''} onChange={e => setFilters({ ...filters, addedDateFrom: e.target.value || null })} style={{ width: 130, padding: '5px 8px', borderRadius: 6, border: '1px solid var(--mr-border)', background: 'var(--mr-bg)', color: 'var(--mr-text)', fontSize: '0.8rem' }} />
                 <span style={{ color: 'var(--mr-text-secondary)' }}>—</span>
@@ -307,7 +312,7 @@ export default function CreatorsTab({ onBack }) {
             </div>
 
             <div className="mr-flex mr-items-end">
-              <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setFilters({})}>Limpar filtros</button>
+              <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setFilters({})}>{tc.filterClear}</button>
             </div>
           </div>
         </div>
@@ -318,31 +323,33 @@ export default function CreatorsTab({ onBack }) {
 
           <div style={{ padding: '8px 14px', borderRadius: 8, background: 'var(--mr-gold-subtle, rgba(201,162,39,0.08))', border: '1px solid rgba(201,162,39,0.25)', fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginBottom: 8 }}>
             <span>🔒</span>
-            <span style={{ marginLeft: 8 }}>Este ranking é gerado automaticamente a partir das obras que você avaliou. Cadastre o criador ao adicionar uma obra pra ela aparecer aqui.</span>
+            <span style={{ marginLeft: 8 }}>{tc.note}</span>
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>Carregando criadores…</div>
+            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>{tc.loading}</div>
           ) : allCreators.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-              Nenhum criador ainda. Adicione obras com o campo <strong>criador</strong> preenchido pra montar o ranking. ✨
+              {tc.empty1} <strong>{tc.emptyWord}</strong> {tc.empty2}
             </div>
           ) : viewMode === 'list' ? (
             <>
               <div className="mr-table-header" style={{ gridTemplateColumns: COLS }}>
                 <span>#</span>
-                <span>Criador</span>
-                <span>Tipo</span>
-                <span style={{ textAlign: 'right' }}>Avaliação média</span>
-                <span style={{ textAlign: 'right' }}>Obras</span>
+                <span>{tc.colCreator}</span>
+                <span>{tc.colType}</span>
+                <span style={{ textAlign: 'right' }}>{tc.colAvgRating}</span>
+                <span style={{ textAlign: 'right' }}>{tc.colWorks}</span>
               </div>
 
               {sorted.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>Nenhum criador encontrado para este filtro. 🔍</div>
+                <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>{tc.noneFiltered}</div>
               )}
 
               {sorted.map((author, i) => {
-                const { label, icon, badgeStyle, avatarStyle } = getAuthorTypeInfo(author.type);
+                const info = getAuthorTypeInfo(author.type);
+                const { icon, badgeStyle, avatarStyle } = info;
+                const label = tc.typeLabels[author.type] || info.label;
                 const rank = i + 1;
                 const displayAvg = creatorAverages[author.name] ?? 0;
                 const barWidth = Math.min((displayAvg / maxAvg) * 100, 100);
@@ -373,10 +380,10 @@ export default function CreatorsTab({ onBack }) {
 
                       <div style={{ textAlign: 'right' }}>
                         <span style={{ fontWeight: 700, color: 'var(--mr-text)', fontVariantNumeric: 'tabular-nums' }}>{author.count}</span>
-                        <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem', marginLeft: 4 }}>{author.count === 1 ? 'obra' : 'obras'}</span>
+                        <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem', marginLeft: 4 }}>{author.count === 1 ? tc.workOne : tc.workMany}</span>
                       </div>
 
-                      <button onClick={() => setExpanded(prev => prev.includes(author.name) ? prev.filter(x => x !== author.name) : [...prev, author.name])} style={{ position: 'absolute', right: 12, top: 12, background: 'transparent', border: 'none', color: 'var(--mr-text-secondary)', cursor: 'pointer' }} aria-label="Expandir obras">
+                      <button onClick={() => setExpanded(prev => prev.includes(author.name) ? prev.filter(x => x !== author.name) : [...prev, author.name])} style={{ position: 'absolute', right: 12, top: 12, background: 'transparent', border: 'none', color: 'var(--mr-text-secondary)', cursor: 'pointer' }} aria-label={tc.expandWorks}>
                         {expanded.includes(author.name) ? '▾' : '▸'}
                       </button>
                     </div>
@@ -420,9 +427,11 @@ export default function CreatorsTab({ onBack }) {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
               {sorted.length === 0 ? (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>Nenhum criador encontrado para este filtro. 🔍</div>
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>{tc.noneFiltered}</div>
               ) : sorted.map((author, i) => {
-                const { label, icon } = getAuthorTypeInfo(author.type);
+                const info = getAuthorTypeInfo(author.type);
+                const { icon } = info;
+                const label = tc.typeLabels[author.type] || info.label;
                 const displayAvg = creatorAverages[author.name] ?? 0;
                 const barWidth = Math.min((displayAvg / maxAvg) * 100, 100);
 
@@ -457,7 +466,7 @@ export default function CreatorsTab({ onBack }) {
                       </div>
 
                       <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginTop: 8 }}>
-                        {author.count} {author.count === 1 ? 'obra' : 'obras'}
+                        {author.count} {author.count === 1 ? tc.workOne : tc.workMany}
                       </div>
                     </div>
                   </div>

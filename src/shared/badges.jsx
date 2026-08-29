@@ -3,12 +3,21 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import { getBadges } from '../services/badgeService';
 import { useUser } from './userContext';
 import { useLanguage } from './i18n';
+import { BADGE_I18N } from './badgeI18n';
+
+/** Sobrepõe nome/descrição traduzidos por `code`; fallback = valor do backend (PT). */
+function localizeBadge(badge, lang) {
+  const tr = BADGE_I18N[lang]?.[badge.id];
+  if (!tr) return badge;
+  return { ...badge, name: tr.name || badge.name, description: tr.desc || badge.description };
+}
 
 export const BUCKET_META = {
   jogo:  { label: 'Jogos',  icon: '🎮' },
@@ -78,9 +87,10 @@ function writeSeen(key, codes) {
 
 export function BadgeProvider({ children }) {
   const { user } = useUser();
+  const { lang } = useLanguage();
   const userId = user?.id ?? null;
 
-  const [badges, setBadges] = useState(null); // null = carregando
+  const [badges, setBadges] = useState(null); // null = carregando (dados crus do backend)
   const [toasts, setToasts] = useState([]);
   const seededRef = useRef(false);
 
@@ -129,8 +139,14 @@ export function BadgeProvider({ children }) {
     setToasts((prev) => prev.filter((t) => t.key !== key));
   }, []);
 
+  // Nomes/descrições traduzidos reagem à troca de idioma sem refetch.
+  const localizedBadges = useMemo(
+    () => (badges ? badges.map((b) => localizeBadge(b, lang)) : badges),
+    [badges, lang],
+  );
+
   const value = {
-    badges,
+    badges: localizedBadges,
     loading: badges === null,
     refresh: load,
   };
@@ -179,8 +195,9 @@ function BadgeToaster({ toasts, onDismiss }) {
   );
 }
 
-function BadgeToast({ badge, onClose }) {
-  const { t } = useLanguage();
+function BadgeToast({ badge: rawBadge, onClose }) {
+  const { t, lang } = useLanguage();
+  const badge = localizeBadge(rawBadge, lang);
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {

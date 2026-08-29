@@ -3,6 +3,7 @@ import Poster from './Poster';
 import GridCard from './GridCard';
 import AnimatedNumber from './AnimatedNumber';
 import { getNoteBarColor, formatTime, sortItems, getMode, applyFilters, getColumnConfig, badgeStyle } from '../../../utils/formatters';
+import { useLanguage } from '../../../shared/i18n';
 
 function getUnifiedOrderKey() {
   const userKey = localStorage.getItem('myrank_username') || 'anonymous';
@@ -30,9 +31,11 @@ function applyUnifiedOrder(items, savedOrder) {
 }
 
 export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy, useTimeWeight, viewMode, filters }) {
+  const { t } = useLanguage();
+  const tr = t.rankings;
   const mode    = getMode(sortBy, useTimeWeight);
   const maxNote = mode === 'weight' ? 12 : 10;
-  const cols    = getColumnConfig(mode, false, viewMode === 'list');
+  const cols    = getColumnConfig(mode, false, viewMode === 'list', tr.cols);
   const [unifiedOrder, setUnifiedOrder] = useState(readUnifiedOrder);
   const [draggedItemKey, setDraggedItemKey] = useState(null);
 
@@ -108,7 +111,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
         </div>
         {sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)' }}>
-            Nenhuma obra encontrada com os filtros atuais. 🔍
+            {tr.noResults}
           </div>
         )}
       </div>
@@ -128,7 +131,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
           }}
         >
           <span>🔒</span>
-          <span>Este ranking é gerado automaticamente a partir das suas tabelas. Para editar, acesse a tabela individual.</span>
+          <span>{tr.unifiedNote}</span>
         </div>
 
         <div className="mr-table-header" style={{ gridTemplateColumns: cols.gridTemplate }}>
@@ -137,7 +140,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
 
         <div className="mr-space-y-2">
           {loading ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>⏳ Carregando obras...</div>
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>{tr.loadingWorks}</div>
           ) : sorted.map((item, i) => {
             const displayNote = mode === 'weight' ? item.finalNote : item.note;
             const bonus       = mode === 'weight' ? item.bonusTime : 0;
@@ -201,7 +204,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
 
         {!loading && sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-            Nenhuma obra encontrada com os filtros atuais. 🔍
+            {tr.noResults}
           </div>
         )}
       </div>

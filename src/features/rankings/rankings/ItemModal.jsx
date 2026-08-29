@@ -1,19 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatTime, minutesToHHMM } from '../../../utils/formatters';
 import { searchByType, getDetailsByType } from '../../../services/ExternalSearchService';
+import { useLanguage } from '../../../shared/i18n';
 
-const WORK_TYPES = [
-  { value: 'movie', label: '🎬 Filme', enabled: true },
-  { value: 'tv',    label: '📺 Série', enabled: true },
-  { value: 'game',  label: '🎮 Jogo', enabled: true },
-  { value: 'book',  label: '📚 Livro', enabled: true },
-  { value: 'anime', label: '⛩️ Anime', enabled: true },
-];
+const WORK_TYPE_VALUES = ['movie', 'tv', 'game', 'book', 'anime'];
+const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3; // evita disparar busca com 1-2 caracteres
 
 export default function ItemModal({ item, onSave, onClose }) {
+  const { t } = useLanguage();
+  const tm = t.rankings.itemModal;
+  const WORK_TYPES = WORK_TYPE_VALUES.map((value) => ({ value, label: t.rankings.itemTypes[value], enabled: true }));
   const isEdit = !!item;
 
   const initialHHMM = minutesToHHMM(item?.timeMinutes);
@@ -53,16 +52,14 @@ export default function ItemModal({ item, onSave, onClose }) {
     const timer = setTimeout(async () => {
       const thisRequestId = ++requestIdRef.current;
       setSearching(true);
-      setSearchMsg('🔎 Buscando...');
+      setSearchMsg(tm.searching);
       try {
         const results = await searchByType(workType, currentQuery);
         if (thisRequestId !== requestIdRef.current) return; // resposta obsoleta, ignora
 
         if (!results || results.length === 0) {
           setSuggestions([]);
-          setSearchMsg(workType === 'anime'
-            ? '❌ Anime não encontrado. Tente o filtro Séries; ele também inclui animes, mas com dados menos completos.'
-            : '❌ Nada encontrado. Tente outro título ou o título original (em inglês).');
+          setSearchMsg(workType === 'anime' ? tm.noneFoundAnime : tm.noneFound);
         } else {
           setSuggestions(results);
           setSearchMsg('');
@@ -71,8 +68,8 @@ export default function ItemModal({ item, onSave, onClose }) {
         if (thisRequestId !== requestIdRef.current) return;
         setSuggestions([]);
         setSearchMsg(`❌ ${workType === 'anime'
-          ? 'Não foi possível buscar este anime agora. Tente o filtro Séries; ele também inclui animes, mas com dados menos completos.'
-          : err.response?.data?.message || 'Não foi possível buscar agora. Tente novamente em instantes.'}`);
+          ? tm.searchErrAnime
+          : err.response?.data?.message || tm.searchErr}`);
       } finally {
         if (thisRequestId === requestIdRef.current) setSearching(false);
       }
@@ -83,7 +80,7 @@ export default function ItemModal({ item, onSave, onClose }) {
 
   async function handlePickSuggestion(suggestion) {
     setSearching(true);
-    setSearchMsg('🔎 Carregando detalhes...');
+    setSearchMsg(tm.loadingDetails);
     try {
       const details = await getDetailsByType(workType, suggestion.externalId);
       if (details) {
@@ -103,10 +100,10 @@ export default function ItemModal({ item, onSave, onClose }) {
           releaseDate: !details.releaseDate,
           note: true,
         });
-        setSearchMsg('✓ Preenchido automaticamente!');
+        setSearchMsg(tm.autofilled);
       }
     } catch (err) {
-      setSearchMsg(`❌ ${err.response?.data?.message || 'Erro ao buscar detalhes dessa obra.'}`);
+      setSearchMsg(`❌ ${err.response?.data?.message || tm.detailsErr}`);
     } finally {
       setSuggestions([]);
       setSearching(false);
@@ -120,16 +117,16 @@ export default function ItemModal({ item, onSave, onClose }) {
     const t = h * 60 + m;
 
     const missingFields = [];
-    if (!title.trim()) missingFields.push('título');
-    if (Number.isNaN(n)) missingFields.push('nota');
+    if (!title.trim()) missingFields.push(tm.fieldTitle);
+    if (Number.isNaN(n)) missingFields.push(tm.fieldScore);
 
     if (missingFields.length > 0) {
-      setValidationError(`Preencha ${missingFields.join(' e ')}.`);
+      setValidationError(fmt(tm.fillFields, { fields: missingFields.join(tm.fieldAnd) }));
       return;
     }
 
     if (n < 0 || n > 10) {
-      setValidationError('A nota deve estar entre 0 e 10.');
+      setValidationError(tm.scoreRange);
       return;
     }
 
@@ -150,7 +147,7 @@ export default function ItemModal({ item, onSave, onClose }) {
       await onSave(payload);
       onClose();
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || 'Erro ao salvar a obra.');
+      alert(err?.response?.data?.message || err.message || tm.saveError);
     } finally {
       setSaving(false);
     }
@@ -199,28 +196,28 @@ export default function ItemModal({ item, onSave, onClose }) {
         onClick={e => e.stopPropagation()}
       >
         <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>
-          {isEdit ? '✏️ Editar obra' : '➕ Adicionar obra'}
+          {isEdit ? tm.editTitle : tm.addTitle}
         </h3>
 
         <div style={{ marginBottom: 12 }}>
-          <label style={labelStyle}>Tipo de obra</label>
+          <label style={labelStyle}>{tm.workType}</label>
           <select
             value={workType}
             onChange={e => setWorkType(e.target.value)}
             style={inputStyle}
           >
-            <option value="">Selecione...</option>
-            {WORK_TYPES.map(t => (
-              <option key={t.value} value={t.value} disabled={!t.enabled}>{t.label}</option>
+            <option value="">{tm.select}</option>
+            {WORK_TYPES.map(wt => (
+              <option key={wt.value} value={wt.value} disabled={!wt.enabled}>{wt.label}</option>
             ))}
           </select>
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <label style={labelStyle}>Título</label>
+          <label style={labelStyle}>{tm.titleLabel}</label>
           <div style={{ position: 'relative' }}>
             <input
-              type="text" value={title} placeholder="Ex: Interstellar"
+              type="text" value={title} placeholder={tm.titlePlaceholder}
               onChange={e => { setTitle(e.target.value); setValidationError(''); }}
               style={inputStyle}
             />
@@ -233,7 +230,7 @@ export default function ItemModal({ item, onSave, onClose }) {
           </div>
           {!workType && (
             <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
-              Escolha o tipo de obra acima para habilitar a busca.
+              {tm.pickTypeFirst}
             </div>
           )}
           {searchMsg && (
@@ -246,23 +243,23 @@ export default function ItemModal({ item, onSave, onClose }) {
           )}
           {!searchMsg && !showSidePanel && (
             <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
-              Dica: se não encontrar, tente o título original (em inglês).
+              {tm.tipOriginal}
             </div>
           )}
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <label style={labelStyle}>Autor / Diretor / Estúdio</label>
-          <input type="text" value={sub} placeholder="Ex: Christopher Nolan" onChange={e => { setSub(e.target.value); clearAttention('creator'); }} style={getFieldStyle('creator')} />
+          <label style={labelStyle}>{tm.creatorLabel}</label>
+          <input type="text" value={sub} placeholder={tm.creatorPlaceholder} onChange={e => { setSub(e.target.value); clearAttention('creator'); }} style={getFieldStyle('creator')} />
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <label style={labelStyle}>Nota (0,0 – 10,0)</label>
-          <input type="number" step="0.1" min="0" max="10" value={note} placeholder="Ex: 9.2" onChange={e => { setNote(e.target.value); clearAttention('note'); setValidationError(''); }} style={getFieldStyle('note')} />
+          <label style={labelStyle}>{tm.scoreLabel}</label>
+          <input type="number" step="0.1" min="0" max="10" value={note} placeholder={tm.scorePlaceholder} onChange={e => { setNote(e.target.value); clearAttention('note'); setValidationError(''); }} style={getFieldStyle('note')} />
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <label style={labelStyle}>Tempo de consumo</label>
+          <label style={labelStyle}>{tm.timeLabel}</label>
           <div className="mr-flex mr-items-center mr-gap-2">
             <input type="number" min="0" value={hours} placeholder="0" onChange={e => { setHours(e.target.value); clearAttention('time'); }} style={{ ...getFieldStyle('time'), width: 80 }} />
             <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>h</span>
@@ -271,18 +268,18 @@ export default function ItemModal({ item, onSave, onClose }) {
           </div>
           {(parseInt(hours, 10) > 0 || parseInt(mins, 10) > 0) && (
             <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
-              Total: {formatTime((parseInt(hours, 10) || 0) * 60 + (parseInt(mins, 10) || 0))}
+              {tm.total} {formatTime((parseInt(hours, 10) || 0) * 60 + (parseInt(mins, 10) || 0))}
             </div>
           )}
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <label style={labelStyle}>Data de lançamento</label>
+          <label style={labelStyle}>{tm.releaseLabel}</label>
           <input type="date" value={releaseDate} onChange={e => { setReleaseDate(e.target.value); clearAttention('releaseDate'); }} style={getFieldStyle('releaseDate')} />
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <label style={labelStyle}>URL da imagem</label>
+          <label style={labelStyle}>{tm.imageLabel}</label>
           <div className="mr-flex mr-gap-2">
             <input type="text" value={image} placeholder="https://..." onChange={e => { setImage(e.target.value); clearAttention('image'); }} style={getFieldStyle('image')} />
             {image && (
@@ -292,7 +289,7 @@ export default function ItemModal({ item, onSave, onClose }) {
             )}
           </div>
           <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
-            Deixe vazio para usar placeholder automático
+            {tm.imageHint}
           </div>
         </div>
 
@@ -306,9 +303,9 @@ export default function ItemModal({ item, onSave, onClose }) {
         )}
 
         <div className="mr-flex mr-gap-2" style={{ justifyContent: 'flex-end', marginTop: '1rem' }}>
-          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={saving}>Cancelar</button>
+          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={saving}>{tm.cancel}</button>
           <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving}>
-            {saving ? '⏳ Salvando...' : 'Salvar'}
+            {saving ? tm.saving : tm.save}
           </button>
         </div>
       </div>
@@ -329,7 +326,7 @@ export default function ItemModal({ item, onSave, onClose }) {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>
-              Resultados ({suggestions.length})
+              {fmt(tm.resultsCount, { n: suggestions.length })}
             </span>
             <button
               onClick={() => setSuggestions([])}
@@ -337,7 +334,7 @@ export default function ItemModal({ item, onSave, onClose }) {
                 background: 'transparent', border: 'none', cursor: 'pointer',
                 color: 'var(--mr-text-secondary)', fontSize: '0.9rem', lineHeight: 1,
               }}
-              title="Fechar"
+              title={tm.close}
             >✕</button>
           </div>
 

@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useLanguage } from '../../../shared/i18n';
 
-export default function ConfirmModal({ title, message, confirmLabel = 'Excluir', onConfirm, onClose }) {
+export default function ConfirmModal({ title, message, confirmLabel, onConfirm, onClose }) {
+  const { t } = useLanguage();
+  const tc = t.rankings.confirm;
+  const label = confirmLabel || tc.deleteDefault;
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
@@ -55,7 +59,7 @@ export default function ConfirmModal({ title, message, confirmLabel = 'Excluir',
 
         <div className="mr-flex mr-gap-2" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
           <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={confirming}>
-            Cancelar
+            {tc.cancel}
           </button>
           <button
             className="mr-btn mr-btn-sm"
@@ -63,7 +67,7 @@ export default function ConfirmModal({ title, message, confirmLabel = 'Excluir',
             disabled={confirming}
             style={{ color: '#ff8d8b', border: '1px solid rgba(226,75,74,0.45)', background: 'rgba(226,75,74,0.12)' }}
           >
-            {confirming ? '⏳ Excluindo...' : `🗑️ ${confirmLabel}`}
+            {confirming ? tc.deleting : `🗑️ ${label}`}
           </button>
         </div>
       </div>

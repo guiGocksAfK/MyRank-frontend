@@ -6,12 +6,17 @@ import ConfirmModal from './ConfirmModal';
 import EditTableModal from './EditTableModal';
 import AnimatedNumber from './AnimatedNumber';
 import { getNoteBarColor, formatTime, sortItems, getMode, getDisplayedNote, applyFilters, getColumnConfig } from '../../../utils/formatters';
+import { useLanguage } from '../../../shared/i18n';
+
+const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 function TableToolbar({ table, onDeleteTable, onEditTable, onAddWork }) {
+  const { t } = useLanguage();
+  const tr = t.rankings;
   return (
     <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-2" style={{ marginBottom: '1rem' }}>
       <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>
-        {table.items.length} obra{table.items.length !== 1 ? 's' : ''}
+        {fmt(table.items.length === 1 ? tr.worksOne : tr.worksMany, { n: table.items.length })}
       </span>
       <div className="mr-flex mr-gap-2">
         <button
@@ -19,13 +24,13 @@ function TableToolbar({ table, onDeleteTable, onEditTable, onAddWork }) {
           style={{ color: '#e24b4a', borderColor: 'rgba(226,75,74,0.35)' }}
           onClick={onDeleteTable}
         >
-          🗑️ Excluir tabela
+          {tr.toolbar.deleteTable}
         </button>
         <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onEditTable}>
-          ✏️ Editar tabela
+          {tr.toolbar.editTable}
         </button>
         <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={onAddWork}>
-          ➕ Adicionar obra
+          {tr.toolbar.addWork}
         </button>
       </div>
     </div>
@@ -33,6 +38,8 @@ function TableToolbar({ table, onDeleteTable, onEditTable, onAddWork }) {
 }
 
 export default function IndividualTable({ table, loading, sortBy, useTimeWeight, viewMode, filters, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem, onRenameTable }) {
+  const { t } = useLanguage();
+  const tr = t.rankings;
   const [modal, setModal] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
@@ -40,7 +47,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
   const [showEditTable, setShowEditTable] = useState(false);
   const mode    = getMode(sortBy, useTimeWeight);
   const maxNote = mode === 'weight' ? 12 : 10;
-  const cols    = getColumnConfig(mode, true, viewMode === 'list');
+  const cols    = getColumnConfig(mode, true, viewMode === 'list', tr.cols);
 
   const filteredItems = useMemo(() => applyFilters(table.items, filters), [table.items, filters]);
   const sorted = sortItems(filteredItems, sortBy, useTimeWeight);
@@ -73,7 +80,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
       await onDeleteWork(table.id, id);
       return true;
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || 'Erro ao excluir a obra.');
+      alert(err?.response?.data?.message || err.message || tr.deleteWorkError);
       return false;
     } finally {
       setDeletingId(null);
@@ -85,7 +92,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
       await onDeleteTable(table.id);
       return true;
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || 'Erro ao excluir a tabela.');
+      alert(err?.response?.data?.message || err.message || tr.deleteTableError);
       return false;
     }
   }
@@ -104,8 +111,8 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
       <div>
         {toolbar}
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>⏳ Carregando obras...</div>
-        ) : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>{tr.loadingWorks}</div>
+        ) :<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
           {sorted.map((item, i) => (
             <GridCard
               key={item.id} item={item} mode={mode} maxNote={maxNote} index={i}
@@ -123,7 +130,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
         </div>}
         {!loading && sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-            Nenhuma obra encontrada com os filtros atuais. 🔍
+            {tr.noResults}
           </div>
         )}
         {modal && (
@@ -131,16 +138,16 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
         )}
         {confirmAction?.type === 'item' && (
           <ConfirmModal
-            title="Remover esta obra?"
-            message="A obra será removida deste ranking e essa ação não poderá ser desfeita."
+            title={tr.confirm.removeWorkTitle}
+            message={tr.confirm.removeWorkMsg}
             onConfirm={() => handleDelete(confirmAction.id)}
             onClose={() => setConfirmAction(null)}
           />
         )}
         {confirmAction?.type === 'table' && (
           <ConfirmModal
-            title="Excluir tabela?"
-            message={`A tabela "${table.label}" e todos os seus itens serão excluídos. Essa ação não poderá ser desfeita.`}
+            title={tr.confirm.deleteTableTitle}
+            message={fmt(tr.confirm.deleteTableMsg, { label: table.label })}
             onConfirm={handleDeleteTableClick}
             onClose={() => setConfirmAction(null)}
           />
@@ -166,10 +173,10 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
 
       <div className="mr-space-y-2">
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>⏳ Carregando obras...</div>
-        ) : sorted.length === 0 && (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>{tr.loadingWorks}</div>
+        ) :sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-            Nenhuma obra encontrada com os filtros atuais. 🔍
+            {tr.noResults}
           </div>
         )}
         {sorted.map((item, i) => {
@@ -231,11 +238,11 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
 
               <div className="mr-flex mr-gap-1" style={{ justifyContent: 'flex-end' }}>
                 <button
-                  title="Editar" onClick={() => setModal(item)} disabled={isDeleting}
+                  title={tr.edit} onClick={() => setModal(item)} disabled={isDeleting}
                   style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mr-text-secondary)' }}
                 >✏️</button>
                 <button
-                  title="Excluir" onClick={() => setConfirmAction({ type: 'item', id: item.id })} disabled={isDeleting}
+                  title={tr.delete} onClick={() => setConfirmAction({ type: 'item', id: item.id })} disabled={isDeleting}
                   style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mr-text-secondary)' }}
                 >{isDeleting ? '⏳' : '🗑️'}</button>
               </div>
@@ -249,16 +256,16 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
       )}
       {confirmAction?.type === 'item' && (
         <ConfirmModal
-          title="Remover esta obra?"
-          message="A obra será removida deste ranking e essa ação não poderá ser desfeita."
+          title={tr.confirm.removeWorkTitle}
+          message={tr.confirm.removeWorkMsg}
           onConfirm={() => handleDelete(confirmAction.id)}
           onClose={() => setConfirmAction(null)}
         />
       )}
       {confirmAction?.type === 'table' && (
         <ConfirmModal
-          title="Excluir tabela?"
-          message={`A tabela "${table.label}" e todos os seus itens serão excluídos. Essa ação não poderá ser desfeita.`}
+          title={tr.confirm.deleteTableTitle}
+          message={fmt(tr.confirm.deleteTableMsg, { label: table.label })}
           onConfirm={handleDeleteTableClick}
           onClose={() => setConfirmAction(null)}
         />
