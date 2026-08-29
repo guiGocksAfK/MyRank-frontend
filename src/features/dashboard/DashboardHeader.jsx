@@ -4,6 +4,7 @@ import { getUnifiedWorks } from '../../services/WorkService';
 import { useUser } from '../../shared/userContext';
 import { useNotifications } from '../../shared/notifications';
 import { relativeTime } from '../../shared/useUnifiedItems';
+import { useLanguage } from '../../shared/i18n';
 import Avatar from '../../shared/components/Avatar';
 
 const num = (value) => {
@@ -11,17 +12,15 @@ const num = (value) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const navTabs = [
-  { id: 'home', label: 'Dashboard', icon: '📊' },
-  { id: 'rankings', label: 'Rankings', icon: '🏆' },
-  { id: 'social', label: 'Social', icon: '👥' },
-  { id: 'ai', label: 'IA Insights', icon: '🤖' },
-  { id: 'profile', label: 'Perfil', icon: '👤' },
-];
+const TAB_ICONS = { home: '📊', rankings: '🏆', social: '👥', ai: '🤖', profile: '👤' };
 
 export default function DashboardHeader({ activeTab, onTabChange }) {
   const storedUser = useMemo(() => getStoredUser(), []);
   const { user: me } = useUser();
+  const { lang, t } = useLanguage();
+  const navTabs = ['home', 'rankings', 'social', 'ai', 'profile'].map((id) => ({
+    id, label: t.dash.tabs[id], icon: TAB_ICONS[id],
+  }));
   const [works, setWorks] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -35,7 +34,7 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
 
   const profileSummary = useMemo(() => ({
     username: me?.username || storedUser?.username || 'usuario',
-    bio: me?.bio?.trim() || 'Sem bio ainda.',
+    bio: me?.bio?.trim() || '',
   }), [me, storedUser]);
 
   // Stats reais, calculados a partir das obras do usuário (/works/unified)
@@ -107,7 +106,7 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
               className="mr-notification-btn"
               onClick={toggleNotifications}
               aria-expanded={showNotifications}
-              aria-label="Abrir notificações"
+              aria-label={t.dash.header.openNotifications}
             >
               🔔
               {unreadCount > 0 && (
@@ -117,14 +116,14 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
 
             {showNotifications && (
               <div className="mr-notification-panel">
-                <div className="mr-panel-header">Notificações</div>
+                <div className="mr-panel-header">{t.dash.header.notifications}</div>
                 {loadingNotifications && (notifications == null || notifications.length === 0) ? (
                   <div className="mr-notification-item">
-                    <div className="mr-notification-desc">Carregando…</div>
+                    <div className="mr-notification-desc">{t.dash.header.notifLoading}</div>
                   </div>
                 ) : !notifications || notifications.length === 0 ? (
                   <div className="mr-notification-item">
-                    <div className="mr-notification-desc">Nada por aqui ainda.</div>
+                    <div className="mr-notification-desc">{t.dash.header.notifEmpty}</div>
                   </div>
                 ) : (
                   notifications.map((item) => (
@@ -134,7 +133,7 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
                     >
                       <div className="mr-notification-title">{item.title}</div>
                       <div className="mr-notification-desc">{item.message}</div>
-                      <div className="mr-notification-time">{relativeTime(item.updatedAt || item.createdAt)}</div>
+                      <div className="mr-notification-time">{relativeTime(item.updatedAt || item.createdAt, lang)}</div>
                     </div>
                   ))
                 )}
@@ -146,7 +145,7 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
                     onTabChange('social');
                   }}
                 >
-                  Ver feed de atividade
+                  {t.dash.header.seeActivityFeed}
                 </button>
               </div>
             )}
@@ -158,7 +157,7 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
               className="mr-avatar-btn"
               onClick={toggleProfileMenu}
               aria-expanded={showProfileMenu}
-              aria-label="Abrir menu do perfil"
+              aria-label={t.dash.header.openProfileMenu}
             >
               <Avatar user={avatarUser} className="mr-avatar" />
             </button>
@@ -178,17 +177,17 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
                 <div className="mr-profile-compact-grid">
                   <div>
                     <div className="mr-profile-compact-value">{stats.obras}</div>
-                    <div className="mr-profile-compact-label">Obras</div>
+                    <div className="mr-profile-compact-label">{t.dash.header.statWorks}</div>
                   </div>
                   <div>
                     <div className="mr-profile-compact-value">
                       {stats.horas === '—' ? '—' : `${stats.horas}h`}
                     </div>
-                    <div className="mr-profile-compact-label">Tempo</div>
+                    <div className="mr-profile-compact-label">{t.dash.header.statTime}</div>
                   </div>
                   <div>
                     <div className="mr-profile-compact-value">{stats.media}</div>
-                    <div className="mr-profile-compact-label">Média</div>
+                    <div className="mr-profile-compact-label">{t.dash.header.statAvg}</div>
                   </div>
                 </div>
 
@@ -208,7 +207,7 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
                 )}
 
                 <button type="button" className="mr-panel-action" onClick={handleViewProfile}>
-                  Ver perfil completo
+                  {t.dash.header.viewFullProfile}
                 </button>
               </div>
             )}

@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { getBadges } from '../services/badgeService';
 import { useUser } from './userContext';
+import { useLanguage } from './i18n';
 
 export const BUCKET_META = {
   jogo:  { label: 'Jogos',  icon: '🎮' },
@@ -179,6 +180,7 @@ function BadgeToaster({ toasts, onDismiss }) {
 }
 
 function BadgeToast({ badge, onClose }) {
+  const { t } = useLanguage();
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
@@ -220,7 +222,7 @@ function BadgeToast({ badge, onClose }) {
             color: 'var(--mr-gold)',
           }}
         >
-          🏅 Conquista desbloqueada
+          {t.common.badgeUnlockedToast}
         </div>
         <div style={{ fontWeight: 700, fontSize: '0.95rem', marginTop: 2 }}>{badge.name}</div>
         <div

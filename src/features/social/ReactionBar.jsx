@@ -1,16 +1,17 @@
 import { useState } from 'react';
-
-const KINDS = [
-  { id: 'up', icon: '👍', label: 'Curti' },
-  { id: 'agree', icon: '🤝', label: 'Concordo' },
-  { id: 'disagree', icon: '👎', label: 'Discordo' },
-];
+import { useLanguage } from '../../shared/i18n';
 
 /**
  * Linha de reações de um card. `reactions` = { up, agree, disagree, mine }.
  * `onReact(kind)` deve devolver o objeto de reações atualizado (Promise ok).
  */
 export default function ReactionBar({ reactions, onReact }) {
+  const { t } = useLanguage();
+  const KINDS = [
+    { id: 'up', icon: '👍', label: t.social.react.up },
+    { id: 'agree', icon: '🤝', label: t.social.react.agree },
+    { id: 'disagree', icon: '👎', label: t.social.react.disagree },
+  ];
   const [state, setState] = useState(reactions);
   const [busy, setBusy] = useState(false);
 

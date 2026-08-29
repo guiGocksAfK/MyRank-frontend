@@ -1,17 +1,8 @@
 import SocialAvatar from './SocialAvatar';
 import ReactionBar from './ReactionBar';
 import { typeIconFor } from './socialData';
-
-function relTime(iso) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const min = Math.round(diff / 60000);
-  if (min < 1) return 'agora';
-  if (min < 60) return `${min}min atrás`;
-  const h = Math.round(min / 60);
-  if (h < 24) return `${h}h atrás`;
-  const d = Math.round(h / 24);
-  return `${d} ${d === 1 ? 'dia' : 'dias'} atrás`;
-}
+import { useLanguage } from '../../shared/i18n';
+import { relativeTime } from '../../shared/useUnifiedItems';
 
 function ScoreChip({ value }) {
   if (value == null) return null;
@@ -31,6 +22,8 @@ function ScoreChip({ value }) {
 
 /** Corpo do card conforme o tipo da atividade. */
 function Body({ item, onOpenUser }) {
+  const { t } = useLanguage();
+  const a = t.social.act;
   const name = (
     <button className="social-link" onClick={() => onOpenUser?.(item.actor.id)}>
       {item.actor.username}
@@ -41,7 +34,7 @@ function Body({ item, onOpenUser }) {
     case 'RATED':
       return (
         <div className="social-act-line">
-          {name} avaliou <strong>{item.work.title}</strong>
+          {name} {a.rated} <strong>{item.work.title}</strong>
           <span className="social-muted"> · {typeIconFor(item.work.type)}</span>
           <ScoreChip value={item.work.score} />
         </div>
@@ -49,14 +42,14 @@ function Body({ item, onOpenUser }) {
     case 'ADDED':
       return (
         <div className="social-act-line">
-          {name} adicionou <strong>{item.work.title}</strong> ao ranking
+          {name} {a.addedPre} <strong>{item.work.title}</strong> {a.addedPost}
           <span className="social-muted"> · {typeIconFor(item.work.type)}</span>
         </div>
       );
     case 'MOVED_TOP':
       return (
         <div className="social-act-line">
-          {name} colocou <strong>{item.work.title}</strong> no{' '}
+          {name} {a.movedPre} <strong>{item.work.title}</strong> {a.movedPost}{' '}
           <span style={{ color: 'var(--mr-gold)' }}>#1</span>
           <span className="social-muted"> · {typeIconFor(item.work.type)}</span>
         </div>
@@ -64,21 +57,21 @@ function Body({ item, onOpenUser }) {
     case 'BADGE':
       return (
         <div className="social-act-line">
-          {name} desbloqueou <span style={{ fontSize: '1.1em' }}>{item.badge.icon}</span>{' '}
+          {name} {a.unlocked} <span style={{ fontSize: '1.1em' }}>{item.badge.icon}</span>{' '}
           <strong>{item.badge.name}</strong>
         </div>
       );
     case 'WEEKLY':
       return (
         <div className="social-act-line">
-          {name} avaliou <strong>{item.summary.count} obras</strong> esta semana
+          {name} {a.weeklyPre} <strong>{item.summary.count} {a.worksWord}</strong> {a.weeklyPost}
         </div>
       );
     case 'TAKE':
       return (
         <div>
           <div className="social-act-line">
-            {name} <span className="social-muted">sobre</span>{' '}
+            {name} <span className="social-muted">{a.about}</span>{' '}
             <strong>{item.work.title}</strong>
             <span className="social-muted"> · {typeIconFor(item.work.type)}</span>
             <ScoreChip value={item.work.score} />
@@ -92,6 +85,7 @@ function Body({ item, onOpenUser }) {
 }
 
 export default function ActivityCard({ item, onReact, onOpenUser }) {
+  const { lang } = useLanguage();
   return (
     <div className={`social-card${item.type === 'TAKE' ? ' is-take' : ''}`}>
       <SocialAvatar
@@ -106,7 +100,7 @@ export default function ActivityCard({ item, onReact, onOpenUser }) {
         <div className="social-card-foot">
           <span className="social-muted">@{item.actor.handle}</span>
           <span className="social-muted">·</span>
-          <span className="social-muted">{relTime(item.createdAt)}</span>
+          <span className="social-muted">{relativeTime(item.createdAt, lang)}</span>
         </div>
         <ReactionBar reactions={item.reactions} onReact={(kind) => onReact(item.id, kind)} />
       </div>

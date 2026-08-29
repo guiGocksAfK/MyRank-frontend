@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import SocialAvatar from './SocialAvatar';
+import { useLanguage } from '../../shared/i18n';
+
+const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 /** Linha de usuário reutilizável: avatar + nome/handle + stats + botão seguir. */
 export default function UserPill({ user, onToggleFollow, onOpen }) {
+  const { t } = useLanguage();
+  const tp = t.social.pill;
   const [following, setFollowing] = useState(user.following);
   const [busy, setBusy] = useState(false);
 
@@ -27,10 +32,10 @@ export default function UserPill({ user, onToggleFollow, onOpen }) {
       <div className="mr-min-w-0" style={{ flex: 1 }}>
         <div className="mr-flex mr-items-center mr-gap-2" style={{ flexWrap: 'wrap' }}>
           <span style={{ fontWeight: 600 }} className="mr-truncate">{user.username}</span>
-          {user.followsYou && <span className="social-tag">segue você</span>}
+          {user.followsYou && <span className="social-tag">{tp.followsYou}</span>}
         </div>
         <div className="social-muted" style={{ fontSize: '0.8rem' }}>
-          @{user.handle} · {user.stats.works} obras · média {user.stats.avgScore.toFixed(1)}
+          {fmt(tp.stats, { handle: user.handle, works: user.stats.works, avg: user.stats.avgScore.toFixed(1) })}
         </div>
       </div>
       <button
@@ -38,7 +43,7 @@ export default function UserPill({ user, onToggleFollow, onOpen }) {
         onClick={toggle}
         disabled={busy}
       >
-        {following ? 'Seguindo' : 'Seguir'}
+        {following ? tp.following : tp.follow}
       </button>
     </div>
   );

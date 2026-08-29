@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import './social.css';
 import { useUser } from '../../shared/userContext';
+import { useLanguage } from '../../shared/i18n';
 import Avatar from '../../shared/components/Avatar';
 import { socialApi } from './socialData';
 import SocialFeed from './SocialFeed';
@@ -9,13 +10,9 @@ import UserProfileView from './UserProfileView';
 import CompareView from './CompareView';
 import UserPill from './UserPill';
 
-const TABS = [
-  { id: 'feed', label: '📡 Feed' },
-  { id: 'discover', label: '🔍 Descobrir' },
-  { id: 'compare', label: '⚖️ Comparar' },
-];
-
 function CompareList({ onPick, onFollowChange }) {
+  const { t } = useLanguage();
+  const ts = t.social;
   const [following, setFollowing] = useState(null);
 
   const load = useCallback(() => {
@@ -23,11 +20,11 @@ function CompareList({ onPick, onFollowChange }) {
   }, []);
   useEffect(load, [load]);
 
-  if (following === null) return <div className="social-empty">Carregando…</div>;
+  if (following === null) return <div className="social-empty">{ts.loading}</div>;
   if (following.length === 0) {
     return (
       <div className="social-empty">
-        Você não segue ninguém ainda. Vá em <strong>Descobrir</strong> pra começar.
+        {ts.compareList.empty1} <strong>{ts.compareList.discoverWord}</strong> {ts.compareList.empty2}
       </div>
     );
   }
@@ -42,7 +39,7 @@ function CompareList({ onPick, onFollowChange }) {
   return (
     <div className="mr-space-y-2">
       <div className="social-muted" style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-        Toque num usuário pra ver os rankings lado a lado
+        {ts.compareList.hint}
       </div>
       {following.map((u) => (
         <UserPill key={u.id} user={u} onToggleFollow={handleFollow} onOpen={onPick} />
@@ -53,6 +50,13 @@ function CompareList({ onPick, onFollowChange }) {
 
 export default function SocialPanel() {
   const { user } = useUser();
+  const { t } = useLanguage();
+  const ts = t.social;
+  const TABS = [
+    { id: 'feed', label: ts.tabs.feed },
+    { id: 'discover', label: ts.tabs.discover },
+    { id: 'compare', label: ts.tabs.compare },
+  ];
   const [tab, setTab] = useState('feed');
   const [view, setView] = useState({ kind: 'tabs' }); // tabs | profile | compare
   const [isPublic, setIsPublic] = useState(user?.isPublic ?? true);
@@ -97,7 +101,7 @@ export default function SocialPanel() {
   }
 
   // ── View principal ──
-  const handle = user?.username ? `@${user.username}` : '@você';
+  const handle = user?.username ? `@${user.username}` : '@you';
 
   return (
     <div className="mr-space-y-5 social-panel">
@@ -109,13 +113,13 @@ export default function SocialPanel() {
           <div className="social-idbar-handle">{handle}</div>
           <div className="social-idbar-stats">
             <button type="button" onClick={() => setTab('compare')}>
-              <b>{summary?.following ?? '—'}</b> seguindo
+              <b>{summary?.following ?? '—'}</b> {ts.idbar.following}
             </button>
             <span className="social-idbar-sep" />
-            <span><b>{summary?.followers ?? '—'}</b> seguidores</span>
+            <span><b>{summary?.followers ?? '—'}</b> {ts.idbar.followers}</span>
             <span className="social-idbar-sep" />
             <button type="button" onClick={() => setTab('feed')}>
-              <b>{summary?.recentActivity ?? '—'}</b> no feed
+              <b>{summary?.recentActivity ?? '—'}</b> {ts.idbar.inFeed}
             </button>
           </div>
         </div>
@@ -123,22 +127,22 @@ export default function SocialPanel() {
         <button
           className={`social-visibility ${isPublic ? 'is-public' : ''}`}
           onClick={() => setIsPublic((v) => !v)}
-          title="Alternar visibilidade do perfil (visual por enquanto)"
+          title={ts.idbar.toggleVisibility}
         >
           <span aria-hidden="true">{isPublic ? '🌐' : '🔒'}</span>
-          Perfil {isPublic ? 'público' : 'privado'}
+          {ts.idbar.profile} {isPublic ? ts.idbar.profilePublic : ts.idbar.profilePrivate}
         </button>
       </div>
 
       {/* Sub-abas */}
       <div className="mr-flex mr-items-center mr-gap-1 social-tabs">
-        {TABS.map((t) => (
+        {TABS.map((tb) => (
           <button
-            key={t.id}
-            className={`mr-tab-trigger social-tab-trigger ${tab === t.id ? 'active' : ''}`}
-            onClick={() => setTab(t.id)}
+            key={tb.id}
+            className={`mr-tab-trigger social-tab-trigger ${tab === tb.id ? 'active' : ''}`}
+            onClick={() => setTab(tb.id)}
           >
-            {t.label}
+            {tb.label}
           </button>
         ))}
       </div>

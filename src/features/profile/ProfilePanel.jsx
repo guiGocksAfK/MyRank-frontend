@@ -242,7 +242,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
     .slice(0, 6)
     .map(w => ({
       text: fmt(tp.added, { title: w.title }),
-      time: relativeTime(w.addedDate),
+      time: relativeTime(w.addedDate, lang),
     }));
 
   // Filtro de badges
@@ -572,11 +572,11 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                   <KVRow
                     label={tp.lastAdded}
                     value={highlights.byRecent?.title}
-                    meta={highlights.byRecent ? relativeTime(highlights.byRecent.addedDate) : null}
+                    meta={highlights.byRecent ? relativeTime(highlights.byRecent.addedDate, lang) : null}
                   />
                   <KVRow
                     label={tp.favCategory}
-                    value={highlights.favCategory ? `${highlights.favCategory.icon} ${highlights.favCategory.label}` : '—'}
+                    value={highlights.favCategory ? `${highlights.favCategory.icon} ${t.common.mediaTypes[highlights.favCategory.type] || highlights.favCategory.label}` : '—'}
                     meta={highlights.favCategory ? `${highlights.favCategory.count}` : null}
                   />
                 </div>
@@ -602,7 +602,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                         className="mr-flex mr-items-center mr-justify-between"
                         style={{ fontSize: '0.85rem', marginBottom: 4 }}
                       >
-                        <span>{b.icon} {b.label}</span>
+                        <span>{b.icon} {t.common.mediaTypes[b.type] || b.label}</span>
                         <span style={{ color: 'var(--mr-text-secondary)' }}>
                           {fmt(b.count === 1 ? tp.distLineOne : tp.distLineMany, { count: b.count, avg: b.avgLabel })}
                         </span>
@@ -667,7 +667,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                   className="mr-flex mr-items-center mr-gap-2"
                   style={{ marginBottom: 10, fontSize: '0.95rem', fontWeight: 700 }}
                 >
-                  <span>{group.icon} {group.label}</span>
+                  <span>{group.icon} {t.common.badgeBuckets[group.key] || group.label}</span>
                   <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--mr-text-muted)' }}>
                     {group.items.filter(b => b.unlocked).length}/{group.items.length}
                   </span>

@@ -1,11 +1,14 @@
 import React from 'react';
 import { useUnifiedItems, computeStats } from '../../shared/useUnifiedItems';
+import { useLanguage } from '../../shared/i18n';
 
 export default function DashboardFooter({
   // Override opcional; por padrão os números vêm de /works/unified.
   stats: statsOverride,
 }) {
   const year = new Date().getFullYear();
+  const { t } = useLanguage();
+  const tf = t.dash.footer;
   const { items, loading } = useUnifiedItems();
   const derived = computeStats(items || []);
   const stats = statsOverride ?? { obras: derived.obras, horas: derived.totalHours };
@@ -32,12 +35,12 @@ export default function DashboardFooter({
           <div className="mr-status-stats">
             <span className="mr-status-stat">
               <span className="mr-status-stat-num">{dash ?? stats.obras}</span>
-              <span className="mr-status-stat-label">obras</span>
+              <span className="mr-status-stat-label">{tf.works}</span>
             </span>
             <span className="mr-status-divider" />
             <span className="mr-status-stat">
               <span className="mr-status-stat-num">{dash ?? `${stats.horas}h`}</span>
-              <span className="mr-status-stat-label">registradas</span>
+              <span className="mr-status-stat-label">{tf.registered}</span>
             </span>
           </div>
 
@@ -46,8 +49,8 @@ export default function DashboardFooter({
             <button
               className="mr-status-btn"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              title="Voltar ao topo"
-              aria-label="Voltar ao topo"
+              title={tf.backToTop}
+              aria-label={tf.backToTop}
             >
               ↑
             </button>
@@ -60,13 +63,12 @@ export default function DashboardFooter({
       <div className="mr-status-bottom">
         <div className="mr-status-bottom-inner">
           <nav className="mr-status-links">
-            <a className="mr-status-link" href="#">Sobre</a>
-            <span className="mr-status-bullet">·</span>
-            <a className="mr-status-link" href="#">Privacidade</a>
-            <span className="mr-status-bullet">·</span>
-            <a className="mr-status-link" href="#">Termos</a>
-            <span className="mr-status-bullet">·</span>
-            <a className="mr-status-link" href="#">Ajuda</a>
+            {tf.links.map((link, i) => (
+              <React.Fragment key={link}>
+                {i > 0 && <span className="mr-status-bullet">·</span>}
+                <a className="mr-status-link" href="#">{link}</a>
+              </React.Fragment>
+            ))}
           </nav>
           <span className="mr-status-copyright">© {year} MyRank</span>
         </div>

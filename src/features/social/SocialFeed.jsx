@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { socialApi } from './socialData';
+import { useLanguage } from '../../shared/i18n';
 import TakeComposer from './TakeComposer';
 import ActivityCard from './ActivityCard';
 
 export default function SocialFeed({ onOpenUser }) {
+  const { t } = useLanguage();
+  const tf = t.social.feed;
   const [items, setItems] = useState(null);
 
   const load = useCallback(() => {
@@ -27,10 +30,10 @@ export default function SocialFeed({ onOpenUser }) {
       <TakeComposer onPost={handlePost} />
 
       {items === null ? (
-        <div className="social-empty">Carregando feed…</div>
+        <div className="social-empty">{tf.loading}</div>
       ) : items.length === 0 ? (
         <div className="social-empty">
-          Nada por aqui ainda. Siga gente na aba <strong>Descobrir</strong> pra encher o feed. 👀
+          {tf.emptyA} <strong>{tf.discoverWord}</strong> {tf.emptyB}
         </div>
       ) : (
         items.map((item) => (

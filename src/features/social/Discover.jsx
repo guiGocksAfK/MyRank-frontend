@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { socialApi } from './socialData';
+import { useLanguage } from '../../shared/i18n';
 import UserPill from './UserPill';
 
 export default function Discover({ onOpenUser, onFollowChange }) {
+  const { t } = useLanguage();
+  const td = t.social.discover;
   const [query, setQuery] = useState('');
   const [results, setResults] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
@@ -35,13 +38,15 @@ export default function Discover({ onOpenUser, onFollowChange }) {
   };
 
   const list = results ?? suggestions;
-  const heading = results ? `Resultados (${results.length})` : 'Sugestões pra você';
+  const heading = results
+    ? td.results.replace('{n}', results.length)
+    : td.suggestions;
 
   return (
     <div className="mr-space-y-4">
       <input
         className="mr-input"
-        placeholder="Buscar por nome ou @handle…"
+        placeholder={td.searchPlaceholder}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         style={{ width: '100%' }}
@@ -53,7 +58,7 @@ export default function Discover({ onOpenUser, onFollowChange }) {
 
       {list.length === 0 ? (
         <div className="social-empty">
-          {results ? 'Ninguém encontrado com esse nome.' : 'Sem sugestões no momento.'}
+          {results ? td.noneFound : td.noSuggestions}
         </div>
       ) : (
         <div className="mr-space-y-2">

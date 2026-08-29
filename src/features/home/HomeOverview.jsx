@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useBadges } from '../../shared/badges';
 import { getStoredUser } from '../../services/authService';
 import { useUser } from '../../shared/userContext';
+import { useLanguage } from '../../shared/i18n';
+import { relativeTime } from '../../shared/useUnifiedItems';
 import { getCategories } from '../../services/CategoryService';
 import { getWorksByCategory } from '../../services/WorkService';
 import { getGroups } from '../../services/masterTableGroupService';
@@ -16,34 +18,13 @@ const typeIcons = {
   livro: '📚',
 };
 
-const typeLabels = {
-  filme: 'Filme',
-  jogo: 'Jogo',
-  serie: 'Série',
-  livro: 'Livro',
-  outro: 'Outro',
-};
+const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 function formatTime(minutes) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   if (m > 0) return `${h}h ${m}min`;
   return `${h}h`;
-}
-
-function timeAgo(dateString) {
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffMs = now - date;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return 'hoje';
-  if (diffDays === 1) return 'há 1 dia';
-  if (diffDays < 7) return `há ${diffDays} dias`;
-  if (diffDays < 14) return 'há 1 semana';
-  if (diffDays < 30) return `há ${Math.floor(diffDays / 7)} semanas`;
-  if (diffDays < 60) return 'há 1 mês';
-  return `há ${Math.floor(diffDays / 30)} meses`;
 }
 
 function getUnifiedOrderKey() {
@@ -98,6 +79,9 @@ export default function HomeOverview({ onNavigate }) {
   const [mediaItems, setMediaItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const { user } = useUser();
+  const { lang, t } = useLanguage();
+  const th = t.dash.home;
+  const typeLabels = t.common.mediaTypes;
   const storedUser = useMemo(() => getStoredUser(), []);
   const userName = user?.username || storedUser?.username || 'usuário';
 
@@ -164,10 +148,10 @@ export default function HomeOverview({ onNavigate }) {
     .slice(0, 6);
 
   const stats = [
-    { icon: '🎞️', value: mediaItems.length, label: 'Obras Avaliadas' },
-    { icon: '⭐', value: Number(avgNote), label: 'Nota Média', decimals: 1 },
-    { icon: '⏱️', value: totalHours, label: 'Horas Consumidas', suffix: 'h' },
-    { icon: '🏅', value: `${unlockedBadges}/${totalBadges}`, label: 'Badges Desbloqueados' },
+    { icon: '🎞️', value: mediaItems.length, label: th.statRated },
+    { icon: '⭐', value: Number(avgNote), label: th.statAvg, decimals: 1 },
+    { icon: '⏱️', value: totalHours, label: th.statHours, suffix: 'h' },
+    { icon: '🏅', value: `${unlockedBadges}/${totalBadges}`, label: th.statBadges },
   ];
 
   return (
@@ -175,10 +159,12 @@ export default function HomeOverview({ onNavigate }) {
       {/* Welcome */}
       <div>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>
-          Olá, <span style={{ color: 'var(--mr-gold)' }}>{userName}</span> 👋
+          {th.greeting.split('{name}')[0]}
+          <span style={{ color: 'var(--mr-gold)' }}>{userName}</span>
+          {th.greeting.split('{name}')[1]}
         </h1>
         <p style={{ color: 'var(--mr-text-secondary)', marginTop: 4 }}>
-          Aqui está o resumo do seu ranking pessoal
+          {th.subtitle}
         </p>
       </div>
 
@@ -205,14 +191,14 @@ export default function HomeOverview({ onNavigate }) {
       {/* Poster Grid */}
       <div>
         <div className="mr-section-header">
-          <h2 className="mr-section-title">🏆 Suas Favoritas</h2>
+          <h2 className="mr-section-title">{th.favorites}</h2>
           <div className="mr-flex mr-items-center mr-gap-2">
-            <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>Ponderada</span>
+            <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>{th.weighted}</span>
             <div style={{ position: 'relative' }}>
               <button
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
-                aria-label="Mostrar cálculo da nota ponderada"
+                aria-label={th.weightedTipAria}
                 style={{
                   width: 18, height: 18, borderRadius: '50%',
                   border: '1px solid var(--mr-border)', background: 'transparent',
@@ -229,9 +215,9 @@ export default function HomeOverview({ onNavigate }) {
                   lineHeight: 1.5, zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                 }}>
                   <span style={{ color: 'var(--mr-gold)', fontWeight: 700, display: 'block', marginBottom: 4 }}>
-                    Nota ponderada
+                    {th.weightedTitle}
                   </span>
-                  Nota original + bônus logarítmico baseado no tempo investido:
+                  {th.weightedTip}
                   <span style={{ color: 'var(--mr-gold)', fontFamily: 'monospace', display: 'block', marginTop: 4 }}>
                     Nota + log₁₀(Tempo / 60min)
                   </span>
@@ -296,8 +282,8 @@ export default function HomeOverview({ onNavigate }) {
 
             {/* Header do card com switch */}
             <div className="mr-flex mr-items-center mr-justify-between mr-mb-4">
-              <h3 className="mr-section-title">🔥 Avaliações Recentes</h3>
-              <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>Últimas 5 adicionadas</span>
+              <h3 className="mr-section-title">{th.recentRatings}</h3>
+              <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>{th.lastFive}</span>
 
               <div className="mr-flex mr-items-center mr-gap-2" style={{ display: 'none' }}>
 
@@ -396,7 +382,7 @@ export default function HomeOverview({ onNavigate }) {
                   <div className="mr-rank-info">
                     <div className="mr-rank-title">{item.title}</div>
                     <div className="mr-rank-subtitle">
-                      {typeLabels[item.type]} • {timeAgo(item.addedDate)}
+                      {typeLabels[item.type]} • {relativeTime(item.addedDate, lang)}
                     </div>
                   </div>
                   <div className="mr-rank-note-area mr-flex mr-items-center mr-gap-2">
@@ -413,11 +399,11 @@ export default function HomeOverview({ onNavigate }) {
         {/* Recent Badges */}
         <div className="mr-card">
           <div className="mr-card-body">
-            <h3 className="mr-section-title mr-mb-4">🎖️ Badges Recentes</h3>
+            <h3 className="mr-section-title mr-mb-4">{th.recentBadges}</h3>
             <div className="mr-space-y-3">
               {recentBadges.length === 0 && (
                 <span style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
-                  Nenhuma conquista ainda. Avalie obras pra desbloquear. ✨
+                  {th.noBadgesYet}
                 </span>
               )}
               {recentBadges.map((badge) => (
@@ -440,7 +426,7 @@ export default function HomeOverview({ onNavigate }) {
                       whiteSpace: 'nowrap',
                       flexShrink: 0,
                     }}>
-                      {timeAgo(badge.unlockedAt)}
+                      {relativeTime(badge.unlockedAt, lang)}
                     </span>
                   )}
                 </div>
@@ -454,7 +440,7 @@ export default function HomeOverview({ onNavigate }) {
       <div className="mr-card">
         <div className="mr-card-body">
           <div className="mr-section-header">
-            <h3 className="mr-section-title">🎯 Próximas Conquistas</h3>
+            <h3 className="mr-section-title">{th.nextBadges}</h3>
             <button
               className="mr-link-btn"
               onClick={() => {
@@ -466,13 +452,13 @@ export default function HomeOverview({ onNavigate }) {
                 );
               }}
             >
-              Ver todas →
+              {th.seeAll}
             </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
             {upcomingBadges.length === 0 && (
               <span style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
-                Sem conquistas em progresso no momento.
+                {th.noProgress}
               </span>
             )}
             {upcomingBadges
@@ -532,7 +518,7 @@ export default function HomeOverview({ onNavigate }) {
                           fontWeight: 700,
                           color: pct >= 80 ? 'var(--mr-gold)' : 'var(--mr-text-muted)',
                         }}>
-                          {pct >= 80 ? `🔥 falta ${remaining}!` : `${Math.round(pct)}%`}
+                          {pct >= 80 ? fmt(th.almostThere, { n: remaining }) : `${Math.round(pct)}%`}
                         </span>
                       </div>
                     </div>
