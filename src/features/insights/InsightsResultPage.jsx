@@ -1,199 +1,231 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
-const API_URL = '/api/insights';
+import { generateInsights, getLatestInsights } from '../../services/insightsService';
+import { BAR_COLORS, relativeFromNow } from './aiInsightsHelpers';
+import './insights.css';
 
 export default function InsightsResult() {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = location.state || {};
-  const selectedItems = Array.isArray(state.selectedItems) ? state.selectedItems : [];
+  const workIds = useMemo(() => {
+    const raw = location.state?.workIds;
+    return Array.isArray(raw) ? raw : null;
+  }, [location.state]);
 
-  const [status, setStatus] = useState('connecting');
+  const [status, setStatus] = useState('loading'); // loading | ready | empty | error
+  const [result, setResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
-  const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-  const [sending, setSending] = useState(false);
-
-  const connectionPayload = useMemo(() => ({
-    type: 'connect',
-    selectedItems,
-  }), [selectedItems]);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
-    const controller = new AbortController();
+    let active = true;
+    setStatus('loading');
 
-    fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(connectionPayload),
-      signal: controller.signal,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Status ${response.status}`);
-        }
-        return response.json();
-      })
+    const load = workIds
+      ? generateInsights(workIds, false)
+      : getLatestInsights();
+
+    load
       .then((data) => {
-        const reply = typeof data.reply === 'string'
-          ? data.reply
-          : 'Conexão estabelecida com a IA. Escreva sua mensagem no chat abaixo.';
-        setMessages([{ role: 'assistant', text: reply }]);
-        setStatus('connected');
+        if (!active) return;
+        if (!data) {
+          setStatus('empty');
+          return;
+        }
+        setResult(data);
+        setStatus('ready');
       })
-      .catch((error) => {
-        console.error('Conexão com API de IA falhou:', error);
-        setErrorMessage('Não foi possível conectar à API de IA. Verifique a conexão ou tente novamente mais tarde.');
+      .catch((err) => {
+        if (!active) return;
+        setErrorMessage(
+          err?.response?.data?.message
+          || 'Não foi possível gerar a análise agora. Tente novamente em instantes.',
+        );
         setStatus('error');
       });
 
-    return () => controller.abort();
-  }, [connectionPayload]);
+    return () => { active = false; };
+  }, [workIds]);
 
   const handleBack = () => navigate('/dashboard');
 
-  const handleSend = async (event) => {
-    event.preventDefault();
-    if (!inputValue.trim() || sending || status !== 'connected') return;
-
-    const userText = inputValue.trim();
-    setInputValue('');
-    setMessages((current) => [...current, { role: 'user', text: userText }]);
-    setSending(true);
-
+  const handleRegenerate = async () => {
+    if (!workIds || regenerating) return;
+    setRegenerating(true);
+    setErrorMessage('');
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'chat',
-          question: userText,
-          selectedItems,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Status ${response.status}`);
-      }
-
-      const data = await response.json();
-      const reply = typeof data.reply === 'string'
-        ? data.reply
-        : 'A IA respondeu, mas não houve texto de retorno válido.';
-
-      setMessages((current) => [...current, { role: 'assistant', text: reply }]);
-    } catch (error) {
-      console.error('Erro ao enviar mensagem para API de IA:', error);
-      setErrorMessage('Não foi possível enviar sua mensagem. Tente novamente mais tarde.');
-      setStatus('error');
+      const data = await generateInsights(workIds, true);
+      setResult(data);
+      setStatus('ready');
+    } catch (err) {
+      setErrorMessage(
+        err?.response?.data?.message
+        || 'Não foi possível gerar de novo agora. Tente em instantes.',
+      );
     } finally {
-      setSending(false);
+      setRegenerating(false);
     }
   };
 
-  if (status === 'error') {
+  if (status === 'loading') {
     return (
-      <div className="mr-space-y-6">
+      <Shell onBack={handleBack}>
         <div className="mr-card">
-          <div className="mr-card-body" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', marginBottom: 12 }}>⚠️</div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 12 }}>Erro ao conectar</h1>
-            <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.95rem', marginBottom: 18 }}>
-              {errorMessage}
+          <div className="mr-card-body" style={{ textAlign: 'center', padding: 48 }}>
+            <div className="insights-spinner" />
+            <p style={{ color: 'var(--mr-text-secondary)', marginTop: 16 }}>
+              Analisando seu perfil de consumo…
             </p>
-            <button className="mr-btn mr-btn-gold" onClick={handleBack}>
-              Voltar ao Dashboard
-            </button>
           </div>
         </div>
-      </div>
+      </Shell>
     );
   }
 
+  if (status === 'empty') {
+    return (
+      <Shell onBack={handleBack}>
+        <div className="mr-card">
+          <div className="mr-card-body" style={{ textAlign: 'center', padding: 40 }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🤖</div>
+            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 8 }}>Nenhuma análise ainda</h1>
+            <p style={{ color: 'var(--mr-text-secondary)', marginBottom: 18 }}>
+              Volte ao painel de IA Insights, selecione suas obras e gere sua primeira análise.
+            </p>
+            <button className="mr-btn mr-btn-gold" onClick={handleBack}>Voltar ao Dashboard</button>
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <Shell onBack={handleBack}>
+        <div className="mr-card">
+          <div className="mr-card-body" style={{ textAlign: 'center', padding: 40 }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>⚠️</div>
+            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 8 }}>Erro ao gerar a análise</h1>
+            <p style={{ color: 'var(--mr-text-secondary)', marginBottom: 18 }}>{errorMessage}</p>
+            <div className="mr-flex mr-gap-3" style={{ justifyContent: 'center' }}>
+              {workIds && (
+                <button className="mr-btn mr-btn-gold" onClick={handleRegenerate} disabled={regenerating}>
+                  {regenerating ? 'Tentando…' : 'Tentar de novo'}
+                </button>
+              )}
+              <button className="mr-btn mr-btn-outline" onClick={handleBack}>Voltar ao Dashboard</button>
+            </div>
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
+  const { analysis, model, workCount, cached, generatedAt } = result;
+  const maxPercent = Math.max(1, ...(analysis.tasteProfile || []).map((s) => s.percent || 0));
+
   return (
-    <div className="mr-space-y-6">
+    <Shell onBack={handleBack}>
       <div className="mr-card">
-        <div className="mr-card-body mr-space-y-3">
+        <div className="mr-card-body mr-space-y-2">
           <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
             <div>
               <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginBottom: 6 }}>
-                Chat de IA
+                Perfil de consumo · {workCount} obras · {model}
+                {cached ? ' · reaproveitado' : ''}
               </div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>Converse com a IA</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>{analysis.summaryTitle}</h1>
             </div>
-            <button className="mr-btn mr-btn-outline" onClick={handleBack}>
-              Voltar ao Dashboard
-            </button>
+            {workIds && (
+              <button className="mr-btn mr-btn-outline" onClick={handleRegenerate} disabled={regenerating}>
+                {regenerating ? 'Gerando…' : '↻ Gerar novamente'}
+              </button>
+            )}
           </div>
-          <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.95rem', maxWidth: 620 }}>
-            {status === 'connecting'
-              ? 'Conectando à API de IA...'
-              : 'Envie sua mensagem para conversar com a inteligência artificial.'}
+          <p style={{ color: 'var(--mr-text-secondary)', lineHeight: 1.7, maxWidth: 720 }}>
+            {analysis.summaryText}
           </p>
+          {generatedAt && (
+            <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
+              Gerado {relativeFromNow(generatedAt)}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="mr-card" style={{ minHeight: 360 }}>
-        <div className="mr-card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ flex: 1, overflow: 'auto', maxHeight: 420, display: 'grid', gap: 10 }}>
-            {messages.length === 0 ? (
-              <div style={{ color: 'var(--mr-text-secondary)', padding: 20, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                Aguarde enquanto a conexão com a API é estabelecida.
+      {Array.isArray(analysis.traits) && analysis.traits.length > 0 && (
+        <div className="insights-traits-grid">
+          {analysis.traits.map((trait, i) => (
+            <div key={`${trait.label}-${i}`} className="mr-card">
+              <div className="mr-card-body">
+                <div style={{ fontSize: '1.6rem', marginBottom: 8 }}>{trait.icon}</div>
+                <div style={{ fontWeight: 700, marginBottom: 4 }}>{trait.label}</div>
+                <div style={{ color: 'var(--mr-text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                  {trait.description}
+                </div>
               </div>
-            ) : (
-              messages.map((message, index) => (
-                <div
-                  key={`${message.role}-${index}`}
-                  style={{
-                    alignSelf: message.role === 'assistant' ? 'flex-start' : 'flex-end',
-                    maxWidth: '90%',
-                    padding: '14px 16px',
-                    borderRadius: 18,
-                    background: message.role === 'assistant' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(212, 175, 55, 0.18)',
-                    color: message.role === 'assistant' ? 'white' : 'inherit',
-                    border: message.role === 'assistant' ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(212,175,55,0.2)',
-                  }}
-                >
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: 6 }}>
-                    {message.role === 'assistant' ? 'IA' : 'Você'}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {Array.isArray(analysis.tasteProfile) && analysis.tasteProfile.length > 0 && (
+        <div className="mr-card">
+          <div className="mr-card-body mr-space-y-3">
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Perfil de gosto</h2>
+            <div className="mr-space-y-3">
+              {analysis.tasteProfile.map((slice, i) => (
+                <div key={`${slice.name}-${i}`}>
+                  <div className="mr-flex mr-justify-between" style={{ fontSize: '0.9rem', marginBottom: 4 }}>
+                    <span>{slice.name}</span>
+                    <span style={{ color: 'var(--mr-text-secondary)' }}>{slice.percent}%</span>
                   </div>
-                  <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                    {message.text}
+                  <div className="insights-bar-track">
+                    <div
+                      className="insights-bar-fill"
+                      style={{
+                        width: `${Math.round(((slice.percent || 0) / maxPercent) * 100)}%`,
+                        background: BAR_COLORS[i % BAR_COLORS.length],
+                      }}
+                    />
                   </div>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
           </div>
-
-          <form onSubmit={handleSend} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(event) => setInputValue(event.target.value)}
-              placeholder={status === 'connected' ? 'Digite sua mensagem...' : 'Aguardando conexão...'}
-              disabled={status !== 'connected' || sending}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                borderRadius: 14,
-                border: '1px solid var(--mr-border)',
-                background: 'var(--mr-surface)',
-                color: 'var(--mr-text)',
-                padding: '12px 14px',
-                fontSize: '0.95rem',
-              }}
-            />
-            <button
-              type="submit"
-              className="mr-btn mr-btn-gold"
-              disabled={status !== 'connected' || sending || !inputValue.trim()}
-              style={{ whiteSpace: 'nowrap' }}
-            >
-              {sending ? 'Enviando...' : 'Enviar'}
-            </button>
-          </form>
         </div>
+      )}
+
+      {analysis.recommendation && (
+        <div className="mr-info-card-gold">
+          <div className="mr-card-body mr-space-y-2">
+            <div className="insights-summary-label">Recomendação para você</div>
+            <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
+              <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>{analysis.recommendation.title}</span>
+              {analysis.recommendation.year && (
+                <span className="mr-badge mr-badge-outline">{analysis.recommendation.year}</span>
+              )}
+              {analysis.recommendation.category && (
+                <span className="mr-badge mr-badge-green">{analysis.recommendation.category}</span>
+              )}
+              {typeof analysis.recommendation.compatPercent === 'number' && (
+                <span className="mr-badge mr-badge-gold">{analysis.recommendation.compatPercent}% compatível</span>
+              )}
+            </div>
+            <p style={{ color: 'var(--mr-text)', lineHeight: 1.7 }}>{analysis.recommendation.reason}</p>
+          </div>
+        </div>
+      )}
+    </Shell>
+  );
+}
+
+function Shell({ children, onBack }) {
+  return (
+    <div className="myrank-dashboard">
+      <div className="mr-main mr-space-y-6" style={{ paddingTop: 24 }}>
+        <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onBack}>← Voltar ao Dashboard</button>
+        {children}
       </div>
     </div>
   );

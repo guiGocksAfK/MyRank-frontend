@@ -1,56 +1,107 @@
-﻿import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import './insights.css';
 
-const USER_RANKINGS = [
-  { title: 'The Witcher 3', note: 9.8, category: 'Jogo', timeMinutes: 6000 },
-  { title: 'Red Dead Redemption 2', note: 9.7, category: 'Jogo', timeMinutes: 5400 },
-  { title: 'Breaking Bad', note: 9.5, category: 'Série', timeMinutes: 3120 },
-  { title: 'Interstellar', note: 9.2, category: 'Filme', timeMinutes: 169 },
-  { title: 'Duna: Parte Dois', note: 8.9, category: 'Filme', timeMinutes: 166 },
-  { title: 'Elden Ring', note: 8.8, category: 'Jogo', timeMinutes: 7200 },
-  { title: 'Dune (livro)', note: 8.7, category: 'Livro', timeMinutes: 1260 },
-  { title: 'The Last of Us', note: 8.6, category: 'Série', timeMinutes: 540 },
-  { title: 'Arrival', note: 8.4, category: 'Filme', timeMinutes: 116 },
-  { title: 'Dark', note: 8.2, category: 'Série', timeMinutes: 1380 },
-];
-
-const ALL_CATEGORIES = ['Todos', ...Array.from(new Set(USER_RANKINGS.map((item) => item.category)))];
+const num = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
 
 export default function InsightsPanel() {
   const navigate = useNavigate();
+  const { items, loading, error } = useUnifiedItems();
+
+  const works = useMemo(
+    () => (items || [])
+      .map((it) => ({
+        id: it.id,
+        title: it.title,
+        note: num(it.note),
+        category: it.categoryName || 'Outros',
+        timeMinutes: num(it.timeMinutes),
+      }))
+      .sort((a, b) => b.note - a.note),
+    [items],
+  );
+
+  const categories = useMemo(
+    () => ['Todos', ...Array.from(new Set(works.map((w) => w.category)))],
+    [works],
+  );
+
   const [category, setCategory] = useState('Todos');
-  const [selectedItems, setSelectedItems] = useState(USER_RANKINGS);
+  // ids selecionados; null enquanto não carregou (aí selecionamos tudo por padrão)
+  const [selectedIds, setSelectedIds] = useState(null);
 
-  const filteredRankings = useMemo(
-    () => (category === 'Todos'
-      ? USER_RANKINGS
-      : USER_RANKINGS.filter((item) => item.category === category)),
-    [category],
+  const visible = useMemo(
+    () => (category === 'Todos' ? works : works.filter((w) => w.category === category)),
+    [works, category],
   );
 
-  const selectedTitles = useMemo(
-    () => new Set(selectedItems.map((item) => item.title)),
-    [selectedItems],
+  const effectiveSelected = useMemo(() => {
+    if (selectedIds !== null) return selectedIds;
+    return new Set(works.map((w) => w.id)); // default: tudo
+  }, [selectedIds, works]);
+
+  const selectedWorks = useMemo(
+    () => works.filter((w) => effectiveSelected.has(w.id)),
+    [works, effectiveSelected],
   );
 
-  const toggleItem = (item) => {
-    setSelectedItems((current) => {
-      const exists = current.some((selected) => selected.title === item.title);
-      if (exists) {
-        return current.filter((selected) => selected.title !== item.title);
-      }
-      return [...current, item];
+  const toggle = (id) => {
+    setSelectedIds((current) => {
+      const base = current !== null ? new Set(current) : new Set(works.map((w) => w.id));
+      if (base.has(id)) base.delete(id);
+      else base.add(id);
+      return base;
     });
   };
 
-  const selectAll = () => setSelectedItems(filteredRankings);
-  const clearSelection = () => setSelectedItems([]);
-
-  const generateAnalysisPage = () => {
-    if (selectedItems.length === 0) return;
-    navigate('/insights', { state: { selectedItems, category } });
+  const selectAllVisible = () => {
+    setSelectedIds((current) => {
+      const base = current !== null ? new Set(current) : new Set(works.map((w) => w.id));
+      visible.forEach((w) => base.add(w.id));
+      return base;
+    });
   };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const generate = () => {
+    if (selectedWorks.length === 0) return;
+    navigate('/insights', {
+      state: {
+        workIds: selectedWorks.map((w) => w.id),
+        preview: selectedWorks.slice(0, 8).map((w) => ({ title: w.title, note: w.note })),
+      },
+    });
+  };
+
+  if (loading) {
+    return <div className="mr-card"><div className="mr-card-body">Carregando suas obras…</div></div>;
+  }
+
+  if (error) {
+    return (
+      <div className="mr-card">
+        <div className="mr-card-body">Não foi possível carregar suas obras. Recarregue a página.</div>
+      </div>
+    );
+  }
+
+  if (works.length === 0) {
+    return (
+      <div className="mr-card">
+        <div className="mr-card-body mr-space-y-2">
+          <h1 style={{ fontSize: '1.4rem', fontWeight: 700 }}>🤖 IA Insights</h1>
+          <p style={{ color: 'var(--mr-text-secondary)' }}>
+            Você ainda não avaliou nenhuma obra. Adicione algumas nos seus rankings e volte aqui.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mr-space-y-6 insights-panel">
@@ -58,14 +109,14 @@ export default function InsightsPanel() {
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--mr-text)' }}>🤖 IA Insights</h1>
           <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.95rem', marginTop: 4 }}>
-            Selecione as obras que você quer analisar e vá para a página de resultados.
+            Selecione as obras que você quer analisar e gere seu perfil de consumo.
           </p>
         </div>
         <button
           type="button"
           className="mr-btn mr-btn-gold"
-          onClick={generateAnalysisPage}
-          disabled={selectedItems.length === 0}
+          onClick={generate}
+          disabled={selectedWorks.length === 0}
         >
           ✨ Gerar Análise
         </button>
@@ -74,7 +125,7 @@ export default function InsightsPanel() {
       <div className="mr-card">
         <div className="mr-card-body mr-space-y-4">
           <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
-            {ALL_CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat}
                 type="button"
@@ -84,7 +135,7 @@ export default function InsightsPanel() {
                 {cat}
               </button>
             ))}
-            <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={selectAll}>
+            <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={selectAllVisible}>
               Selecionar tudo
             </button>
             <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={clearSelection}>
@@ -96,32 +147,30 @@ export default function InsightsPanel() {
             <div>
               <div className="insights-summary">
                 <div>
-                  <div className="insights-summary-label">
-                    Obras disponíveis
-                  </div>
-                  <div className="insights-summary-value">{filteredRankings.length}</div>
+                  <div className="insights-summary-label">Obras disponíveis</div>
+                  <div className="insights-summary-value">{visible.length}</div>
                 </div>
                 <div className="insights-summary insights-summary--selected">
                   <div>
                     <div className="insights-summary-label">Selecionadas</div>
-                    <div className="insights-summary-value">{selectedItems.length}</div>
+                    <div className="insights-summary-value">{selectedWorks.length}</div>
                   </div>
                 </div>
               </div>
 
               <div className="mr-space-y-2 insights-ranking-list">
-                {filteredRankings.map((item) => {
-                  const selected = selectedTitles.has(item.title);
+                {visible.map((item, idx) => {
+                  const selected = effectiveSelected.has(item.id);
                   return (
                     <div
-                      key={item.title}
+                      key={item.id}
                       role="button"
                       tabIndex={0}
-                      onClick={() => toggleItem(item)}
+                      onClick={() => toggle(item.id)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
                           event.preventDefault();
-                          toggleItem(item);
+                          toggle(item.id);
                         }
                       }}
                       className="mr-rank-item"
@@ -135,7 +184,7 @@ export default function InsightsPanel() {
                       }}
                     >
                       <div className={`mr-rank-number ${selected ? 'mr-rank-number-1' : ''}`}>
-                        {filteredRankings.indexOf(item) + 1}
+                        {idx + 1}
                       </div>
                       <div className="mr-rank-info">
                         <div className="mr-rank-title" style={{ color: 'var(--mr-text)' }}>{item.title}</div>
@@ -156,20 +205,20 @@ export default function InsightsPanel() {
                   <div className="insights-selection-header">
                     <div>
                       <div className="insights-summary-label">Seleção atual</div>
-                      <div className="insights-selection-count">{selectedItems.length} obras</div>
+                      <div className="insights-selection-count">{selectedWorks.length} obras</div>
                     </div>
                     <div className="mr-badge mr-badge-green">{category}</div>
                   </div>
                   <div className="mr-space-y-2">
-                    {selectedItems.slice(0, 5).map((item) => (
-                      <div key={item.title} className="insights-selection-item">
+                    {selectedWorks.slice(0, 5).map((item) => (
+                      <div key={item.id} className="insights-selection-item">
                         <span>{item.title}</span>
                         <span className="insights-selection-note">{item.note.toFixed(1)}</span>
                       </div>
                     ))}
-                    {selectedItems.length > 5 && (
+                    {selectedWorks.length > 5 && (
                       <div className="insights-selection-more">
-                        + {selectedItems.length - 5} outras obras selecionadas
+                        + {selectedWorks.length - 5} outras obras selecionadas
                       </div>
                     )}
                   </div>
@@ -180,7 +229,8 @@ export default function InsightsPanel() {
                 <div className="mr-card-body">
                   <div className="insights-summary-label insights-step-label">Último passo</div>
                   <p className="insights-step-copy">
-                    Clique em gerar análise para abrir a página separada de insights com base na sua seleção.
+                    Clique em gerar análise para abrir a página de resultados com base na sua seleção.
+                    O resultado fica salvo — reabrir não gasta uma nova geração.
                   </p>
                 </div>
               </div>
