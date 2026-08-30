@@ -220,7 +220,11 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
     setDraft('');
     try {
       const saved = await sendMessage(conversation.id, body, replyTo?.id ?? null);
-      setMessages((prev) => [...(prev || []), saved]);
+      // o broadcast STOMP pode chegar antes desta resposta — dedupe por id
+      setMessages((prev) => {
+        const list = prev || [];
+        return list.some((m) => m.id === saved.id) ? list : [...list, saved];
+      });
       setReplyTo(null);
       setError(null);
       onChanged?.();
