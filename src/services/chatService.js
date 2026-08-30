@@ -21,6 +21,12 @@ export const startDirect = async (userId) => {
   return data;
 };
 
+/** Usuários que você segue de volta e ainda não tem DM (pra sugerir "diga oi"). */
+export const getSuggestedDirects = async () => {
+  const { data } = await api.get('/chat/directs/suggested');
+  return Array.isArray(data) ? data : [];
+};
+
 export const createGroup = async ({
   name,
   memberIds = [],

@@ -93,20 +93,18 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
               <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => onCompare(profile.id)}>
                 {tv.compare}
               </button>
-              {profile.following && profile.followsYou && (
-                <button
-                  className="mr-btn mr-btn-outline mr-btn-sm"
-                  onClick={() =>
-                    openChatWith({
-                      id: profile.id,
-                      username: profile.username,
-                      avatarUrl: profile.avatarUrl,
-                    })
-                  }
-                >
-                  {tv.message}
-                </button>
-              )}
+              <button
+                className="mr-btn mr-btn-outline mr-btn-sm"
+                onClick={() =>
+                  openChatWith({
+                    id: profile.id,
+                    username: profile.username,
+                    avatarUrl: profile.avatarUrl,
+                  })
+                }
+              >
+                {tv.message}
+              </button>
             </div>
           </div>
         </div>

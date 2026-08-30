@@ -100,6 +100,8 @@ const TRANSLATIONS = {
       title: 'Mensagens',
       loading: 'Carregando…',
       inboxEmpty: 'Nenhuma conversa ainda.',
+      sayHi: 'Diga oi 👋',
+      suggestedTitle: 'Sugestões',
       threadEmpty: 'Nenhuma mensagem ainda. Diga oi 👋',
       noMessages: 'Sem mensagens',
       loadMore: 'Carregar mais',
@@ -655,6 +657,8 @@ const TRANSLATIONS = {
     chat: {
       title: 'Messages',
       loading: 'Loading…',
+      sayHi: 'Say hi 👋',
+      suggestedTitle: 'Suggestions',
       inboxEmpty: 'No conversations yet.',
       threadEmpty: 'No messages yet. Say hi 👋',
       loadMore: 'Load more',
@@ -1210,6 +1214,8 @@ const TRANSLATIONS = {
     },
     chat: {
       title: 'Mensajes',
+      sayHi: 'Saluda 👋',
+      suggestedTitle: 'Sugerencias',
       loading: 'Cargando…',
       inboxEmpty: 'Aún no hay conversaciones.',
       threadEmpty: 'Aún no hay mensajes. Saluda 👋',

@@ -99,6 +99,10 @@
 .chat-conv:hover { background: var(--mr-card-hover); }
 .chat-conv.active { background: var(--mr-gold-10); }
 
+.chat-conv--ghost .chat-conv-name { color: var(--mr-text-secondary); }
+.chat-conv--ghost .chat-conv-preview { color: var(--mr-gold); }
+.chat-conv--ghost .chat-conv-avatar { opacity: 0.85; }
+
 .chat-conv-avatar,
 .chat-thread-avatar {
   width: 44px;
