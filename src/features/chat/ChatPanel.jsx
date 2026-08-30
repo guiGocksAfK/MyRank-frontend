@@ -9,6 +9,17 @@ import ChatThread from './ChatThread';
 import NewGroupModal from './NewGroupModal';
 import GroupIcon from './GroupIcon';
 
+const FILTERS = ['all', 'direct', 'group'];
+
+const readFilter = () => {
+  try {
+    const v = localStorage.getItem('myrank_chat_filter');
+    return FILTERS.includes(v) ? v : 'all';
+  } catch {
+    return 'all';
+  }
+};
+
 export default function ChatPanel() {
   const { t, lang } = useLanguage();
   const tc = t.chat;
@@ -17,6 +28,16 @@ export default function ChatPanel() {
   const [conversations, setConversations] = useState(null);
   const [activeId, setActiveId] = useState(null);
   const [showNewGroup, setShowNewGroup] = useState(false);
+  const [filter, setFilter] = useState(readFilter);
+
+  const changeFilter = (next) => {
+    setFilter(next);
+    try {
+      localStorage.setItem('myrank_chat_filter', next);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const loadConversations = useCallback(async () => {
     try {
@@ -43,6 +64,10 @@ export default function ChatPanel() {
   }, [pendingPeer, consumePendingPeer, loadConversations]);
 
   const active = conversations?.find((c) => c.id === activeId) || null;
+
+  const visible = conversations?.filter((c) =>
+    filter === 'all' ? true : filter === 'direct' ? c.type === 'DIRECT' : c.type === 'GROUP',
+  );
 
   const closeThread = () => {
     setActiveId(null);
@@ -71,12 +96,29 @@ export default function ChatPanel() {
           </button>
         </div>
 
+        <div className="chat-filter" role="tablist">
+          {FILTERS.map((f) => (
+            <button
+              key={f}
+              type="button"
+              role="tab"
+              aria-selected={filter === f}
+              className={`chat-filter-btn ${filter === f ? 'active' : ''}`}
+              onClick={() => changeFilter(f)}
+            >
+              {tc.filters[f]}
+            </button>
+          ))}
+        </div>
+
         {conversations === null ? (
           <div className="chat-hint">{tc.loading}</div>
         ) : conversations.length === 0 ? (
           <div className="chat-hint">{tc.inboxEmpty}</div>
+        ) : visible.length === 0 ? (
+          <div className="chat-hint">{tc.noneInFilter}</div>
         ) : (
-          conversations.map((c) => {
+          visible.map((c) => {
             const title = c.type === 'GROUP' ? c.name : `@${c.peer?.username ?? '—'}`;
             const preview = renderPreview(c, tc);
             return (

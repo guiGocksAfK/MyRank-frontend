@@ -46,6 +46,32 @@
   font-weight: 800;
 }
 
+.chat-filter {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--mr-border-light);
+}
+
+.chat-filter-btn {
+  flex: 1;
+  padding: 5px 8px;
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-xs);
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.chat-filter-btn:hover { color: var(--mr-text); }
+.chat-filter-btn.active {
+  background: var(--mr-gold-10);
+  border-color: var(--mr-gold-20);
+  color: var(--mr-gold);
+}
+
 .chat-hint,
 .chat-empty-hint {
   padding: 16px;

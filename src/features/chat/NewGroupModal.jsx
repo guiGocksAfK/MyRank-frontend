@@ -43,7 +43,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
     );
   };
 
-  const canCreate = name.trim().length > 0 && selected.length >= 2 && !busy;
+  const canCreate = name.trim().length > 0 && !busy;
 
   const handleCreate = async () => {
     if (!canCreate) return;
@@ -74,7 +74,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
           onChange={(e) => setName(e.target.value)}
         />
 
-        <label className="chat-modal-label">{tc.addPeople}</label>
+        <label className="chat-modal-label">{tc.addPeopleOptional}</label>
         {selected.length > 0 && (
           <div className="chat-chips">
             {selected.map((u) => (
@@ -111,7 +111,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
         </div>
 
         {error && <div className="chat-error">{error}</div>}
-        <div className="chat-modal-hint">{tc.groupMinHint}</div>
+        <div className="chat-modal-hint">{tc.groupCreateHint}</div>
 
         <div className="chat-modal-actions">
           <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={busy}>

@@ -146,7 +146,8 @@ export const socialApi = {
   },
 
   async searchUsers(q) {
-    const query = (q || '').trim();
+    // aceita "@handle" ou "handle" — o backend casa só com o username
+    const query = (q || '').trim().replace(/^@+/, '');
     if (!query) return [];
     const { data } = await api.get('/social/users', { params: { q: query } });
     return (data || []).map(decorateUser);
