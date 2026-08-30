@@ -40,11 +40,7 @@ function initialsFor(username) {
 }
 
 function avatarSrc(user) {
-  if (!user) return null;
-  if (user.avatarUrl) return user.avatarUrl;
-  if (!user.id) return null;
-  const base = (api.defaults.baseURL || '').replace(/\/$/, '');
-  return `${base}/users/${user.id}/avatar`;
+  return user?.avatarUrl || null;
 }
 
 /** SocialUserDTO / ActorDTO / SocialProfileDTO → shape dos componentes. */

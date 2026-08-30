@@ -3,7 +3,6 @@ import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
 import { socialApi } from '../social/socialData';
 import SocialAvatar from '../social/SocialAvatar';
-import api from '../../services/api';
 import {
   getMembers,
   addMembers,
@@ -210,8 +209,5 @@ function initials(username) {
 }
 
 function avatarSrc(m) {
-  if (m.avatarUrl) return m.avatarUrl;
-  if (!m.userId) return null;
-  const base = (api.defaults.baseURL || '').replace(/\/$/, '');
-  return `${base}/users/${m.userId}/avatar`;
+  return m?.avatarUrl || null;
 }

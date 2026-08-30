@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getMe, updateMe } from '../../services/userService';
 import Avatar from '../../shared/components/Avatar';
-import AvatarUploadModal from './AvatarUploadModal';
+import AvatarUrlModal from './AvatarUrlModal';
 import { useUser } from '../../shared/userContext';
 import { useLanguage, LANGUAGES } from '../../shared/i18n';
 import {
@@ -14,11 +14,6 @@ import {
 import { useBadges, groupByBucket } from '../../shared/badges';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
-const safeStringify = (v) => {
-  try { return JSON.stringify(v, null, 2); }
-  catch { return String(v); }
-};
-
 /** Interpola {chaves} de uma string de tradução. */
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -159,9 +154,8 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const [error,           setError]           = useState('');
   const [badgeFilter,     setBadgeFilter]     = useState('all'); // 'all' | 'unlocked' | 'locked'
   const [profile,         setProfile]         = useState(null);  // objeto /users/me completo (id, avatarUrl, updatedAt...)
-  const [avatarVersion,   setAvatarVersion]   = useState(0);     // muda pra furar o cache do <img> após upload
+  const [avatarVersion,   setAvatarVersion]   = useState(0);     // muda pra furar o cache do <img> após troca
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
-  const [avatarError,     setAvatarError]     = useState(null); // objeto de detalhe; PERSISTE mesmo após o modal fechar
   const { setUser } = useUser();
 
   // atualiza o form local + o usuário compartilhado (header, saudação da home)
@@ -192,7 +186,6 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const handleAvatarDone = (freshUser) => {
     applyUser(freshUser);
     setAvatarVersion((v) => v + 1);
-    setAvatarError(null);
     setAvatarModalOpen(false);
   };
 
@@ -296,61 +289,6 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                 >
                   {tp.changePhoto}
                 </button>
-              )}
-
-              {avatarError && (
-                <div
-                  style={{
-                    width: '100%', textAlign: 'left', marginTop: 4,
-                    padding: '0.7rem 0.8rem', borderRadius: 8,
-                    background: 'rgba(226,75,74,0.10)', border: '1px solid rgba(226,75,74,0.4)',
-                  }}
-                >
-                  <div className="mr-flex mr-items-center mr-justify-between" style={{ gap: 8, marginBottom: 4 }}>
-                    <strong style={{ color: '#ff8d8b', fontSize: '0.8rem' }}>
-                      {avatarError.kind === 'http'
-                        ? fmt(tp.uploadFailHttp, { status: avatarError.status, statusText: avatarError.statusText || '' })
-                        : avatarError.kind === 'no-response'
-                          ? tp.uploadFailNoResponse
-                          : tp.uploadFailClient}
-                    </strong>
-                    <button
-                      type="button"
-                      className="mr-btn mr-btn-ghost mr-btn-sm"
-                      onClick={() => setAvatarError(null)}
-                      style={{ flexShrink: 0 }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  {(avatarError.serverMessage || avatarError.hint || avatarError.message) && (
-                    <p style={{ margin: '0 0 6px', fontSize: '0.8rem' }}>
-                      {avatarError.serverMessage || avatarError.hint || avatarError.message}
-                    </p>
-                  )}
-                  <details>
-                    <summary style={{ cursor: 'pointer', fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
-                      {tp.techDetails}
-                    </summary>
-                    <pre
-                      style={{
-                        margin: '6px 0 0', maxHeight: 240, overflow: 'auto',
-                        fontSize: '0.7rem', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                        color: 'var(--mr-text-secondary)',
-                      }}
-                    >
-                      {safeStringify(avatarError)}
-                    </pre>
-                  </details>
-                  <button
-                    type="button"
-                    className="mr-btn mr-btn-outline mr-btn-sm"
-                    style={{ marginTop: 6 }}
-                    onClick={() => navigator.clipboard?.writeText(safeStringify(avatarError))}
-                  >
-                    {tp.copyDetails}
-                  </button>
-                </div>
               )}
             </div>
 
@@ -684,11 +622,10 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
       </div>
 
       {avatarModalOpen && (
-        <AvatarUploadModal
+        <AvatarUrlModal
           currentUser={profile}
           onClose={() => setAvatarModalOpen(false)}
           onDone={handleAvatarDone}
-          onError={setAvatarError}
         />
       )}
 
