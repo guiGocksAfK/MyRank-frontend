@@ -3,6 +3,7 @@ import { useLanguage } from '../../shared/i18n';
 import { socialApi } from '../social/socialData';
 import { createGroup } from '../../services/chatService';
 import SocialAvatar from '../social/SocialAvatar';
+import ImagePreview from './ImagePreview';
 
 const NAME_MAX = 80;
 const DESC_MAX = 300;
@@ -103,6 +104,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
           placeholder="https://…/foto.jpg"
           onChange={(e) => setImageUrl(e.target.value)}
         />
+        <ImagePreview url={imageUrl} />
 
         <label className="chat-modal-label">{tc.groupAccess}</label>
         <div className="chat-access-seg">

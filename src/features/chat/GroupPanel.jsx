@@ -3,6 +3,7 @@ import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
 import { socialApi } from '../social/socialData';
 import SocialAvatar from '../social/SocialAvatar';
+import ImagePreview from './ImagePreview';
 import {
   getMembers,
   addMembers,
@@ -39,6 +40,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
   const [name, setName] = useState(conversation.name || '');
   const [desc, setDesc] = useState(conversation.description || '');
   const [photo, setPhoto] = useState(conversation.imageUrl || '');
+  const [access, setAccess] = useState(conversation.access);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -130,7 +132,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
     }
   };
 
-  // ── Identidade: salva nome + descrição + foto num PATCH só ───────────
+  // ── Salva nome + descrição + foto + acesso num PATCH só, e fecha ─────
   const savedName = conversation.name || '';
   const savedDesc = conversation.description || '';
   const savedPhoto = conversation.imageUrl || '';
@@ -139,27 +141,26 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
       canEditGroup &&
       (name.trim() !== savedName ||
         desc.trim() !== savedDesc ||
-        photo.trim() !== savedPhoto),
-    [canEditGroup, name, desc, photo, savedName, savedDesc, savedPhoto],
+        photo.trim() !== savedPhoto ||
+        access !== conversation.access),
+    [canEditGroup, name, desc, photo, access, savedName, savedDesc, savedPhoto, conversation.access],
   );
 
-  const saveIdentity = async () => {
+  const save = async () => {
     if (!dirty || !name.trim()) return;
     const patch = {};
     if (name.trim() !== savedName) patch.name = name.trim();
     if (desc.trim() !== savedDesc) patch.description = desc.trim();
     if (photo.trim() !== savedPhoto) patch.imageUrl = photo.trim();
+    if (access !== conversation.access) patch.access = access;
     setBusy(true);
     setError(null);
     try {
       await updateGroup(conversation.id, patch);
-      setName((v) => v.trim());
-      setDesc((v) => v.trim());
-      setPhoto((v) => v.trim());
       onChanged?.();
+      onClose();
     } catch (err) {
       setError(err?.response?.data?.message || tc.actionError);
-    } finally {
       setBusy(false);
     }
   };
@@ -207,6 +208,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
                 placeholder="https://…/foto.jpg"
                 onChange={(e) => setPhoto(e.target.value)}
               />
+              <ImagePreview url={photo} />
             </section>
           )}
 
@@ -214,21 +216,20 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
             <section className="chat-modal-section">
               <h4 className="chat-modal-section-title">{tc.sectionAccess}</h4>
 
-              <label className="chat-modal-label">{tc.groupAccess}</label>
               <div className="chat-access-seg">
                 {ACCESSES.map((a) => (
                   <button
                     key={a}
                     type="button"
-                    className={`chat-access-btn ${conversation.access === a ? 'active' : ''}`}
-                    disabled={busy || conversation.access === a}
-                    onClick={() => run(() => updateGroup(conversation.id, { access: a }))}
+                    className={`chat-access-btn ${access === a ? 'active' : ''}`}
+                    disabled={busy}
+                    onClick={() => setAccess(a)}
                   >
                     {tc.access[a]}
                   </button>
                 ))}
               </div>
-              <div className="chat-modal-hint">{tc.accessHint[conversation.access]}</div>
+              <div className="chat-modal-hint">{tc.accessHint[access]}</div>
 
               <label className="chat-modal-label">{tc.inviteLink}</label>
               {inviteToken ? (
@@ -402,7 +403,6 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
           </section>
 
           <section className="chat-modal-section chat-modal-section-danger">
-            <h4 className="chat-modal-section-title">{tc.sectionDanger}</h4>
             {isOwner ? (
               <button
                 type="button"
@@ -432,7 +432,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
             <button
               type="button"
               className="mr-btn mr-btn-gold mr-btn-sm"
-              onClick={saveIdentity}
+              onClick={save}
               disabled={busy || !dirty || !name.trim()}
             >
               {tc.saveChanges}

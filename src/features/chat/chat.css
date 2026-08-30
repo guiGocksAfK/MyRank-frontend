@@ -480,7 +480,6 @@ input.chat-modal-input { max-height: none; }
   color: var(--mr-text-muted);
 }
 .chat-modal-section .chat-modal-label:first-of-type { margin-top: 6px; }
-.chat-modal-section-danger .chat-modal-section-title { color: var(--mr-red); }
 
 .chat-modal-foot {
   position: sticky;
@@ -491,6 +490,25 @@ input.chat-modal-input { max-height: none; }
   background: var(--mr-surface);
   border-top: 1px solid var(--mr-border-light);
 }
+
+/* ── Pré-visualização de imagem por URL ───────────────────────────── */
+.chat-photo-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.chat-photo-preview img {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--mr-radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--mr-border);
+  background: var(--mr-muted-bg);
+}
+.chat-photo-preview.is-error img { display: none; }
+.chat-photo-preview-cap { font-size: 0.75rem; color: var(--mr-text-muted); }
+.chat-photo-preview.is-error .chat-photo-preview-cap { color: var(--mr-red); }
 
 .chat-list-head-btns { display: flex; gap: 6px; }
 
