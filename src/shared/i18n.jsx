@@ -153,6 +153,9 @@ const TRANSLATIONS = {
       save: 'Salvar',
       groupPhoto: 'Foto do grupo',
       groupPhotoOptional: 'Foto do grupo (opcional)',
+      groupDescription: 'Descrição do grupo',
+      groupDescriptionOptional: 'Descrição do grupo (opcional)',
+      groupDescriptionPlaceholder: 'Sobre o que é esse grupo?',
       groupAccess: 'Acesso',
       access: { OPEN: 'Aberto', REQUEST: 'Por convite', CLOSED: 'Fechado' },
       accessHint: {
@@ -685,6 +688,9 @@ const TRANSLATIONS = {
       save: 'Save',
       groupPhoto: 'Group photo',
       groupPhotoOptional: 'Group photo (optional)',
+      groupDescription: 'Group description',
+      groupDescriptionOptional: 'Group description (optional)',
+      groupDescriptionPlaceholder: 'What is this group about?',
       groupAccess: 'Access',
       access: { OPEN: 'Open', REQUEST: 'Request', CLOSED: 'Closed' },
       accessHint: {
@@ -1217,6 +1223,9 @@ const TRANSLATIONS = {
       save: 'Guardar',
       groupPhoto: 'Foto del grupo',
       groupPhotoOptional: 'Foto del grupo (opcional)',
+      groupDescription: 'Descripción del grupo',
+      groupDescriptionOptional: 'Descripción del grupo (opcional)',
+      groupDescriptionPlaceholder: '¿De qué trata este grupo?',
       groupAccess: 'Acceso',
       access: { OPEN: 'Abierto', REQUEST: 'Por solicitud', CLOSED: 'Cerrado' },
       accessHint: {

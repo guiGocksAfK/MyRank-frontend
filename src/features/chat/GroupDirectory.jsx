@@ -82,6 +82,7 @@ export default function GroupDirectory({ onBack, onOpen }) {
                 <div className="chat-conv-preview">
                   {tc.memberCount.replace('{n}', e.memberCount)} · {tc.access[e.access]}
                 </div>
+                {e.description && <div className="chat-dir-desc">{e.description}</div>}
               </div>
               {e.membership === 'MEMBER' ? (
                 <button type="button" className="chat-mini-btn" onClick={() => onOpen(e.id)}>

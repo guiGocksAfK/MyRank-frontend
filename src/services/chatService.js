@@ -21,8 +21,20 @@ export const startDirect = async (userId) => {
   return data;
 };
 
-export const createGroup = async ({ name, memberIds = [], access = 'CLOSED', imageUrl = '' }) => {
-  const { data } = await api.post('/chat/conversations', { name, memberIds, access, imageUrl });
+export const createGroup = async ({
+  name,
+  memberIds = [],
+  access = 'CLOSED',
+  imageUrl = '',
+  description = '',
+}) => {
+  const { data } = await api.post('/chat/conversations', {
+    name,
+    memberIds,
+    access,
+    imageUrl,
+    description,
+  });
   return data;
 };
 

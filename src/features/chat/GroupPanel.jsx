@@ -37,6 +37,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
   const [members, setMembers] = useState(null);
   const [requests, setRequests] = useState([]);
   const [name, setName] = useState(conversation.name || '');
+  const [desc, setDesc] = useState(conversation.description || '');
   const [photo, setPhoto] = useState(conversation.imageUrl || '');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -131,6 +132,25 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
                 className="mr-btn mr-btn-outline mr-btn-sm"
                 onClick={() => run(() => updateGroup(conversation.id, { name: name.trim() }))}
                 disabled={busy || !name.trim() || name.trim() === conversation.name}
+              >
+                {tc.save}
+              </button>
+            </div>
+
+            <label className="chat-modal-label">{tc.groupDescription}</label>
+            <div className="chat-rename-row">
+              <textarea
+                className="chat-input chat-modal-input"
+                rows={2}
+                value={desc}
+                maxLength={300}
+                placeholder={tc.groupDescriptionPlaceholder}
+                onChange={(e) => setDesc(e.target.value)}
+              />
+              <button
+                className="mr-btn mr-btn-outline mr-btn-sm"
+                onClick={() => run(() => updateGroup(conversation.id, { description: desc.trim() }))}
+                disabled={busy || desc.trim() === (conversation.description || '')}
               >
                 {tc.save}
               </button>
