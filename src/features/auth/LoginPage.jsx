@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import { getDiscordAuthUrl, login, loginWithGoogle } from "../../services/authService";
+import { getDiscordAuthUrl, login, loginWithGoogle, takePostAuthPath } from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
 import "./auth.css";
 
@@ -23,7 +23,7 @@ const LoginPage = () => {
 
     try {
       await login(email, password);
-      navigate("/dashboard");
+      navigate(takePostAuthPath());
     } catch (err) {
       const message = err.response?.data?.message || tAuth.errors.login;
       setError(message);
@@ -43,7 +43,7 @@ const LoginPage = () => {
       }
 
       await loginWithGoogle(credential);
-      navigate("/dashboard");
+      navigate(takePostAuthPath());
     } catch (err) {
       const message = err.response?.data?.message || err.message || tAuth.errors.google;
       setError(message);

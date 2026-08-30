@@ -13,6 +13,10 @@ import {
   getJoinRequests,
   approveJoinRequest,
   rejectJoinRequest,
+  getInviteToken,
+  rotateInviteToken,
+  revokeInviteToken,
+  inviteUrl,
 } from '../../services/chatService';
 
 const RANK = { OWNER: 0, ADMIN: 1, MOD: 2, MEMBER: 3 };
@@ -38,6 +42,8 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
   const [results, setResults] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [inviteToken, setInviteToken] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   const loadMembers = useCallback(() => {
     getMembers(conversation.id).then(setMembers).catch(() => setMembers([]));
@@ -52,6 +58,22 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
     loadMembers();
     loadRequests();
   }, [loadMembers, loadRequests]);
+
+  useEffect(() => {
+    if (!canEditGroup) return;
+    getInviteToken(conversation.id).then(setInviteToken).catch(() => {});
+  }, [conversation.id, canEditGroup]);
+
+  const copyInvite = async () => {
+    if (!inviteToken) return;
+    try {
+      await navigator.clipboard.writeText(inviteUrl(inviteToken));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard bloqueado — o usuário copia manual do input */
+    }
+  };
 
   useEffect(() => {
     const q = query.trim();
@@ -146,6 +168,57 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
                 </button>
               ))}
             </div>
+
+            <label className="chat-modal-label">{tc.inviteLink}</label>
+            {inviteToken ? (
+              <>
+                <div className="chat-rename-row">
+                  <input
+                    className="chat-input chat-modal-input"
+                    type="text"
+                    readOnly
+                    value={inviteUrl(inviteToken)}
+                    onFocus={(e) => e.target.select()}
+                  />
+                  <button
+                    className="mr-btn mr-btn-outline mr-btn-sm"
+                    type="button"
+                    onClick={copyInvite}
+                    disabled={busy}
+                  >
+                    {copied ? tc.inviteCopied : tc.inviteCopy}
+                  </button>
+                </div>
+                <div className="chat-invite-actions">
+                  <button
+                    className="chat-mini-btn"
+                    type="button"
+                    onClick={() => run(async () => setInviteToken(await rotateInviteToken(conversation.id)))}
+                    disabled={busy}
+                  >
+                    {tc.inviteRotate}
+                  </button>
+                  <button
+                    className="chat-mini-btn is-ghost"
+                    type="button"
+                    onClick={() => run(async () => { await revokeInviteToken(conversation.id); setInviteToken(null); })}
+                    disabled={busy}
+                  >
+                    {tc.inviteRevoke}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button
+                className="mr-btn mr-btn-outline mr-btn-sm"
+                type="button"
+                onClick={() => run(async () => setInviteToken(await rotateInviteToken(conversation.id)))}
+                disabled={busy}
+              >
+                {tc.inviteGenerate}
+              </button>
+            )}
+            <div className="chat-invite-hint">{tc.inviteHint}</div>
           </>
         )}
 

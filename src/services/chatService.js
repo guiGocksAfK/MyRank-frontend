@@ -53,6 +53,33 @@ export const cancelJoinRequest = async (convId) => {
   await api.delete(`/chat/conversations/${convId}/join`);
 };
 
+// ── Link de convite (reutilizável + revogável) ──────────────────────────
+
+/** Token atual do grupo (null se não houver). Só OWNER/ADMIN. */
+export const getInviteToken = async (convId) => {
+  const { data } = await api.get(`/chat/conversations/${convId}/invite`);
+  return data?.token ?? null;
+};
+
+/** Gera (ou rotaciona) o link e retorna o novo token. */
+export const rotateInviteToken = async (convId) => {
+  const { data } = await api.post(`/chat/conversations/${convId}/invite`);
+  return data?.token ?? null;
+};
+
+export const revokeInviteToken = async (convId) => {
+  await api.delete(`/chat/conversations/${convId}/invite`);
+};
+
+/** Aceita um convite pelo token; retorna a conversa (ChatConversationDTO). */
+export const acceptInvite = async (token) => {
+  const { data } = await api.post(`/chat/invite/${encodeURIComponent(token)}`);
+  return data;
+};
+
+/** Monta a URL completa do convite a partir de um token. */
+export const inviteUrl = (token) => `${window.location.origin}/chat/invite/${token}`;
+
 export const getJoinRequests = async (convId) => {
   const { data } = await api.get(`/chat/conversations/${convId}/requests`);
   return Array.isArray(data) ? data : [];

@@ -50,7 +50,7 @@ function CompareList({ onPick, onFollowChange }) {
   );
 }
 
-export default function SocialPanel() {
+export default function SocialPanel({ initialConvId = null, onInitialConvConsumed }) {
   const { user } = useUser();
   const { t } = useLanguage();
   const ts = t.social;
@@ -75,6 +75,13 @@ export default function SocialPanel() {
       setTab('chat');
     }
   }, [openNonce]);
+
+  // Veio de /chat/invite/:token — abre direto a sub-aba Mensagens na conversa aceita.
+  useEffect(() => {
+    if (initialConvId == null) return;
+    setView({ kind: 'tabs' });
+    setTab('chat');
+  }, [initialConvId]);
 
   const loadSummary = useCallback(() => {
     socialApi.getSummary().then(setSummary);
@@ -167,7 +174,9 @@ export default function SocialPanel() {
       {tab === 'feed' && <SocialFeed onOpenUser={openProfile} />}
       {tab === 'discover' && <Discover onOpenUser={openProfile} onFollowChange={loadSummary} />}
       {tab === 'compare' && <CompareList onPick={openCompare} onFollowChange={loadSummary} />}
-      {tab === 'chat' && <ChatPanel />}
+      {tab === 'chat' && (
+        <ChatPanel initialConvId={initialConvId} onInitialConvConsumed={onInitialConvConsumed} />
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './chat.css';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
@@ -21,10 +21,11 @@ const readFilter = () => {
   }
 };
 
-export default function ChatPanel() {
+export default function ChatPanel({ initialConvId = null, onInitialConvConsumed }) {
   const { t, lang } = useLanguage();
   const tc = t.chat;
-  const { unreadCount, refreshCount, pendingPeer, consumePendingPeer } = useChat();
+  const { unreadCount, refreshCount, pendingPeer, consumePendingPeer, touchNonce } = useChat();
+  const initialConvSeen = useRef(false);
 
   const [conversations, setConversations] = useState(null);
   const [activeId, setActiveId] = useState(null);
@@ -51,7 +52,16 @@ export default function ChatPanel() {
 
   useEffect(() => {
     loadConversations();
-  }, [loadConversations, unreadCount]);
+  }, [loadConversations, unreadCount, touchNonce]);
+
+  // Abre a conversa que veio de /chat/invite/:token (uma vez só).
+  useEffect(() => {
+    if (initialConvId == null || initialConvSeen.current) return;
+    initialConvSeen.current = true;
+    setActiveId(initialConvId);
+    loadConversations();
+    onInitialConvConsumed?.();
+  }, [initialConvId, loadConversations, onInitialConvConsumed]);
 
   // pedido externo: botão "Mensagem" no perfil de alguém → abre/cria o DM
   useEffect(() => {

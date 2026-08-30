@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
+import { useUser } from '../../shared/userContext';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import Avatar from '../../shared/components/Avatar';
 import GroupIcon from './GroupIcon';
@@ -18,6 +19,24 @@ import {
 const POLL_MS = 15_000;
 const BODY_MAX = 2000;
 const GROUP_GAP_MS = 5 * 60 * 1000;
+const PAGE_SIZE = 40;
+
+/** Refresh silencioso: mescla a página 0 (mais recente) sem descartar histórico já carregado. */
+function mergeRefresh(prev, fresh) {
+  if (!prev || prev.length === 0) return fresh;
+  const freshById = new Map(fresh.map((m) => [m.id, m]));
+  const maxPrevId = prev.reduce((mx, m) => (m.id > mx ? m.id : mx), 0);
+  const merged = prev.map((m) => freshById.get(m.id) || m);
+  const appended = fresh.filter((m) => m.id > maxPrevId);
+  return appended.length ? [...merged, ...appended] : merged;
+}
+
+/** "Carregar mais": prepende mensagens antigas ignorando ids já presentes. */
+function mergePrepend(older, current) {
+  const seen = new Set(current.map((m) => m.id));
+  const add = older.filter((m) => !seen.has(m.id));
+  return add.length ? [...add, ...current] : current;
+}
 
 const SendIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
@@ -29,7 +48,9 @@ const SendIcon = () => (
 export default function ChatThread({ conversation, onBack, onChanged, onLeft }) {
   const { t, lang } = useLanguage();
   const tc = t.chat;
-  const { refreshCount } = useChat();
+  const { refreshCount, subscribeConversation } = useChat();
+  const { user: me } = useUser();
+  const myId = me?.id ?? null;
   const isGroup = conversation.type === 'GROUP';
   const canModerate = ['OWNER', 'ADMIN', 'MOD'].includes(conversation.myRole);
 
@@ -41,11 +62,24 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
   const [replyTo, setReplyTo] = useState(null);
   const [editing, setEditing] = useState(null);
   const [menuFor, setMenuFor] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const bottomRef = useRef(null);
+  const listRef = useRef(null);
   const inputRef = useRef(null);
+  const pageRef = useRef(0);
+  const prependHeightRef = useRef(0); // scrollHeight antes de prepender (0 = sem prepend pendente)
+  const forceBottomRef = useRef(true); // força ir ao fim na carga inicial
+  const nearBottomRef = useRef(true); // usuário estava perto do fim antes do último update
   const scrollToBottom = useCallback((smooth = false) => {
     bottomRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+  }, []);
+
+  const onListScroll = useCallback(() => {
+    const el = listRef.current;
+    if (!el) return;
+    nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   }, []);
 
   const patchMessage = useCallback((updated) => {
@@ -54,10 +88,15 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
 
   const load = useCallback(
     async ({ silent = false } = {}) => {
-      if (!silent) setMessages(null);
+      if (!silent) {
+        setMessages(null);
+        pageRef.current = 0;
+        forceBottomRef.current = true;
+      }
       try {
-        const rows = await getMessages(conversation.id);
-        setMessages(rows);
+        const rows = await getMessages(conversation.id, 0, PAGE_SIZE);
+        if (!silent) setHasMore(rows.length === PAGE_SIZE);
+        setMessages((prev) => (silent ? mergeRefresh(prev, rows) : rows));
         setError(null);
         markConversationRead(conversation.id).then(refreshCount).catch(() => {});
       } catch (err) {
@@ -67,6 +106,25 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
     },
     [conversation.id, refreshCount, tc.loadError],
   );
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const next = pageRef.current + 1;
+    try {
+      const older = await getMessages(conversation.id, next, PAGE_SIZE);
+      pageRef.current = next;
+      setHasMore(older.length === PAGE_SIZE);
+      if (older.length) {
+        prependHeightRef.current = listRef.current?.scrollHeight ?? 0;
+        setMessages((prev) => mergePrepend(older, prev || []));
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || tc.loadError);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [conversation.id, hasMore, loadingMore, tc.loadError]);
 
   useEffect(() => {
     setReplyTo(null);
@@ -80,8 +138,51 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
     return () => clearInterval(id);
   }, [load]);
 
+  // Real-time: eventos da conversa aberta via STOMP (o poll acima é só fallback).
   useEffect(() => {
-    if (messages && !editing) scrollToBottom();
+    const off = subscribeConversation(conversation.id, (evt) => {
+      const msg = evt?.message;
+      if (!msg) return;
+      const withMine = { ...msg, mine: msg.senderId === myId };
+
+      if (evt.type === 'created') {
+        setMessages((prev) => {
+          const list = prev || [];
+          if (list.some((m) => m.id === msg.id)) return list; // eco da própria mensagem
+          return [...list, withMine];
+        });
+        markConversationRead(conversation.id).then(refreshCount).catch(() => {});
+      } else if (evt.type === 'edited' || evt.type === 'deleted') {
+        setMessages((prev) => (prev || []).map((m) => (m.id === msg.id ? withMine : m)));
+      } else if (evt.type === 'reacted') {
+        if (evt.actorId === myId) return; // meu react já foi aplicado pela resposta do POST
+        setMessages((prev) =>
+          (prev || []).map((m) => {
+            if (m.id !== msg.id) return m;
+            const myEmoji = (m.reactions || []).find((r) => r.mine)?.emoji;
+            const reactions = (msg.reactions || []).map((r) => ({ ...r, mine: r.emoji === myEmoji }));
+            return { ...withMine, reactions };
+          }),
+        );
+      }
+    });
+    return off;
+  }, [conversation.id, subscribeConversation, myId, refreshCount]);
+
+  useLayoutEffect(() => {
+    const el = listRef.current;
+    if (!el || !messages) return;
+    if (prependHeightRef.current) {
+      el.scrollTop = el.scrollHeight - prependHeightRef.current; // segura a posição após prepender
+      prependHeightRef.current = 0;
+      return;
+    }
+    if (forceBottomRef.current) {
+      el.scrollTop = el.scrollHeight;
+      forceBottomRef.current = false;
+      return;
+    }
+    if (nearBottomRef.current && !editing) scrollToBottom();
   }, [messages, editing, scrollToBottom]);
 
   // fecha o menu ao clicar fora
@@ -216,7 +317,17 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
         </div>
       </div>
 
-      <div className="chat-messages">
+      <div className="chat-messages" ref={listRef} onScroll={onListScroll}>
+        {messages !== null && rows.length > 0 && hasMore && (
+          <button
+            type="button"
+            className="chat-load-more"
+            onClick={loadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore ? tc.loadingMore : tc.loadMore}
+          </button>
+        )}
         {messages === null ? (
           <div className="chat-hint">{tc.loading}</div>
         ) : rows.length === 0 ? (

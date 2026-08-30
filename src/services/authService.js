@@ -46,6 +46,31 @@ export const getDiscordAuthUrl = () => {
   return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
 };
 
+const PENDING_INVITE_KEY = "myrank_pending_invite";
+
+/** Guarda um convite de grupo pra retomar depois do login. */
+export const setPendingInvite = (token) => {
+  try {
+    localStorage.setItem(PENDING_INVITE_KEY, token);
+  } catch {
+    /* ignore */
+  }
+};
+
+/** Consome (e limpa) o destino pós-login: a página do convite pendente ou o dashboard. */
+export const takePostAuthPath = () => {
+  try {
+    const token = localStorage.getItem(PENDING_INVITE_KEY);
+    if (token) {
+      localStorage.removeItem(PENDING_INVITE_KEY);
+      return `/chat/invite/${token}`;
+    }
+  } catch {
+    /* ignore */
+  }
+  return "/dashboard";
+};
+
 export const logout = () => {
   localStorage.removeItem("myrank_token");
   localStorage.removeItem("myrank_username");
