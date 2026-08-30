@@ -21,7 +21,7 @@ const readFilter = () => {
   }
 };
 
-export default function ChatPanel({ initialConvId = null, onInitialConvConsumed }) {
+export default function ChatPanel({ initialConvId = null, onInitialConvConsumed, onOpenProfile }) {
   const { t, lang } = useLanguage();
   const tc = t.chat;
   const { unreadCount, refreshCount, pendingPeer, consumePendingPeer, touchNonce } = useChat();
@@ -193,6 +193,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed 
             onBack={closeThread}
             onChanged={handleConversationChanged}
             onLeft={closeThread}
+            onOpenProfile={onOpenProfile}
           />
         ) : (
           <div className="chat-empty">

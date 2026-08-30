@@ -136,6 +136,15 @@ export const markConversationRead = async (convId) => {
   await api.post(`/chat/conversations/${convId}/read`);
 };
 
+/** Sinaliza "digitando…" (throttle no chamador). */
+export const sendTyping = async (convId) => {
+  try {
+    await api.post(`/chat/conversations/${convId}/typing`);
+  } catch {
+    /* best-effort */
+  }
+};
+
 // ── Membros / cargos ────────────────────────────────────────────────────
 
 export const getMembers = async (convId) => {

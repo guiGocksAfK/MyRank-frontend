@@ -4,7 +4,8 @@
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 16px;
-  min-height: 520px;
+  height: min(760px, calc(100vh - 220px));
+  min-height: 460px;
 }
 
 .chat-list {
@@ -14,7 +15,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: 70vh;
+  height: 100%;
+  min-height: 0;
 }
 
 .chat-list-head {
@@ -160,8 +162,8 @@
   background: var(--mr-card);
   display: flex;
   flex-direction: column;
-  min-height: 520px;
-  max-height: 70vh;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -184,6 +186,39 @@
   flex-shrink: 0;
 }
 
+/* nome + avatar viram um botão que abre os detalhes */
+.chat-thread-idbtn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--mr-radius-sm);
+}
+.chat-thread-idbtn:hover .chat-thread-name { color: var(--mr-gold); }
+
+.chat-info-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mr-text-secondary);
+  cursor: pointer;
+}
+.chat-info-btn:hover { background: var(--mr-card-hover); color: var(--mr-gold); }
+
 .chat-thread-titlewrap { min-width: 0; }
 .chat-thread-name { font-weight: 800; font-size: 0.95rem; }
 .chat-thread-sub {
@@ -195,6 +230,10 @@
   cursor: pointer;
 }
 .chat-thread-sub:hover { color: var(--mr-gold); }
+
+.chat-presence { cursor: default; }
+.chat-presence:hover { color: var(--mr-text-muted); }
+.chat-presence.is-typing { color: var(--mr-gold); }
 
 .chat-system {
   max-width: 100%;
@@ -233,6 +272,51 @@
   gap: 2px;
 }
 
+/* cabeçalho de contexto no topo do histórico */
+.chat-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: 24px 16px 20px;
+  margin-bottom: 8px;
+}
+.chat-intro-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--mr-muted-bg);
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.chat-intro-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-intro-name { font-weight: 800; font-size: 1.05rem; }
+.chat-intro-meta { font-size: 0.8rem; color: var(--mr-text-muted); }
+.chat-intro-desc {
+  font-size: 0.82rem;
+  color: var(--mr-text-secondary);
+  max-width: 340px;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+.chat-intro-btn {
+  margin-top: 8px;
+  border: 1px solid var(--mr-border);
+  background: transparent;
+  color: var(--mr-text-secondary);
+  border-radius: 999px;
+  padding: 5px 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.chat-intro-btn:hover { border-color: var(--mr-gold); color: var(--mr-gold); }
+
 /* divisor de hora (aparece só quando há intervalo / muda o dia) */
 .chat-time-sep {
   align-self: center;
@@ -264,6 +348,43 @@
   padding: 2px 0;
 }
 .chat-system-toggle:hover { color: var(--mr-gold); }
+
+/* divisor de não-lidas */
+.chat-unread-sep {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 6px;
+  color: var(--mr-gold);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.chat-unread-sep::before,
+.chat-unread-sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--mr-gold-20);
+}
+
+/* "digitando…" no rodapé da lista (grupos) */
+.chat-typing {
+  align-self: flex-start;
+  margin: 2px 4px 0;
+  font-size: 0.75rem;
+  color: var(--mr-text-muted);
+  font-style: italic;
+}
+
+/* "Visto" abaixo da minha última mensagem (DM) */
+.chat-seen {
+  align-self: flex-end;
+  margin-top: 2px;
+  font-size: 0.66rem;
+  color: var(--mr-text-muted);
+}
 
 .chat-load-more {
   align-self: center;
@@ -329,6 +450,48 @@
   border-top: 1px solid var(--mr-border-light);
   flex-shrink: 0;
 }
+
+/* botão + popover de emoji do composer */
+.chat-emoji-wrap { position: relative; flex-shrink: 0; }
+.chat-emoji-toggle {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.chat-emoji-toggle:hover { background: var(--mr-card-hover); }
+.chat-emoji-pop {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 6px;
+  width: 232px;
+  max-height: 180px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+  padding: 6px;
+  background: var(--mr-surface);
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  z-index: 40;
+}
+.chat-emoji-cell {
+  border: 0;
+  background: transparent;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 4px;
+  border-radius: var(--mr-radius-xs);
+  cursor: pointer;
+}
+.chat-emoji-cell:hover { background: var(--mr-gold-10); }
 
 .chat-input {
   flex: 1;
@@ -600,13 +763,14 @@ input.chat-modal-input { max-height: none; }
 
 /* ── Diretório de grupos ──────────────────────────────────────────── */
 .chat-directory {
+  grid-column: 1 / -1;
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius);
   background: var(--mr-card);
   display: flex;
   flex-direction: column;
-  min-height: 520px;
-  max-height: 70vh;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
   width: 100%;
 }
@@ -841,9 +1005,12 @@ input.chat-modal-input { max-height: none; }
 /* ── Responsivo: uma coluna, alterna lista/conversa ────────────────── */
 
 @media (max-width: 720px) {
-  .chat-panel { grid-template-columns: 1fr; }
+  .chat-panel {
+    grid-template-columns: 1fr;
+    height: calc(100vh - 168px);
+    height: calc(100dvh - 168px);
+  }
   .chat-panel.has-active .chat-list { display: none; }
   .chat-panel:not(.has-active) .chat-main { display: none; }
-  .chat-list { max-height: none; }
   .chat-back { display: block; }
 }

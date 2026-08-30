@@ -3,9 +3,11 @@ import { createPortal } from 'react-dom';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
 import { useUser } from '../../shared/userContext';
+import { relativeTime } from '../../shared/useUnifiedItems';
 import Avatar from '../../shared/components/Avatar';
 import GroupIcon from './GroupIcon';
 import GroupPanel from './GroupPanel';
+import EmojiPicker from './EmojiPicker';
 import {
   CHAT_EMOJIS,
   getMessages,
@@ -14,6 +16,7 @@ import {
   editMessage,
   deleteMessage,
   reactMessage,
+  sendTyping,
 } from '../../services/chatService';
 
 const POLL_MS = 15_000;
@@ -97,6 +100,16 @@ function buildRows(list) {
   return rows;
 }
 
+/** Insere o divisor "não lidas" antes da 1ª mensagem depois do cursor (se houver histórico acima). */
+function withUnread(rows, anchorId) {
+  if (!anchorId) return rows;
+  const firstIdx = rows.findIndex((r) => r.type === 'msg' && r.m.id > anchorId);
+  if (firstIdx <= 0) return rows; // não achou, ou é a primeira coisa da lista
+  const hasMsgAbove = rows.slice(0, firstIdx).some((r) => r.type === 'msg');
+  if (!hasMsgAbove) return rows;
+  return [...rows.slice(0, firstIdx), { type: 'unread', id: 'unread-sep' }, ...rows.slice(firstIdx)];
+}
+
 /** Refresh silencioso: mescla a página 0 (mais recente) sem descartar histórico já carregado. */
 function mergeRefresh(prev, fresh) {
   if (!prev || prev.length === 0) return fresh;
@@ -120,9 +133,17 @@ const SendIcon = () => (
   </svg>
 );
 
+const InfoIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v5M12 7.5h.01" />
+  </svg>
+);
+
 /** Conversa aberta. `conversation` = { id, type, name, imageUrl, peer, memberCount, myRole }. */
-export default function ChatThread({ conversation, onBack, onChanged, onLeft }) {
-  const { t, locale } = useLanguage();
+export default function ChatThread({ conversation, onBack, onChanged, onLeft, onOpenProfile }) {
+  const { t, lang, locale } = useLanguage();
   const tc = t.chat;
   const { refreshCount, subscribeConversation } = useChat();
   const { user: me } = useUser();
@@ -140,11 +161,15 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
   const [menuFor, setMenuFor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [typers, setTypers] = useState([]); // [{ id, name, at }] — quem está digitando
+  const [peerReadId, setPeerReadId] = useState(conversation.peerLastReadId ?? null);
+  const [unreadAnchor, setUnreadAnchor] = useState(0); // cursor no momento de abrir (divisor)
 
   const bottomRef = useRef(null);
   const listRef = useRef(null);
   const inputRef = useRef(null);
   const pageRef = useRef(0);
+  const typingSentRef = useRef(0);
   const prependHeightRef = useRef(0); // scrollHeight antes de prepender (0 = sem prepend pendente)
   const forceBottomRef = useRef(true); // força ir ao fim na carga inicial
   const nearBottomRef = useRef(true); // usuário estava perto do fim antes do último update
@@ -206,8 +231,21 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
     setReplyTo(null);
     setEditing(null);
     setMenuFor(null);
+    setTypers([]);
+    setPeerReadId(conversation.peerLastReadId ?? null);
+    setUnreadAnchor(conversation.unread > 0 ? conversation.myLastReadId ?? 0 : 0);
     load();
-  }, [load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversation.id]);
+
+  // some com "digitando…" parado há mais de 4s
+  useEffect(() => {
+    if (typers.length === 0) return undefined;
+    const id = setInterval(() => {
+      setTypers((prev) => prev.filter((tp) => Date.now() - tp.at < 4000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [typers.length]);
 
   useEffect(() => {
     const id = setInterval(() => load({ silent: true }), POLL_MS);
@@ -217,11 +255,25 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
   // Real-time: eventos da conversa aberta via STOMP (o poll acima é só fallback).
   useEffect(() => {
     const off = subscribeConversation(conversation.id, (evt) => {
+      if (evt?.type === 'typing') {
+        if (evt.actorId === myId) return;
+        setTypers((prev) => [
+          ...prev.filter((tp) => tp.id !== evt.actorId),
+          { id: evt.actorId, name: evt.actorName, at: Date.now() },
+        ]);
+        return;
+      }
+      if (evt?.type === 'read') {
+        if (evt.actorId !== myId && evt.lastReadId != null) setPeerReadId(evt.lastReadId);
+        return;
+      }
+
       const msg = evt?.message;
       if (!msg) return;
       const withMine = { ...msg, mine: msg.senderId === myId };
 
       if (evt.type === 'created') {
+        setTypers((prev) => prev.filter((tp) => tp.id !== msg.senderId));
         setMessages((prev) => {
           const list = prev || [];
           if (list.some((m) => m.id === msg.id)) return list; // eco da própria mensagem
@@ -366,7 +418,54 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
 
   const headerTitle = isGroup ? conversation.name : `@${conversation.peer?.username ?? '—'}`;
 
-  const rows = useMemo(() => buildRows(messages || []), [messages]);
+  const rows = useMemo(() => withUnread(buildRows(messages || []), unreadAnchor), [messages, unreadAnchor]);
+
+  // "Visto": id da minha última mensagem que o outro já leu (só DM)
+  const seenMsgId = useMemo(() => {
+    if (isGroup || peerReadId == null || !messages) return null;
+    let lastMine = null;
+    for (const m of messages) {
+      if (m.mine && m.kind === 'USER' && !m.deleted) lastMine = m.id;
+    }
+    return lastMine != null && peerReadId >= lastMine ? lastMine : null;
+  }, [isGroup, peerReadId, messages]);
+
+  // Presença do outro (só DM)
+  const presence = useMemo(() => {
+    if (isGroup) return null;
+    const ls = conversation.peerLastSeenAt;
+    if (!ls) return null;
+    const diff = Date.now() - new Date(ls).getTime();
+    return diff < 90_000 ? tc.online : tc.lastSeen.replace('{t}', relativeTime(ls, lang));
+  }, [isGroup, conversation.peerLastSeenAt, tc, lang]);
+
+  const activeTypers = typers.filter((tp) => tp.id !== myId);
+  let typingLabel = null;
+  if (activeTypers.length === 1) {
+    typingLabel = isGroup
+      ? tc.typingOne.replace('{name}', activeTypers[0].name || '—')
+      : tc.typingDm;
+  } else if (activeTypers.length === 2) {
+    typingLabel = tc.typingTwo
+      .replace('{a}', activeTypers[0].name || '—')
+      .replace('{b}', activeTypers[1].name || '—');
+  } else if (activeTypers.length > 2) {
+    typingLabel = tc.typingMany;
+  }
+
+  const maybeSendTyping = (value) => {
+    if (editing || !value.trim()) return;
+    const now = Date.now();
+    if (now - typingSentRef.current > 2500) {
+      typingSentRef.current = now;
+      sendTyping(conversation.id);
+    }
+  };
+
+  const openDetails = () => {
+    if (isGroup) setShowPanel(true);
+    else if (conversation.peer?.id) onOpenProfile?.(conversation.peer.id);
+  };
 
   return (
     <div className="chat-thread">
@@ -374,36 +473,61 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
         <button type="button" className="chat-back" onClick={onBack} aria-label={tc.back}>
           ←
         </button>
-        {isGroup ? (
-          <GroupIcon name={conversation.name} imageUrl={conversation.imageUrl} className="chat-thread-avatar" />
-        ) : (
-          <Avatar
-            user={{
-              id: conversation.peer?.id,
-              username: conversation.peer?.username,
-              avatarUrl: conversation.peer?.avatarUrl,
-            }}
-            className="chat-thread-avatar"
-          />
-        )}
-        <div className="chat-thread-titlewrap">
-          <div className="chat-thread-name">
-            {isGroup && <span aria-hidden="true">👥 </span>}
-            {headerTitle}
-          </div>
-          {isGroup && (
-            <button type="button" className="chat-thread-sub" onClick={() => setShowPanel(true)}>
-              {tc.memberCount.replace('{n}', conversation.memberCount)}
-              {conversation.pendingRequests > 0 && canModerate && (
-                <span className="chat-pending-dot"> · {tc.pendingN.replace('{n}', conversation.pendingRequests)}</span>
-              )}
-              {' · '}{tc.manage}
-            </button>
+        <button
+          type="button"
+          className="chat-thread-idbtn"
+          onClick={openDetails}
+          aria-label={isGroup ? tc.manage : tc.viewProfile}
+        >
+          {isGroup ? (
+            <GroupIcon name={conversation.name} imageUrl={conversation.imageUrl} className="chat-thread-avatar" />
+          ) : (
+            <Avatar
+              user={{
+                id: conversation.peer?.id,
+                username: conversation.peer?.username,
+                avatarUrl: conversation.peer?.avatarUrl,
+              }}
+              className="chat-thread-avatar"
+            />
           )}
-        </div>
+          <div className="chat-thread-titlewrap">
+            <div className="chat-thread-name">
+              {isGroup && <span aria-hidden="true">👥 </span>}
+              {headerTitle}
+            </div>
+            {isGroup ? (
+              <span className="chat-thread-sub">
+                {tc.memberCount.replace('{n}', conversation.memberCount)}
+                {conversation.pendingRequests > 0 && canModerate && (
+                  <span className="chat-pending-dot"> · {tc.pendingN.replace('{n}', conversation.pendingRequests)}</span>
+                )}
+              </span>
+            ) : (
+              (typingLabel || presence) && (
+                <span className={`chat-thread-sub chat-presence ${typingLabel ? 'is-typing' : ''}`}>
+                  {typingLabel || presence}
+                </span>
+              )
+            )}
+          </div>
+        </button>
+
+        <button
+          type="button"
+          className="chat-info-btn"
+          onClick={openDetails}
+          aria-label={isGroup ? tc.manage : tc.viewProfile}
+          title={isGroup ? tc.manage : tc.viewProfile}
+        >
+          <InfoIcon />
+        </button>
       </div>
 
       <div className="chat-messages" ref={listRef} onScroll={onListScroll}>
+        {messages !== null && !hasMore && (
+          <ThreadIntro conversation={conversation} isGroup={isGroup} tc={tc} onOpenDetails={openDetails} />
+        )}
         {messages !== null && rows.length > 0 && hasMore && (
           <button
             type="button"
@@ -430,6 +554,13 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
             if (row.type === 'system') {
               return <SystemRun key={row.id} items={row.items} tc={tc} />;
             }
+            if (row.type === 'unread') {
+              return (
+                <div key={row.id} className="chat-unread-sep">
+                  <span>{tc.unreadDivider}</span>
+                </div>
+              );
+            }
             const { m, showHeader, showTail } = row;
             return (
               <MessageRow
@@ -441,6 +572,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
                 locale={locale}
                 tc={tc}
                 canModerate={canModerate}
+                seen={seenMsgId === m.id ? tc.seen : null}
                 menuOpen={menuFor === m.id}
                 onOpenMenu={(e) => {
                   e.stopPropagation();
@@ -455,6 +587,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
             );
           })
         )}
+        {isGroup && typingLabel && <div className="chat-typing">{typingLabel}</div>}
         <div ref={bottomRef} />
       </div>
 
@@ -485,6 +618,13 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
       )}
 
       <form className="chat-composer" onSubmit={submit}>
+        <EmojiPicker
+          onPick={(emoji) => {
+            setDraft((d) => d + emoji);
+            inputRef.current?.focus();
+          }}
+          label={tc.emoji}
+        />
         <textarea
           ref={inputRef}
           className="chat-input"
@@ -492,7 +632,10 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
           value={draft}
           maxLength={BODY_MAX}
           placeholder={editing ? tc.editPlaceholder : tc.placeholder}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            maybeSendTyping(e.target.value);
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -505,14 +648,16 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
             }
           }}
         />
-        <button
-          type="submit"
-          className="chat-send-btn"
-          disabled={!canSend}
-          aria-label={editing ? tc.save : tc.send}
-        >
-          {editing ? '✓' : <SendIcon />}
-        </button>
+        {(canSend || editing) && (
+          <button
+            type="submit"
+            className="chat-send-btn"
+            disabled={!canSend}
+            aria-label={editing ? tc.save : tc.send}
+          >
+            {editing ? '✓' : <SendIcon />}
+          </button>
+        )}
       </form>
 
       {showPanel && isGroup && (
@@ -531,6 +676,42 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
 }
 
 const MENU_W = 244;
+
+/** Cabeçalho de contexto no topo da conversa (aparece quando não há mais histórico acima). */
+function ThreadIntro({ conversation, isGroup, tc, onOpenDetails }) {
+  return (
+    <div className="chat-intro">
+      {isGroup ? (
+        <GroupIcon
+          name={conversation.name}
+          imageUrl={conversation.imageUrl}
+          className="chat-intro-avatar"
+        />
+      ) : (
+        <Avatar
+          user={{
+            id: conversation.peer?.id,
+            username: conversation.peer?.username,
+            avatarUrl: conversation.peer?.avatarUrl,
+          }}
+          className="chat-intro-avatar"
+        />
+      )}
+      <div className="chat-intro-name">
+        {isGroup ? conversation.name : `@${conversation.peer?.username ?? '—'}`}
+      </div>
+      <div className="chat-intro-meta">
+        {isGroup ? tc.memberCount.replace('{n}', conversation.memberCount) : tc.dmIntro}
+      </div>
+      {isGroup && conversation.description && (
+        <div className="chat-intro-desc">{conversation.description}</div>
+      )}
+      <button type="button" className="chat-intro-btn" onClick={onOpenDetails}>
+        {isGroup ? tc.manage : tc.viewProfile}
+      </button>
+    </div>
+  );
+}
 
 /** Bloco de avisos do sistema. Runs longas colapsam (primeiro + "+N" + último). */
 function SystemRun({ items, tc }) {
@@ -564,7 +745,7 @@ function SystemRun({ items, tc }) {
 }
 
 function MessageRow({
-  m, showHeader, showTail, isGroup, locale, tc, canModerate,
+  m, showHeader, showTail, isGroup, locale, tc, canModerate, seen,
   menuOpen, onOpenMenu, onReact, onReply, onEdit, onDelete, onJump,
 }) {
   const showAvatar = !m.mine;
@@ -702,6 +883,8 @@ function MessageRow({
             ))}
           </div>
         )}
+
+        {seen && <span className="chat-seen">{seen}</span>}
       </div>
     </div>
   );

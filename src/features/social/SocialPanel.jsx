@@ -175,7 +175,11 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
       {tab === 'discover' && <Discover onOpenUser={openProfile} onFollowChange={loadSummary} />}
       {tab === 'compare' && <CompareList onPick={openCompare} onFollowChange={loadSummary} />}
       {tab === 'chat' && (
-        <ChatPanel initialConvId={initialConvId} onInitialConvConsumed={onInitialConvConsumed} />
+        <ChatPanel
+          initialConvId={initialConvId}
+          onInitialConvConsumed={onInitialConvConsumed}
+          onOpenProfile={openProfile}
+        />
       )}
     </div>
   );
