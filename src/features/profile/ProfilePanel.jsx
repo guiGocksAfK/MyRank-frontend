@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getMe, updateMe } from '../../services/userService';
+import { socialApi } from '../social/socialData';
 import Avatar from '../../shared/components/Avatar';
 import AvatarUrlModal from './AvatarUrlModal';
 import { useUser } from '../../shared/userContext';
@@ -156,6 +157,8 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const [profile,         setProfile]         = useState(null);  // objeto /users/me completo (id, avatarUrl, updatedAt...)
   const [avatarVersion,   setAvatarVersion]   = useState(0);     // muda pra furar o cache do <img> após troca
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [social,          setSocial]          = useState(null); // { following, followers }
+  const [togglingPublic,  setTogglingPublic]  = useState(false);
   const { setUser } = useUser();
 
   // atualiza o form local + o usuário compartilhado (header, saudação da home)
@@ -180,8 +183,23 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
       }
     };
     loadProfile();
+    socialApi.getSummary().then(setSocial).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleTogglePublic = async () => {
+    if (togglingPublic || !profile) return;
+    setTogglingPublic(true);
+    setError('');
+    try {
+      const updated = await updateMe({ isPublic: !profile.isPublic });
+      applyUser(updated);
+    } catch (err) {
+      setError(err.response?.data?.message || tp.saveError);
+    } finally {
+      setTogglingPublic(false);
+    }
+  };
 
   const handleAvatarDone = (freshUser) => {
     applyUser(freshUser);
@@ -363,7 +381,15 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                     className="mr-flex mr-items-center mr-justify-center mr-gap-2"
                     style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginTop: 12, flexWrap: 'wrap' }}
                   >
-                    <span>{profile?.isPublic ? tp.publicProfile : tp.privateProfile}</span>
+                    <button
+                      type="button"
+                      className="mr-profile-visibility"
+                      onClick={handleTogglePublic}
+                      disabled={togglingPublic}
+                      title={tp.togglePublicHint}
+                    >
+                      {profile?.isPublic ? tp.publicProfile : tp.privateProfile}
+                    </button>
                     {profilePlan !== 'PRO' && (
                       <>
                         <span style={{ color: 'var(--mr-text-muted)' }}>·</span>
@@ -374,6 +400,27 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                 </>
               )}
             </div>
+
+            {/* Seguindo / seguidores */}
+            {social && !editMode && (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  textAlign: 'center',
+                  gap: 8,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>{social.following ?? 0}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)' }}>{tp.following}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>{social.followers ?? 0}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)' }}>{tp.followers}</div>
+                </div>
+              </div>
+            )}
 
             {/* Mini stats inline */}
             <div className="mr-grid-3col" style={{ textAlign: 'center' }}>

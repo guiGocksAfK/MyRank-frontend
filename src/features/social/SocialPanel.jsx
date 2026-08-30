@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import './social.css';
-import { useUser } from '../../shared/userContext';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
-import Avatar from '../../shared/components/Avatar';
 import { socialApi } from './socialData';
 import SocialFeed from './SocialFeed';
 import Discover from './Discover';
@@ -51,7 +49,6 @@ function CompareList({ onPick, onFollowChange }) {
 }
 
 export default function SocialPanel({ initialConvId = null, onInitialConvConsumed }) {
-  const { user } = useUser();
   const { t } = useLanguage();
   const ts = t.social;
   const { unreadCount: chatUnread, openNonce } = useChat();
@@ -63,8 +60,6 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
   ];
   const [tab, setTab] = useState('feed');
   const [view, setView] = useState({ kind: 'tabs' }); // tabs | profile | compare
-  const [isPublic, setIsPublic] = useState(user?.isPublic ?? true);
-  const [summary, setSummary] = useState(null);
 
   // Pedido externo de abrir uma conversa (botão "Mensagem" no perfil de alguém).
   const openNonceSeen = useRef(openNonce);
@@ -83,20 +78,11 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
     setTab('chat');
   }, [initialConvId]);
 
-  const loadSummary = useCallback(() => {
-    socialApi.getSummary().then(setSummary);
-  }, []);
-  useEffect(loadSummary, [loadSummary]);
-
   const openProfile = (userId) => setView({ kind: 'profile', userId });
   const openCompare = (userId) => setView({ kind: 'compare', userId });
   const backToTabs = () => setView({ kind: 'tabs' });
 
-  const toggleFollow = async (userId) => {
-    const updated = await socialApi.toggleFollow(userId);
-    loadSummary();
-    return updated;
-  };
+  const toggleFollow = async (userId) => socialApi.toggleFollow(userId);
 
   // ── Sub-view: perfil de um usuário ──
   if (view.kind === 'profile') {
@@ -122,39 +108,8 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
   }
 
   // ── View principal ──
-  const handle = user?.username ? `@${user.username}` : '@you';
-
   return (
     <div className="mr-space-y-5 social-panel">
-      {/* Barra de identidade */}
-      <div className="social-idbar">
-        <Avatar user={user} cacheKey={user?._v} className="social-idbar-avatar" />
-
-        <div className="social-idbar-main">
-          <div className="social-idbar-handle">{handle}</div>
-          <div className="social-idbar-stats">
-            <button type="button" onClick={() => setTab('compare')}>
-              <b>{summary?.following ?? '—'}</b> {ts.idbar.following}
-            </button>
-            <span className="social-idbar-sep" />
-            <span><b>{summary?.followers ?? '—'}</b> {ts.idbar.followers}</span>
-            <span className="social-idbar-sep" />
-            <button type="button" onClick={() => setTab('feed')}>
-              <b>{summary?.recentActivity ?? '—'}</b> {ts.idbar.inFeed}
-            </button>
-          </div>
-        </div>
-
-        <button
-          className={`social-visibility ${isPublic ? 'is-public' : ''}`}
-          onClick={() => setIsPublic((v) => !v)}
-          title={ts.idbar.toggleVisibility}
-        >
-          <span aria-hidden="true">{isPublic ? '🌐' : '🔒'}</span>
-          {ts.idbar.profile} {isPublic ? ts.idbar.profilePublic : ts.idbar.profilePrivate}
-        </button>
-      </div>
-
       {/* Sub-abas */}
       <div className="mr-flex mr-items-center mr-gap-1 social-tabs">
         {TABS.map((tb) => (
@@ -172,8 +127,8 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
       </div>
 
       {tab === 'feed' && <SocialFeed onOpenUser={openProfile} />}
-      {tab === 'discover' && <Discover onOpenUser={openProfile} onFollowChange={loadSummary} />}
-      {tab === 'compare' && <CompareList onPick={openCompare} onFollowChange={loadSummary} />}
+      {tab === 'discover' && <Discover onOpenUser={openProfile} />}
+      {tab === 'compare' && <CompareList onPick={openCompare} />}
       {tab === 'chat' && (
         <ChatPanel
           initialConvId={initialConvId}

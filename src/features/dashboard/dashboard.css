@@ -1095,6 +1095,23 @@
   outline: none;
 }
 
+.mr-profile-visibility {
+  border: 1px solid var(--mr-border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 3px 12px;
+  cursor: pointer;
+  transition: border-color 0.16s ease, color 0.16s ease;
+}
+.mr-profile-visibility:hover:not(:disabled) {
+  border-color: var(--mr-gold);
+  color: var(--mr-gold);
+}
+.mr-profile-visibility:disabled { opacity: 0.6; cursor: default; }
+
 /* ============ TABS LIST ============ */
 .mr-tabs-list {
   display: flex;
