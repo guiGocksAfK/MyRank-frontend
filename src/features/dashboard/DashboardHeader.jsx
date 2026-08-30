@@ -34,6 +34,7 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
 
   const profileSummary = useMemo(() => ({
     username: me?.username || storedUser?.username || 'usuario',
+    email: me?.email || '',
     bio: me?.bio?.trim() || '',
   }), [me, storedUser]);
 
@@ -168,7 +169,9 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
                   <Avatar user={avatarUser} className="mr-avatar" />
                   <div>
                     <div className="mr-profile-compact-name">{profileSummary.username}</div>
-                    <div className="mr-profile-compact-username">@{profileSummary.username}</div>
+                    <div className="mr-profile-compact-username">
+                      {profileSummary.email ? `@${profileSummary.email}` : `@${profileSummary.username}`}
+                    </div>
                   </div>
                 </div>
 

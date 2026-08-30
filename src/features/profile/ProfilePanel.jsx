@@ -332,25 +332,32 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
               ) : (
                 <>
                   <div className="mr-flex mr-items-center mr-justify-center mr-gap-2">
-                    <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>@{profileUsername}</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>{profileUsername}</span>
                     {profilePlan === 'PRO' && (
                       <span className="mr-badge mr-badge-gold" style={{ fontSize: '0.65rem' }}>PRO</span>
                     )}
+                    <button
+                      type="button"
+                      className="mr-profile-edit-pencil"
+                      onClick={() => setEditMode(true)}
+                      title={tp.editProfile}
+                      aria-label={tp.editProfile}
+                    >
+                      ✏️
+                    </button>
                   </div>
 
-                  {createdAt && (
-                    <div style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginTop: 6 }}>
-                      {fmt(tp.memberSince, { date: formatDate(createdAt, locale) })}
+                  {profile?.email && (
+                    <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
+                      @{profile.email}
                     </div>
                   )}
 
-                  <button
-                    className="mr-btn mr-btn-sm mr-btn-outline"
-                    style={{ marginTop: 12, display: 'block', marginLeft: 'auto', marginRight: 'auto' }}
-                    onClick={() => setEditMode(true)}
-                  >
-                    {tp.editProfile}
-                  </button>
+                  {createdAt && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--mr-text-muted)', marginTop: 6 }}>
+                      {fmt(tp.memberSince, { date: formatDate(createdAt, locale) })}
+                    </div>
+                  )}
 
                   <div
                     className="mr-flex mr-items-center mr-justify-center mr-gap-2"
