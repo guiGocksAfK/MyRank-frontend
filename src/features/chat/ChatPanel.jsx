@@ -8,6 +8,7 @@ import { getConversations, startDirect } from '../../services/chatService';
 import ChatThread from './ChatThread';
 import NewGroupModal from './NewGroupModal';
 import GroupIcon from './GroupIcon';
+import GroupDirectory from './GroupDirectory';
 
 const FILTERS = ['all', 'direct', 'group'];
 
@@ -28,6 +29,7 @@ export default function ChatPanel() {
   const [conversations, setConversations] = useState(null);
   const [activeId, setActiveId] = useState(null);
   const [showNewGroup, setShowNewGroup] = useState(false);
+  const [showDirectory, setShowDirectory] = useState(false);
   const [filter, setFilter] = useState(readFilter);
 
   const changeFilter = (next) => {
@@ -86,14 +88,33 @@ export default function ChatPanel() {
     refreshCount();
   };
 
+  const openFromDirectory = (id) => {
+    setShowDirectory(false);
+    setActiveId(id);
+    loadConversations();
+  };
+
+  if (showDirectory) {
+    return (
+      <div className="chat-panel">
+        <GroupDirectory onBack={() => setShowDirectory(false)} onOpen={openFromDirectory} />
+      </div>
+    );
+  }
+
   return (
     <div className={`chat-panel ${activeId ? 'has-active' : ''}`}>
       <aside className="chat-list">
         <div className="chat-list-head">
           <span>{tc.title}</span>
-          <button type="button" className="chat-newgroup-btn" onClick={() => setShowNewGroup(true)}>
-            {tc.newGroup}
-          </button>
+          <div className="chat-list-head-btns">
+            <button type="button" className="chat-newgroup-btn" onClick={() => setShowDirectory(true)}>
+              {tc.discover}
+            </button>
+            <button type="button" className="chat-newgroup-btn" onClick={() => setShowNewGroup(true)}>
+              {tc.newGroup}
+            </button>
+          </div>
         </div>
 
         <div className="chat-filter" role="tablist">
@@ -129,7 +150,7 @@ export default function ChatPanel() {
                 onClick={() => setActiveId(c.id)}
               >
                 {c.type === 'GROUP' ? (
-                  <GroupIcon name={c.name} className="chat-conv-avatar" />
+                  <GroupIcon name={c.name} imageUrl={c.imageUrl} className="chat-conv-avatar" />
                 ) : (
                   <Avatar
                     user={{ id: c.peer?.id, username: c.peer?.username, avatarUrl: c.peer?.avatarUrl }}

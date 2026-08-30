@@ -1,9 +1,15 @@
 import api from './api';
 
 /**
- * Chat unificado: DM (conversa DIRECT) e grupo (GROUP).
- * Iniciar DM exige follow mútuo; grupo aceita qualquer usuário (o backend valida).
+ * Chat unificado: DM (DIRECT) e grupo (GROUP).
+ * Grupo: foto (URL), acesso OPEN/REQUEST/CLOSED, cargos OWNER>ADMIN>MOD>MEMBER,
+ * fila de pedidos. Mensagens: responder, editar, apagar (lápide), reagir (1 emoji).
  */
+
+/** Set fixo de reações (mesma ordem do backend). */
+export const CHAT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😠', '🎉', '🔥', '👀', '🙏'];
+
+// ── Conversas ────────────────────────────────────────────────────────────
 
 export const getConversations = async () => {
   const { data } = await api.get('/chat/conversations');
@@ -15,13 +21,14 @@ export const startDirect = async (userId) => {
   return data;
 };
 
-export const createGroup = async (name, memberIds) => {
-  const { data } = await api.post('/chat/conversations', { name, memberIds });
+export const createGroup = async ({ name, memberIds = [], access = 'CLOSED', imageUrl = '' }) => {
+  const { data } = await api.post('/chat/conversations', { name, memberIds, access, imageUrl });
   return data;
 };
 
-export const renameConversation = async (convId, name) => {
-  const { data } = await api.patch(`/chat/conversations/${convId}`, { name });
+/** Patch do grupo: passe só os campos que quer mudar. imageUrl:'' remove a foto. */
+export const updateGroup = async (convId, patch) => {
+  const { data } = await api.patch(`/chat/conversations/${convId}`, patch);
   return data;
 };
 
@@ -29,19 +36,68 @@ export const deleteConversation = async (convId) => {
   await api.delete(`/chat/conversations/${convId}`);
 };
 
+// ── Diretório / entrada ──────────────────────────────────────────────────
+
+export const getDirectory = async (q = '', page = 0) => {
+  const { data } = await api.get('/chat/directory', { params: { q, page } });
+  return Array.isArray(data) ? data : [];
+};
+
+/** Entra (OPEN) ou pede pra entrar (REQUEST). Retorna { state: 'JOINED' | 'REQUESTED' }. */
+export const joinGroup = async (convId) => {
+  const { data } = await api.post(`/chat/conversations/${convId}/join`);
+  return data?.state ?? 'REQUESTED';
+};
+
+export const cancelJoinRequest = async (convId) => {
+  await api.delete(`/chat/conversations/${convId}/join`);
+};
+
+export const getJoinRequests = async (convId) => {
+  const { data } = await api.get(`/chat/conversations/${convId}/requests`);
+  return Array.isArray(data) ? data : [];
+};
+
+export const approveJoinRequest = async (convId, userId) => {
+  await api.post(`/chat/conversations/${convId}/requests/${userId}/approve`);
+};
+
+export const rejectJoinRequest = async (convId, userId) => {
+  await api.post(`/chat/conversations/${convId}/requests/${userId}/reject`);
+};
+
+// ── Mensagens ────────────────────────────────────────────────────────────
+
 export const getMessages = async (convId, page = 0, size = 50) => {
   const { data } = await api.get(`/chat/conversations/${convId}/messages`, { params: { page, size } });
   return Array.isArray(data) ? data : [];
 };
 
-export const sendMessage = async (convId, body) => {
-  const { data } = await api.post(`/chat/conversations/${convId}/messages`, { body });
+export const sendMessage = async (convId, body, replyToId = null) => {
+  const { data } = await api.post(`/chat/conversations/${convId}/messages`, { body, replyToId });
+  return data;
+};
+
+export const editMessage = async (messageId, body) => {
+  const { data } = await api.patch(`/chat/messages/${messageId}`, { body });
+  return data;
+};
+
+export const deleteMessage = async (messageId) => {
+  const { data } = await api.delete(`/chat/messages/${messageId}`);
+  return data;
+};
+
+export const reactMessage = async (messageId, emoji) => {
+  const { data } = await api.post(`/chat/messages/${messageId}/react`, { emoji });
   return data;
 };
 
 export const markConversationRead = async (convId) => {
   await api.post(`/chat/conversations/${convId}/read`);
 };
+
+// ── Membros / cargos ────────────────────────────────────────────────────
 
 export const getMembers = async (convId) => {
   const { data } = await api.get(`/chat/conversations/${convId}/members`);
@@ -55,6 +111,11 @@ export const addMembers = async (convId, userIds) => {
 
 export const removeMember = async (convId, userId) => {
   await api.delete(`/chat/conversations/${convId}/members/${userId}`);
+};
+
+export const setMemberRole = async (convId, userId, role) => {
+  const { data } = await api.put(`/chat/conversations/${convId}/members/${userId}/role`, { role });
+  return Array.isArray(data) ? data : [];
 };
 
 export const getChatUnreadCount = async () => {

@@ -5,16 +5,19 @@ import { createGroup } from '../../services/chatService';
 import SocialAvatar from '../social/SocialAvatar';
 
 const NAME_MAX = 80;
+const ACCESSES = ['OPEN', 'REQUEST', 'CLOSED'];
 
-/** Cria um grupo: nome + busca de usuários (qualquer usuário público / que você segue). */
+/** Cria um grupo: nome, foto (URL), acesso e (opcional) participantes. */
 export default function NewGroupModal({ onClose, onCreated }) {
   const { t } = useLanguage();
   const tc = t.chat;
 
   const [name, setName] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [access, setAccess] = useState('CLOSED');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-  const [selected, setSelected] = useState([]); // user objects
+  const [selected, setSelected] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -50,7 +53,12 @@ export default function NewGroupModal({ onClose, onCreated }) {
     setBusy(true);
     setError(null);
     try {
-      const conv = await createGroup(name.trim(), selected.map((u) => u.id));
+      const conv = await createGroup({
+        name: name.trim(),
+        memberIds: selected.map((u) => u.id),
+        access,
+        imageUrl: imageUrl.trim(),
+      });
       onCreated(conv);
     } catch (err) {
       setError(err?.response?.data?.message || tc.createError);
@@ -73,6 +81,30 @@ export default function NewGroupModal({ onClose, onCreated }) {
           placeholder={tc.groupNamePlaceholder}
           onChange={(e) => setName(e.target.value)}
         />
+
+        <label className="chat-modal-label">{tc.groupPhotoOptional}</label>
+        <input
+          className="chat-input chat-modal-input"
+          type="url"
+          value={imageUrl}
+          placeholder="https://…/foto.jpg"
+          onChange={(e) => setImageUrl(e.target.value)}
+        />
+
+        <label className="chat-modal-label">{tc.groupAccess}</label>
+        <div className="chat-access-seg">
+          {ACCESSES.map((a) => (
+            <button
+              key={a}
+              type="button"
+              className={`chat-access-btn ${access === a ? 'active' : ''}`}
+              onClick={() => setAccess(a)}
+            >
+              {tc.access[a]}
+            </button>
+          ))}
+        </div>
+        <div className="chat-modal-hint">{tc.accessHint[access]}</div>
 
         <label className="chat-modal-label">{tc.addPeopleOptional}</label>
         {selected.length > 0 && (
@@ -111,7 +143,6 @@ export default function NewGroupModal({ onClose, onCreated }) {
         </div>
 
         {error && <div className="chat-error">{error}</div>}
-        <div className="chat-modal-hint">{tc.groupCreateHint}</div>
 
         <div className="chat-modal-actions">
           <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={busy}>
