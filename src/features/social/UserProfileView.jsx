@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
+import { useChat } from '../../shared/chat';
 import { socialApi, computeTasteMatch, typeIconFor } from './socialData';
 import SocialAvatar from './SocialAvatar';
 
@@ -41,6 +42,7 @@ function MatchRing({ pct }) {
 export default function UserProfileView({ userId, onBack, onCompare, onToggleFollow }) {
   const { t } = useLanguage();
   const tv = t.social.profile;
+  const { openChatWith } = useChat();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
   const { items: myItems, loading: loadingMine } = useUnifiedItems();
@@ -91,6 +93,20 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
               <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => onCompare(profile.id)}>
                 {tv.compare}
               </button>
+              {profile.following && profile.followsYou && (
+                <button
+                  className="mr-btn mr-btn-outline mr-btn-sm"
+                  onClick={() =>
+                    openChatWith({
+                      id: profile.id,
+                      username: profile.username,
+                      avatarUrl: profile.avatarUrl,
+                    })
+                  }
+                >
+                  {tv.message}
+                </button>
+              )}
             </div>
           </div>
         </div>

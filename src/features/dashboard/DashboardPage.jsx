@@ -1,19 +1,34 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import DashboardHeader from './DashboardHeader';
 import HomeOverview from '../home/HomeOverview';
 import RankingsTab from '../rankings/rankings/RankingsTab';
 import CreatorsPanel from '../creators/CreatorsPanel';
 import SocialPanel from '../social/SocialPanel';
+import ChatPanel from '../chat/ChatPanel';
 import InsightsPanel from '../insights/InsightsPanel';
 import ProfilePanel from '../profile/ProfilePanel';
 import DashboardFooter from './DashboardFooter';
 import { UserProvider } from '../../shared/userContext';
 import { BadgeProvider } from '../../shared/badges';
 import { NotificationsProvider } from '../../shared/notifications';
+import { ChatProvider, useChat } from '../../shared/chat';
 import './dashboard.css';
 
-const VALID_TABS = ['home', 'rankings', 'social', 'ai', 'profile'];
+const VALID_TABS = ['home', 'rankings', 'social', 'chat', 'ai', 'profile'];
+
+/** Ponte: quando algo pede pra abrir o chat (openChatWith), troca de aba. */
+function ChatTabBridge({ onOpen }) {
+  const { openNonce } = useChat();
+  const seen = useRef(openNonce);
+  useEffect(() => {
+    if (openNonce !== seen.current) {
+      seen.current = openNonce;
+      onOpen();
+    }
+  }, [openNonce, onOpen]);
+  return null;
+}
 
 export default function DashboardPage() {
   const location = useLocation();
@@ -42,6 +57,8 @@ export default function DashboardPage() {
         return <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />;
       case 'social':
         return <SocialPanel />;
+      case 'chat':
+        return <ChatPanel />;
       case 'ai':
         return <InsightsPanel />;
       case 'profile':
@@ -55,6 +72,8 @@ export default function DashboardPage() {
     <UserProvider>
     <BadgeProvider>
     <NotificationsProvider>
+    <ChatProvider>
+    <ChatTabBridge onOpen={() => handleTabChange('chat')} />
     <div className={`myrank-dashboard ${themeClass}`}>
       <DashboardHeader
         activeTab={activeTab}
@@ -77,6 +96,7 @@ export default function DashboardPage() {
       {/* ribbon no fim de todas as abas — stats reais vêm de /works/unified */}
       <DashboardFooter />
     </div>
+    </ChatProvider>
     </NotificationsProvider>
     </BadgeProvider>
     </UserProvider>

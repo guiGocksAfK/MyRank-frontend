@@ -3,6 +3,7 @@ import { getStoredUser } from '../../services/authService';
 import { getUnifiedWorks } from '../../services/WorkService';
 import { useUser } from '../../shared/userContext';
 import { useNotifications } from '../../shared/notifications';
+import { useChat } from '../../shared/chat';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
 import Avatar from '../../shared/components/Avatar';
@@ -25,6 +26,7 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { unreadCount, list: notifications, loadingList: loadingNotifications, openPanel } = useNotifications();
+  const { unreadCount: chatUnread } = useChat();
 
   useEffect(() => {
     let active = true;
@@ -100,6 +102,20 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
         </div>
 
         <div className="mr-nav-right">
+          <div className="mr-action-group">
+            <button
+              type="button"
+              className={`mr-notification-btn ${activeTab === 'chat' ? 'active' : ''}`}
+              onClick={() => onTabChange('chat')}
+              aria-label={t.dash.header.openChat}
+            >
+              💬
+              {chatUnread > 0 && (
+                <span className="mr-notification-badge">{chatUnread > 9 ? '9+' : chatUnread}</span>
+              )}
+            </button>
+          </div>
+
           <div className="mr-action-group">
             <button
               type="button"
