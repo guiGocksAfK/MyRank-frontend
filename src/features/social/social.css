@@ -104,6 +104,21 @@
   border-radius: 8px 8px 0 0;
 }
 
+.social-tab-badge {
+  margin-left: 6px;
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--mr-gold);
+  color: #0f0f0f;
+  font-size: 0.68rem;
+  font-weight: 800;
+  vertical-align: middle;
+}
+
 /* ── Texto auxiliar / links ───────────────────────────────── */
 .social-muted {
   color: var(--mr-text-secondary);

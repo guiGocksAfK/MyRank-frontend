@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './social.css';
 import { useUser } from '../../shared/userContext';
 import { useLanguage } from '../../shared/i18n';
+import { useChat } from '../../shared/chat';
 import Avatar from '../../shared/components/Avatar';
 import { socialApi } from './socialData';
 import SocialFeed from './SocialFeed';
@@ -9,6 +10,7 @@ import Discover from './Discover';
 import UserProfileView from './UserProfileView';
 import CompareView from './CompareView';
 import UserPill from './UserPill';
+import ChatPanel from '../chat/ChatPanel';
 
 function CompareList({ onPick, onFollowChange }) {
   const { t } = useLanguage();
@@ -52,15 +54,27 @@ export default function SocialPanel() {
   const { user } = useUser();
   const { t } = useLanguage();
   const ts = t.social;
+  const { unreadCount: chatUnread, openNonce } = useChat();
   const TABS = [
     { id: 'feed', label: ts.tabs.feed },
     { id: 'discover', label: ts.tabs.discover },
     { id: 'compare', label: ts.tabs.compare },
+    { id: 'chat', label: ts.tabs.chat },
   ];
   const [tab, setTab] = useState('feed');
   const [view, setView] = useState({ kind: 'tabs' }); // tabs | profile | compare
   const [isPublic, setIsPublic] = useState(user?.isPublic ?? true);
   const [summary, setSummary] = useState(null);
+
+  // Pedido externo de abrir uma conversa (botão "Mensagem" no perfil de alguém).
+  const openNonceSeen = useRef(openNonce);
+  useEffect(() => {
+    if (openNonce !== openNonceSeen.current) {
+      openNonceSeen.current = openNonce;
+      setView({ kind: 'tabs' });
+      setTab('chat');
+    }
+  }, [openNonce]);
 
   const loadSummary = useCallback(() => {
     socialApi.getSummary().then(setSummary);
@@ -143,6 +157,9 @@ export default function SocialPanel() {
             onClick={() => setTab(tb.id)}
           >
             {tb.label}
+            {tb.id === 'chat' && chatUnread > 0 && (
+              <span className="social-tab-badge">{chatUnread > 9 ? '9+' : chatUnread}</span>
+            )}
           </button>
         ))}
       </div>
@@ -150,6 +167,7 @@ export default function SocialPanel() {
       {tab === 'feed' && <SocialFeed onOpenUser={openProfile} />}
       {tab === 'discover' && <Discover onOpenUser={openProfile} onFollowChange={loadSummary} />}
       {tab === 'compare' && <CompareList onPick={openCompare} onFollowChange={loadSummary} />}
+      {tab === 'chat' && <ChatPanel />}
     </div>
   );
 }

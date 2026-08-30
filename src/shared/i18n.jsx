@@ -22,7 +22,7 @@ const TRANSLATIONS = {
       badgeUnlockedToast: '🏅 Conquista desbloqueada',
     },
     social: {
-      tabs: { feed: '📡 Feed', discover: '🔍 Descobrir', compare: '⚖️ Comparar' },
+      tabs: { feed: '📡 Feed', discover: '🔍 Descobrir', compare: '⚖️ Comparar', chat: '💬 Mensagens' },
       loading: 'Carregando…',
       idbar: {
         following: 'seguindo', followers: 'seguidores', inFeed: 'no feed',
@@ -220,10 +220,9 @@ const TRANSLATIONS = {
       saveSelectionError: 'Erro ao salvar seleção de tabelas.',
     },
     dash: {
-      tabs: { home: 'Dashboard', rankings: 'Rankings', social: 'Social', chat: 'Mensagens', ai: 'IA Insights', profile: 'Perfil' },
+      tabs: { home: 'Dashboard', rankings: 'Rankings', social: 'Social', ai: 'IA Insights', profile: 'Perfil' },
       header: {
         openNotifications: 'Abrir notificações',
-        openChat: 'Abrir mensagens',
         openProfileMenu: 'Abrir menu do perfil',
         notifications: 'Notificações',
         notifLoading: 'Carregando…',
@@ -477,7 +476,7 @@ const TRANSLATIONS = {
       badgeUnlockedToast: '🏅 Achievement unlocked',
     },
     social: {
-      tabs: { feed: '📡 Feed', discover: '🔍 Discover', compare: '⚖️ Compare' },
+      tabs: { feed: '📡 Feed', discover: '🔍 Discover', compare: '⚖️ Compare', chat: '💬 Messages' },
       loading: 'Loading…',
       idbar: {
         following: 'following', followers: 'followers', inFeed: 'in feed',
@@ -675,10 +674,9 @@ const TRANSLATIONS = {
       saveSelectionError: 'Error saving table selection.',
     },
     dash: {
-      tabs: { home: 'Dashboard', rankings: 'Rankings', social: 'Social', chat: 'Messages', ai: 'AI Insights', profile: 'Profile' },
+      tabs: { home: 'Dashboard', rankings: 'Rankings', social: 'Social', ai: 'AI Insights', profile: 'Profile' },
       header: {
         openNotifications: 'Open notifications',
-        openChat: 'Open messages',
         openProfileMenu: 'Open profile menu',
         notifications: 'Notifications',
         notifLoading: 'Loading…',
@@ -932,7 +930,7 @@ const TRANSLATIONS = {
       badgeUnlockedToast: '🏅 Logro desbloqueado',
     },
     social: {
-      tabs: { feed: '📡 Feed', discover: '🔍 Descubrir', compare: '⚖️ Comparar' },
+      tabs: { feed: '📡 Feed', discover: '🔍 Descubrir', compare: '⚖️ Comparar', chat: '💬 Mensajes' },
       loading: 'Cargando…',
       idbar: {
         following: 'siguiendo', followers: 'seguidores', inFeed: 'en el feed',
@@ -1130,10 +1128,9 @@ const TRANSLATIONS = {
       saveSelectionError: 'Error al guardar la selección de tablas.',
     },
     dash: {
-      tabs: { home: 'Panel', rankings: 'Rankings', social: 'Social', chat: 'Mensajes', ai: 'IA Insights', profile: 'Perfil' },
+      tabs: { home: 'Panel', rankings: 'Rankings', social: 'Social', ai: 'IA Insights', profile: 'Perfil' },
       header: {
         openNotifications: 'Abrir notificaciones',
-        openChat: 'Abrir mensajes',
         openProfileMenu: 'Abrir menú del perfil',
         notifications: 'Notificaciones',
         notifLoading: 'Cargando…',
