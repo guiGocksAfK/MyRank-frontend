@@ -17,8 +17,9 @@ export default function GroupDirectory({ onBack, onOpen }) {
     try {
       setEntries(await getDirectory(q));
       setError(null);
-    } catch {
+    } catch (err) {
       setEntries([]);
+      setError(err?.response?.data?.message || 'Falha ao carregar o diretório.');
     }
   }, []);
 

@@ -14,7 +14,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
 
   const [name, setName] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [access, setAccess] = useState('CLOSED');
+  const [access, setAccess] = useState('REQUEST');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selected, setSelected] = useState([]);
