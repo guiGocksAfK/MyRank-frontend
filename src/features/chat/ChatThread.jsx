@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
 import { useUser } from '../../shared/userContext';
-import { relativeTime } from '../../shared/useUnifiedItems';
 import Avatar from '../../shared/components/Avatar';
 import GroupIcon from './GroupIcon';
 import GroupPanel from './GroupPanel';
@@ -19,8 +18,84 @@ import {
 
 const POLL_MS = 15_000;
 const BODY_MAX = 2000;
-const GROUP_GAP_MS = 5 * 60 * 1000;
+const GROUP_GAP_MS = 5 * 60 * 1000; // agrupa mensagens seguidas do mesmo autor
+const TIME_SEP_MS = 20 * 60 * 1000; // divisor de hora entre grupos
 const PAGE_SIZE = 40;
+
+const sameDay = (a, b) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+/** Rótulo do divisor: hoje → "18:49"; ontem → "Ontem 18:49"; senão → "12 de mai., 18:49". */
+function timeSepLabel(iso, locale, tc) {
+  const d = new Date(iso);
+  const now = new Date();
+  const hm = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  if (sameDay(d, now)) return hm;
+  const yst = new Date(now);
+  yst.setDate(now.getDate() - 1);
+  if (sameDay(d, yst)) return `${tc.yesterday} ${hm}`;
+  const datePart = d.toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: d.getFullYear() === now.getFullYear() ? undefined : 'numeric',
+  });
+  return `${datePart}, ${hm}`;
+}
+
+/**
+ * Transforma a lista crua em linhas de render:
+ *  - { type: 'time', id, iso }                    divisor de hora
+ *  - { type: 'system', id, items: [{id, body}] }  bloco de avisos (dedup consecutivo)
+ *  - { type: 'msg', id, m, showHeader, showTail } mensagem
+ */
+function buildRows(list) {
+  const rows = [];
+  let i = 0;
+  while (i < list.length) {
+    const m = list[i];
+
+    if (m.kind === 'SYSTEM') {
+      const items = [];
+      let lastBody = null;
+      let j = i;
+      while (j < list.length && list[j].kind === 'SYSTEM') {
+        if (list[j].body !== lastBody) {
+          items.push({ id: list[j].id, body: list[j].body });
+          lastBody = list[j].body;
+        }
+        j++;
+      }
+      rows.push({ type: 'system', id: `sys-${m.id}`, items });
+      i = j;
+      continue;
+    }
+
+    const prev = list[i - 1];
+    const next = list[i + 1];
+    const created = new Date(m.createdAt);
+    const prevIsMsg = prev && prev.kind !== 'SYSTEM';
+    const nextIsMsg = next && next.kind !== 'SYSTEM';
+
+    const needSep =
+      !prev ||
+      (prevIsMsg &&
+        (!sameDay(new Date(prev.createdAt), created) || created - new Date(prev.createdAt) > TIME_SEP_MS));
+    if (needSep) rows.push({ type: 'time', id: `t-${m.id}`, iso: m.createdAt });
+
+    const showHeader =
+      !prevIsMsg ||
+      prev.senderId !== m.senderId ||
+      created - new Date(prev.createdAt) > GROUP_GAP_MS;
+    const showTail =
+      !nextIsMsg ||
+      next.senderId !== m.senderId ||
+      new Date(next.createdAt) - created > GROUP_GAP_MS;
+
+    rows.push({ type: 'msg', id: m.id, m, showHeader, showTail });
+    i++;
+  }
+  return rows;
+}
 
 /** Refresh silencioso: mescla a página 0 (mais recente) sem descartar histórico já carregado. */
 function mergeRefresh(prev, fresh) {
@@ -47,7 +122,7 @@ const SendIcon = () => (
 
 /** Conversa aberta. `conversation` = { id, type, name, imageUrl, peer, memberCount, myRole }. */
 export default function ChatThread({ conversation, onBack, onChanged, onLeft }) {
-  const { t, lang } = useLanguage();
+  const { t, locale } = useLanguage();
   const tc = t.chat;
   const { refreshCount, subscribeConversation } = useChat();
   const { user: me } = useUser();
@@ -291,7 +366,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
 
   const headerTitle = isGroup ? conversation.name : `@${conversation.peer?.username ?? '—'}`;
 
-  const rows = useMemo(() => withHeaders(messages || []), [messages]);
+  const rows = useMemo(() => buildRows(messages || []), [messages]);
 
   return (
     <div className="chat-thread">
@@ -344,16 +419,26 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
         ) : rows.length === 0 ? (
           <div className="chat-hint">{tc.threadEmpty}</div>
         ) : (
-          rows.map(({ m, showHeader }) =>
-            m.kind === 'SYSTEM' ? (
-              <div key={m.id} id={`msg-${m.id}`} className="chat-system">{m.body}</div>
-            ) : (
+          rows.map((row) => {
+            if (row.type === 'time') {
+              return (
+                <div key={row.id} className="chat-time-sep">
+                  {timeSepLabel(row.iso, locale, tc)}
+                </div>
+              );
+            }
+            if (row.type === 'system') {
+              return <SystemRun key={row.id} items={row.items} tc={tc} />;
+            }
+            const { m, showHeader, showTail } = row;
+            return (
               <MessageRow
                 key={m.id}
                 m={m}
                 showHeader={showHeader}
+                showTail={showTail}
                 isGroup={isGroup}
-                lang={lang}
+                locale={locale}
                 tc={tc}
                 canModerate={canModerate}
                 menuOpen={menuFor === m.id}
@@ -367,8 +452,8 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
                 onDelete={() => doDelete(m)}
                 onJump={jumpTo}
               />
-            ),
-          )
+            );
+          })
         )}
         <div ref={bottomRef} />
       </div>
@@ -445,43 +530,59 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
   );
 }
 
-/** anexa showHeader (primeira de uma sequência do mesmo autor). */
-function withHeaders(list) {
-  return list.map((m, i) => {
-    const prev = list[i - 1];
-    const showHeader =
-      !prev ||
-      prev.kind === 'SYSTEM' ||
-      m.kind === 'SYSTEM' ||
-      prev.senderId !== m.senderId ||
-      new Date(m.createdAt) - new Date(prev.createdAt) > GROUP_GAP_MS;
-    return { m, showHeader };
-  });
-}
-
 const MENU_W = 244;
 
+/** Bloco de avisos do sistema. Runs longas colapsam (primeiro + "+N" + último). */
+function SystemRun({ items, tc }) {
+  const [open, setOpen] = useState(false);
+  const anchorId = `msg-${items[0].id}`;
+
+  if (items.length <= 3 || open) {
+    return (
+      <div className="chat-system-run" id={anchorId}>
+        {items.map((it) => (
+          <div key={it.id} className="chat-system">{it.body}</div>
+        ))}
+        {items.length > 3 && (
+          <button type="button" className="chat-system-toggle" onClick={() => setOpen(false)}>
+            {tc.showLess}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="chat-system-run" id={anchorId}>
+      <div className="chat-system">{items[0].body}</div>
+      <button type="button" className="chat-system-toggle" onClick={() => setOpen(true)}>
+        {tc.moreEvents.replace('{n}', items.length - 2)}
+      </button>
+      <div className="chat-system">{items[items.length - 1].body}</div>
+    </div>
+  );
+}
+
 function MessageRow({
-  m, showHeader, isGroup, lang, tc, canModerate,
+  m, showHeader, showTail, isGroup, locale, tc, canModerate,
   menuOpen, onOpenMenu, onReact, onReply, onEdit, onDelete, onJump,
 }) {
-  const showAvatar = isGroup && !m.mine;
+  const showAvatar = !m.mine;
   const canEdit = m.mine && !m.deleted;
   const canDelete = (m.mine || canModerate) && !m.deleted;
 
-  // Menu de ações: renderizado num portal com posição fixa pra não ser cortado
-  // pelo overflow:hidden do .chat-main / .chat-messages.
-  const triggerRef = useRef(null);
+  // Menu de ações: portal com posição fixa (não é cortado pelo overflow:hidden).
+  const toolbarRef = useRef(null);
   const [menuPos, setMenuPos] = useState(null);
   useLayoutEffect(() => {
-    if (!menuOpen || !triggerRef.current) {
+    if (!menuOpen || !toolbarRef.current) {
       setMenuPos(null);
       return;
     }
-    const r = triggerRef.current.getBoundingClientRect();
+    const r = toolbarRef.current.getBoundingClientRect();
     const gap = 6;
-    const left = Math.max(8, Math.min(r.right - MENU_W, window.innerWidth - MENU_W - 8));
-    const openUp = r.top > 190;
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - MENU_W - 8));
+    const openUp = r.top > 220;
     setMenuPos({
       left,
       top: openUp ? r.top - gap : r.bottom + gap,
@@ -489,14 +590,21 @@ function MessageRow({
     });
   }, [menuOpen]);
 
+  const title = new Date(m.createdAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' });
+
   return (
     <div
       id={`msg-${m.id}`}
-      className={`chat-bubble-row ${m.mine ? 'is-mine' : ''} ${showHeader ? '' : 'is-cont'}`}
+      className={[
+        'chat-bubble-row',
+        m.mine ? 'is-mine' : '',
+        showHeader ? '' : 'is-cont',
+        showTail ? 'is-tail' : '',
+      ].join(' ')}
     >
       {showAvatar && (
         <div className="chat-row-avatar">
-          {showHeader ? (
+          {showTail ? (
             <Avatar
               user={{ id: m.senderId, username: m.senderName, avatarUrl: m.senderAvatarUrl }}
               className="chat-msg-avatar"
@@ -506,11 +614,11 @@ function MessageRow({
       )}
 
       <div className="chat-bubble-wrap">
-        {showAvatar && showHeader && (
+        {isGroup && showAvatar && showHeader && (
           <span className="chat-bubble-sender">{m.senderName || '—'}</span>
         )}
 
-        <div className="chat-bubble">
+        <div className="chat-bubble" title={title}>
           {m.replyTo && (
             <button
               type="button"
@@ -529,58 +637,56 @@ function MessageRow({
           ) : (
             <span className="chat-bubble-body">{m.body}</span>
           )}
+          {m.edited && !m.deleted && <span className="chat-edited-tag">{tc.editedTag}</span>}
+        </div>
 
-          <span className="chat-bubble-time">
-            {m.edited && !m.deleted && <span className="chat-edited">{tc.editedTag} </span>}
-            {relativeTime(m.createdAt, lang)}
-          </span>
-
-          {!m.deleted && (
-            <button
-              ref={triggerRef}
-              type="button"
-              className="chat-msg-trigger"
-              onClick={onOpenMenu}
-              aria-label={tc.messageActions}
-            >
+        {!m.deleted && (
+          <div className="chat-msg-toolbar" ref={toolbarRef}>
+            <button type="button" className="chat-msg-tbtn" onClick={onOpenMenu} aria-label={tc.react}>
+              🙂
+            </button>
+            <button type="button" className="chat-msg-tbtn" onClick={onReply} aria-label={tc.reply}>
+              ↩
+            </button>
+            <button type="button" className="chat-msg-tbtn" onClick={onOpenMenu} aria-label={tc.messageActions}>
               ⋯
             </button>
-          )}
+          </div>
+        )}
 
-          {menuOpen && menuPos &&
-            createPortal(
-              <div
-                className="chat-msg-menu"
-                style={{
-                  position: 'fixed',
-                  left: menuPos.left,
-                  top: menuPos.top,
-                  transform: menuPos.transform,
-                  width: MENU_W,
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="chat-emoji-row">
-                  {CHAT_EMOJIS.map((e) => (
-                    <button
-                      key={e}
-                      type="button"
-                      className="chat-emoji-btn"
-                      onClick={() => onReact(e)}
-                    >
-                      {e}
-                    </button>
-                  ))}
-                </div>
-                <div className="chat-menu-actions">
-                  <button type="button" onClick={onReply}>↩ {tc.reply}</button>
-                  {canEdit && <button type="button" onClick={onEdit}>✏️ {tc.edit}</button>}
-                  {canDelete && <button type="button" className="is-danger" onClick={onDelete}>🗑 {tc.delete}</button>}
-                </div>
-              </div>,
-              document.body,
-            )}
-        </div>
+        {menuOpen && menuPos &&
+          createPortal(
+            <div
+              className="chat-msg-menu"
+              style={{
+                position: 'fixed',
+                left: menuPos.left,
+                top: menuPos.top,
+                transform: menuPos.transform,
+                width: MENU_W,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="chat-emoji-row">
+                {CHAT_EMOJIS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    className="chat-emoji-btn"
+                    onClick={() => onReact(e)}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+              <div className="chat-menu-actions">
+                <button type="button" onClick={onReply}>↩ {tc.reply}</button>
+                {canEdit && <button type="button" onClick={onEdit}>✏️ {tc.edit}</button>}
+                {canDelete && <button type="button" className="is-danger" onClick={onDelete}>🗑 {tc.delete}</button>}
+              </div>
+            </div>,
+            document.body,
+          )}
 
         {m.reactions?.length > 0 && (
           <div className="chat-reactions">

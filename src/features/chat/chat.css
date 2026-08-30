@@ -99,8 +99,8 @@
 
 .chat-conv-avatar,
 .chat-thread-avatar {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   flex-shrink: 0;
   display: grid;
@@ -178,8 +178,8 @@
 .chat-thread-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 12px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--mr-border-light);
   flex-shrink: 0;
 }
@@ -197,12 +197,12 @@
 .chat-thread-sub:hover { color: var(--mr-gold); }
 
 .chat-system {
-  align-self: center;
-  max-width: 90%;
+  max-width: 100%;
   text-align: center;
   color: var(--mr-text-muted);
-  font-size: 0.75rem;
-  padding: 2px 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  padding: 0;
 }
 
 .chat-bubble-sender {
@@ -227,11 +227,43 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 16px 14px;
+  padding: 18px 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 }
+
+/* divisor de hora (aparece só quando há intervalo / muda o dia) */
+.chat-time-sep {
+  align-self: center;
+  margin: 16px 0 8px;
+  color: var(--mr-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.chat-time-sep:first-child { margin-top: 4px; }
+
+/* bloco de avisos do sistema — compacto, discreto */
+.chat-system-run {
+  align-self: center;
+  max-width: 94%;
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.chat-system-toggle {
+  border: 0;
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 0;
+}
+.chat-system-toggle:hover { color: var(--mr-gold); }
 
 .chat-load-more {
   align-self: center;
@@ -258,27 +290,28 @@
 .chat-bubble-row.is-mine { justify-content: flex-end; }
 
 .chat-bubble {
-  max-width: 78%;
-  padding: 8px 12px;
-  border-radius: 14px;
-  background: var(--mr-muted-bg);
-  border: 1px solid var(--mr-border-light);
+  max-width: 100%;
+  padding: 8px 13px;
+  border-radius: 18px;
+  background: var(--mr-bubble-in);
+  border: 0;
   font-size: 0.88rem;
-  line-height: 1.4;
+  line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
 }
 .chat-bubble-row.is-mine .chat-bubble {
-  background: var(--mr-gold-10);
-  border-color: var(--mr-gold-20);
+  background: var(--mr-bubble-out);
 }
+/* canto "colado" no avatar / na cauda fica menos arredondado (toque Instagram) */
+.chat-bubble-row.is-tail:not(.is-mine) .chat-bubble { border-bottom-left-radius: 6px; }
+.chat-bubble-row.is-tail.is-mine .chat-bubble { border-bottom-right-radius: 6px; }
 
-.chat-bubble-time {
-  display: block;
-  margin-top: 3px;
-  font-size: 0.68rem;
+.chat-edited-tag {
+  margin-left: 6px;
+  font-size: 0.66rem;
+  font-style: italic;
   color: var(--mr-text-muted);
-  text-align: right;
 }
 
 .chat-error {
@@ -292,7 +325,7 @@
   display: flex;
   gap: 8px;
   align-items: flex-end;
-  padding: 12px 14px;
+  padding: 12px 14px 14px;
   border-top: 1px solid var(--mr-border-light);
   flex-shrink: 0;
 }
@@ -301,8 +334,8 @@
   flex: 1;
   resize: none;
   max-height: 120px;
-  padding: 9px 12px;
-  border-radius: var(--mr-radius-sm);
+  padding: 9px 14px;
+  border-radius: 20px;
   border: 1px solid var(--mr-border);
   background: var(--mr-input-bg);
   color: var(--mr-text);
@@ -653,12 +686,12 @@ input.chat-modal-input { max-height: none; }
 }
 
 /* ── Mensagens: avatar, agrupamento, resposta, ações, reações ─────── */
-.chat-bubble-row { align-items: flex-end; gap: 8px; }
-.chat-bubble-row.is-cont { margin-top: -4px; }
-.chat-row-avatar { width: 28px; flex-shrink: 0; }
+.chat-bubble-row { align-items: flex-end; gap: 8px; margin-top: 10px; }
+.chat-bubble-row.is-cont { margin-top: 2px; }
+.chat-row-avatar { width: 30px; flex-shrink: 0; }
 .chat-msg-avatar {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   overflow: hidden;
   display: grid;
@@ -669,10 +702,48 @@ input.chat-modal-input { max-height: none; }
 }
 .chat-msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-.chat-bubble-wrap { min-width: 0; max-width: 78%; display: flex; flex-direction: column; }
+.chat-bubble-wrap { position: relative; min-width: 0; max-width: 70%; display: flex; flex-direction: column; }
 .chat-bubble-row.is-mine .chat-bubble-wrap { align-items: flex-end; }
 .chat-bubble { position: relative; max-width: 100%; }
 .chat-bubble-row.is-cont .chat-bubble-sender { display: none; }
+
+/* barra de ações flutuante no hover (estilo Instagram) */
+.chat-msg-toolbar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 1px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--mr-surface);
+  border: 1px solid var(--mr-border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+.chat-bubble-row:not(.is-mine) .chat-msg-toolbar { left: 100%; margin-left: 6px; }
+.chat-bubble-row.is-mine .chat-msg-toolbar { right: 100%; margin-right: 6px; }
+.chat-bubble-row:hover .chat-msg-toolbar,
+.chat-msg-toolbar:focus-within { opacity: 1; pointer-events: auto; }
+@media (hover: none) { .chat-msg-toolbar { opacity: 1; pointer-events: auto; } }
+
+.chat-msg-tbtn {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.chat-msg-tbtn:hover { background: var(--mr-card-hover); color: var(--mr-gold); }
 
 .chat-reply-quote {
   display: block;
@@ -698,23 +769,6 @@ input.chat-modal-input { max-height: none; }
 }
 
 .chat-bubble-body.is-deleted { color: var(--mr-text-muted); font-style: italic; }
-.chat-edited { font-style: italic; }
-
-.chat-msg-trigger {
-  position: absolute;
-  top: 2px;
-  right: 4px;
-  border: 0;
-  background: transparent;
-  color: var(--mr-text-muted);
-  font-size: 0.9rem;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.12s ease;
-}
-.chat-bubble:hover .chat-msg-trigger { opacity: 0.85; }
-@media (hover: none) { .chat-msg-trigger { opacity: 0.6; } }
 
 .chat-msg-menu {
   /* posição (fixed + left/top) vem inline do ChatThread; aqui só a aparência */

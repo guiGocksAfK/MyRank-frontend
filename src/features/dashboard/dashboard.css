@@ -26,6 +26,8 @@
   --mr-purple: #c4b5fd;
   --mr-input-bg: #121212;
   --mr-muted-bg: #111111;
+  --mr-bubble-in: #1d1d1d;
+  --mr-bubble-out: rgba(212, 175, 55, 0.16);
   --mr-radius: 14px;
   --mr-radius-sm: 10px;
   --mr-radius-xs: 6px;
@@ -54,6 +56,8 @@
   --mr-purple: #7c3aed;
   --mr-input-bg: #eeeeee;
   --mr-muted-bg: #e8e8e8;
+  --mr-bubble-in: #ededed;
+  --mr-bubble-out: rgba(184, 134, 11, 0.16);
 }
 
 /* ============ GLOBAL DASHBOARD ============ */
