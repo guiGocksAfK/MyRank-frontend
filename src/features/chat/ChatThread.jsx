@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
 import { useUser } from '../../shared/userContext';
@@ -185,12 +186,18 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft }) 
     if (nearBottomRef.current && !editing) scrollToBottom();
   }, [messages, editing, scrollToBottom]);
 
-  // fecha o menu ao clicar fora
+  // fecha o menu ao clicar fora, rolar ou redimensionar (o menu é posicionado por rect)
   useEffect(() => {
     if (menuFor == null) return undefined;
     const close = () => setMenuFor(null);
     window.addEventListener('click', close);
-    return () => window.removeEventListener('click', close);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close, true);
+    return () => {
+      window.removeEventListener('click', close);
+      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', close, true);
+    };
   }, [menuFor]);
 
   const canSend = draft.trim().length > 0 && draft.length <= BODY_MAX && !sending;
@@ -452,6 +459,8 @@ function withHeaders(list) {
   });
 }
 
+const MENU_W = 244;
+
 function MessageRow({
   m, showHeader, isGroup, lang, tc, canModerate,
   menuOpen, onOpenMenu, onReact, onReply, onEdit, onDelete, onJump,
@@ -459,6 +468,26 @@ function MessageRow({
   const showAvatar = isGroup && !m.mine;
   const canEdit = m.mine && !m.deleted;
   const canDelete = (m.mine || canModerate) && !m.deleted;
+
+  // Menu de ações: renderizado num portal com posição fixa pra não ser cortado
+  // pelo overflow:hidden do .chat-main / .chat-messages.
+  const triggerRef = useRef(null);
+  const [menuPos, setMenuPos] = useState(null);
+  useLayoutEffect(() => {
+    if (!menuOpen || !triggerRef.current) {
+      setMenuPos(null);
+      return;
+    }
+    const r = triggerRef.current.getBoundingClientRect();
+    const gap = 6;
+    const left = Math.max(8, Math.min(r.right - MENU_W, window.innerWidth - MENU_W - 8));
+    const openUp = r.top > 190;
+    setMenuPos({
+      left,
+      top: openUp ? r.top - gap : r.bottom + gap,
+      transform: openUp ? 'translateY(-100%)' : 'none',
+    });
+  }, [menuOpen]);
 
   return (
     <div
@@ -508,6 +537,7 @@ function MessageRow({
 
           {!m.deleted && (
             <button
+              ref={triggerRef}
               type="button"
               className="chat-msg-trigger"
               onClick={onOpenMenu}
@@ -517,27 +547,39 @@ function MessageRow({
             </button>
           )}
 
-          {menuOpen && (
-            <div className="chat-msg-menu" onClick={(e) => e.stopPropagation()}>
-              <div className="chat-emoji-row">
-                {CHAT_EMOJIS.map((e) => (
-                  <button
-                    key={e}
-                    type="button"
-                    className="chat-emoji-btn"
-                    onClick={() => onReact(e)}
-                  >
-                    {e}
-                  </button>
-                ))}
-              </div>
-              <div className="chat-menu-actions">
-                <button type="button" onClick={onReply}>↩ {tc.reply}</button>
-                {canEdit && <button type="button" onClick={onEdit}>✏️ {tc.edit}</button>}
-                {canDelete && <button type="button" className="is-danger" onClick={onDelete}>🗑 {tc.delete}</button>}
-              </div>
-            </div>
-          )}
+          {menuOpen && menuPos &&
+            createPortal(
+              <div
+                className="chat-msg-menu"
+                style={{
+                  position: 'fixed',
+                  left: menuPos.left,
+                  top: menuPos.top,
+                  transform: menuPos.transform,
+                  width: MENU_W,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="chat-emoji-row">
+                  {CHAT_EMOJIS.map((e) => (
+                    <button
+                      key={e}
+                      type="button"
+                      className="chat-emoji-btn"
+                      onClick={() => onReact(e)}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+                <div className="chat-menu-actions">
+                  <button type="button" onClick={onReply}>↩ {tc.reply}</button>
+                  {canEdit && <button type="button" onClick={onEdit}>✏️ {tc.edit}</button>}
+                  {canDelete && <button type="button" className="is-danger" onClick={onDelete}>🗑 {tc.delete}</button>}
+                </div>
+              </div>,
+              document.body,
+            )}
         </div>
 
         {m.reactions?.length > 0 && (

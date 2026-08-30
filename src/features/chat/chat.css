@@ -717,20 +717,14 @@ input.chat-modal-input { max-height: none; }
 @media (hover: none) { .chat-msg-trigger { opacity: 0.6; } }
 
 .chat-msg-menu {
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  z-index: 30;
-  margin-bottom: 4px;
-  width: max-content;
-  max-width: 260px;
+  /* posição (fixed + left/top) vem inline do ChatThread; aqui só a aparência */
+  z-index: 300;
   background: var(--mr-surface);
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius-sm);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   padding: 6px;
 }
-.chat-bubble-row.is-mine .chat-msg-menu { right: 0; }
 .chat-emoji-row {
   display: flex;
   flex-wrap: wrap;

@@ -146,8 +146,13 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
     [canEditGroup, name, desc, photo, access, savedName, savedDesc, savedPhoto, conversation.access],
   );
 
+  // Sempre fecha. Se tem edição de campo pendente, salva antes; senão só fecha.
   const save = async () => {
-    if (!dirty || !name.trim()) return;
+    if (!name.trim()) return;
+    if (!dirty) {
+      onClose();
+      return;
+    }
     const patch = {};
     if (name.trim() !== savedName) patch.name = name.trim();
     if (desc.trim() !== savedDesc) patch.description = desc.trim();
@@ -433,7 +438,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
               type="button"
               className="mr-btn mr-btn-gold mr-btn-sm"
               onClick={save}
-              disabled={busy || !dirty || !name.trim()}
+              disabled={busy || !name.trim()}
             >
               {tc.saveChanges}
             </button>
