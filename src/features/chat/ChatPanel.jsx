@@ -4,8 +4,10 @@ import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import Avatar from '../../shared/components/Avatar';
-import { getConversations } from '../../services/chatService';
+import { getConversations, startDirect } from '../../services/chatService';
 import ChatThread from './ChatThread';
+import NewGroupModal from './NewGroupModal';
+import GroupIcon from './GroupIcon';
 
 export default function ChatPanel() {
   const { t, lang } = useLanguage();
@@ -13,7 +15,8 @@ export default function ChatPanel() {
   const { unreadCount, refreshCount, pendingPeer, consumePendingPeer } = useChat();
 
   const [conversations, setConversations] = useState(null);
-  const [active, setActive] = useState(null); // { id, username, avatarUrl }
+  const [activeId, setActiveId] = useState(null);
+  const [showNewGroup, setShowNewGroup] = useState(false);
 
   const loadConversations = useCallback(async () => {
     try {
@@ -27,66 +30,97 @@ export default function ChatPanel() {
     loadConversations();
   }, [loadConversations, unreadCount]);
 
-  // pedido externo de abrir conversa (botão "Mensagem" no perfil)
+  // pedido externo: botão "Mensagem" no perfil de alguém → abre/cria o DM
   useEffect(() => {
-    if (pendingPeer) {
-      setActive(pendingPeer);
-      consumePendingPeer();
-    }
-  }, [pendingPeer, consumePendingPeer]);
+    if (!pendingPeer) return;
+    consumePendingPeer();
+    startDirect(pendingPeer.id)
+      .then((conv) => {
+        setActiveId(conv.id);
+        loadConversations();
+      })
+      .catch(() => {});
+  }, [pendingPeer, consumePendingPeer, loadConversations]);
 
-  const openThread = (peer) => setActive(peer);
+  const active = conversations?.find((c) => c.id === activeId) || null;
 
   const closeThread = () => {
-    setActive(null);
+    setActiveId(null);
+    loadConversations();
+    refreshCount();
+  };
+
+  const handleGroupCreated = (conv) => {
+    setShowNewGroup(false);
+    loadConversations();
+    setActiveId(conv.id);
+  };
+
+  const handleConversationChanged = () => {
     loadConversations();
     refreshCount();
   };
 
   return (
-    <div className={`chat-panel ${active ? 'has-active' : ''}`}>
+    <div className={`chat-panel ${activeId ? 'has-active' : ''}`}>
       <aside className="chat-list">
-        <div className="chat-list-head">{tc.title}</div>
+        <div className="chat-list-head">
+          <span>{tc.title}</span>
+          <button type="button" className="chat-newgroup-btn" onClick={() => setShowNewGroup(true)}>
+            {tc.newGroup}
+          </button>
+        </div>
 
         {conversations === null ? (
           <div className="chat-hint">{tc.loading}</div>
         ) : conversations.length === 0 ? (
           <div className="chat-hint">{tc.inboxEmpty}</div>
         ) : (
-          conversations.map((c) => (
-            <button
-              key={c.peerId}
-              type="button"
-              className={`chat-conv ${active?.id === c.peerId ? 'active' : ''} ${c.unread > 0 ? 'is-unread' : ''}`}
-              onClick={() =>
-                openThread({ id: c.peerId, username: c.peerUsername, avatarUrl: c.peerAvatarUrl })
-              }
-            >
-              <Avatar
-                user={{ id: c.peerId, username: c.peerUsername, avatarUrl: c.peerAvatarUrl }}
-                className="chat-conv-avatar"
-              />
-              <div className="chat-conv-main">
-                <div className="chat-conv-top">
-                  <span className="chat-conv-name">@{c.peerUsername}</span>
-                  <span className="chat-conv-time">{relativeTime(c.lastAt, lang)}</span>
+          conversations.map((c) => {
+            const title = c.type === 'GROUP' ? c.name : `@${c.peer?.username ?? '—'}`;
+            const preview = renderPreview(c, tc);
+            return (
+              <button
+                key={c.id}
+                type="button"
+                className={`chat-conv ${activeId === c.id ? 'active' : ''} ${c.unread > 0 ? 'is-unread' : ''}`}
+                onClick={() => setActiveId(c.id)}
+              >
+                {c.type === 'GROUP' ? (
+                  <GroupIcon name={c.name} className="chat-conv-avatar" />
+                ) : (
+                  <Avatar
+                    user={{ id: c.peer?.id, username: c.peer?.username, avatarUrl: c.peer?.avatarUrl }}
+                    className="chat-conv-avatar"
+                  />
+                )}
+                <div className="chat-conv-main">
+                  <div className="chat-conv-top">
+                    <span className="chat-conv-name">
+                      {c.type === 'GROUP' && <span aria-hidden="true">👥 </span>}
+                      {title}
+                    </span>
+                    <span className="chat-conv-time">{c.lastAt ? relativeTime(c.lastAt, lang) : ''}</span>
+                  </div>
+                  <div className="chat-conv-preview">{preview}</div>
                 </div>
-                <div className="chat-conv-preview">
-                  {c.lastMine ? <span className="chat-conv-you">{tc.youPrefix}</span> : null}
-                  {c.lastMessage}
-                </div>
-              </div>
-              {c.unread > 0 && (
-                <span className="chat-conv-badge">{c.unread > 9 ? '9+' : c.unread}</span>
-              )}
-            </button>
-          ))
+                {c.unread > 0 && (
+                  <span className="chat-conv-badge">{c.unread > 9 ? '9+' : c.unread}</span>
+                )}
+              </button>
+            );
+          })
         )}
       </aside>
 
       <section className="chat-main">
         {active ? (
-          <ChatThread peer={active} onBack={closeThread} />
+          <ChatThread
+            conversation={active}
+            onBack={closeThread}
+            onChanged={handleConversationChanged}
+            onLeft={closeThread}
+          />
         ) : (
           <div className="chat-empty">
             <div className="chat-empty-icon" aria-hidden="true">💬</div>
@@ -95,6 +129,18 @@ export default function ChatPanel() {
           </div>
         )}
       </section>
+
+      {showNewGroup && (
+        <NewGroupModal onClose={() => setShowNewGroup(false)} onCreated={handleGroupCreated} />
+      )}
     </div>
   );
+}
+
+function renderPreview(c, tc) {
+  if (!c.lastMessage) return tc.noMessages;
+  if (c.lastKind === 'SYSTEM') return c.lastMessage;
+  if (c.lastMine) return `${tc.youPrefix}${c.lastMessage}`;
+  if (c.type === 'GROUP' && c.lastSenderName) return `${c.lastSenderName}: ${c.lastMessage}`;
+  return c.lastMessage;
 }
