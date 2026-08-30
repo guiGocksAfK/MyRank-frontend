@@ -26,6 +26,8 @@
   --mr-purple: #c4b5fd;
   --mr-input-bg: #121212;
   --mr-muted-bg: #111111;
+  --mr-bubble-in: #1d1d1d;
+  --mr-bubble-out: rgba(212, 175, 55, 0.16);
   --mr-radius: 14px;
   --mr-radius-sm: 10px;
   --mr-radius-xs: 6px;
@@ -54,6 +56,8 @@
   --mr-purple: #7c3aed;
   --mr-input-bg: #eeeeee;
   --mr-muted-bg: #e8e8e8;
+  --mr-bubble-in: #ededed;
+  --mr-bubble-out: rgba(184, 134, 11, 0.16);
 }
 
 /* ============ GLOBAL DASHBOARD ============ */
@@ -1090,6 +1094,23 @@
   border-color: var(--mr-gold);
   outline: none;
 }
+
+.mr-profile-visibility {
+  border: 1px solid var(--mr-border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 3px 12px;
+  cursor: pointer;
+  transition: border-color 0.16s ease, color 0.16s ease;
+}
+.mr-profile-visibility:hover:not(:disabled) {
+  border-color: var(--mr-gold);
+  color: var(--mr-gold);
+}
+.mr-profile-visibility:disabled { opacity: 0.6; cursor: default; }
 
 /* ============ TABS LIST ============ */
 .mr-tabs-list {

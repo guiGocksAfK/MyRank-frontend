@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginWithDiscord } from "../../services/authService";
+import { loginWithDiscord, takePostAuthPath } from "../../services/authService";
 import "./auth.css";
 
 export default function DiscordCallbackPage() {
@@ -25,7 +25,7 @@ export default function DiscordCallbackPage() {
     }
 
     loginWithDiscord(accessToken)
-      .then(() => navigate("/dashboard"))
+      .then(() => navigate(takePostAuthPath()))
       .catch((err) => {
         setError(err.response?.data?.message || "Erro ao entrar com Discord.");
       });

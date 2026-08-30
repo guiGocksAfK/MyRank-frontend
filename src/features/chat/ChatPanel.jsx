@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './chat.css';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import Avatar from '../../shared/components/Avatar';
-import { getConversations, startDirect } from '../../services/chatService';
+import { getConversations, startDirect, getSuggestedDirects } from '../../services/chatService';
 import ChatThread from './ChatThread';
 import NewGroupModal from './NewGroupModal';
 import GroupIcon from './GroupIcon';
@@ -21,12 +21,14 @@ const readFilter = () => {
   }
 };
 
-export default function ChatPanel() {
+export default function ChatPanel({ initialConvId = null, onInitialConvConsumed, onOpenProfile }) {
   const { t, lang } = useLanguage();
   const tc = t.chat;
-  const { unreadCount, refreshCount, pendingPeer, consumePendingPeer } = useChat();
+  const { unreadCount, refreshCount, pendingPeer, consumePendingPeer, touchNonce } = useChat();
+  const initialConvSeen = useRef(false);
 
   const [conversations, setConversations] = useState(null);
+  const [suggested, setSuggested] = useState([]); // mútuos sem DM ainda ("diga oi")
   const [activeId, setActiveId] = useState(null);
   const [showNewGroup, setShowNewGroup] = useState(false);
   const [showDirectory, setShowDirectory] = useState(false);
@@ -49,9 +51,30 @@ export default function ChatPanel() {
     }
   }, []);
 
+  const loadSuggested = useCallback(async () => {
+    try {
+      setSuggested(await getSuggestedDirects());
+    } catch {
+      setSuggested([]);
+    }
+  }, []);
+
   useEffect(() => {
     loadConversations();
-  }, [loadConversations, unreadCount]);
+  }, [loadConversations, unreadCount, touchNonce]);
+
+  useEffect(() => {
+    loadSuggested();
+  }, [loadSuggested, touchNonce]);
+
+  // Abre a conversa que veio de /chat/invite/:token (uma vez só).
+  useEffect(() => {
+    if (initialConvId == null || initialConvSeen.current) return;
+    initialConvSeen.current = true;
+    setActiveId(initialConvId);
+    loadConversations();
+    onInitialConvConsumed?.();
+  }, [initialConvId, loadConversations, onInitialConvConsumed]);
 
   // pedido externo: botão "Mensagem" no perfil de alguém → abre/cria o DM
   useEffect(() => {
@@ -61,15 +84,32 @@ export default function ChatPanel() {
       .then((conv) => {
         setActiveId(conv.id);
         loadConversations();
+        loadSuggested();
       })
       .catch(() => {});
-  }, [pendingPeer, consumePendingPeer, loadConversations]);
+  }, [pendingPeer, consumePendingPeer, loadConversations, loadSuggested]);
 
   const active = conversations?.find((c) => c.id === activeId) || null;
 
   const visible = conversations?.filter((c) =>
     filter === 'all' ? true : filter === 'direct' ? c.type === 'DIRECT' : c.type === 'GROUP',
   );
+
+  const dmPeerIds = new Set(
+    (conversations || []).filter((c) => c.type === 'DIRECT').map((c) => c.peer?.id),
+  );
+  const suggestedVisible =
+    filter === 'group' ? [] : suggested.filter((u) => !dmPeerIds.has(u.id));
+
+  const openSuggested = (u) => {
+    startDirect(u.id)
+      .then((conv) => {
+        setSuggested((prev) => prev.filter((x) => x.id !== u.id));
+        setActiveId(conv.id);
+        loadConversations();
+      })
+      .catch(() => {});
+  };
 
   const closeThread = () => {
     setActiveId(null);
@@ -134,45 +174,67 @@ export default function ChatPanel() {
 
         {conversations === null ? (
           <div className="chat-hint">{tc.loading}</div>
-        ) : conversations.length === 0 ? (
-          <div className="chat-hint">{tc.inboxEmpty}</div>
-        ) : visible.length === 0 ? (
-          <div className="chat-hint">{tc.noneInFilter}</div>
+        ) : visible.length === 0 && suggestedVisible.length === 0 ? (
+          <div className="chat-hint">
+            {conversations.length === 0 ? tc.inboxEmpty : tc.noneInFilter}
+          </div>
         ) : (
-          visible.map((c) => {
-            const title = c.type === 'GROUP' ? c.name : `@${c.peer?.username ?? '—'}`;
-            const preview = renderPreview(c, tc);
-            return (
+          <>
+            {visible.map((c) => {
+              const title = c.type === 'GROUP' ? c.name : `@${c.peer?.username ?? '—'}`;
+              const preview = renderPreview(c, tc);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`chat-conv ${activeId === c.id ? 'active' : ''} ${c.unread > 0 ? 'is-unread' : ''}`}
+                  onClick={() => setActiveId(c.id)}
+                >
+                  {c.type === 'GROUP' ? (
+                    <GroupIcon name={c.name} imageUrl={c.imageUrl} className="chat-conv-avatar" />
+                  ) : (
+                    <Avatar
+                      user={{ id: c.peer?.id, username: c.peer?.username, avatarUrl: c.peer?.avatarUrl }}
+                      className="chat-conv-avatar"
+                    />
+                  )}
+                  <div className="chat-conv-main">
+                    <div className="chat-conv-top">
+                      <span className="chat-conv-name">
+                        {c.type === 'GROUP' && <span aria-hidden="true">👥 </span>}
+                        {title}
+                      </span>
+                      <span className="chat-conv-time">{c.lastAt ? relativeTime(c.lastAt, lang) : ''}</span>
+                    </div>
+                    <div className="chat-conv-preview">{preview}</div>
+                  </div>
+                  {c.unread > 0 && (
+                    <span className="chat-conv-badge">{c.unread > 9 ? '9+' : c.unread}</span>
+                  )}
+                </button>
+              );
+            })}
+
+            {suggestedVisible.map((u) => (
               <button
-                key={c.id}
+                key={`sg-${u.id}`}
                 type="button"
-                className={`chat-conv ${activeId === c.id ? 'active' : ''} ${c.unread > 0 ? 'is-unread' : ''}`}
-                onClick={() => setActiveId(c.id)}
+                className="chat-conv chat-conv--ghost"
+                onClick={() => openSuggested(u)}
               >
-                {c.type === 'GROUP' ? (
-                  <GroupIcon name={c.name} imageUrl={c.imageUrl} className="chat-conv-avatar" />
-                ) : (
-                  <Avatar
-                    user={{ id: c.peer?.id, username: c.peer?.username, avatarUrl: c.peer?.avatarUrl }}
-                    className="chat-conv-avatar"
-                  />
-                )}
+                <Avatar
+                  user={{ id: u.id, username: u.username, avatarUrl: u.avatarUrl }}
+                  className="chat-conv-avatar"
+                />
                 <div className="chat-conv-main">
                   <div className="chat-conv-top">
-                    <span className="chat-conv-name">
-                      {c.type === 'GROUP' && <span aria-hidden="true">👥 </span>}
-                      {title}
-                    </span>
-                    <span className="chat-conv-time">{c.lastAt ? relativeTime(c.lastAt, lang) : ''}</span>
+                    <span className="chat-conv-name">@{u.username}</span>
                   </div>
-                  <div className="chat-conv-preview">{preview}</div>
+                  <div className="chat-conv-preview">{tc.sayHi}</div>
                 </div>
-                {c.unread > 0 && (
-                  <span className="chat-conv-badge">{c.unread > 9 ? '9+' : c.unread}</span>
-                )}
               </button>
-            );
-          })
+            ))}
+          </>
         )}
       </aside>
 
@@ -183,6 +245,7 @@ export default function ChatPanel() {
             onBack={closeThread}
             onChanged={handleConversationChanged}
             onLeft={closeThread}
+            onOpenProfile={onOpenProfile}
           />
         ) : (
           <div className="chat-empty">

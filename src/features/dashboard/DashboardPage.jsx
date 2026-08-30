@@ -20,6 +20,8 @@ export default function DashboardPage() {
   const location = useLocation();
   const initialTab = VALID_TABS.includes(location.state?.tab) ? location.state.tab : 'home';
   const [activeTab, setActiveTab] = useState(initialTab);
+  // conversa a abrir de cara (veio de /chat/invite/:token). Consumida uma vez.
+  const [openConvId, setOpenConvId] = useState(location.state?.openConvId ?? null);
   const [isDark, setIsDark] = useState(true);
   const [creatorsView, setCreatorsView] = useState(false);
   const [rankingsVisited, setRankingsVisited] = useState(false);
@@ -42,7 +44,12 @@ export default function DashboardPage() {
         if (creatorsView) return <CreatorsPanel onBack={() => setCreatorsView(false)} />;
         return <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />;
       case 'social':
-        return <SocialPanel />;
+        return (
+          <SocialPanel
+            initialConvId={openConvId}
+            onInitialConvConsumed={() => setOpenConvId(null)}
+          />
+        );
       case 'ai':
         return <InsightsPanel />;
       case 'profile':

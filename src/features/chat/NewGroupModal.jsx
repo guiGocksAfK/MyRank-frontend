@@ -3,8 +3,10 @@ import { useLanguage } from '../../shared/i18n';
 import { socialApi } from '../social/socialData';
 import { createGroup } from '../../services/chatService';
 import SocialAvatar from '../social/SocialAvatar';
+import ImagePreview from './ImagePreview';
 
 const NAME_MAX = 80;
+const DESC_MAX = 300;
 const ACCESSES = ['OPEN', 'REQUEST', 'CLOSED'];
 
 /** Cria um grupo: nome, foto (URL), acesso e (opcional) participantes. */
@@ -13,6 +15,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
   const tc = t.chat;
 
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [access, setAccess] = useState('REQUEST');
   const [query, setQuery] = useState('');
@@ -58,6 +61,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
         memberIds: selected.map((u) => u.id),
         access,
         imageUrl: imageUrl.trim(),
+        description: description.trim(),
       });
       onCreated(conv);
     } catch (err) {
@@ -82,6 +86,16 @@ export default function NewGroupModal({ onClose, onCreated }) {
           onChange={(e) => setName(e.target.value)}
         />
 
+        <label className="chat-modal-label">{tc.groupDescriptionOptional}</label>
+        <textarea
+          className="chat-input chat-modal-input"
+          rows={2}
+          value={description}
+          maxLength={DESC_MAX}
+          placeholder={tc.groupDescriptionPlaceholder}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+
         <label className="chat-modal-label">{tc.groupPhotoOptional}</label>
         <input
           className="chat-input chat-modal-input"
@@ -90,6 +104,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
           placeholder="https://…/foto.jpg"
           onChange={(e) => setImageUrl(e.target.value)}
         />
+        <ImagePreview url={imageUrl} />
 
         <label className="chat-modal-label">{tc.groupAccess}</label>
         <div className="chat-access-seg">
