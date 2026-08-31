@@ -68,10 +68,13 @@
     #000000;
   color: var(--mr-text);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .mr-main {
+  flex: 1;
   width: min(1400px, calc(100% - 24px));
   margin: 0 auto;
   padding: 24px 0 40px;

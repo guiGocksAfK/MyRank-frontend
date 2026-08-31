@@ -3,6 +3,7 @@ import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
 import { socialApi, computeTasteMatch, typeIconFor } from './socialData';
 import SocialAvatar from './SocialAvatar';
+import SocialEmpty from './SocialEmpty';
 
 const norm = (t) => (t || '').trim().toLowerCase();
 
@@ -70,9 +71,9 @@ export default function CompareView({ userId, onBack, onOpenUser }) {
         <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onBack}>{tc.back}</button>
         <span style={{ fontWeight: 700 }}>{tc.you}</span>
         <span className="social-muted">{tc.vs}</span>
-        <button className="social-link" onClick={() => onOpenUser?.(friend.id)}>
+        <button className="social-link" onClick={() => onOpenUser?.(friend.id)} title={friend.username}>
           <SocialAvatar name={friend.username} initials={friend.initials} color={friend.color} src={friend.avatarSrc} size={22} />
-          <span style={{ marginLeft: 6, fontWeight: 700 }}>{firstName}</span>
+          <span className="mr-truncate" style={{ marginLeft: 6, fontWeight: 700, maxWidth: 160 }}>{friend.username}</span>
         </button>
       </div>
 
@@ -101,15 +102,15 @@ export default function CompareView({ userId, onBack, onOpenUser }) {
       {/* Tabela lado a lado */}
       <div className="mr-card">
         <div className="mr-card-body mr-space-y-2">
-          <div className="mr-table-header" style={{ gridTemplateColumns: '1fr 70px 70px 56px' }}>
+          <div className="mr-table-header" style={{ gridTemplateColumns: 'minmax(0, 1fr) 54px 72px 40px' }}>
             <span>{tc.colWork}</span>
             <span style={{ textAlign: 'right' }}>{tc.you}</span>
-            <span style={{ textAlign: 'right' }}>{firstName}</span>
+            <span className="mr-truncate" style={{ textAlign: 'right' }} title={friend.username}>{firstName}</span>
             <span style={{ textAlign: 'center' }}>Δ</span>
           </div>
-          {rows.length === 0 && <div className="social-empty">{tc.noData}</div>}
+          {rows.length === 0 && <SocialEmpty icon="🤝" text={tc.noData} />}
           {rows.map((r) => (
-            <div key={r.key} className="mr-table-row" style={{ gridTemplateColumns: '1fr 70px 70px 56px' }}>
+            <div key={r.key} className="mr-table-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) 54px 72px 40px' }}>
               <div className="mr-min-w-0 mr-flex mr-items-center mr-gap-2">
                 <span style={{ flexShrink: 0 }}>{typeIconFor(r.type)}</span>
                 <span className="mr-truncate">{r.label}</span>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { socialApi } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import UserPill from './UserPill';
+import SocialEmpty from './SocialEmpty';
 
 export default function Discover({ onOpenUser, onFollowChange }) {
   const { t } = useLanguage();
@@ -57,9 +58,7 @@ export default function Discover({ onOpenUser, onFollowChange }) {
       </div>
 
       {list.length === 0 ? (
-        <div className="social-empty">
-          {results ? td.noneFound : td.noSuggestions}
-        </div>
+        <SocialEmpty icon="🔍" text={results ? td.noneFound : td.noSuggestions} />
       ) : (
         <div className="mr-space-y-2">
           {list.map((u) => (

@@ -174,7 +174,9 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
   const forceBottomRef = useRef(true); // força ir ao fim na carga inicial
   const nearBottomRef = useRef(true); // usuário estava perto do fim antes do último update
   const scrollToBottom = useCallback((smooth = false) => {
-    bottomRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+    // rola só a lista interna — nunca a página (scrollIntoView arrastava a viewport)
+    const el = listRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
   }, []);
 
   const onListScroll = useCallback(() => {
@@ -410,8 +412,15 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
 
   const jumpTo = (id) => {
     const el = document.getElementById(`msg-${id}`);
-    if (!el) return;
-    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const list = listRef.current;
+    if (!el || !list) return;
+    // centraliza dentro da lista sem mexer no scroll da página
+    const rEl = el.getBoundingClientRect();
+    const rList = list.getBoundingClientRect();
+    list.scrollTo({
+      top: list.scrollTop + (rEl.top - rList.top) - list.clientHeight / 2 + rEl.height / 2,
+      behavior: 'smooth',
+    });
     el.classList.add('is-flash');
     setTimeout(() => el.classList.remove('is-flash'), 1200);
   };

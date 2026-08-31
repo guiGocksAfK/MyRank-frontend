@@ -136,6 +136,16 @@ export const socialApi = {
     return (data || []).map(decorateUser);
   },
 
+  async getFollowers() {
+    const { data } = await api.get('/social/followers');
+    return (data || []).map(decorateUser);
+  },
+
+  async getRecentFollowers(limit = 5) {
+    const { data } = await api.get('/social/followers/recent', { params: { limit } });
+    return (data || []).map(decorateUser);
+  },
+
   async getSuggestions() {
     const { data } = await api.get('/social/suggestions');
     return (data || []).map(decorateUser);

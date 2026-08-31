@@ -3,8 +3,9 @@ import { socialApi } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import TakeComposer from './TakeComposer';
 import ActivityCard from './ActivityCard';
+import SocialEmpty from './SocialEmpty';
 
-export default function SocialFeed({ onOpenUser }) {
+export default function SocialFeed({ onOpenUser, onNavigate, onGoDiscover }) {
   const { t } = useLanguage();
   const tf = t.social.feed;
   const [items, setItems] = useState(null);
@@ -26,15 +27,19 @@ export default function SocialFeed({ onOpenUser }) {
   );
 
   return (
-    <div className="mr-space-y-3">
-      <TakeComposer onPost={handlePost} />
+    <div className="social-feed-col">
+      <TakeComposer onPost={handlePost} onNavigate={onNavigate} />
 
       {items === null ? (
-        <div className="social-empty">{tf.loading}</div>
+        <SocialEmpty icon="⏳" text={tf.loading} />
       ) : items.length === 0 ? (
-        <div className="social-empty">
-          {tf.emptyA} <strong>{tf.discoverWord}</strong> {tf.emptyB}
-        </div>
+        <SocialEmpty
+          icon="🌱"
+          title={tf.emptyTitle}
+          text={tf.emptyText}
+          actionLabel={tf.emptyCta}
+          onAction={onGoDiscover}
+        />
       ) : (
         items.map((item) => (
           <ActivityCard

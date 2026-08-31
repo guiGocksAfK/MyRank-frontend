@@ -4,6 +4,9 @@ import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
 import { socialApi } from './socialData';
 import SocialFeed from './SocialFeed';
+import SocialRail from './SocialRail';
+import ConnectionsView from './ConnectionsView';
+import SocialEmpty from './SocialEmpty';
 import Discover from './Discover';
 import UserProfileView from './UserProfileView';
 import CompareView from './CompareView';
@@ -20,12 +23,13 @@ function CompareList({ onPick, onFollowChange }) {
   }, []);
   useEffect(load, [load]);
 
-  if (following === null) return <div className="social-empty">{ts.loading}</div>;
+  if (following === null) return <SocialEmpty icon="⏳" text={ts.loading} />;
   if (following.length === 0) {
     return (
-      <div className="social-empty">
-        {ts.compareList.empty1} <strong>{ts.compareList.discoverWord}</strong> {ts.compareList.empty2}
-      </div>
+      <SocialEmpty
+        icon="⚖️"
+        text={`${ts.compareList.empty1} ${ts.compareList.discoverWord} ${ts.compareList.empty2}`}
+      />
     );
   }
 
@@ -48,7 +52,7 @@ function CompareList({ onPick, onFollowChange }) {
   );
 }
 
-export default function SocialPanel({ initialConvId = null, onInitialConvConsumed }) {
+export default function SocialPanel({ initialConvId = null, onInitialConvConsumed, onNavigate }) {
   const { t } = useLanguage();
   const ts = t.social;
   const { unreadCount: chatUnread, openNonce } = useChat();
@@ -80,6 +84,7 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
 
   const openProfile = (userId) => setView({ kind: 'profile', userId });
   const openCompare = (userId) => setView({ kind: 'compare', userId });
+  const openConnections = (which) => setView({ kind: 'connections', tab: which });
   const backToTabs = () => setView({ kind: 'tabs' });
 
   const toggleFollow = async (userId) => socialApi.toggleFollow(userId);
@@ -107,6 +112,15 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
     );
   }
 
+  // ── Sub-view: seguindo / seguidores ──
+  if (view.kind === 'connections') {
+    return (
+      <div className="mr-space-y-6 social-panel">
+        <ConnectionsView initialTab={view.tab} onBack={backToTabs} onOpenUser={openProfile} />
+      </div>
+    );
+  }
+
   // ── View principal ──
   return (
     <div className="mr-space-y-5 social-panel">
@@ -126,7 +140,20 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
         ))}
       </div>
 
-      {tab === 'feed' && <SocialFeed onOpenUser={openProfile} />}
+      {tab === 'feed' && (
+        <div className="social-feed-layout">
+          <SocialFeed
+            onOpenUser={openProfile}
+            onNavigate={onNavigate}
+            onGoDiscover={() => setTab('discover')}
+          />
+          <SocialRail
+            onOpenConnections={openConnections}
+            onOpenUser={openProfile}
+            onGoDiscover={() => setTab('discover')}
+          />
+        </div>
+      )}
       {tab === 'discover' && <Discover onOpenUser={openProfile} />}
       {tab === 'compare' && <CompareList onPick={openCompare} />}
       {tab === 'chat' && (
