@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './social.css';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
@@ -11,45 +11,90 @@ import Discover from './Discover';
 import GroupDiscover from './GroupDiscover';
 import UserProfileView from './UserProfileView';
 import CompareView from './CompareView';
-import UserPill from './UserPill';
+import SocialAvatar from './SocialAvatar';
 import ChatPanel from '../chat/ChatPanel';
 
-function CompareList({ onPick, onFollowChange }) {
+const fmtStr = (str, v = {}) => String(str).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
+
+function CompareList({ onPick }) {
   const { t } = useLanguage();
-  const ts = t.social;
+  const tcl = t.social.compareList;
   const [following, setFollowing] = useState(null);
+  const [q, setQ] = useState('');
 
-  const load = useCallback(() => {
-    socialApi.getFollowing().then(setFollowing);
+  useEffect(() => {
+    socialApi.getFollowing().then(setFollowing).catch(() => setFollowing([]));
   }, []);
-  useEffect(load, [load]);
 
-  if (following === null) return <SocialEmpty icon="⏳" text={ts.loading} />;
+  if (following === null) return <SocialEmpty icon="⏳" text={t.social.loading} />;
   if (following.length === 0) {
     return (
       <SocialEmpty
         icon="⚖️"
-        text={`${ts.compareList.empty1} ${ts.compareList.discoverWord} ${ts.compareList.empty2}`}
+        text={`${tcl.empty1} ${tcl.discoverWord} ${tcl.empty2}`}
       />
     );
   }
 
-  const handleFollow = async (id) => {
-    const r = await socialApi.toggleFollow(id);
-    load();
-    onFollowChange?.();
-    return r;
-  };
+  const term = q.trim().toLowerCase();
+  const list = term
+    ? following.filter(
+        (u) =>
+          u.username.toLowerCase().includes(term) ||
+          (u.handle || '').toLowerCase().includes(term),
+      )
+    : following;
 
   return (
-    <div className="mr-space-y-2">
-      <div className="social-muted" style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-        {ts.compareList.hint}
+    <section className="social-disc-card">
+      <div className="social-disc-head">
+        <div className="social-disc-title"><span aria-hidden="true">⚖️</span> {tcl.title}</div>
       </div>
-      {following.map((u) => (
-        <UserPill key={u.id} user={u} onToggleFollow={handleFollow} onOpen={onPick} />
-      ))}
-    </div>
+      <p className="social-compare-sub">{tcl.subtitle}</p>
+
+      <div className="social-disc-searchwrap">
+        <span aria-hidden="true">🔍</span>
+        <input
+          className="social-disc-search"
+          value={q}
+          placeholder={tcl.search}
+          onChange={(e) => setQ(e.target.value)}
+        />
+      </div>
+
+      <div className="social-disc-body">
+        {list.length === 0 ? (
+          <SocialEmpty icon="🔍" text={tcl.noMatch} />
+        ) : (
+          <ul className="social-compare-list">
+            {list.map((u) => (
+              <li key={u.id}>
+                <button type="button" className="social-compare-row" onClick={() => onPick(u.id)}>
+                  <SocialAvatar
+                    name={u.username}
+                    initials={u.initials}
+                    color={u.color}
+                    src={u.avatarSrc}
+                    size={40}
+                  />
+                  <span className="social-compare-info">
+                    <span className="social-compare-name">{u.username}</span>
+                    <span className="social-compare-meta">
+                      {fmtStr(t.social.pill.stats, {
+                        handle: u.handle,
+                        works: u.stats.works,
+                        avg: u.stats.avgScore.toFixed(1),
+                      })}
+                    </span>
+                  </span>
+                  <span className="social-compare-cta">{tcl.pick} →</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }
 

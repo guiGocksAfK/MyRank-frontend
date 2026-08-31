@@ -32,6 +32,11 @@ const TRANSLATIONS = {
       compareList: {
         empty1: 'Você não segue ninguém ainda. Vá em', discoverWord: 'Descobrir', empty2: 'pra começar.',
         hint: 'Toque num usuário pra ver os rankings lado a lado',
+        title: 'Comparar rankings',
+        subtitle: 'Escolha alguém que você segue pra ver os rankings de vocês lado a lado.',
+        search: 'Filtrar quem você segue…',
+        pick: 'Comparar',
+        noMatch: 'Ninguém com esse nome entre quem você segue.',
       },
       feed: {
         loading: 'Carregando feed…',
@@ -659,6 +664,11 @@ const TRANSLATIONS = {
       compareList: {
         empty1: "You don't follow anyone yet. Go to", discoverWord: 'Discover', empty2: 'to get started.',
         hint: 'Tap a user to see rankings side by side',
+        title: 'Compare rankings',
+        subtitle: 'Pick someone you follow to see your rankings side by side.',
+        search: 'Filter people you follow…',
+        pick: 'Compare',
+        noMatch: 'No one with that name among people you follow.',
       },
       feed: {
         loading: 'Loading feed…',
@@ -1286,6 +1296,11 @@ const TRANSLATIONS = {
       compareList: {
         empty1: 'Aún no sigues a nadie. Ve a', discoverWord: 'Descubrir', empty2: 'para empezar.',
         hint: 'Toca un usuario para ver los rankings lado a lado',
+        title: 'Comparar rankings',
+        subtitle: 'Elige a alguien que sigues para ver sus rankings lado a lado.',
+        search: 'Filtrar a quién sigues…',
+        pick: 'Comparar',
+        noMatch: 'Nadie con ese nombre entre quienes sigues.',
       },
       feed: {
         loading: 'Cargando feed…',
