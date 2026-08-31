@@ -16,6 +16,7 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover
   const [summary, setSummary] = useState(null);
   const [suggestions, setSuggestions] = useState(null);
   const [recentFollowers, setRecentFollowers] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [toggling, setToggling] = useState(false);
 
   const isPublic = user?.isPublic ?? true;
@@ -24,7 +25,19 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover
     socialApi.getSummary().then(setSummary).catch(() => setSummary({ following: 0, followers: 0 }));
     socialApi.getSuggestions().then((r) => setSuggestions(r.slice(0, 4))).catch(() => setSuggestions([]));
     socialApi.getRecentFollowers(4).then(setRecentFollowers).catch(() => setRecentFollowers([]));
+    socialApi.getFollowRequests().then(setRequests).catch(() => setRequests([]));
   }, []);
+
+  const resolveRequest = async (id, accept) => {
+    setRequests((prev) => prev.filter((r) => r.id !== id));
+    try {
+      if (accept) await socialApi.approveFollowRequest(id);
+      else await socialApi.rejectFollowRequest(id);
+      socialApi.getSummary().then(setSummary).catch(() => {});
+    } catch {
+      socialApi.getFollowRequests().then(setRequests).catch(() => {});
+    }
+  };
 
   const togglePublic = async () => {
     if (toggling) return;
@@ -42,7 +55,11 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover
   const followSuggestion = async (id) => {
     try {
       const u = await socialApi.toggleFollow(id);
-      setSuggestions((prev) => (prev || []).filter((s) => s.id !== id || !u.following));
+      setSuggestions((prev) =>
+        (prev || [])
+          .filter((s) => s.id !== id || !u.following) // some da lista quando vira "seguindo"
+          .map((s) => (s.id === id ? { ...s, requested: u.requested, following: u.following } : s)),
+      );
       socialApi.getSummary().then(setSummary).catch(() => {});
     } catch {
       /* silencioso */
@@ -74,6 +91,49 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover
           {isPublic ? tr.public : tr.private}
         </button>
       </div>
+
+      {/* Solicitações pra te seguir (só aparece se houver) */}
+      {requests.length > 0 && (
+        <div className="social-rail-card">
+          <div className="social-rail-title">{tr.requests}</div>
+          <div className="social-rail-list">
+            {requests.map((u) => (
+              <div key={u.id} className="social-rail-request">
+                <button
+                  type="button"
+                  className="social-rail-user-main"
+                  onClick={() => onOpenUser?.(u.id)}
+                >
+                  <SocialAvatar
+                    name={u.username}
+                    initials={u.initials}
+                    color={u.color}
+                    src={u.avatarSrc}
+                    size={34}
+                  />
+                  <span className="social-rail-user-name">{u.username}</span>
+                </button>
+                <div className="social-rail-request-actions">
+                  <button
+                    type="button"
+                    className="mr-btn mr-btn-gold mr-btn-sm"
+                    onClick={() => resolveRequest(u.id, true)}
+                  >
+                    {tr.accept}
+                  </button>
+                  <button
+                    type="button"
+                    className="mr-btn mr-btn-outline mr-btn-sm"
+                    onClick={() => resolveRequest(u.id, false)}
+                  >
+                    {tr.decline}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quem te seguiu (só aparece se houver) */}
       {recentFollowers.length > 0 && (
@@ -129,10 +189,10 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover
                 </button>
                 <button
                   type="button"
-                  className="mr-btn mr-btn-gold mr-btn-sm"
+                  className={`mr-btn mr-btn-sm ${u.requested ? 'mr-btn-outline' : 'mr-btn-gold'}`}
                   onClick={() => followSuggestion(u.id)}
                 >
-                  {tr.follow}
+                  {u.requested ? t.social.pill.requested : tr.follow}
                 </button>
               </div>
             ))}

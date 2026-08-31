@@ -175,6 +175,19 @@ export const socialApi = {
     return decorateUser(data);
   },
 
+  async getFollowRequests() {
+    const { data } = await api.get('/social/follow-requests');
+    return (data || []).map(decorateUser);
+  },
+
+  async approveFollowRequest(requesterId) {
+    await api.post(`/social/follow-requests/${requesterId}/approve`);
+  },
+
+  async rejectFollowRequest(requesterId) {
+    await api.post(`/social/follow-requests/${requesterId}/reject`);
+  },
+
   async react(feedEventId, kind) {
     const { data } = await api.post(`/social/feed/${feedEventId}/react`, { kind });
     return data; // { up, agree, disagree, mine }

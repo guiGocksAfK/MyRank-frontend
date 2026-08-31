@@ -389,6 +389,18 @@
   white-space: nowrap;
 }
 .social-rail-user-main:hover .social-rail-user-name { color: var(--mr-gold); }
+
+/* linha de solicitação pra seguir (perfil privado) */
+.social-rail-request {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--mr-border-light);
+}
+.social-rail-request:last-child { border-bottom: 0; }
+.social-rail-request-actions { display: flex; gap: 6px; }
+.social-rail-request-actions .mr-btn { flex: 1; }
 .social-rail-more {
   margin-top: 10px;
   border: 0;

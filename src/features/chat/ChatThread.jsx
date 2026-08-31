@@ -912,6 +912,7 @@ function MessageRow({
 
 /** Rail lateral de contexto: perfil do outro (DM) ou info do grupo. */
 function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfile }) {
+  const { t } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [members, setMembers] = useState(null);
   const [failed, setFailed] = useState(false);
@@ -1002,17 +1003,21 @@ function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfi
             {tc.viewProfile}
           </button>
 
-          <div>
-            <div className="chat-rail-section-title">{tc.railStats}</div>
-            <div className="chat-rail-stat-row">
-              <span>{tc.railWorks}</span>
-              <span>{profile.stats.works}</span>
+          {profile.locked ? (
+            <div className="chat-rail-hint">🔒 {t.social.profile.privateTitle}</div>
+          ) : (
+            <div>
+              <div className="chat-rail-section-title">{tc.railStats}</div>
+              <div className="chat-rail-stat-row">
+                <span>{tc.railWorks}</span>
+                <span>{profile.stats.works}</span>
+              </div>
+              <div className="chat-rail-stat-row">
+                <span>{tc.railAvg}</span>
+                <span>{Number(profile.stats.avgScore || 0).toFixed(1)}</span>
+              </div>
             </div>
-            <div className="chat-rail-stat-row">
-              <span>{tc.railAvg}</span>
-              <span>{Number(profile.stats.avgScore || 0).toFixed(1)}</span>
-            </div>
-          </div>
+          )}
 
           {profile.top?.length > 0 && (
             <div>

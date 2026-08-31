@@ -70,6 +70,7 @@ const TRANSLATIONS = {
         suggestions: 'Sugestões pra seguir',
         loading: 'Carregando…', noSuggestions: 'Sem sugestões agora.',
         follow: 'Seguir', seeAll: 'Ver todas',
+        requests: 'Solicitações pra te seguir', accept: 'Aceitar', decline: 'Recusar',
       },
       connections: {
         back: '← Voltar',
@@ -88,7 +89,7 @@ const TRANSLATIONS = {
       pill: {
         followsYou: 'segue você',
         stats: '@{handle} · {works} obras · média {avg}',
-        following: 'Seguindo', follow: 'Seguir',
+        following: 'Seguindo', follow: 'Seguir', requested: 'Solicitado',
       },
       profile: {
         back: '← Voltar',
@@ -96,7 +97,10 @@ const TRANSLATIONS = {
         loading: 'Carregando perfil…',
         followsYou: 'segue você',
         stats: '{works} obras · média {avg}',
-        following: 'Seguindo', follow: 'Seguir', compare: '⚖️ Comparar', message: '💬 Mensagem',
+        following: 'Seguindo', follow: 'Seguir', requested: 'Solicitado', compare: '⚖️ Comparar', message: '💬 Mensagem',
+        privateTitle: 'Este perfil é privado',
+        privateText: 'Siga esta conta pra ver os rankings, as badges e os takes.',
+        followersWord: 'seguidores', followingWord: 'seguindo',
         affinity: '🎯 Afinidade de gosto',
         calculating: 'Calculando…',
         noCommon: 'Vocês não têm obras avaliadas em comum ainda.',
@@ -660,6 +664,7 @@ const TRANSLATIONS = {
         suggestions: 'Suggested to follow',
         loading: 'Loading…', noSuggestions: 'No suggestions right now.',
         follow: 'Follow', seeAll: 'See all',
+        requests: 'Follow requests', accept: 'Accept', decline: 'Decline',
       },
       connections: {
         back: '← Back',
@@ -678,7 +683,7 @@ const TRANSLATIONS = {
       pill: {
         followsYou: 'follows you',
         stats: '@{handle} · {works} titles · avg {avg}',
-        following: 'Following', follow: 'Follow',
+        following: 'Following', follow: 'Follow', requested: 'Requested',
       },
       profile: {
         back: '← Back',
@@ -686,7 +691,10 @@ const TRANSLATIONS = {
         loading: 'Loading profile…',
         followsYou: 'follows you',
         stats: '{works} titles · avg {avg}',
-        following: 'Following', follow: 'Follow', compare: '⚖️ Compare', message: '💬 Message',
+        following: 'Following', follow: 'Follow', requested: 'Requested', compare: '⚖️ Compare', message: '💬 Message',
+        privateTitle: 'This account is private',
+        privateText: 'Follow this account to see its rankings, badges and takes.',
+        followersWord: 'followers', followingWord: 'following',
         affinity: '🎯 Taste affinity',
         calculating: 'Calculating…',
         noCommon: "You don't have any rated titles in common yet.",
@@ -1250,6 +1258,7 @@ const TRANSLATIONS = {
         suggestions: 'Sugerencias para seguir',
         loading: 'Cargando…', noSuggestions: 'Sin sugerencias ahora.',
         follow: 'Seguir', seeAll: 'Ver todas',
+        requests: 'Solicitudes para seguirte', accept: 'Aceptar', decline: 'Rechazar',
       },
       connections: {
         back: '← Volver',
@@ -1268,7 +1277,7 @@ const TRANSLATIONS = {
       pill: {
         followsYou: 'te sigue',
         stats: '@{handle} · {works} obras · media {avg}',
-        following: 'Siguiendo', follow: 'Seguir',
+        following: 'Siguiendo', follow: 'Seguir', requested: 'Solicitado',
       },
       profile: {
         back: '← Volver',
@@ -1276,7 +1285,10 @@ const TRANSLATIONS = {
         loading: 'Cargando perfil…',
         followsYou: 'te sigue',
         stats: '{works} obras · media {avg}',
-        following: 'Siguiendo', follow: 'Seguir', compare: '⚖️ Comparar', message: '💬 Mensaje',
+        following: 'Siguiendo', follow: 'Seguir', requested: 'Solicitado', compare: '⚖️ Comparar', message: '💬 Mensaje',
+        privateTitle: 'Esta cuenta es privada',
+        privateText: 'Sigue esta cuenta para ver sus rankings, insignias y takes.',
+        followersWord: 'seguidores', followingWord: 'siguiendo',
         affinity: '🎯 Afinidad de gusto',
         calculating: 'Calculando…',
         noCommon: 'Aún no tienen obras valoradas en común.',

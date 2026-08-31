@@ -60,6 +60,38 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
   if (error) return <div className="social-empty">{tv.loadError}</div>;
   if (!profile) return <div className="social-empty">{tv.loading}</div>;
 
+  // Perfil privado que você não segue: só cabeçalho + contagens (estilo Instagram).
+  if (profile.locked) {
+    return (
+      <div className="mr-space-y-4">
+        <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onBack}>{tv.back}</button>
+        <div className="mr-card">
+          <div className="mr-card-body" style={{ textAlign: 'center' }}>
+            <div className="mr-flex mr-items-center mr-gap-4 mr-flex-wrap" style={{ justifyContent: 'center' }}>
+              <SocialAvatar name={profile.username} initials={profile.initials} color={profile.color} src={profile.avatarSrc} size={64} />
+            </div>
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: 10 }}>{profile.username}</div>
+            <div className="social-muted" style={{ fontSize: '0.85rem' }}>@{profile.handle}</div>
+            <div
+              className="mr-flex mr-gap-4"
+              style={{ justifyContent: 'center', margin: '14px 0', fontSize: '0.9rem' }}
+            >
+              <span><b>{profile.followerCount ?? 0}</b> <span className="social-muted">{tv.followersWord}</span></span>
+              <span><b>{profile.followingCount ?? 0}</b> <span className="social-muted">{tv.followingWord}</span></span>
+            </div>
+            <div style={{ fontWeight: 700 }}>🔒 {tv.privateTitle}</div>
+            <p className="social-muted" style={{ fontSize: '0.85rem', margin: '4px auto 14px', maxWidth: 320 }}>
+              {tv.privateText}
+            </p>
+            <div className="mr-flex mr-gap-2" style={{ justifyContent: 'center' }}>
+              <FollowButton profile={profile} onToggleFollow={onToggleFollow} tv={tv} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const breakdownRows = Object.entries(profile.breakdown).sort((a, b) => b[1] - a[1]);
 
   return (
@@ -84,12 +116,7 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
               </div>
             </div>
             <div className="mr-flex mr-gap-2">
-              <button
-                className={`mr-btn mr-btn-sm ${profile.following ? 'mr-btn-outline' : 'mr-btn-gold'}`}
-                onClick={() => onToggleFollow(profile.id)}
-              >
-                {profile.following ? tv.following : tv.follow}
-              </button>
+              <FollowButton profile={profile} onToggleFollow={onToggleFollow} tv={tv} />
               <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => onCompare(profile.id)}>
                 {tv.compare}
               </button>
@@ -195,5 +222,44 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
         </div>
       </div>
     </div>
+  );
+}
+
+/** Botão seguir com 3 estados: Seguindo · Solicitado · Seguir. */
+function FollowButton({ profile, onToggleFollow, tv }) {
+  const [following, setFollowing] = useState(profile.following);
+  const [requested, setRequested] = useState(profile.requested);
+  const [busy, setBusy] = useState(false);
+
+  async function toggle() {
+    if (busy) return;
+    setBusy(true);
+    if (following) setFollowing(false);
+    else if (requested) setRequested(false);
+    else if (profile.isPublic === false) setRequested(true);
+    else setFollowing(true);
+    try {
+      const updated = await onToggleFollow(profile.id);
+      if (updated) {
+        setFollowing(updated.following);
+        setRequested(updated.requested);
+      }
+    } catch {
+      setFollowing(profile.following);
+      setRequested(profile.requested);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const label = following ? tv.following : requested ? tv.requested : tv.follow;
+  return (
+    <button
+      className={`mr-btn mr-btn-sm ${following || requested ? 'mr-btn-outline' : 'mr-btn-gold'}`}
+      onClick={toggle}
+      disabled={busy}
+    >
+      {label}
+    </button>
   );
 }
