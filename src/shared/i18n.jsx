@@ -109,6 +109,11 @@ const TRANSLATIONS = {
         noneFound: 'Ninguém encontrado com esse nome.',
         noSuggestions: 'Sem sugestões no momento.',
       },
+      groups: {
+        title: 'Descobrir grupos',
+        subtitle: 'Entre em grupos e converse com quem curte as mesmas coisas.',
+        create: 'Criar grupo',
+      },
       pill: {
         followsYou: 'segue você',
         stats: '@{handle} · {works} obras · média {avg}',
@@ -729,6 +734,11 @@ const TRANSLATIONS = {
         noneFound: 'No one found with that name.',
         noSuggestions: 'No suggestions right now.',
       },
+      groups: {
+        title: 'Discover groups',
+        subtitle: 'Join groups and chat with people into the same stuff.',
+        create: 'New group',
+      },
       pill: {
         followsYou: 'follows you',
         stats: '@{handle} · {works} titles · avg {avg}',
@@ -1348,6 +1358,11 @@ const TRANSLATIONS = {
         suggestions: 'Sugerencias para ti',
         noneFound: 'No se encontró a nadie con ese nombre.',
         noSuggestions: 'Sin sugerencias por ahora.',
+      },
+      groups: {
+        title: 'Descubrir grupos',
+        subtitle: 'Únete a grupos y habla con quien le gusta lo mismo.',
+        create: 'Crear grupo',
       },
       pill: {
         followsYou: 'te sigue',

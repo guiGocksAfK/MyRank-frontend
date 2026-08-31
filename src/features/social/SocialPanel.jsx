@@ -8,6 +8,7 @@ import SocialRail from './SocialRail';
 import ConnectionsView from './ConnectionsView';
 import SocialEmpty from './SocialEmpty';
 import Discover from './Discover';
+import GroupDiscover from './GroupDiscover';
 import UserProfileView from './UserProfileView';
 import CompareView from './CompareView';
 import UserPill from './UserPill';
@@ -64,6 +65,13 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
   ];
   const [tab, setTab] = useState('feed');
   const [view, setView] = useState({ kind: 'tabs' }); // tabs | profile | compare
+  const [pendingConvId, setPendingConvId] = useState(null); // grupo aberto a partir do "Descobrir"
+
+  const openGroupConversation = (id) => {
+    setPendingConvId(id);
+    setView({ kind: 'tabs' });
+    setTab('chat');
+  };
 
   // Pedido externo de abrir uma conversa (botão "Mensagem" no perfil de alguém).
   const openNonceSeen = useRef(openNonce);
@@ -154,12 +162,22 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
           />
         </div>
       )}
-      {tab === 'discover' && <Discover onOpenUser={openProfile} />}
+      {tab === 'discover' && (
+        <div className="social-discover-layout">
+          <div className="social-discover-people">
+            <Discover onOpenUser={openProfile} />
+          </div>
+          <GroupDiscover onOpenConversation={openGroupConversation} />
+        </div>
+      )}
       {tab === 'compare' && <CompareList onPick={openCompare} />}
       {tab === 'chat' && (
         <ChatPanel
-          initialConvId={initialConvId}
-          onInitialConvConsumed={onInitialConvConsumed}
+          initialConvId={initialConvId ?? pendingConvId}
+          onInitialConvConsumed={() => {
+            setPendingConvId(null);
+            onInitialConvConsumed?.();
+          }}
           onOpenProfile={openProfile}
         />
       )}
