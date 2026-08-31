@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
-import GroupIcon from './GroupIcon';
+import GroupIcon from '../chat/GroupIcon';
+import NewGroupModal from '../chat/NewGroupModal';
 import { getDirectory, joinGroup, cancelJoinRequest } from '../../services/chatService';
 
 const PAGE = 30;
 
-/** Diretório de grupos — grade de cards, populares primeiro. Vive dentro do .chat-main. */
-export default function GroupDirectory({ onBack, onOpen }) {
+/**
+ * Descoberta de grupos — trilho direito da aba "Descobrir" da Social.
+ * Dá destaque aos grupos (antes escondidos dentro de Mensagens).
+ */
+export default function GroupDiscover({ onOpenConversation }) {
   const { t } = useLanguage();
   const tc = t.chat;
+  const tg = t.social.groups;
 
   const [query, setQuery] = useState('');
   const [entries, setEntries] = useState(null);
@@ -17,6 +22,7 @@ export default function GroupDirectory({ onBack, onOpen }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState(null);
+  const [showNew, setShowNew] = useState(false);
   const seq = useRef(0);
 
   const load = useCallback(async (q) => {
@@ -72,7 +78,7 @@ export default function GroupDirectory({ onBack, onOpen }) {
   const join = (entry) =>
     act(entry, async () => {
       const state = await joinGroup(entry.id);
-      if (state === 'JOINED') onOpen(entry.id);
+      if (state === 'JOINED') onOpenConversation?.(entry.id);
     });
 
   const cancel = (entry) => act(entry, () => cancelJoinRequest(entry.id));
@@ -80,7 +86,11 @@ export default function GroupDirectory({ onBack, onOpen }) {
   const cta = (e) => {
     if (e.membership === 'MEMBER') {
       return (
-        <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => onOpen(e.id)}>
+        <button
+          type="button"
+          className="mr-btn mr-btn-outline mr-btn-sm"
+          onClick={() => onOpenConversation?.(e.id)}
+        >
           {tc.open}
         </button>
       );
@@ -110,17 +120,18 @@ export default function GroupDirectory({ onBack, onOpen }) {
   };
 
   return (
-    <div className="chat-directory">
-      <div className="chat-directory-head">
-        <button type="button" className="chat-back is-always" onClick={onBack} aria-label={tc.back}>
-          ←
+    <section className="social-disc-card">
+      <div className="social-disc-head">
+        <div className="social-disc-title"><span aria-hidden="true">👥</span> {tg.title}</div>
+        <button type="button" className="social-disc-action" onClick={() => setShowNew(true)}>
+          ＋ {tg.create}
         </button>
-        <span>{tc.discoverGroups}</span>
       </div>
 
-      <div className="chat-directory-search-wrap">
+      <div className="social-disc-searchwrap">
+        <span aria-hidden="true">🔍</span>
         <input
-          className="chat-input"
+          className="social-disc-search"
           type="text"
           value={query}
           placeholder={tc.searchGroups}
@@ -128,35 +139,46 @@ export default function GroupDirectory({ onBack, onOpen }) {
         />
       </div>
 
-      {error && <div className="chat-error">{error}</div>}
+      <div className="social-disc-subhead">{tg.subtitle}</div>
 
-      <div className="chat-directory-body">
+      {error && <div className="social-groupdisc-error">{error}</div>}
+
+      <div className="social-disc-body">
         {entries === null ? (
-          <div className="chat-hint">{tc.loading}</div>
+          <div className="social-groupdisc-hint">{tc.loading}</div>
         ) : entries.length === 0 ? (
-          <div className="chat-empty">
-            <div className="chat-empty-icon" aria-hidden="true">🔍</div>
-            <p>{tc.noGroups}</p>
+          <div className="social-groupdisc-empty">
+            <p>{query.trim() ? tc.noGroups : tg.emptyHint}</p>
+            {!query.trim() && (
+              <button type="button" className="mr-btn mr-btn-gold mr-btn-sm" onClick={() => setShowNew(true)}>
+                ＋ {tg.create}
+              </button>
+            )}
           </div>
         ) : (
           <>
-            <div className="chat-dir-grid">
+            <ul className="social-groupdisc-list">
               {entries.map((e) => (
-                <div key={e.id} className="chat-dir-card">
-                  <GroupIcon name={e.name} imageUrl={e.imageUrl} className="chat-dir-card-photo" />
-                  <div className="chat-dir-card-name">{e.name}</div>
-                  <div className="chat-dir-card-meta">
-                    {tc.memberCount.replace('{n}', e.memberCount)} · {tc.access[e.access]}
+                <li key={e.id} className="social-groupdisc-card">
+                  <GroupIcon name={e.name} imageUrl={e.imageUrl} className="social-groupdisc-photo" />
+                  <div className="social-groupdisc-info">
+                    <div className="social-groupdisc-name">{e.name}</div>
+                    <div className="social-groupdisc-meta">
+                      {tc.memberCount.replace('{n}', e.memberCount)}
+                      <span className={`social-groupdisc-access is-${e.access.toLowerCase()}`}>
+                        {tc.access[e.access]}
+                      </span>
+                    </div>
+                    {e.description && <p className="social-groupdisc-desc">{e.description}</p>}
+                    <div className="social-groupdisc-cta">{cta(e)}</div>
                   </div>
-                  {e.description && <div className="chat-dir-card-desc">{e.description}</div>}
-                  <div className="chat-dir-card-cta">{cta(e)}</div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
             {hasMore && (
               <button
                 type="button"
-                className="chat-load-more"
+                className="social-groupdisc-more"
                 onClick={loadMore}
                 disabled={loadingMore}
               >
@@ -166,6 +188,16 @@ export default function GroupDirectory({ onBack, onOpen }) {
           </>
         )}
       </div>
-    </div>
+
+      {showNew && (
+        <NewGroupModal
+          onClose={() => setShowNew(false)}
+          onCreated={(conv) => {
+            setShowNew(false);
+            onOpenConversation?.(conv.id);
+          }}
+        />
+      )}
+    </section>
   );
 }

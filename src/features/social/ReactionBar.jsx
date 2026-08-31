@@ -18,7 +18,6 @@ export default function ReactionBar({ reactions, onReact }) {
   async function handle(kind) {
     if (busy) return;
     setBusy(true);
-    // otimista
     const prev = state;
     const next = { ...prev };
     if (next.mine === kind) {
@@ -41,7 +40,7 @@ export default function ReactionBar({ reactions, onReact }) {
   }
 
   return (
-    <div className="mr-flex mr-items-center mr-gap-2" style={{ marginTop: 8, flexWrap: 'wrap' }}>
+    <div className="social-reactions">
       {KINDS.map((k) => {
         const active = state.mine === k.id;
         const count = state[k.id] || 0;
@@ -50,11 +49,11 @@ export default function ReactionBar({ reactions, onReact }) {
             key={k.id}
             type="button"
             onClick={() => handle(k.id)}
-            title={k.label}
             className="social-react-btn"
             data-active={active ? 'true' : undefined}
           >
             <span aria-hidden="true">{k.icon}</span>
+            <span className="social-react-label">{k.label}</span>
             {count > 0 && <span className="social-react-count">{count}</span>}
           </button>
         );

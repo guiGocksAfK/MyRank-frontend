@@ -73,7 +73,26 @@ function decorateFeedItem(it) {
         : null,
     badge: it.badge ? { icon: it.badge.icon, name: it.badge.name } : null,
     text: it.takeText ?? null,
+    takeId: it.takeId ?? null,
+    commentCount: it.commentCount ?? 0,
+    takeEdited: !!it.takeEdited,
+    canManage: !!it.canManage,
     reactions: it.reactions || { up: 0, agree: 0, disagree: 0, mine: null },
+  };
+}
+
+/** TakeCommentDTO → nó de comentário (com respostas). */
+function decorateComment(c) {
+  return {
+    id: c.id,
+    parentId: c.parentId ?? null,
+    author: decorateUser(c.author),
+    text: c.text,
+    createdAt: c.createdAt,
+    edited: !!c.edited,
+    canEdit: !!c.canEdit,
+    canDelete: !!c.canDelete,
+    replies: (c.replies || []).map(decorateComment),
   };
 }
 
@@ -136,6 +155,16 @@ export const socialApi = {
     return (data || []).map(decorateUser);
   },
 
+  async getFollowers() {
+    const { data } = await api.get('/social/followers');
+    return (data || []).map(decorateUser);
+  },
+
+  async getRecentFollowers(limit = 5) {
+    const { data } = await api.get('/social/followers/recent', { params: { limit } });
+    return (data || []).map(decorateUser);
+  },
+
   async getSuggestions() {
     const { data } = await api.get('/social/suggestions');
     return (data || []).map(decorateUser);
@@ -165,6 +194,19 @@ export const socialApi = {
     return decorateUser(data);
   },
 
+  async getFollowRequests() {
+    const { data } = await api.get('/social/follow-requests');
+    return (data || []).map(decorateUser);
+  },
+
+  async approveFollowRequest(requesterId) {
+    await api.post(`/social/follow-requests/${requesterId}/approve`);
+  },
+
+  async rejectFollowRequest(requesterId) {
+    await api.post(`/social/follow-requests/${requesterId}/reject`);
+  },
+
   async react(feedEventId, kind) {
     const { data } = await api.post(`/social/feed/${feedEventId}/react`, { kind });
     return data; // { up, agree, disagree, mine }
@@ -173,5 +215,33 @@ export const socialApi = {
   async postTake({ workId, text }) {
     const { data } = await api.post('/social/takes', { workId, text });
     return decorateFeedItem(data);
+  },
+
+  async editTake(takeId, text) {
+    const { data } = await api.patch(`/social/takes/${takeId}`, { text });
+    return decorateFeedItem(data);
+  },
+
+  async deleteTake(takeId) {
+    await api.delete(`/social/takes/${takeId}`);
+  },
+
+  async getTakeComments(takeId) {
+    const { data } = await api.get(`/social/takes/${takeId}/comments`);
+    return (data || []).map(decorateComment);
+  },
+
+  async addTakeComment(takeId, text, parentCommentId = null) {
+    const { data } = await api.post(`/social/takes/${takeId}/comments`, { text, parentCommentId });
+    return decorateComment(data);
+  },
+
+  async editTakeComment(commentId, text) {
+    const { data } = await api.patch(`/social/comments/${commentId}`, { text });
+    return decorateComment(data);
+  },
+
+  async deleteTakeComment(commentId) {
+    await api.delete(`/social/comments/${commentId}`);
   },
 };

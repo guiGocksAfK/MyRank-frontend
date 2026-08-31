@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import Poster from './Poster';
 import GridCard from './GridCard';
 import ItemModal from './ItemModal';
-import ConfirmModal from './ConfirmModal';
+import ConfirmModal from '../../../shared/components/ConfirmModal';
 import EditTableModal from './EditTableModal';
 import AnimatedNumber from './AnimatedNumber';
 import { getNoteBarColor, formatTime, sortItems, getMode, getDisplayedNote, applyFilters, getColumnConfig } from '../../../utils/formatters';

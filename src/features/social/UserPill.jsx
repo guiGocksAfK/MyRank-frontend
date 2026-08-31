@@ -9,22 +9,40 @@ export default function UserPill({ user, onToggleFollow, onOpen }) {
   const { t } = useLanguage();
   const tp = t.social.pill;
   const [following, setFollowing] = useState(user.following);
+  const [requested, setRequested] = useState(user.requested);
   const [busy, setBusy] = useState(false);
 
   async function toggle(e) {
     e.stopPropagation();
     if (busy) return;
     setBusy(true);
-    setFollowing((v) => !v); // otimista
+    // otimista
+    if (following) setFollowing(false);
+    else if (requested) setRequested(false);
+    else if (user.isPublic === false) setRequested(true);
+    else setFollowing(true);
     try {
       const updated = await onToggleFollow(user.id);
-      if (updated) setFollowing(updated.following);
+      if (updated) {
+        setFollowing(updated.following);
+        setRequested(updated.requested);
+      }
     } catch {
       setFollowing(user.following);
+      setRequested(user.requested);
     } finally {
       setBusy(false);
     }
   }
+
+  const label = following
+    ? tp.following
+    : requested
+      ? tp.requested
+      : user.isPublic === false
+        ? tp.request
+        : tp.follow;
+  const outline = following || requested;
 
   return (
     <div className="social-userpill" onClick={() => onOpen?.(user.id)} role="button" tabIndex={0}>
@@ -39,11 +57,11 @@ export default function UserPill({ user, onToggleFollow, onOpen }) {
         </div>
       </div>
       <button
-        className={`mr-btn mr-btn-sm ${following ? 'mr-btn-outline' : 'mr-btn-gold'}`}
+        className={`mr-btn mr-btn-sm ${outline ? 'mr-btn-outline' : 'mr-btn-gold'}`}
         onClick={toggle}
         disabled={busy}
       >
-        {following ? tp.following : tp.follow}
+        {label}
       </button>
     </div>
   );

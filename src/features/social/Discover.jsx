@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { socialApi } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import UserPill from './UserPill';
+import SocialEmpty from './SocialEmpty';
 
 export default function Discover({ onOpenUser, onFollowChange }) {
   const { t } = useLanguage();
@@ -43,30 +44,34 @@ export default function Discover({ onOpenUser, onFollowChange }) {
     : td.suggestions;
 
   return (
-    <div className="mr-space-y-4">
-      <input
-        className="mr-input"
-        placeholder={td.searchPlaceholder}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        style={{ width: '100%' }}
-      />
-
-      <div className="social-muted" style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-        {heading}
+    <section className="social-disc-card">
+      <div className="social-disc-head">
+        <div className="social-disc-title"><span aria-hidden="true">👥</span> {td.peopleTitle}</div>
       </div>
 
-      {list.length === 0 ? (
-        <div className="social-empty">
-          {results ? td.noneFound : td.noSuggestions}
-        </div>
-      ) : (
-        <div className="mr-space-y-2">
-          {list.map((u) => (
-            <UserPill key={u.id} user={u} onToggleFollow={handleFollow} onOpen={onOpenUser} />
-          ))}
-        </div>
-      )}
-    </div>
+      <div className="social-disc-searchwrap">
+        <span aria-hidden="true">🔍</span>
+        <input
+          className="social-disc-search"
+          placeholder={td.searchPlaceholder}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      <div className="social-disc-subhead">{heading}</div>
+
+      <div className="social-disc-body">
+        {list.length === 0 ? (
+          <SocialEmpty icon="🔍" text={results ? td.noneFound : td.noSuggestions} />
+        ) : (
+          <div className="mr-space-y-2">
+            {list.map((u) => (
+              <UserPill key={u.id} user={u} onToggleFollow={handleFollow} onOpen={onOpenUser} />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

@@ -11,6 +11,7 @@ import EmojiPicker from './EmojiPicker';
 import {
   CHAT_EMOJIS,
   getMessages,
+  getMembers,
   markConversationRead,
   sendMessage,
   editMessage,
@@ -18,31 +19,29 @@ import {
   reactMessage,
   sendTyping,
 } from '../../services/chatService';
+import { socialApi, typeIconFor } from '../social/socialData';
 
 const POLL_MS = 15_000;
 const BODY_MAX = 2000;
 const GROUP_GAP_MS = 5 * 60 * 1000; // agrupa mensagens seguidas do mesmo autor
-const TIME_SEP_MS = 20 * 60 * 1000; // divisor de hora entre grupos
 const PAGE_SIZE = 40;
 
 const sameDay = (a, b) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
-/** Rótulo do divisor: hoje → "18:49"; ontem → "Ontem 18:49"; senão → "12 de mai., 18:49". */
+/** Rótulo do divisor de dia: "Hoje" · "Ontem" · "12 de mai." */
 function timeSepLabel(iso, locale, tc) {
   const d = new Date(iso);
   const now = new Date();
-  const hm = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-  if (sameDay(d, now)) return hm;
+  if (sameDay(d, now)) return tc.today;
   const yst = new Date(now);
   yst.setDate(now.getDate() - 1);
-  if (sameDay(d, yst)) return `${tc.yesterday} ${hm}`;
-  const datePart = d.toLocaleDateString(locale, {
+  if (sameDay(d, yst)) return tc.yesterday;
+  return d.toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: d.getFullYear() === now.getFullYear() ? undefined : 'numeric',
   });
-  return `${datePart}, ${hm}`;
 }
 
 /**
@@ -80,9 +79,7 @@ function buildRows(list) {
     const nextIsMsg = next && next.kind !== 'SYSTEM';
 
     const needSep =
-      !prev ||
-      (prevIsMsg &&
-        (!sameDay(new Date(prev.createdAt), created) || created - new Date(prev.createdAt) > TIME_SEP_MS));
+      !prev || (prevIsMsg && !sameDay(new Date(prev.createdAt), created));
     if (needSep) rows.push({ type: 'time', id: `t-${m.id}`, iso: m.createdAt });
 
     const showHeader =
@@ -155,7 +152,8 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
   const [error, setError] = useState(null);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
-  const [showPanel, setShowPanel] = useState(false);
+  const [showRail, setShowRail] = useState(false);
+  const [showManage, setShowManage] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [editing, setEditing] = useState(null);
   const [menuFor, setMenuFor] = useState(null);
@@ -174,7 +172,9 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
   const forceBottomRef = useRef(true); // força ir ao fim na carga inicial
   const nearBottomRef = useRef(true); // usuário estava perto do fim antes do último update
   const scrollToBottom = useCallback((smooth = false) => {
-    bottomRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+    // rola só a lista interna — nunca a página (scrollIntoView arrastava a viewport)
+    const el = listRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
   }, []);
 
   const onListScroll = useCallback(() => {
@@ -231,6 +231,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
     setReplyTo(null);
     setEditing(null);
     setMenuFor(null);
+    setShowManage(false);
     setTypers([]);
     setPeerReadId(conversation.peerLastReadId ?? null);
     setUnreadAnchor(conversation.unread > 0 ? conversation.myLastReadId ?? 0 : 0);
@@ -410,8 +411,15 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
 
   const jumpTo = (id) => {
     const el = document.getElementById(`msg-${id}`);
-    if (!el) return;
-    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const list = listRef.current;
+    if (!el || !list) return;
+    // centraliza dentro da lista sem mexer no scroll da página
+    const rEl = el.getBoundingClientRect();
+    const rList = list.getBoundingClientRect();
+    list.scrollTo({
+      top: list.scrollTop + (rEl.top - rList.top) - list.clientHeight / 2 + rEl.height / 2,
+      behavior: 'smooth',
+    });
     el.classList.add('is-flash');
     setTimeout(() => el.classList.remove('is-flash'), 1200);
   };
@@ -462,13 +470,11 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
     }
   };
 
-  const openDetails = () => {
-    if (isGroup) setShowPanel(true);
-    else if (conversation.peer?.id) onOpenProfile?.(conversation.peer.id);
-  };
+  const openDetails = () => setShowRail((v) => !v);
 
   return (
-    <div className="chat-thread">
+    <div className={`chat-thread ${showRail ? 'has-rail' : ''}`}>
+      <div className="chat-thread-body">
       <div className="chat-thread-head">
         <button type="button" className="chat-back" onClick={onBack} aria-label={tc.back}>
           ←
@@ -515,7 +521,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
 
         <button
           type="button"
-          className="chat-info-btn"
+          className={`chat-info-btn ${showRail ? 'is-active' : ''}`}
           onClick={openDetails}
           aria-label={isGroup ? tc.manage : tc.viewProfile}
           title={isGroup ? tc.manage : tc.viewProfile}
@@ -525,6 +531,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
       </div>
 
       <div className="chat-messages" ref={listRef} onScroll={onListScroll}>
+        <div className="chat-thread-col">
         {messages !== null && !hasMore && (
           <ThreadIntro conversation={conversation} isGroup={isGroup} tc={tc} onOpenDetails={openDetails} />
         )}
@@ -589,6 +596,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
         )}
         {isGroup && typingLabel && <div className="chat-typing">{typingLabel}</div>}
         <div ref={bottomRef} />
+        </div>
       </div>
 
       {error && <div className="chat-error" onClick={() => setError(null)}>{error}</div>}
@@ -659,14 +667,26 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
           </button>
         )}
       </form>
+      </div>
 
-      {showPanel && isGroup && (
+      {showRail && (
+        <ContextRail
+          conversation={conversation}
+          isGroup={isGroup}
+          tc={tc}
+          onClose={() => setShowRail(false)}
+          onManage={() => setShowManage(true)}
+          onOpenProfile={onOpenProfile}
+        />
+      )}
+
+      {showManage && isGroup && (
         <GroupPanel
           conversation={conversation}
-          onClose={() => setShowPanel(false)}
+          onClose={() => setShowManage(false)}
           onChanged={onChanged}
           onLeft={() => {
-            setShowPanel(false);
+            setShowManage(false);
             onLeft?.();
           }}
         />
@@ -887,5 +907,145 @@ function MessageRow({
         {seen && <span className="chat-seen">{seen}</span>}
       </div>
     </div>
+  );
+}
+
+/** Rail lateral de contexto: perfil do outro (DM) ou info do grupo. */
+function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfile }) {
+  const { t } = useLanguage();
+  const [profile, setProfile] = useState(null);
+  const [members, setMembers] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const peerId = conversation.peer?.id ?? null;
+
+  useEffect(() => {
+    setProfile(null);
+    setMembers(null);
+    setFailed(false);
+    if (isGroup) {
+      getMembers(conversation.id).then(setMembers).catch(() => setMembers([]));
+    } else if (peerId) {
+      socialApi.getProfile(peerId).then(setProfile).catch(() => setFailed(true));
+    }
+  }, [conversation.id, isGroup, peerId]);
+
+  return (
+    <aside className="chat-rail">
+      <button type="button" className="chat-info-btn chat-rail-close" onClick={onClose} aria-label={tc.back}>
+        ✕
+      </button>
+
+      {isGroup ? (
+        <>
+          <div className="chat-rail-head">
+            <GroupIcon name={conversation.name} imageUrl={conversation.imageUrl} className="chat-rail-avatar" />
+            <div className="chat-rail-name">{conversation.name}</div>
+            <div className="chat-rail-handle">
+              {tc.memberCount.replace('{n}', members?.length ?? conversation.memberCount)}
+            </div>
+            {conversation.description && (
+              <p className="chat-rail-bio">{conversation.description}</p>
+            )}
+          </div>
+
+          <button type="button" className="chat-rail-btn" onClick={onManage}>
+            {tc.manage}
+          </button>
+
+          <div>
+            <div className="chat-rail-section-title">{tc.sectionMembers}</div>
+            <div className="chat-rail-members">
+              {members === null ? (
+                <div className="chat-rail-hint">{tc.loading}</div>
+              ) : (
+                members.map((m) => (
+                  <button
+                    key={m.userId}
+                    type="button"
+                    className="chat-rail-member"
+                    onClick={() => onOpenProfile?.(m.userId)}
+                  >
+                    <Avatar
+                      user={{ id: m.userId, username: m.username, avatarUrl: m.avatarUrl }}
+                      className="chat-rail-member-avatar"
+                    />
+                    <span className="chat-rail-member-name">@{m.username}</span>
+                    {m.role !== 'MEMBER' && (
+                      <span className="chat-rail-member-role">{tc.roles[m.role]}</span>
+                    )}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      ) : failed ? (
+        <div className="chat-rail-hint">{tc.loadError}</div>
+      ) : !profile ? (
+        <div className="chat-rail-hint">{tc.loading}</div>
+      ) : (
+        <>
+          <div className="chat-rail-head">
+            <Avatar
+              user={{ id: profile.id, username: profile.username, avatarUrl: profile.avatarUrl }}
+              className="chat-rail-avatar"
+            />
+            <div className="chat-rail-name">{profile.username}</div>
+            <div className="chat-rail-handle">@{profile.handle}</div>
+            {profile.bio && <p className="chat-rail-bio">{profile.bio}</p>}
+          </div>
+
+          <button
+            type="button"
+            className="chat-rail-btn"
+            onClick={() => peerId && onOpenProfile?.(peerId)}
+          >
+            {tc.viewProfile}
+          </button>
+
+          {profile.locked ? (
+            <div className="chat-rail-hint">🔒 {t.social.profile.privateTitle}</div>
+          ) : (
+            <div>
+              <div className="chat-rail-section-title">{tc.railStats}</div>
+              <div className="chat-rail-stat-row">
+                <span>{tc.railWorks}</span>
+                <span>{profile.stats.works}</span>
+              </div>
+              <div className="chat-rail-stat-row">
+                <span>{tc.railAvg}</span>
+                <span>{Number(profile.stats.avgScore || 0).toFixed(1)}</span>
+              </div>
+            </div>
+          )}
+
+          {profile.top?.length > 0 && (
+            <div>
+              <div className="chat-rail-section-title">{tc.railTopWorks}</div>
+              {profile.top.slice(0, 5).map((w) => (
+                <div key={w.title} className="chat-rail-work">
+                  <span aria-hidden="true">{typeIconFor(w.type)}</span>
+                  <span className="chat-rail-work-title">{w.title}</span>
+                  <span className="chat-rail-work-score">{Number(w.score).toFixed(1)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {profile.badges?.length > 0 && (
+            <div>
+              <div className="chat-rail-section-title">{tc.railBadges}</div>
+              <div className="chat-rail-badges">
+                {profile.badges.map((b) => (
+                  <span key={b.name} className="chat-rail-badge" title={b.name}>
+                    {b.icon} {b.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </aside>
   );
 }

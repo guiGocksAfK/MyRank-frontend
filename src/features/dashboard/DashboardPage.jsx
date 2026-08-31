@@ -48,6 +48,7 @@ export default function DashboardPage() {
           <SocialPanel
             initialConvId={openConvId}
             onInitialConvConsumed={() => setOpenConvId(null)}
+            onNavigate={handleTabChange}
           />
         );
       case 'ai':

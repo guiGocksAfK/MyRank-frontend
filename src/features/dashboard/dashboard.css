@@ -26,8 +26,8 @@
   --mr-purple: #c4b5fd;
   --mr-input-bg: #121212;
   --mr-muted-bg: #111111;
-  --mr-bubble-in: #1d1d1d;
-  --mr-bubble-out: rgba(212, 175, 55, 0.16);
+  --mr-bubble-in: #26262b;
+  --mr-bubble-out: rgba(212, 175, 55, 0.18);
   --mr-radius: 14px;
   --mr-radius-sm: 10px;
   --mr-radius-xs: 6px;
@@ -68,10 +68,13 @@
     #000000;
   color: var(--mr-text);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .mr-main {
+  flex: 1;
   width: min(1400px, calc(100% - 24px));
   margin: 0 auto;
   padding: 24px 0 40px;
@@ -79,6 +82,7 @@
 
 /* ============ UTILITY CLASSES ============ */
 .mr-space-y-6 > * + * { margin-top: 1.5rem; }
+.mr-space-y-5 > * + * { margin-top: 1.25rem; }
 .mr-space-y-4 > * + * { margin-top: 1rem; }
 .mr-space-y-3 > * + * { margin-top: 0.75rem; }
 .mr-space-y-2 > * + * { margin-top: 0.5rem; }
