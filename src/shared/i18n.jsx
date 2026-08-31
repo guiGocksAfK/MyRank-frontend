@@ -103,6 +103,7 @@ const TRANSLATIONS = {
         noFollowers: 'Ninguém te segue ainda.',
       },
       discover: {
+        peopleTitle: 'Pessoas',
         searchPlaceholder: 'Buscar por nome ou @handle…',
         results: 'Resultados ({n})',
         suggestions: 'Sugestões pra você',
@@ -113,6 +114,7 @@ const TRANSLATIONS = {
         title: 'Descobrir grupos',
         subtitle: 'Entre em grupos e converse com quem curte as mesmas coisas.',
         create: 'Criar grupo',
+        emptyHint: 'Nenhum grupo por aqui ainda. Crie o primeiro!',
       },
       pill: {
         followsYou: 'segue você',
@@ -728,6 +730,7 @@ const TRANSLATIONS = {
         noFollowers: 'Nobody follows you yet.',
       },
       discover: {
+        peopleTitle: 'People',
         searchPlaceholder: 'Search by name or @handle…',
         results: 'Results ({n})',
         suggestions: 'Suggestions for you',
@@ -738,6 +741,7 @@ const TRANSLATIONS = {
         title: 'Discover groups',
         subtitle: 'Join groups and chat with people into the same stuff.',
         create: 'New group',
+        emptyHint: 'No groups around yet. Create the first one!',
       },
       pill: {
         followsYou: 'follows you',
@@ -1353,6 +1357,7 @@ const TRANSLATIONS = {
         noFollowers: 'Nadie te sigue todavía.',
       },
       discover: {
+        peopleTitle: 'Personas',
         searchPlaceholder: 'Buscar por nombre o @handle…',
         results: 'Resultados ({n})',
         suggestions: 'Sugerencias para ti',
@@ -1363,6 +1368,7 @@ const TRANSLATIONS = {
         title: 'Descubrir grupos',
         subtitle: 'Únete a grupos y habla con quien le gusta lo mismo.',
         create: 'Crear grupo',
+        emptyHint: 'Aún no hay grupos. ¡Crea el primero!',
       },
       pill: {
         followsYou: 'te sigue',

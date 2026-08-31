@@ -646,69 +646,72 @@
   margin: 0 0 12px;
 }
 
-/* ── Descobrir: pessoas à esquerda, grupos à direita ──────── */
+/* ── Descobrir: dois cards iguais (pessoas | grupos) ──────── */
 .social-discover-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: 20px;
   align-items: start;
 }
-.social-discover-people { min-width: 0; }
 
-.social-groupdisc {
-  position: sticky;
-  top: 88px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* casca compartilhada pelos dois lados */
+.social-disc-card {
   background: var(--mr-card);
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius);
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
   padding: 16px;
-  max-height: calc(100vh - 120px);
-}
-.social-groupdisc-head {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.social-discover-layout > .social-disc-card:last-child {
+  position: sticky;
+  top: 88px;
+}
+.social-disc-head {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
+  min-height: 30px;
 }
-.social-groupdisc-title { font-weight: 800; font-size: 1rem; }
-.social-groupdisc-sub {
-  font-size: 0.78rem;
-  color: var(--mr-text-muted);
-  line-height: 1.4;
-  margin-top: 3px;
+.social-disc-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
-.social-groupdisc-new {
+.social-disc-action {
   flex-shrink: 0;
   border: 1px solid var(--mr-gold-20);
   background: var(--mr-gold-10);
   color: var(--mr-gold);
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: 5px 12px;
   font-size: 0.74rem;
   font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s;
 }
-.social-groupdisc-new:hover { background: var(--mr-gold-20); }
+.social-disc-action:hover { background: var(--mr-gold-20); }
 
-.social-groupdisc-searchwrap {
+.social-disc-searchwrap {
   display: flex;
   align-items: center;
   gap: 8px;
   border: 1px solid var(--mr-border);
   border-radius: 999px;
-  padding: 7px 14px;
+  padding: 8px 14px;
   background: var(--mr-input-bg);
   transition: border-color 0.15s;
 }
-.social-groupdisc-searchwrap:focus-within { border-color: var(--mr-gold); }
-.social-groupdisc-searchwrap > span { opacity: 0.55; font-size: 0.85rem; }
-.social-groupdisc-search {
+.social-disc-searchwrap:focus-within { border-color: var(--mr-gold); }
+.social-disc-searchwrap > span { opacity: 0.5; font-size: 0.85rem; }
+.social-disc-search {
   flex: 1;
   min-width: 0;
   border: 0;
@@ -716,16 +719,23 @@
   color: var(--mr-text);
   font-size: 0.85rem;
 }
-.social-groupdisc-search:focus { outline: none; }
+.social-disc-search:focus { outline: none; }
 
-.social-groupdisc-body {
-  overflow-y: auto;
-  margin: 2px -4px 0;
-  padding: 0 4px 2px;
+.social-disc-subhead {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--mr-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.social-disc-body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
 }
+
 .social-groupdisc-list {
   list-style: none;
   margin: 0;
@@ -817,20 +827,19 @@
 .social-groupdisc-error { color: var(--mr-red); }
 .social-groupdisc-empty {
   text-align: center;
-  padding: 22px 8px;
+  padding: 14px 6px 4px;
   color: var(--mr-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
-.social-groupdisc-empty > span { font-size: 1.8rem; display: block; margin-bottom: 6px; }
-.social-groupdisc-empty p { margin: 0; font-size: 0.85rem; }
+.social-groupdisc-empty p { margin: 0; font-size: 0.82rem; line-height: 1.4; }
 
 /* ── Mobile ───────────────────────────────────────────────── */
 @media (max-width: 960px) {
   .social-discover-layout { grid-template-columns: 1fr; }
-  .social-groupdisc {
-    position: static;
-    max-height: none;
-  }
-  .social-groupdisc-body { overflow-y: visible; }
+  .social-discover-layout > .social-disc-card:last-child { position: static; }
 }
 @media (max-width: 900px) {
   .social-feed-layout { grid-template-columns: 1fr; }

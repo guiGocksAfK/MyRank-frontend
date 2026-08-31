@@ -120,25 +120,18 @@ export default function GroupDiscover({ onOpenConversation }) {
   };
 
   return (
-    <aside className="social-groupdisc">
-      <div className="social-groupdisc-head">
-        <div>
-          <div className="social-groupdisc-title">{tg.title}</div>
-          <div className="social-groupdisc-sub">{tg.subtitle}</div>
-        </div>
-        <button
-          type="button"
-          className="social-groupdisc-new"
-          onClick={() => setShowNew(true)}
-        >
+    <section className="social-disc-card">
+      <div className="social-disc-head">
+        <div className="social-disc-title"><span aria-hidden="true">👥</span> {tg.title}</div>
+        <button type="button" className="social-disc-action" onClick={() => setShowNew(true)}>
           ＋ {tg.create}
         </button>
       </div>
 
-      <div className="social-groupdisc-searchwrap">
+      <div className="social-disc-searchwrap">
         <span aria-hidden="true">🔍</span>
         <input
-          className="social-groupdisc-search"
+          className="social-disc-search"
           type="text"
           value={query}
           placeholder={tc.searchGroups}
@@ -146,15 +139,21 @@ export default function GroupDiscover({ onOpenConversation }) {
         />
       </div>
 
+      <div className="social-disc-subhead">{tg.subtitle}</div>
+
       {error && <div className="social-groupdisc-error">{error}</div>}
 
-      <div className="social-groupdisc-body">
+      <div className="social-disc-body">
         {entries === null ? (
           <div className="social-groupdisc-hint">{tc.loading}</div>
         ) : entries.length === 0 ? (
           <div className="social-groupdisc-empty">
-            <span aria-hidden="true">🫥</span>
-            <p>{tc.noGroups}</p>
+            <p>{query.trim() ? tc.noGroups : tg.emptyHint}</p>
+            {!query.trim() && (
+              <button type="button" className="mr-btn mr-btn-gold mr-btn-sm" onClick={() => setShowNew(true)}>
+                ＋ {tg.create}
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -199,6 +198,6 @@ export default function GroupDiscover({ onOpenConversation }) {
           }}
         />
       )}
-    </aside>
+    </section>
   );
 }

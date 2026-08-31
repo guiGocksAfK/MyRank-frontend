@@ -164,9 +164,7 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
       )}
       {tab === 'discover' && (
         <div className="social-discover-layout">
-          <div className="social-discover-people">
-            <Discover onOpenUser={openProfile} />
-          </div>
+          <Discover onOpenUser={openProfile} />
           <GroupDiscover onOpenConversation={openGroupConversation} />
         </div>
       )}
