@@ -192,7 +192,11 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover
                   className={`mr-btn mr-btn-sm ${u.requested ? 'mr-btn-outline' : 'mr-btn-gold'}`}
                   onClick={() => followSuggestion(u.id)}
                 >
-                  {u.requested ? t.social.pill.requested : tr.follow}
+                  {u.requested
+                    ? t.social.pill.requested
+                    : u.isPublic === false
+                      ? t.social.pill.request
+                      : tr.follow}
                 </button>
               </div>
             ))}

@@ -35,7 +35,13 @@ export default function UserPill({ user, onToggleFollow, onOpen }) {
     }
   }
 
-  const label = following ? tp.following : requested ? tp.requested : tp.follow;
+  const label = following
+    ? tp.following
+    : requested
+      ? tp.requested
+      : user.isPublic === false
+        ? tp.request
+        : tp.follow;
   const outline = following || requested;
 
   return (

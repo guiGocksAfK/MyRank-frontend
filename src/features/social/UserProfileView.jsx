@@ -252,7 +252,13 @@ function FollowButton({ profile, onToggleFollow, tv }) {
     }
   }
 
-  const label = following ? tv.following : requested ? tv.requested : tv.follow;
+  const label = following
+    ? tv.following
+    : requested
+      ? tv.requested
+      : profile.isPublic === false
+        ? tv.request
+        : tv.follow;
   return (
     <button
       className={`mr-btn mr-btn-sm ${following || requested ? 'mr-btn-outline' : 'mr-btn-gold'}`}

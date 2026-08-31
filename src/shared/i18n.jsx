@@ -89,7 +89,7 @@ const TRANSLATIONS = {
       pill: {
         followsYou: 'segue você',
         stats: '@{handle} · {works} obras · média {avg}',
-        following: 'Seguindo', follow: 'Seguir', requested: 'Solicitado',
+        following: 'Seguindo', follow: 'Seguir', requested: 'Solicitado', request: 'Pedir pra seguir',
       },
       profile: {
         back: '← Voltar',
@@ -97,7 +97,7 @@ const TRANSLATIONS = {
         loading: 'Carregando perfil…',
         followsYou: 'segue você',
         stats: '{works} obras · média {avg}',
-        following: 'Seguindo', follow: 'Seguir', requested: 'Solicitado', compare: '⚖️ Comparar', message: '💬 Mensagem',
+        following: 'Seguindo', follow: 'Seguir', requested: 'Solicitado', request: 'Pedir pra seguir', compare: '⚖️ Comparar', message: '💬 Mensagem',
         privateTitle: 'Este perfil é privado',
         privateText: 'Siga esta conta pra ver os rankings, as badges e os takes.',
         followersWord: 'seguidores', followingWord: 'seguindo',
@@ -683,7 +683,7 @@ const TRANSLATIONS = {
       pill: {
         followsYou: 'follows you',
         stats: '@{handle} · {works} titles · avg {avg}',
-        following: 'Following', follow: 'Follow', requested: 'Requested',
+        following: 'Following', follow: 'Follow', requested: 'Requested', request: 'Request to follow',
       },
       profile: {
         back: '← Back',
@@ -691,7 +691,7 @@ const TRANSLATIONS = {
         loading: 'Loading profile…',
         followsYou: 'follows you',
         stats: '{works} titles · avg {avg}',
-        following: 'Following', follow: 'Follow', requested: 'Requested', compare: '⚖️ Compare', message: '💬 Message',
+        following: 'Following', follow: 'Follow', requested: 'Requested', request: 'Request to follow', compare: '⚖️ Compare', message: '💬 Message',
         privateTitle: 'This account is private',
         privateText: 'Follow this account to see its rankings, badges and takes.',
         followersWord: 'followers', followingWord: 'following',
@@ -1277,7 +1277,7 @@ const TRANSLATIONS = {
       pill: {
         followsYou: 'te sigue',
         stats: '@{handle} · {works} obras · media {avg}',
-        following: 'Siguiendo', follow: 'Seguir', requested: 'Solicitado',
+        following: 'Siguiendo', follow: 'Seguir', requested: 'Solicitado', request: 'Solicitar seguir',
       },
       profile: {
         back: '← Volver',
@@ -1285,7 +1285,7 @@ const TRANSLATIONS = {
         loading: 'Cargando perfil…',
         followsYou: 'te sigue',
         stats: '{works} obras · media {avg}',
-        following: 'Siguiendo', follow: 'Seguir', requested: 'Solicitado', compare: '⚖️ Comparar', message: '💬 Mensaje',
+        following: 'Siguiendo', follow: 'Seguir', requested: 'Solicitado', request: 'Solicitar seguir', compare: '⚖️ Comparar', message: '💬 Mensaje',
         privateTitle: 'Esta cuenta es privada',
         privateText: 'Sigue esta cuenta para ver sus rankings, insignias y takes.',
         followersWord: 'seguidores', followingWord: 'siguiendo',
