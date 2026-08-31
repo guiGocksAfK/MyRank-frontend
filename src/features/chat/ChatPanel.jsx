@@ -26,6 +26,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
   const tc = t.chat;
   const { unreadCount, refreshCount, pendingPeer, consumePendingPeer, touchNonce } = useChat();
   const initialConvSeen = useRef(false);
+  const didAutoOpen = useRef(false);
 
   const [conversations, setConversations] = useState(null);
   const [suggested, setSuggested] = useState([]); // mútuos sem DM ainda ("diga oi")
@@ -76,6 +77,15 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
     onInitialConvConsumed?.();
   }, [initialConvId, loadConversations, onInitialConvConsumed]);
 
+  // Ao abrir Mensagens, já entra na conversa mais recente (uma vez só).
+  useEffect(() => {
+    if (didAutoOpen.current) return;
+    if (!conversations || conversations.length === 0) return;
+    if (initialConvId != null || pendingPeer) return;
+    didAutoOpen.current = true;
+    if (activeId == null && !showDirectory) setActiveId(conversations[0].id);
+  }, [conversations, initialConvId, pendingPeer, activeId, showDirectory]);
+
   // pedido externo: botão "Mensagem" no perfil de alguém → abre/cria o DM
   useEffect(() => {
     if (!pendingPeer) return;
@@ -105,6 +115,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
     startDirect(u.id)
       .then((conv) => {
         setSuggested((prev) => prev.filter((x) => x.id !== u.id));
+        setShowDirectory(false);
         setActiveId(conv.id);
         loadConversations();
       })
@@ -119,6 +130,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
 
   const handleGroupCreated = (conv) => {
     setShowNewGroup(false);
+    setShowDirectory(false);
     loadConversations();
     setActiveId(conv.id);
   };
@@ -134,27 +146,16 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
     loadConversations();
   };
 
-  if (showDirectory) {
-    return (
-      <div className="chat-panel">
-        <GroupDirectory onBack={() => setShowDirectory(false)} onOpen={openFromDirectory} />
-      </div>
-    );
-  }
+  const openConversation = (id) => {
+    setShowDirectory(false);
+    setActiveId(id);
+  };
 
   return (
-    <div className={`chat-panel ${activeId ? 'has-active' : ''}`}>
+    <div className={`chat-panel ${activeId || showDirectory ? 'has-active' : ''}`}>
       <aside className="chat-list">
         <div className="chat-list-head">
           <span>{tc.title}</span>
-          <div className="chat-list-head-btns">
-            <button type="button" className="chat-newgroup-btn" onClick={() => setShowDirectory(true)}>
-              {tc.discover}
-            </button>
-            <button type="button" className="chat-newgroup-btn" onClick={() => setShowNewGroup(true)}>
-              {tc.newGroup}
-            </button>
-          </div>
         </div>
 
         <div className="chat-filter" role="tablist">
@@ -172,6 +173,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
           ))}
         </div>
 
+        <div className="chat-conv-list">
         {conversations === null ? (
           <div className="chat-hint">{tc.loading}</div>
         ) : visible.length === 0 && suggestedVisible.length === 0 ? (
@@ -187,8 +189,8 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
                 <button
                   key={c.id}
                   type="button"
-                  className={`chat-conv ${activeId === c.id ? 'active' : ''} ${c.unread > 0 ? 'is-unread' : ''}`}
-                  onClick={() => setActiveId(c.id)}
+                  className={`chat-conv ${activeId === c.id && !showDirectory ? 'active' : ''} ${c.unread > 0 ? 'is-unread' : ''}`}
+                  onClick={() => openConversation(c.id)}
                 >
                   {c.type === 'GROUP' ? (
                     <GroupIcon name={c.name} imageUrl={c.imageUrl} className="chat-conv-avatar" />
@@ -200,10 +202,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
                   )}
                   <div className="chat-conv-main">
                     <div className="chat-conv-top">
-                      <span className="chat-conv-name">
-                        {c.type === 'GROUP' && <span aria-hidden="true">👥 </span>}
-                        {title}
-                      </span>
+                      <span className="chat-conv-name">{title}</span>
                       <span className="chat-conv-time">{c.lastAt ? relativeTime(c.lastAt, lang) : ''}</span>
                     </div>
                     <div className="chat-conv-preview">{preview}</div>
@@ -236,10 +235,30 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
             ))}
           </>
         )}
+        </div>
+
+        <div className="chat-list-foot">
+          <button
+            type="button"
+            className={`chat-foot-btn ${showDirectory ? 'active' : ''}`}
+            onClick={() => setShowDirectory(true)}
+          >
+            🔍 {tc.discoverGroups}
+          </button>
+          <button
+            type="button"
+            className="chat-foot-btn is-primary"
+            onClick={() => setShowNewGroup(true)}
+          >
+            ＋ {tc.newGroup}
+          </button>
+        </div>
       </aside>
 
       <section className="chat-main">
-        {active ? (
+        {showDirectory ? (
+          <GroupDirectory onBack={() => setShowDirectory(false)} onOpen={openFromDirectory} />
+        ) : active ? (
           <ChatThread
             conversation={active}
             onBack={closeThread}
@@ -250,8 +269,24 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
         ) : (
           <div className="chat-empty">
             <div className="chat-empty-icon" aria-hidden="true">💬</div>
-            <p>{tc.pickConversation}</p>
-            <p className="chat-empty-hint">{tc.mutualHint}</p>
+            <div className="chat-empty-title">{tc.emptyTitle}</div>
+            <p>{tc.mutualHint}</p>
+            <div className="chat-empty-actions">
+              <button
+                type="button"
+                className="mr-btn mr-btn-gold mr-btn-sm"
+                onClick={() => setShowDirectory(true)}
+              >
+                {tc.discoverGroups}
+              </button>
+              <button
+                type="button"
+                className="mr-btn mr-btn-outline mr-btn-sm"
+                onClick={() => setShowNewGroup(true)}
+              >
+                {tc.newGroup}
+              </button>
+            </div>
           </div>
         )}
       </section>
