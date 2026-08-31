@@ -73,7 +73,22 @@ function decorateFeedItem(it) {
         : null,
     badge: it.badge ? { icon: it.badge.icon, name: it.badge.name } : null,
     text: it.takeText ?? null,
+    takeId: it.takeId ?? null,
+    commentCount: it.commentCount ?? 0,
     reactions: it.reactions || { up: 0, agree: 0, disagree: 0, mine: null },
+  };
+}
+
+/** TakeCommentDTO → nó de comentário (com respostas). */
+function decorateComment(c) {
+  return {
+    id: c.id,
+    parentId: c.parentId ?? null,
+    author: decorateUser(c.author),
+    text: c.text,
+    createdAt: c.createdAt,
+    canDelete: !!c.canDelete,
+    replies: (c.replies || []).map(decorateComment),
   };
 }
 
@@ -196,5 +211,19 @@ export const socialApi = {
   async postTake({ workId, text }) {
     const { data } = await api.post('/social/takes', { workId, text });
     return decorateFeedItem(data);
+  },
+
+  async getTakeComments(takeId) {
+    const { data } = await api.get(`/social/takes/${takeId}/comments`);
+    return (data || []).map(decorateComment);
+  },
+
+  async addTakeComment(takeId, text, parentCommentId = null) {
+    const { data } = await api.post(`/social/takes/${takeId}/comments`, { text, parentCommentId });
+    return decorateComment(data);
+  },
+
+  async deleteTakeComment(commentId) {
+    await api.delete(`/social/comments/${commentId}`);
   },
 };

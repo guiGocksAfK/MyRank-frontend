@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import SocialAvatar from './SocialAvatar';
 import ReactionBar from './ReactionBar';
+import TakeComments from './TakeComments';
 import { typeIconFor } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { relativeTime } from '../../shared/useUnifiedItems';
@@ -68,7 +70,10 @@ function Body({ item }) {
 }
 
 export default function ActivityCard({ item, onReact, onOpenUser }) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
+  const [showComments, setShowComments] = useState(false);
+  const [commentCount, setCommentCount] = useState(item.commentCount || 0);
+  const isTake = item.type === 'TAKE' && item.takeId != null;
   const openUser = () => onOpenUser?.(item.actor.id);
 
   return (
@@ -99,7 +104,27 @@ export default function ActivityCard({ item, onReact, onOpenUser }) {
 
         <div className="social-card-actions">
           <ReactionBar reactions={item.reactions} onReact={(kind) => onReact(item.id, kind)} />
+          {isTake && (
+            <button
+              type="button"
+              className="social-comment-btn"
+              data-active={showComments ? 'true' : undefined}
+              onClick={() => setShowComments((v) => !v)}
+            >
+              <span aria-hidden="true">💬</span>
+              <span className="social-react-label">{t.social.comments.label}</span>
+              {commentCount > 0 && <span className="social-react-count">{commentCount}</span>}
+            </button>
+          )}
         </div>
+
+        {isTake && showComments && (
+          <TakeComments
+            takeId={item.takeId}
+            onOpenUser={onOpenUser}
+            onCountChange={(d) => setCommentCount((c) => Math.max(0, c + d))}
+          />
+        )}
       </div>
     </article>
   );
