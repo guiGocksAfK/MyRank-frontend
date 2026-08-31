@@ -2,17 +2,20 @@
 
 .chat-panel {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 16px;
-  height: min(760px, calc(100vh - 220px));
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 0;
+  height: calc(100vh - 176px);
   min-height: 460px;
-}
-
-.chat-list {
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius);
   background: var(--mr-card);
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.chat-list {
+  border-right: 1px solid var(--mr-border);
+  background: var(--mr-card);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -172,12 +175,9 @@
 /* ── Área da conversa ──────────────────────────────────────────────── */
 
 .chat-main {
-  border: 1px solid var(--mr-border);
-  border-radius: var(--mr-radius);
   background: var(--mr-card);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -205,7 +205,116 @@
   margin-top: 12px;
 }
 
-.chat-thread { display: flex; flex-direction: column; height: 100%; flex: 1; min-height: 0; }
+.chat-thread { display: flex; flex-direction: row; height: 100%; flex: 1; min-height: 0; min-width: 0; }
+.chat-thread-body { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+
+/* rail de contexto (perfil do outro / info do grupo) à direita da conversa */
+.chat-rail {
+  position: relative;
+  width: 300px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--mr-border);
+  background: var(--mr-card);
+  overflow-y: auto;
+  padding: 40px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.chat-rail-close { position: absolute; top: 8px; right: 8px; }
+.chat-rail-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+.chat-rail-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--mr-muted-bg);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.chat-rail-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-rail-name { font-weight: 800; font-size: 1.02rem; }
+.chat-rail-handle { font-size: 0.8rem; color: var(--mr-text-muted); }
+.chat-rail-bio { font-size: 0.82rem; color: var(--mr-text-secondary); line-height: 1.45; }
+.chat-rail-section-title {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+  margin-bottom: 8px;
+}
+.chat-rail-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  padding: 3px 0;
+}
+.chat-rail-stat-row span:last-child { color: var(--mr-text-muted); }
+.chat-rail-work {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  padding: 3px 0;
+}
+.chat-rail-work-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-rail-work-score { color: var(--mr-gold); font-weight: 700; font-variant-numeric: tabular-nums; }
+.chat-rail-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.chat-rail-badge {
+  font-size: 0.74rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--mr-muted-bg);
+  border: 1px solid var(--mr-border-light);
+}
+.chat-rail-members { display: flex; flex-direction: column; gap: 6px; }
+.chat-rail-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  padding: 3px 4px;
+  border-radius: var(--mr-radius-xs);
+  cursor: pointer;
+}
+.chat-rail-member:hover { background: var(--mr-muted-bg); }
+.chat-rail-member:hover .chat-rail-member-name { color: var(--mr-gold); }
+.chat-rail-member-avatar { width: 26px; height: 26px; flex-shrink: 0; }
+.chat-rail-member-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-rail-member-role {
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: var(--mr-gold);
+  text-transform: uppercase;
+}
+.chat-rail-btn {
+  width: 100%;
+  border: 1px solid var(--mr-border);
+  background: transparent;
+  color: var(--mr-text-secondary);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.chat-rail-btn:hover { border-color: var(--mr-gold); color: var(--mr-gold); }
+.chat-rail-hint { font-size: 0.8rem; color: var(--mr-text-muted); }
 
 .chat-thread-head {
   display: flex;
@@ -248,6 +357,7 @@
   cursor: pointer;
 }
 .chat-info-btn:hover { background: var(--mr-card-hover); color: var(--mr-gold); }
+.chat-info-btn.is-active { background: var(--mr-gold-10); color: var(--mr-gold); }
 
 .chat-thread-titlewrap { min-width: 0; }
 .chat-thread-name { font-weight: 800; font-size: 0.95rem; }
@@ -299,7 +409,20 @@
   padding: 18px 16px 12px;
   display: flex;
   flex-direction: column;
+}
+
+/* coluna de conteúdo: ocupa toda a largura da caixa, ancorada embaixo
+   (conversa curta encosta no compositor; conversa longa rola normalmente).
+   Com o rail aberto ela recua pra largura de leitura. */
+.chat-thread-col {
+  width: 100%;
+  margin: auto 0 0 0;
+  display: flex;
+  flex-direction: column;
   gap: 2px;
+}
+.chat-thread.has-rail .chat-thread-col {
+  max-width: 860px;
 }
 
 /* cabeçalho de contexto no topo do histórico */
@@ -309,12 +432,12 @@
   align-items: center;
   text-align: center;
   gap: 4px;
-  padding: 24px 16px 20px;
-  margin-bottom: 8px;
+  padding: 14px 16px 16px;
+  margin-bottom: 6px;
 }
 .chat-intro-avatar {
-  width: 72px;
-  height: 72px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   overflow: hidden;
   display: grid;
@@ -350,13 +473,16 @@
 /* divisor de hora (aparece só quando há intervalo / muda o dia) */
 .chat-time-sep {
   align-self: center;
-  margin: 16px 0 8px;
+  margin: 16px 0 10px;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--mr-muted-bg);
   color: var(--mr-text-muted);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
-.chat-time-sep:first-child { margin-top: 4px; }
+.chat-time-sep:first-child { margin-top: 2px; }
 
 /* bloco de avisos do sistema — compacto, discreto */
 .chat-system-run {
@@ -442,14 +568,17 @@
 
 .chat-bubble {
   max-width: 100%;
-  padding: 8px 13px;
+  padding: 10px 14px;
   border-radius: 18px;
   background: var(--mr-bubble-in);
-  border: 0;
-  font-size: 0.88rem;
-  line-height: 1.45;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+  line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+}
+.chat-bubble-row:not(.is-mine) .chat-bubble {
+  border-color: var(--mr-border-light);
 }
 .chat-bubble-row.is-mine .chat-bubble {
   background: var(--mr-bubble-out);
@@ -797,6 +926,7 @@ input.chat-modal-input { max-height: none; }
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  flex: 1;
 }
 .chat-directory-head {
   display: flex;
@@ -949,7 +1079,7 @@ input.chat-modal-input { max-height: none; }
 }
 
 /* ── Mensagens: avatar, agrupamento, resposta, ações, reações ─────── */
-.chat-bubble-row { align-items: flex-end; gap: 8px; margin-top: 10px; }
+.chat-bubble-row { align-items: flex-end; gap: 8px; margin-top: 8px; }
 .chat-bubble-row.is-cont { margin-top: 2px; }
 .chat-row-avatar { width: 30px; flex-shrink: 0; }
 .chat-msg-avatar {
@@ -965,16 +1095,16 @@ input.chat-modal-input { max-height: none; }
 }
 .chat-msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-.chat-bubble-wrap { position: relative; min-width: 0; max-width: 70%; display: flex; flex-direction: column; }
+.chat-bubble-wrap { position: relative; min-width: 0; max-width: min(560px, 78%); display: flex; flex-direction: column; }
 .chat-bubble-row.is-mine .chat-bubble-wrap { align-items: flex-end; }
 .chat-bubble { position: relative; max-width: 100%; }
 .chat-bubble-row.is-cont .chat-bubble-sender { display: none; }
 
-/* barra de ações flutuante no hover (estilo Instagram) */
+/* barra de ações flutuante no hover — canto superior direito (estilo Discord) */
 .chat-msg-toolbar {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  top: -13px;
+  right: 6px;
   display: flex;
   gap: 1px;
   padding: 2px;
@@ -985,9 +1115,8 @@ input.chat-modal-input { max-height: none; }
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.12s ease;
+  z-index: 2;
 }
-.chat-bubble-row:not(.is-mine) .chat-msg-toolbar { left: 100%; margin-left: 6px; }
-.chat-bubble-row.is-mine .chat-msg-toolbar { right: 100%; margin-right: 6px; }
 .chat-bubble-row:hover .chat-msg-toolbar,
 .chat-msg-toolbar:focus-within { opacity: 1; pointer-events: auto; }
 @media (hover: none) { .chat-msg-toolbar { opacity: 1; pointer-events: auto; } }
@@ -1008,23 +1137,26 @@ input.chat-modal-input { max-height: none; }
 }
 .chat-msg-tbtn:hover { background: var(--mr-card-hover); color: var(--mr-gold); }
 
+/* citação de resposta: faixa embutida, sem caixa — parece a mensagem "empilhada" */
 .chat-reply-quote {
   display: block;
   width: 100%;
   text-align: left;
   border: 0;
-  border-left: 3px solid var(--mr-gold);
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 6px;
-  padding: 4px 8px;
-  margin-bottom: 5px;
+  border-left: 2px solid var(--mr-gold);
+  background: transparent;
+  border-radius: 0;
+  padding: 0 0 0 8px;
+  margin: 0 0 5px;
   cursor: pointer;
   font: inherit;
+  opacity: 0.75;
 }
-.chat-reply-quote-name { display: block; font-size: 0.72rem; font-weight: 800; color: var(--mr-gold); }
+.chat-reply-quote:hover { opacity: 1; }
+.chat-reply-quote-name { display: block; font-size: 0.7rem; font-weight: 800; color: var(--mr-gold); }
 .chat-reply-quote-text {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--mr-text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -1101,7 +1233,20 @@ input.chat-modal-input { max-height: none; }
 
 .chat-pending-dot { color: var(--mr-gold); font-weight: 800; }
 
-/* ── Responsivo: uma coluna, alterna lista/conversa ────────────────── */
+/* ── Responsivo ───────────────────────────────────────────────────── */
+
+/* rail estreito: vira sobreposição sobre a conversa */
+@media (max-width: 1080px) {
+  .chat-rail {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    border-left: 0;
+    z-index: 20;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+  .chat-thread { position: relative; }
+}
 
 @media (max-width: 720px) {
   .chat-panel {

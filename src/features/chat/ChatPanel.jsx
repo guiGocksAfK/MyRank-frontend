@@ -271,22 +271,6 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
             <div className="chat-empty-icon" aria-hidden="true">💬</div>
             <div className="chat-empty-title">{tc.emptyTitle}</div>
             <p>{tc.mutualHint}</p>
-            <div className="chat-empty-actions">
-              <button
-                type="button"
-                className="mr-btn mr-btn-gold mr-btn-sm"
-                onClick={() => setShowDirectory(true)}
-              >
-                {tc.discoverGroups}
-              </button>
-              <button
-                type="button"
-                className="mr-btn mr-btn-outline mr-btn-sm"
-                onClick={() => setShowNewGroup(true)}
-              >
-                {tc.newGroup}
-              </button>
-            </div>
           </div>
         )}
       </section>
