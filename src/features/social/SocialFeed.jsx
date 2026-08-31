@@ -26,6 +26,14 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoDiscover }) {
     [load],
   );
 
+  const handleEdited = useCallback((updated) => {
+    setItems((prev) => (prev || []).map((i) => (i.id === updated.id ? updated : i)));
+  }, []);
+
+  const handleDeleted = useCallback((id) => {
+    setItems((prev) => (prev || []).filter((i) => i.id !== id));
+  }, []);
+
   return (
     <div className="social-feed-col">
       <TakeComposer onPost={handlePost} onNavigate={onNavigate} />
@@ -47,6 +55,8 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoDiscover }) {
             item={item}
             onReact={handleReact}
             onOpenUser={onOpenUser}
+            onEdited={handleEdited}
+            onDeleted={handleDeleted}
           />
         ))
       )}

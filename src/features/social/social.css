@@ -344,6 +344,54 @@
   font-weight: 700;
   cursor: pointer;
 }
+.social-comment-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+.social-comment-editform {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.social-comment-editform .social-comment-input { flex: 1; min-width: 160px; }
+
+/* editar / excluir take */
+.social-take-manage {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+.social-take-manage button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--mr-text-muted);
+  cursor: pointer;
+}
+.social-take-manage button:hover { color: var(--mr-gold); }
+.social-take-manage button.is-danger:hover { color: var(--mr-red); }
+.social-take-editform { display: flex; flex-direction: column; gap: 8px; }
+.social-take-editarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--mr-border);
+  background: var(--mr-input-bg);
+  color: var(--mr-text);
+  border-radius: var(--mr-radius-sm);
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.social-take-editarea:focus { outline: none; border-color: var(--mr-gold); }
+.social-take-editactions { display: flex; gap: 8px; }
 .social-reactions {
   display: flex;
   align-items: center;

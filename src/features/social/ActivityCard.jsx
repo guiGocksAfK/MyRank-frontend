@@ -2,9 +2,10 @@ import { useState } from 'react';
 import SocialAvatar from './SocialAvatar';
 import ReactionBar from './ReactionBar';
 import TakeComments from './TakeComments';
-import { typeIconFor } from './socialData';
+import { socialApi, typeIconFor } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { relativeTime } from '../../shared/useUnifiedItems';
+import ConfirmModal from '../../shared/components/ConfirmModal';
 
 function ScoreChip({ value }) {
   if (value == null) return null;
@@ -69,12 +70,49 @@ function Body({ item }) {
   }
 }
 
-export default function ActivityCard({ item, onReact, onOpenUser }) {
+export default function ActivityCard({ item, onReact, onOpenUser, onEdited, onDeleted }) {
   const { lang, t } = useLanguage();
+  const tt = t.social.take;
   const [showComments, setShowComments] = useState(false);
   const [commentCount, setCommentCount] = useState(item.commentCount || 0);
+  const [text, setText] = useState(item.text);
+  const [edited, setEdited] = useState(item.takeEdited);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(item.text || '');
+  const [busy, setBusy] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const isTake = item.type === 'TAKE' && item.takeId != null;
+  const canManage = isTake && item.canManage;
   const openUser = () => onOpenUser?.(item.actor.id);
+
+  async function saveEdit(e) {
+    e?.preventDefault?.();
+    const body = draft.trim();
+    if (busy) return;
+    if (!body || body === text) { setEditing(false); setDraft(text || ''); return; }
+    setBusy(true);
+    try {
+      const updated = await socialApi.editTake(item.takeId, body);
+      setText(updated.text);
+      setEdited(updated.takeEdited);
+      setEditing(false);
+      onEdited?.(updated);
+    } catch {
+      /* silencioso */
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function confirmDeleteTake() {
+    try {
+      await socialApi.deleteTake(item.takeId);
+      onDeleted?.(item.id);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   return (
     <article className={`social-card${item.type === 'TAKE' ? ' is-take' : ''}`}>
@@ -96,10 +134,37 @@ export default function ActivityCard({ item, onReact, onOpenUser }) {
           <span className="social-muted">@{item.actor.handle}</span>
           <span className="social-muted">·</span>
           <span className="social-muted">{relativeTime(item.createdAt, lang)}</span>
+          {isTake && edited && <span className="social-muted">· {tt.edited}</span>}
         </div>
 
         <div className="social-card-body">
-          <Body item={item} />
+          {editing ? (
+            <form className="social-take-editform" onSubmit={saveEdit}>
+              <textarea
+                className="social-take-editarea"
+                value={draft}
+                maxLength={280}
+                rows={3}
+                autoFocus
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Escape') { setEditing(false); setDraft(text || ''); } }}
+              />
+              <div className="social-take-editactions">
+                <button type="submit" className="mr-btn mr-btn-gold mr-btn-sm" disabled={busy || !draft.trim()}>
+                  {tt.save}
+                </button>
+                <button
+                  type="button"
+                  className="mr-btn mr-btn-outline mr-btn-sm"
+                  onClick={() => { setEditing(false); setDraft(text || ''); }}
+                >
+                  {tt.cancel}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <Body item={{ ...item, text }} />
+          )}
         </div>
 
         <div className="social-card-actions">
@@ -116,6 +181,14 @@ export default function ActivityCard({ item, onReact, onOpenUser }) {
               {commentCount > 0 && <span className="social-react-count">{commentCount}</span>}
             </button>
           )}
+          {canManage && !editing && (
+            <div className="social-take-manage">
+              <button type="button" onClick={() => { setDraft(text || ''); setEditing(true); }}>
+                {tt.edit}
+              </button>
+              <button type="button" className="is-danger" onClick={() => setConfirmingDelete(true)}>{tt.delete}</button>
+            </div>
+          )}
         </div>
 
         {isTake && showComments && (
@@ -126,6 +199,16 @@ export default function ActivityCard({ item, onReact, onOpenUser }) {
           />
         )}
       </div>
+
+      {confirmingDelete && (
+        <ConfirmModal
+          title={tt.deleteTitle}
+          message={tt.confirmDelete}
+          confirmLabel={tt.delete}
+          onConfirm={confirmDeleteTake}
+          onClose={() => setConfirmingDelete(false)}
+        />
+      )}
     </article>
   );
 }

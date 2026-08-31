@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useLanguage } from '../../../shared/i18n';
+import { createPortal } from 'react-dom';
+import { useLanguage } from '../i18n';
 
+/**
+ * Diálogo de confirmação padrão do site (usado em rankings, takes, grupos…).
+ * `onConfirm` pode ser async; se resolver com valor truthy, o modal fecha sozinho.
+ */
 export default function ConfirmModal({ title, message, confirmLabel, onConfirm, onClose }) {
   const { t } = useLanguage();
   const tc = t.rankings.confirm;
@@ -23,11 +28,11 @@ export default function ConfirmModal({ title, message, confirmLabel, onConfirm, 
     setConfirming(false);
   }
 
-  return (
+  return createPortal(
     <div
       role="presentation"
       style={{
-        position: 'fixed', inset: 0, zIndex: 300,
+        position: 'fixed', inset: 0, zIndex: 400,
         background: 'rgba(0, 0, 0, 0.72)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '1rem',
@@ -71,6 +76,7 @@ export default function ConfirmModal({ title, message, confirmLabel, onConfirm, 
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

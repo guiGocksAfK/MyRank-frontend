@@ -4,6 +4,12 @@ import { socialApi } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { relativeTime } from '../../shared/useUnifiedItems';
 
+const SendIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+    <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a1 1 0 00-1.4 1.15L4 11l10 1-10 1-2 6.25a1 1 0 001.4 1.15z" />
+  </svg>
+);
+
 /** Comentários de um take (2 níveis, estilo Instagram). Vive dentro do ActivityCard. */
 export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
   const { t, lang } = useLanguage();
@@ -63,6 +69,22 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
     }
   }
 
+  async function edit(id, rootId, newText) {
+    const updated = await socialApi.editTakeComment(id, newText);
+    const patch = { text: updated.text, edited: true };
+    setComments((prev) => {
+      const list = prev || [];
+      if (rootId == null) {
+        return list.map((r) => (r.id === id ? { ...r, ...patch } : r));
+      }
+      return list.map((r) =>
+        r.id === rootId
+          ? { ...r, replies: r.replies.map((x) => (x.id === id ? { ...x, ...patch } : x)) }
+          : r,
+      );
+    });
+  }
+
   function startReply(rootId, handle) {
     setReplyTo(rootId);
     setText((cur) => (cur ? cur : `@${handle} `));
@@ -86,7 +108,9 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
               onOpenUser={onOpenUser}
               onReply={() => startReply(c.id, c.author?.handle || '')}
               onDelete={() => remove(c.id, null)}
+              onEdit={(txt) => edit(c.id, null, txt)}
               onDeleteReply={(rid) => remove(rid, c.id)}
+              onEditReply={(rid, txt) => edit(rid, c.id, txt)}
             />
           ))}
         </ul>
@@ -110,19 +134,34 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
           placeholder={tc.placeholder}
           onChange={(e) => setText(e.target.value)}
         />
-        <button type="submit" className="mr-btn mr-btn-gold mr-btn-sm" disabled={busy || !text.trim()}>
-          {tc.send}
+        <button
+          type="submit"
+          className="mr-btn mr-btn-gold mr-btn-sm social-comment-send"
+          disabled={busy || !text.trim()}
+          aria-label={tc.send}
+        >
+          <SendIcon />
         </button>
       </form>
     </div>
   );
 }
 
-function CommentNode({ c, lang, tc, onOpenUser, onReply, onDelete, onDeleteReply }) {
+function CommentNode({
+  c, lang, tc, onOpenUser, onReply, onDelete, onEdit, onDeleteReply, onEditReply,
+}) {
   const [showReplies, setShowReplies] = useState(false);
   return (
     <li className="social-comment">
-      <CommentRow c={c} lang={lang} tc={tc} onOpenUser={onOpenUser} onReply={onReply} onDelete={onDelete} />
+      <CommentRow
+        c={c}
+        lang={lang}
+        tc={tc}
+        onOpenUser={onOpenUser}
+        onReply={onReply}
+        onDelete={onDelete}
+        onEdit={onEdit}
+      />
       {c.replies.length > 0 && (
         <>
           <button
@@ -142,6 +181,7 @@ function CommentNode({ c, lang, tc, onOpenUser, onReply, onDelete, onDeleteReply
                     tc={tc}
                     onOpenUser={onOpenUser}
                     onDelete={() => onDeleteReply(r.id)}
+                    onEdit={(txt) => onEditReply(r.id, txt)}
                   />
                 </li>
               ))}
@@ -153,8 +193,28 @@ function CommentNode({ c, lang, tc, onOpenUser, onReply, onDelete, onDeleteReply
   );
 }
 
-function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete }) {
+function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete, onEdit }) {
   const a = c.author || {};
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(c.text);
+  const [busy, setBusy] = useState(false);
+
+  async function save(e) {
+    e?.preventDefault?.();
+    const body = draft.trim();
+    if (!body || busy) return;
+    if (body === c.text) { setEditing(false); return; }
+    setBusy(true);
+    try {
+      await onEdit(body);
+      setEditing(false);
+    } catch {
+      /* silencioso */
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="social-comment-row">
       <button type="button" className="social-comment-avatar" onClick={() => onOpenUser?.(a.id)}>
@@ -166,12 +226,41 @@ function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete }) {
             {a.username}
           </button>
           <span className="social-muted">{relativeTime(c.createdAt, lang)}</span>
+          {c.edited && <span className="social-muted">{tc.edited}</span>}
         </div>
-        <div className="social-comment-text">{c.text}</div>
-        <div className="social-comment-actions">
-          {onReply && <button type="button" onClick={onReply}>{tc.reply}</button>}
-          {c.canDelete && <button type="button" onClick={onDelete}>{tc.delete}</button>}
-        </div>
+
+        {editing ? (
+          <form className="social-comment-editform" onSubmit={save}>
+            <input
+              className="social-comment-input"
+              value={draft}
+              maxLength={500}
+              autoFocus
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Escape') { setEditing(false); setDraft(c.text); } }}
+            />
+            <button type="submit" className="mr-btn mr-btn-gold mr-btn-sm" disabled={busy || !draft.trim()}>
+              {tc.save}
+            </button>
+            <button
+              type="button"
+              className="mr-btn mr-btn-outline mr-btn-sm"
+              onClick={() => { setEditing(false); setDraft(c.text); }}
+            >
+              {tc.cancel}
+            </button>
+          </form>
+        ) : (
+          <div className="social-comment-text">{c.text}</div>
+        )}
+
+        {!editing && (
+          <div className="social-comment-actions">
+            {onReply && <button type="button" onClick={onReply}>{tc.reply}</button>}
+            {c.canEdit && <button type="button" onClick={() => { setDraft(c.text); setEditing(true); }}>{tc.edit}</button>}
+            {c.canDelete && <button type="button" onClick={onDelete}>{tc.delete}</button>}
+          </div>
+        )}
       </div>
     </div>
   );

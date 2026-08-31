@@ -75,6 +75,8 @@ function decorateFeedItem(it) {
     text: it.takeText ?? null,
     takeId: it.takeId ?? null,
     commentCount: it.commentCount ?? 0,
+    takeEdited: !!it.takeEdited,
+    canManage: !!it.canManage,
     reactions: it.reactions || { up: 0, agree: 0, disagree: 0, mine: null },
   };
 }
@@ -87,6 +89,8 @@ function decorateComment(c) {
     author: decorateUser(c.author),
     text: c.text,
     createdAt: c.createdAt,
+    edited: !!c.edited,
+    canEdit: !!c.canEdit,
     canDelete: !!c.canDelete,
     replies: (c.replies || []).map(decorateComment),
   };
@@ -213,6 +217,15 @@ export const socialApi = {
     return decorateFeedItem(data);
   },
 
+  async editTake(takeId, text) {
+    const { data } = await api.patch(`/social/takes/${takeId}`, { text });
+    return decorateFeedItem(data);
+  },
+
+  async deleteTake(takeId) {
+    await api.delete(`/social/takes/${takeId}`);
+  },
+
   async getTakeComments(takeId) {
     const { data } = await api.get(`/social/takes/${takeId}/comments`);
     return (data || []).map(decorateComment);
@@ -220,6 +233,11 @@ export const socialApi = {
 
   async addTakeComment(takeId, text, parentCommentId = null) {
     const { data } = await api.post(`/social/takes/${takeId}/comments`, { text, parentCommentId });
+    return decorateComment(data);
+  },
+
+  async editTakeComment(commentId, text) {
+    const { data } = await api.patch(`/social/comments/${commentId}`, { text });
     return decorateComment(data);
   },
 

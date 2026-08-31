@@ -3,6 +3,7 @@ import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
 import { socialApi } from '../social/socialData';
 import SocialAvatar from '../social/SocialAvatar';
+import ConfirmModal from '../../shared/components/ConfirmModal';
 import ImagePreview from './ImagePreview';
 import {
   getMembers,
@@ -47,6 +48,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
   const [error, setError] = useState(null);
   const [inviteToken, setInviteToken] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Modal de verdade: trava o scroll do fundo e fecha só no X / Esc.
   useEffect(() => {
@@ -110,6 +112,18 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
       setTimeout(() => setCopied(false), 1600);
     } catch {
       /* clipboard bloqueado — o usuário copia manual do input */
+    }
+  };
+
+  const confirmDeleteGroup = async () => {
+    try {
+      await deleteConversation(conversation.id);
+      onChanged?.();
+      onLeft?.();
+      return true;
+    } catch (err) {
+      setError(err?.response?.data?.message || tc.actionError);
+      return false;
     }
   };
 
@@ -412,7 +426,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
               <button
                 type="button"
                 className="chat-danger-btn"
-                onClick={() => run(() => deleteConversation(conversation.id), { close: true })}
+                onClick={() => setConfirmDelete(true)}
                 disabled={busy}
               >
                 {tc.deleteGroup}
@@ -445,6 +459,16 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
           </div>
         )}
       </div>
+
+      {confirmDelete && (
+        <ConfirmModal
+          title={tc.deleteGroupTitle}
+          message={tc.deleteGroupMsg}
+          confirmLabel={tc.deleteGroupCta}
+          onConfirm={confirmDeleteGroup}
+          onClose={() => setConfirmDelete(false)}
+        />
+      )}
     </div>
   );
 }
