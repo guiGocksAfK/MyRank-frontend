@@ -9,7 +9,6 @@ import api from '../services/api';
 
 const STORAGE_KEY = 'myrank_lang';
 export const LANGUAGES = ['PT', 'EN', 'ES'];
-export const LANGUAGE_LABELS = { PT: 'Português', EN: 'English', ES: 'Español' };
 
 const TRANSLATIONS = {
   PT: {
@@ -468,10 +467,6 @@ const TRANSLATIONS = {
       darkModeDesc: 'Alternar entre tema claro e escuro',
       language: 'Idioma',
       languageDesc: 'Idioma da interface',
-      history: '🕒 Histórico',
-      lastActions: 'Últimas ações',
-      noActivity: 'Nenhuma atividade ainda. Adicione obras pra começar. ✨',
-      added: 'Adicionou {title}',
       highlights: '⭐ Destaques',
       noHighlights: 'Adicione obras pra ver seus destaques.',
       bestRated: 'Melhor avaliada',
@@ -485,7 +480,6 @@ const TRANSLATIONS = {
       apis: {
         title: '🔌 APIs que usamos',
         subtitle: 'De onde vêm os dados das obras e a análise por IA',
-        usedFor: 'Usada em',
         scope: { tmdb: 'Filmes e Séries', rawg: 'Jogos', mal: 'Animes', books: 'Livros', gemini: 'IA Insights' },
         tmdb: 'The Movie Database — catálogo de filmes e séries: pôsteres, sinopses, elenco, notas e datas de lançamento. É a API que mais alimenta o MyRank.',
         rawg: 'Maior base de jogos da web — capas, plataformas, gêneros, estúdios e data de lançamento.',
@@ -1112,10 +1106,6 @@ const TRANSLATIONS = {
       darkModeDesc: 'Switch between light and dark theme',
       language: 'Language',
       languageDesc: 'Interface language',
-      history: '🕒 History',
-      lastActions: 'Latest actions',
-      noActivity: 'No activity yet. Add titles to get started. ✨',
-      added: 'Added {title}',
       highlights: '⭐ Highlights',
       noHighlights: 'Add titles to see your highlights.',
       bestRated: 'Best rated',
@@ -1129,7 +1119,6 @@ const TRANSLATIONS = {
       apis: {
         title: '🔌 APIs we use',
         subtitle: 'Where the title data and the AI analysis come from',
-        usedFor: 'Used for',
         scope: { tmdb: 'Movies & Series', rawg: 'Games', mal: 'Anime', books: 'Books', gemini: 'AI Insights' },
         tmdb: 'The Movie Database — catalog of movies and series: posters, synopses, cast, ratings and release dates. The API that powers MyRank the most.',
         rawg: "The web's largest game database — cover art, platforms, genres, studios and release date.",
@@ -1756,10 +1745,6 @@ const TRANSLATIONS = {
       darkModeDesc: 'Alternar entre tema claro y oscuro',
       language: 'Idioma',
       languageDesc: 'Idioma de la interfaz',
-      history: '🕒 Historial',
-      lastActions: 'Últimas acciones',
-      noActivity: 'Aún no hay actividad. Agrega obras para empezar. ✨',
-      added: 'Agregó {title}',
       highlights: '⭐ Destacados',
       noHighlights: 'Agrega obras para ver tus destacados.',
       bestRated: 'Mejor valorada',
@@ -1773,7 +1758,6 @@ const TRANSLATIONS = {
       apis: {
         title: '🔌 APIs que usamos',
         subtitle: 'De dónde vienen los datos de las obras y el análisis por IA',
-        usedFor: 'Se usa en',
         scope: { tmdb: 'Películas y Series', rawg: 'Juegos', mal: 'Animes', books: 'Libros', gemini: 'IA Insights' },
         tmdb: 'The Movie Database — catálogo de películas y series: pósters, sinopsis, reparto, notas y fechas de estreno. Es la API que más alimenta MyRank.',
         rawg: 'La mayor base de juegos de la web — carátulas, plataformas, géneros, estudios y fecha de estreno.',
