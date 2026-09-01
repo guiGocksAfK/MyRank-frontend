@@ -34,24 +34,6 @@
   border-bottom: 1px solid var(--mr-border-light);
 }
 
-.chat-newgroup-btn {
-  border: 1px solid var(--mr-border);
-  background: transparent;
-  color: var(--mr-text-secondary);
-  border-radius: 999px;
-  padding: 5px 11px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.chat-newgroup-btn:hover { border-color: var(--mr-gold); color: var(--mr-gold); }
-.chat-newgroup-btn.is-primary {
-  border-color: var(--mr-gold-20);
-  background: var(--mr-gold-10);
-  color: var(--mr-gold);
-}
-
 .chat-group-icon {
   background: var(--mr-gold-10);
   color: var(--mr-gold);
@@ -85,8 +67,7 @@
   color: var(--mr-gold);
 }
 
-.chat-hint,
-.chat-empty-hint {
+.chat-hint {
   padding: 16px;
   color: var(--mr-text-muted);
   font-size: 0.85rem;
@@ -156,7 +137,6 @@
   text-overflow: ellipsis;
 }
 .chat-conv.is-unread .chat-conv-preview { color: var(--mr-text); font-weight: 600; }
-.chat-conv-you { color: var(--mr-text-muted); }
 
 .chat-conv-badge {
   flex-shrink: 0;
@@ -197,13 +177,6 @@
 .chat-empty-icon { font-size: 2.6rem; margin-bottom: 4px; }
 .chat-empty-title { font-weight: 800; font-size: 1.1rem; color: var(--mr-text); }
 .chat-empty p { margin: 0; line-height: 1.45; font-size: 0.88rem; }
-.chat-empty-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 12px;
-}
 
 .chat-thread { display: flex; flex-direction: row; height: 100%; flex: 1; min-height: 0; min-width: 0; }
 .chat-thread-body { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
@@ -780,7 +753,6 @@ input.chat-modal-input { max-height: none; }
   gap: 8px;
   margin-top: 16px;
 }
-.chat-modal-actions-split { justify-content: space-between; align-items: center; }
 
 /* ── Modal grande em seções (Configurações do grupo) ──────────────── */
 .chat-modal-lg {
@@ -865,7 +837,6 @@ input.chat-modal-input { max-height: none; }
 .chat-photo-preview-cap { font-size: 0.75rem; color: var(--mr-text-muted); }
 .chat-photo-preview.is-error .chat-photo-preview-cap { color: var(--mr-red); }
 
-.chat-list-head-btns { display: flex; gap: 6px; }
 
 /* ── Acesso do grupo (segmentado) ─────────────────────────────────── */
 .chat-access-seg { display: flex; gap: 4px; }

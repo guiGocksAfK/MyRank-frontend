@@ -128,7 +128,6 @@
 .mr-flex-col { flex-direction: column; }
 .mr-flex-wrap { flex-wrap: wrap; }
 .mr-items-center { align-items: center; }
-.mr-items-start { align-items: flex-start; }
 .mr-justify-between { justify-content: space-between; }
 .mr-justify-center { justify-content: center; }
 .mr-gap-2 { gap: 0.5rem; }
@@ -213,13 +212,6 @@
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
-}
-
-.mr-theme-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
 }
 
 .mr-notification-btn {
@@ -796,7 +788,6 @@
   border-radius: 4px;
 }
 
-.mr-poster-overlay-bonus { font-size: 0.6875rem; color: var(--mr-blue-light); }
 .mr-poster-overlay-time  { font-size: 0.6875rem; color: var(--mr-text-muted); }
 
 /* ============ TWO COLUMN LAYOUT ============ */
@@ -814,9 +805,7 @@
 .mr-card,
 .mr-info-card-gold,
 .mr-info-card-green,
-.mr-info-card-blue,
-.mr-author-card,
-.mr-friend-card {
+.mr-info-card-blue {
   background: var(--mr-card);
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius);
@@ -897,17 +886,6 @@
   flex-shrink: 0;
   box-shadow: 0 0 6px rgba(110, 231, 183, 0.4);
 }
-
-/* ============ CODE STYLING ============ */
-.mr-code {
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8125rem;
-}
-
-.mr-code-gold { background: var(--mr-gold-10); color: var(--mr-gold); }
-.mr-code-blue { background: var(--mr-blue-20); color: var(--mr-blue-light); }
 
 /* ============ BUTTONS ============ */
 .mr-btn {
@@ -1015,24 +993,6 @@
 
 .mr-input::placeholder { color: var(--mr-text-muted); }
 
-.mr-time-input {
-  width: 56px;
-  padding: 8px 10px;
-  background: var(--mr-input-bg);
-  border: 1px solid var(--mr-border);
-  border-radius: var(--mr-radius-xs);
-  color: var(--mr-text);
-  font-size: 0.875rem;
-  font-family: 'DM Sans', sans-serif;
-  text-align: center;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.mr-time-input:focus {
-  border-color: var(--mr-gold);
-}
-
 /* ============ SETTINGS ============ */
 .mr-setting-row {
   display: flex;
@@ -1136,31 +1096,6 @@
   outline: none;
 }
 
-.mr-profile-visibility {
-  border: 1px solid var(--mr-border);
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: 0.8rem;
-  border-radius: 999px;
-  padding: 3px 12px;
-  cursor: pointer;
-  transition: border-color 0.16s ease, color 0.16s ease;
-}
-.mr-profile-visibility:hover:not(:disabled) {
-  border-color: var(--mr-gold);
-  color: var(--mr-gold);
-}
-.mr-profile-visibility:disabled { opacity: 0.6; cursor: default; }
-
-/* ============ TABS LIST ============ */
-.mr-tabs-list {
-  display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-}
-
 .mr-tab-trigger {
   padding: 7px 16px;
   border-radius: 999px;
@@ -1250,102 +1185,6 @@
 .mr-note-bar-fill.yellow { background: #facc15; }
 .mr-note-bar-fill.red    { background: var(--mr-red); }
 
-/* ============ AUTHOR GRID ============ */
-.mr-author-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-.mr-author-card { padding: 16px; }
-
-.mr-author-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--mr-border);
-}
-
-.mr-author-stat-label {
-  font-size: 0.6875rem;
-  color: var(--mr-text-muted);
-  margin-bottom: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.mr-author-stat-value {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  font-family: 'DM Sans', sans-serif;
-}
-
-/* ============ SOCIAL GRID ============ */
-.mr-social-grid {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 24px;
-}
-
-@media (max-width: 900px) {
-  .mr-social-grid { grid-template-columns: 1fr; }
-}
-
-.mr-friend-card {
-  padding: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border-radius: var(--mr-radius-sm);
-}
-
-.mr-friend-card:hover { border-color: rgba(212, 175, 55, 0.3); }
-.mr-friend-card.selected {
-  border-color: var(--mr-gold);
-  background: var(--mr-gold-10);
-}
-
-.mr-friend-row { display: flex; align-items: flex-start; gap: 12px; }
-
-/* ============ COMPARE BARS ============ */
-.mr-compare-bar-container { width: 100%; }
-
-.mr-compare-bar-pair { display: flex; gap: 4px; }
-
-.mr-compare-bar {
-  flex: 1;
-  height: 8px;
-  background: var(--mr-track);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.mr-compare-bar-fill-gold {
-  height: 100%;
-  background: var(--mr-gold);
-  border-radius: 999px;
-  transition: width 0.3s ease;
-}
-
-.mr-compare-bar-fill-blue {
-  height: 100%;
-  background: var(--mr-blue);
-  border-radius: 999px;
-  transition: width 0.3s ease;
-}
-
-/* ============ FEED ITEM ============ */
-.mr-feed-item {
-  padding: 10px 14px;
-  border-radius: var(--mr-radius-sm);
-  background: var(--mr-card);
-  border: 1px solid var(--mr-border);
-  transition: border-color 0.2s;
-}
-
-.mr-feed-item:hover { border-color: rgba(212, 175, 55, 0.2); }
-
 /* ============ AI INSIGHTS ============ */
 .mr-grid-3col {
   display: grid;
@@ -1353,15 +1192,8 @@
   gap: 12px;
 }
 
-.mr-grid-2col {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
 @media (max-width: 640px) {
   .mr-grid-3col { grid-template-columns: 1fr; }
-  .mr-grid-2col { grid-template-columns: 1fr; }
 }
 
 .mr-badge-grid {
@@ -1469,53 +1301,6 @@
 
 @media (max-width: 640px) {
   .mr-api-list { grid-template-columns: 1fr; }
-}
-
-/* ============ COMPAT CIRCLE ============ */
-.mr-compat-circle {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  flex-shrink: 0;
-}
-
-.mr-compat-circle-bg {
-  fill: none;
-  stroke: var(--mr-track);
-  stroke-width: 6;
-}
-
-.mr-compat-circle-fill {
-  fill: none;
-  stroke: var(--mr-green);
-  stroke-width: 6;
-  stroke-linecap: round;
-  transform: rotate(-90deg);
-  transform-origin: center;
-  transition: stroke-dasharray 0.5s ease;
-}
-
-.mr-compat-value {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--mr-green);
-  font-family: 'DM Sans', sans-serif;
-}
-
-/* ============ SPIN ANIMATION ============ */
-.mr-animate-spin {
-  animation: mr-spin 1s linear infinite;
-  display: inline-block;
-}
-
-@keyframes mr-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
 }
 
 /* ============ PROFILE GRID ============ */

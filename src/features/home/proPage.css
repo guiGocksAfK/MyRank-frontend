@@ -223,23 +223,6 @@
   padding-bottom: 72px;
 }
 
-.pro-section-title {
-  font-size: clamp(24px, 4vw, 30px);
-  font-weight: 800;
-  color: #e5e5e5;
-  text-align: center;
-  margin: 0 0 12px;
-}
-
-.pro-section-sub {
-  text-align: center;
-  font-size: 14px;
-  color: #8a8a8a;
-  line-height: 1.6;
-  max-width: 420px;
-  margin: 0 auto 34px;
-}
-
 .pro-benefits {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
