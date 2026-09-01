@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getUnifiedWorks } from '../services/WorkService';
 import { mapWorkToItem } from '../utils/mapWork';
+import { useWorks } from './worksContext';
 
 /**
  * Fonte única das obras do usuário (GET /works/unified), já mapeadas pro shape
@@ -26,6 +27,7 @@ function inferType(categoryName) {
 export function useUnifiedItems() {
   const [items, setItems] = useState(null); // null = carregando
   const [error, setError] = useState(null);
+  const { worksVersion } = useWorks();
 
   useEffect(() => {
     let active = true;
@@ -47,7 +49,7 @@ export function useUnifiedItems() {
         }
       });
     return () => { active = false; };
-  }, []);
+  }, [worksVersion]);
 
   return { items, loading: items === null, error };
 }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useBadges } from '../../shared/badges';
+import { useWorks } from '../../shared/worksContext';
 import { getStoredUser } from '../../services/authService';
 import { useUser } from '../../shared/userContext';
 import { useLanguage } from '../../shared/i18n';
@@ -79,6 +80,7 @@ export default function HomeOverview({ onNavigate }) {
   const [mediaItems, setMediaItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const { user } = useUser();
+  const { worksVersion } = useWorks();
   const { lang, t } = useLanguage();
   const th = t.dash.home;
   const typeLabels = t.common.mediaTypes;
@@ -118,7 +120,7 @@ export default function HomeOverview({ onNavigate }) {
 
     loadItems();
     return () => { cancelled = true; };
-  }, []);
+  }, [worksVersion]);
 
   const { badges: badgeData } = useBadges();
   const badges = badgeData || [];

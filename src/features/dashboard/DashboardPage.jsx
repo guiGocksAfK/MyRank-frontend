@@ -9,6 +9,7 @@ import InsightsPanel from '../insights/InsightsPanel';
 import ProfilePanel from '../profile/ProfilePanel';
 import DashboardFooter from './DashboardFooter';
 import { UserProvider } from '../../shared/userContext';
+import { WorksProvider } from '../../shared/worksContext';
 import { BadgeProvider } from '../../shared/badges';
 import { NotificationsProvider } from '../../shared/notifications';
 import { ChatProvider } from '../../shared/chat';
@@ -62,6 +63,7 @@ export default function DashboardPage() {
 
   return (
     <UserProvider>
+    <WorksProvider>
     <BadgeProvider>
     <NotificationsProvider>
     <ChatProvider>
@@ -90,6 +92,7 @@ export default function DashboardPage() {
     </ChatProvider>
     </NotificationsProvider>
     </BadgeProvider>
+    </WorksProvider>
     </UserProvider>
   );
 }
