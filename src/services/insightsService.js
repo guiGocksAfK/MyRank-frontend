@@ -15,3 +15,12 @@ export async function getLatestInsights() {
   const res = await api.get('/insights/latest');
   return res.status === 204 ? null : res.data;
 }
+
+/**
+ * Pergunta de follow-up sobre uma análise. Máx. 3 por análise (limite no backend).
+ * Devolve o InsightResponseDTO atualizado, com `chat` e `chatLimit`.
+ */
+export async function sendInsightChat(insightId, question) {
+  const { data } = await api.post(`/insights/${insightId}/chat`, { question });
+  return data;
+}

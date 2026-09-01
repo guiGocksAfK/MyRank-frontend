@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { generateInsights, getLatestInsights } from '../../services/insightsService';
+import { generateInsights, getLatestInsights, sendInsightChat } from '../../services/insightsService';
 import DashboardFooter from '../dashboard/DashboardFooter';
 import { BAR_COLORS, relativeFromNow } from './aiInsightsHelpers';
 import '../dashboard/dashboard.css';
@@ -89,6 +89,7 @@ export default function InsightsResult() {
             canRegenerate={Boolean(workIds)}
             regenerating={regenerating}
             onRegenerate={regenerate}
+            onResult={setResult}
           />
         )}
       </div>
@@ -98,7 +99,7 @@ export default function InsightsResult() {
   );
 }
 
-function ReadyView({ result, canRegenerate, regenerating, onRegenerate }) {
+function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult }) {
   const { analysis, model, workCount, cached, generatedAt } = result;
   const traits = Array.isArray(analysis.traits) ? analysis.traits : [];
   const taste = Array.isArray(analysis.tasteProfile) ? analysis.tasteProfile : [];
@@ -191,7 +192,116 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate }) {
           )}
         </div>
       )}
+
+      <InsightChat
+        insightId={result.id}
+        initialChat={Array.isArray(result.chat) ? result.chat : []}
+        limit={result.chatLimit || 3}
+        onResult={onResult}
+      />
     </>
+  );
+}
+
+/** Chat de follow-up sobre a análise — no máximo `limit` perguntas. */
+function InsightChat({ insightId, initialChat, limit, onResult }) {
+  const [thread, setThread] = useState(() => initialChat);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+  const scrollRef = useRef(null);
+
+  const asked = thread.filter((m) => m.role === 'USER').length;
+  const remaining = Math.max(0, limit - asked);
+  const canSend = remaining > 0 && !sending;
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [thread, sending]);
+
+  const submit = async (e) => {
+    e?.preventDefault();
+    const question = draft.trim();
+    if (!question || !canSend) return;
+
+    setDraft('');
+    setError('');
+    setSending(true);
+    setThread((prev) => [...prev, { role: 'USER', content: question, at: new Date().toISOString() }]);
+
+    try {
+      const data = await sendInsightChat(insightId, question);
+      if (Array.isArray(data?.chat)) setThread(data.chat);
+      onResult?.(data);
+    } catch (err) {
+      setThread((prev) => prev.slice(0, -1)); // desfaz a bolha otimista
+      setDraft(question);
+      setError(
+        err?.response?.data?.message
+        || 'Não consegui responder agora. Tente de novo em instantes.',
+      );
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <section className="insights-chat insights-enter" style={{ '--d': '240ms' }}>
+      <div className="insights-chat-head">
+        <h2 className="insights-section-title" style={{ marginBottom: 0 }}>💬 Pergunte à IA</h2>
+        <span className="insights-chat-quota">
+          {remaining > 0
+            ? `${remaining} de ${limit} ${remaining === 1 ? 'pergunta restante' : 'perguntas restantes'}`
+            : 'limite desta análise atingido'}
+        </span>
+      </div>
+
+      {thread.length === 0 && !sending && (
+        <p className="insights-chat-hint">
+          Questione a análise: peça mais recomendações, entenda um traço, compare gêneros…
+          Você tem {limit} perguntas por análise.
+        </p>
+      )}
+
+      {(thread.length > 0 || sending) && (
+        <div className="insights-chat-thread" ref={scrollRef}>
+          {thread.map((m, i) => (
+            <div key={i} className={`insights-chat-msg ${m.role === 'USER' ? 'is-user' : 'is-ai'}`}>
+              <div className="insights-chat-bubble">{m.content}</div>
+            </div>
+          ))}
+          {sending && (
+            <div className="insights-chat-msg is-ai">
+              <div className="insights-chat-bubble insights-chat-typing">
+                <span /><span /><span />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {error && <p className="insights-chat-error">{error}</p>}
+
+      {remaining > 0 ? (
+        <form className="insights-chat-form" onSubmit={submit}>
+          <input
+            className="mr-input"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Escreva sua pergunta…"
+            maxLength={500}
+            disabled={sending}
+          />
+          <button className="mr-btn mr-btn-gold" type="submit" disabled={!canSend || !draft.trim()}>
+            {sending ? 'Enviando…' : 'Perguntar'}
+          </button>
+        </form>
+      ) : (
+        <p className="insights-chat-hint">
+          Você usou as {limit} perguntas desta análise. Gere uma nova análise para conversar de novo.
+        </p>
+      )}
+    </section>
   );
 }
 
