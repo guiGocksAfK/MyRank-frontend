@@ -196,42 +196,44 @@ export default function CreatorsTab({ onBack }) {
     return byType.filter(a => a.works.some(w => matchesFilters(w, filters)));
   }, [allCreators, selectedTypes, filters, hasFilters]);
 
-  // Nota da métrica escolhida (simples ou ponderada por tempo) de uma obra.
-  const noteOf = (w) => (useTimeWeight ? num(w.finalNote ?? w.note) : num(w.note));
+  // Escala da barra: teto absoluto (0–10 na média simples, até 12 na ponderada),
+  // igual à tabela de rankings. Barra relativa fazia tudo parecer nota máxima.
+  const maxNote = useTimeWeight ? 12 : 10;
 
-  // Média global de todas as obras avaliadas — prior da pontuação bayesiana.
-  const globalMean = useMemo(() => {
-    const notes = (works || []).map(noteOf).filter(n => n > 0);
-    return notes.length ? mean(notes) : 0;
-  }, [works, useTimeWeight]);
-
-  // Pontuação por criador: bayesiana (encolhe pra média global com poucas obras)
-  // + a média real, pra exibir no detalhe. Respeita filtros e ponderação.
-  const PRIOR_WEIGHT = 3;
+  // Nota por criador. `raw` = média pura das notas (sempre). `value` = o que é
+  // exibido e ordenado: a média pura, ou — com "Ponderação por tempo" ligada —
+  // a média das notas ponderada pelas horas investidas + um bônus de volume
+  // (log10 do nº de obras, teto +1), pra premiar quem o usuário consumiu mais.
+  const VOLUME_BONUS_CAP = 1;
   const creatorScores = useMemo(() => {
     const map = {};
     filteredCreators.forEach(a => {
-      const ws = hasFilters ? a.works.filter(w => matchesFilters(w, filters)) : a.works;
-      const notes = ws.map(noteOf).filter(n => n > 0);
-      const sum = notes.reduce((s, n) => s + n, 0);
-      map[a.name] = {
-        raw: notes.length ? sum / notes.length : 0,
-        score: notes.length ? (PRIOR_WEIGHT * globalMean + sum) / (PRIOR_WEIGHT + notes.length) : 0,
-      };
+      const ws = (hasFilters ? a.works.filter(w => matchesFilters(w, filters)) : a.works)
+        .filter(w => num(w.note) > 0);
+      if (ws.length === 0) { map[a.name] = { raw: 0, value: 0 }; return; }
+
+      const raw = mean(ws.map(w => num(w.note)));
+
+      let value = raw;
+      if (useTimeWeight) {
+        const totalMin = ws.reduce((s, w) => s + num(w.timeMinutes), 0);
+        const timeWeighted = totalMin > 0
+          ? ws.reduce((s, w) => s + num(w.note) * num(w.timeMinutes), 0) / totalMin
+          : raw;
+        const volumeBonus = Math.min(Math.log10(ws.length), VOLUME_BONUS_CAP);
+        value = Math.min(timeWeighted + volumeBonus, maxNote);
+      }
+      map[a.name] = { raw, value };
     });
     return map;
-  }, [filteredCreators, useTimeWeight, filters, hasFilters, globalMean]);
+  }, [filteredCreators, useTimeWeight, filters, hasFilters, maxNote]);
 
   const sorted = useMemo(() => {
     return [...filteredCreators].sort((a, b) => {
       if (sortBy === 'works') return b.count - a.count;
-      return (creatorScores[b.name]?.score ?? 0) - (creatorScores[a.name]?.score ?? 0);
+      return (creatorScores[b.name]?.value ?? 0) - (creatorScores[a.name]?.value ?? 0);
     });
   }, [filteredCreators, sortBy, creatorScores]);
-
-  // Escala da barra: teto absoluto (0–10 na média simples, até 12 na ponderada),
-  // igual à tabela de rankings. Barra relativa fazia tudo parecer nota máxima.
-  const maxNote = useTimeWeight ? 12 : 10;
 
   const stats = useMemo(() => {
     const acc = { Diretor: 0, Escritor: 0, Studio: 0, Criador: 0, obras: 0 };
@@ -366,7 +368,7 @@ export default function CreatorsTab({ onBack }) {
                 <span>#</span>
                 <span>{tc.colCreator}</span>
                 <span>{tc.colType}</span>
-                <span title={tc.scoreHint} style={{ cursor: 'help' }}>{tc.colAvgRating} <span style={{ opacity: 0.5 }}>ⓘ</span></span>
+                <span>{tc.colAvgRating}</span>
                 <span aria-hidden />
               </div>
 
@@ -379,8 +381,8 @@ export default function CreatorsTab({ onBack }) {
                 const { icon, badgeStyle, avatarStyle } = info;
                 const label = tc.typeLabels[author.type] || info.label;
                 const rank = i + 1;
-                const cScore = creatorScores[author.name] ?? { raw: 0, score: 0 };
-                const displayAvg = cScore.score;
+                const cScore = creatorScores[author.name] ?? { raw: 0, value: 0 };
+                const displayAvg = cScore.value;
                 const barWidth = Math.min((displayAvg / maxNote) * 100, 100);
                 const barColorClass = getNoteBarColor(displayAvg);
                 const rankClass = rank === 1 ? 'mr-rank-number-1' : rank === 2 ? 'mr-rank-number-2' : rank === 3 ? 'mr-rank-number-3' : '';
@@ -428,9 +430,11 @@ export default function CreatorsTab({ onBack }) {
 
                     {isOpen && (
                       <div style={{ gridColumn: '1 / -1', padding: '0.5rem 1rem 1rem 1rem' }}>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)', marginBottom: 8 }}>
-                          {fmt(tc.realAvg, { avg: cScore.raw.toFixed(1) })} · {author.count} {author.count === 1 ? tc.workOne : tc.workMany}
-                        </div>
+                        {useTimeWeight && (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)', marginBottom: 8 }}>
+                            {fmt(tc.realAvg, { avg: cScore.raw.toFixed(1) })} · {author.count} {author.count === 1 ? tc.workOne : tc.workMany}
+                          </div>
+                        )}
                         <div className="mr-flex mr-flex-col mr-gap-2">
                           {author.works
                             .filter(w => matchesFilters(w, filters))
@@ -473,7 +477,7 @@ export default function CreatorsTab({ onBack }) {
                 const info = getAuthorTypeInfo(author.type);
                 const { icon } = info;
                 const label = tc.typeLabels[author.type] || info.label;
-                const displayAvg = creatorScores[author.name]?.score ?? 0;
+                const displayAvg = creatorScores[author.name]?.value ?? 0;
                 const barWidth = Math.min((displayAvg / maxNote) * 100, 100);
                 const cover = author.works.map(w => w.image).find(Boolean);
 
