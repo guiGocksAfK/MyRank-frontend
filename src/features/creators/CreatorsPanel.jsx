@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { getUnifiedWorks } from '../../services/WorkService';
 import { mapWorkToItem } from '../../utils/mapWork';
 import { useLanguage } from '../../shared/i18n';
+import AnimatedNumber from '../rankings/rankings/AnimatedNumber';
 import './creators.css';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
@@ -100,15 +101,29 @@ function Poster({ src, title, size = 'thumb' }) {
   return <img src={src} alt={title} style={{ width: dimensions.w, height: dimensions.h, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--mr-border)' }} />;
 }
 
-function StatCard({ icon, value, label }) {
+/** Leque de até 3 pôsteres das obras do criador; cai pras iniciais se não houver imagem. */
+function PosterCluster({ works, initials, avatarStyle }) {
+  const covers = works.map(w => w.image).filter(Boolean).slice(0, 3);
+  if (covers.length === 0) {
+    return <div className="mr-avatar-sm" style={avatarStyle} aria-hidden>{initials}</div>;
+  }
   return (
-    <div className="mr-stat-card">
-      <div className="mr-stat-icon-row">
-        <span className="mr-stat-icon">{icon}</span>
-        <span className="mr-stat-dot" />
-      </div>
-      <div className="mr-stat-value">{value}</div>
-      <div className="mr-stat-label">{label}</div>
+    <div style={{ display: 'flex', flexShrink: 0, width: 34 + (covers.length - 1) * 13, height: 51 }} aria-hidden>
+      {covers.map((src, i) => (
+        <img
+          key={i}
+          src={src}
+          alt=""
+          loading="lazy"
+          style={{
+            width: 34, height: 51, objectFit: 'cover', borderRadius: 5,
+            marginLeft: i === 0 ? 0 : -21,
+            boxShadow: '0 0 0 2px var(--mr-bg)',
+            border: '1px solid var(--mr-border)',
+            position: 'relative', zIndex: covers.length - i,
+          }}
+        />
+      ))}
     </div>
   );
 }
@@ -122,7 +137,7 @@ export default function CreatorsTab({ onBack }) {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({});
   const [expanded, setExpanded] = useState([]);
-  const [useTimeWeight, setUseTimeWeight] = useState(true);
+  const [useTimeWeight, setUseTimeWeight] = useState(false);
 
   const [works, setWorks] = useState(null); // obras mapeadas + creator/categoryName; null = carregando
 
@@ -157,8 +172,6 @@ export default function CreatorsTab({ onBack }) {
       name,
       type: dominantType(ws),
       count: ws.length,
-      avgNote: mean(ws.map((w) => num(w.note))),
-      weightedAvg: mean(ws.map((w) => num(w.finalNote ?? w.note))),
       works: ws,
     }));
   }, [works]);
@@ -183,28 +196,42 @@ export default function CreatorsTab({ onBack }) {
     return byType.filter(a => a.works.some(w => matchesFilters(w, filters)));
   }, [allCreators, selectedTypes, filters, hasFilters]);
 
-  // Média exibida por criador (respeita filtros e ponderação por tempo)
-  const creatorAverages = useMemo(() => {
+  // Nota da métrica escolhida (simples ou ponderada por tempo) de uma obra.
+  const noteOf = (w) => (useTimeWeight ? num(w.finalNote ?? w.note) : num(w.note));
+
+  // Média global de todas as obras avaliadas — prior da pontuação bayesiana.
+  const globalMean = useMemo(() => {
+    const notes = (works || []).map(noteOf).filter(n => n > 0);
+    return notes.length ? mean(notes) : 0;
+  }, [works, useTimeWeight]);
+
+  // Pontuação por criador: bayesiana (encolhe pra média global com poucas obras)
+  // + a média real, pra exibir no detalhe. Respeita filtros e ponderação.
+  const PRIOR_WEIGHT = 3;
+  const creatorScores = useMemo(() => {
     const map = {};
     filteredCreators.forEach(a => {
       const ws = hasFilters ? a.works.filter(w => matchesFilters(w, filters)) : a.works;
-      const notes = ws.map(w => (useTimeWeight ? num(w.finalNote ?? w.note) : num(w.note)));
-      map[a.name] = notes.length ? mean(notes) : (useTimeWeight ? a.weightedAvg : a.avgNote);
+      const notes = ws.map(noteOf).filter(n => n > 0);
+      const sum = notes.reduce((s, n) => s + n, 0);
+      map[a.name] = {
+        raw: notes.length ? sum / notes.length : 0,
+        score: notes.length ? (PRIOR_WEIGHT * globalMean + sum) / (PRIOR_WEIGHT + notes.length) : 0,
+      };
     });
     return map;
-  }, [filteredCreators, useTimeWeight, filters, hasFilters]);
+  }, [filteredCreators, useTimeWeight, filters, hasFilters, globalMean]);
 
   const sorted = useMemo(() => {
     return [...filteredCreators].sort((a, b) => {
       if (sortBy === 'works') return b.count - a.count;
-      return (creatorAverages[b.name] ?? 0) - (creatorAverages[a.name] ?? 0);
+      return (creatorScores[b.name]?.score ?? 0) - (creatorScores[a.name]?.score ?? 0);
     });
-  }, [filteredCreators, sortBy, creatorAverages]);
+  }, [filteredCreators, sortBy, creatorScores]);
 
-  const maxAvg = useMemo(() => {
-    const values = filteredCreators.map(a => creatorAverages[a.name] ?? 0);
-    return Math.max(...values, 1);
-  }, [filteredCreators, creatorAverages]);
+  // Escala da barra: teto absoluto (0–10 na média simples, até 12 na ponderada),
+  // igual à tabela de rankings. Barra relativa fazia tudo parecer nota máxima.
+  const maxNote = useTimeWeight ? 12 : 10;
 
   const stats = useMemo(() => {
     const acc = { Diretor: 0, Escritor: 0, Studio: 0, Criador: 0, obras: 0 };
@@ -215,7 +242,10 @@ export default function CreatorsTab({ onBack }) {
     return { total: allCreators.length, ...acc };
   }, [allCreators]);
 
-  const COLS = '44px 1fr 130px 220px 90px';
+  // Só oferece no filtro os tipos que existem (esconde "Criador" quando vazio, etc).
+  const availableTypes = TYPE_OPTIONS.filter(type => (stats[type] ?? 0) > 0);
+
+  const COLS = '44px 1fr 132px 220px 36px';
 
   return (
     <div className="mr-space-y-6 creators-panel">
@@ -227,6 +257,7 @@ export default function CreatorsTab({ onBack }) {
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{tc.title}</h1>
             <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', marginTop: 4 }}>{tc.subtitle}</p>
+            <p style={{ color: 'var(--mr-text-muted)', fontSize: '0.75rem', marginTop: 4, maxWidth: 620 }}>🔒 {tc.note}</p>
           </div>
         </div>
 
@@ -251,11 +282,13 @@ export default function CreatorsTab({ onBack }) {
         </div>
       </div>
 
-      <div className="mr-stats-grid">
-        <StatCard icon="✨" value={stats.total} label={tc.statTotal} />
-        <StatCard icon="🎬" value={stats.Diretor} label={tc.statDirectors} />
-        <StatCard icon="✍️" value={stats.Escritor} label={tc.statWriters} />
-        <StatCard icon="🏢" value={stats.Studio} label={tc.statStudios} />
+      <div style={{ fontSize: '0.8125rem', color: 'var(--mr-text-muted)' }}>
+        {[
+          `${stats.total} ${tc.statTotal.toLowerCase()}`,
+          stats.Diretor > 0 && `${stats.Diretor} ${tc.statDirectors.toLowerCase()}`,
+          stats.Escritor > 0 && `${stats.Escritor} ${tc.statWriters.toLowerCase()}`,
+          stats.Studio > 0 && `${stats.Studio} ${tc.statStudios.toLowerCase()}`,
+        ].filter(Boolean).join('   ·   ')}
       </div>
 
       <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap">
@@ -268,7 +301,7 @@ export default function CreatorsTab({ onBack }) {
 
         <div className="mr-flex mr-gap-1">
           <button className={`mr-btn mr-btn-sm ${selectedTypes.includes('Todos') ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => toggleType('Todos')}>{tc.all}</button>
-          {TYPE_OPTIONS.map(type => (
+          {availableTypes.map(type => (
             <button key={type} className={`mr-btn mr-btn-sm ${selectedTypes.includes(type) ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => toggleType(type)}>{tc.typeLabels[type] || type}</button>
           ))}
         </div>
@@ -321,11 +354,6 @@ export default function CreatorsTab({ onBack }) {
       <div className="mr-card">
         <div className="mr-card-body mr-space-y-2">
 
-          <div style={{ padding: '8px 14px', borderRadius: 8, background: 'var(--mr-gold-subtle, rgba(201,162,39,0.08))', border: '1px solid rgba(201,162,39,0.25)', fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginBottom: 8 }}>
-            <span>🔒</span>
-            <span style={{ marginLeft: 8 }}>{tc.note}</span>
-          </div>
-
           {loading ? (
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>{tc.loading}</div>
           ) : allCreators.length === 0 ? (
@@ -338,8 +366,8 @@ export default function CreatorsTab({ onBack }) {
                 <span>#</span>
                 <span>{tc.colCreator}</span>
                 <span>{tc.colType}</span>
-                <span style={{ textAlign: 'right' }}>{tc.colAvgRating}</span>
-                <span style={{ textAlign: 'right' }}>{tc.colWorks}</span>
+                <span title={tc.scoreHint} style={{ cursor: 'help' }}>{tc.colAvgRating} <span style={{ opacity: 0.5 }}>ⓘ</span></span>
+                <span aria-hidden />
               </div>
 
               {sorted.length === 0 && (
@@ -351,21 +379,29 @@ export default function CreatorsTab({ onBack }) {
                 const { icon, badgeStyle, avatarStyle } = info;
                 const label = tc.typeLabels[author.type] || info.label;
                 const rank = i + 1;
-                const displayAvg = creatorAverages[author.name] ?? 0;
-                const barWidth = Math.min((displayAvg / maxAvg) * 100, 100);
+                const cScore = creatorScores[author.name] ?? { raw: 0, score: 0 };
+                const displayAvg = cScore.score;
+                const barWidth = Math.min((displayAvg / maxNote) * 100, 100);
                 const barColorClass = getNoteBarColor(displayAvg);
                 const rankClass = rank === 1 ? 'mr-rank-number-1' : rank === 2 ? 'mr-rank-number-2' : rank === 3 ? 'mr-rank-number-3' : '';
 
+                const isOpen = expanded.includes(author.name);
+
                 return (
                   <React.Fragment key={author.name}>
-                    <div className="mr-table-row" style={{ gridTemplateColumns: COLS, borderLeft: rank <= 3 ? '3px solid var(--mr-gold)' : undefined, position: 'relative' }}>
+                    <div
+                      className="mr-table-row mr-rankings-enter"
+                      style={{ gridTemplateColumns: COLS, '--rank-delay': `${Math.min(i, 12) * 35}ms`, borderLeft: rank <= 3 ? '3px solid var(--mr-gold)' : undefined }}
+                    >
                       <span className={`mr-rank-number ${rankClass}`} style={{ fontSize: '1rem' }}>{rank}</span>
 
                       <div className="mr-flex mr-items-center mr-gap-3 mr-min-w-0">
-                        <div className="mr-avatar-sm" style={avatarStyle} aria-hidden>{getAuthorInitials(author.name)}</div>
+                        <PosterCluster works={author.works} initials={getAuthorInitials(author.name)} avatarStyle={avatarStyle} />
                         <div className="mr-min-w-0">
                           <div className="mr-truncate" style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{author.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)', marginTop: 1 }}>{icon} {label}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)', marginTop: 1 }}>
+                            {author.count} {author.count === 1 ? tc.workOne : tc.workMany}
+                          </div>
                         </div>
                       </div>
 
@@ -374,22 +410,27 @@ export default function CreatorsTab({ onBack }) {
                       </div>
 
                       <div className="mr-flex mr-items-center mr-gap-3">
-                        <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36, fontSize: '0.9375rem', fontVariantNumeric: 'tabular-nums' }}>{displayAvg.toFixed(1)}</span>
+                        <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36, fontSize: '0.9375rem', fontVariantNumeric: 'tabular-nums' }}>
+                          <AnimatedNumber value={displayAvg} />
+                        </span>
                         <div className="mr-note-bar"><div className={`mr-note-bar-fill ${barColorClass}`} style={{ width: `${barWidth}%` }} /></div>
                       </div>
 
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontWeight: 700, color: 'var(--mr-text)', fontVariantNumeric: 'tabular-nums' }}>{author.count}</span>
-                        <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem', marginLeft: 4 }}>{author.count === 1 ? tc.workOne : tc.workMany}</span>
-                      </div>
-
-                      <button onClick={() => setExpanded(prev => prev.includes(author.name) ? prev.filter(x => x !== author.name) : [...prev, author.name])} style={{ position: 'absolute', right: 12, top: 12, background: 'transparent', border: 'none', color: 'var(--mr-text-secondary)', cursor: 'pointer' }} aria-label={tc.expandWorks}>
-                        {expanded.includes(author.name) ? '▾' : '▸'}
+                      <button
+                        onClick={() => setExpanded(prev => prev.includes(author.name) ? prev.filter(x => x !== author.name) : [...prev, author.name])}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--mr-text-secondary)', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        aria-label={tc.expandWorks}
+                        aria-expanded={isOpen}
+                      >
+                        {isOpen ? '▾' : '▸'}
                       </button>
                     </div>
 
-                    {expanded.includes(author.name) && (
+                    {isOpen && (
                       <div style={{ gridColumn: '1 / -1', padding: '0.5rem 1rem 1rem 1rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)', marginBottom: 8 }}>
+                          {fmt(tc.realAvg, { avg: cScore.raw.toFixed(1) })} · {author.count} {author.count === 1 ? tc.workOne : tc.workMany}
+                        </div>
                         <div className="mr-flex mr-flex-col mr-gap-2">
                           {author.works
                             .filter(w => matchesFilters(w, filters))
@@ -432,8 +473,9 @@ export default function CreatorsTab({ onBack }) {
                 const info = getAuthorTypeInfo(author.type);
                 const { icon } = info;
                 const label = tc.typeLabels[author.type] || info.label;
-                const displayAvg = creatorAverages[author.name] ?? 0;
-                const barWidth = Math.min((displayAvg / maxAvg) * 100, 100);
+                const displayAvg = creatorScores[author.name]?.score ?? 0;
+                const barWidth = Math.min((displayAvg / maxNote) * 100, 100);
+                const cover = author.works.map(w => w.image).find(Boolean);
 
                 return (
                   <div
@@ -448,7 +490,11 @@ export default function CreatorsTab({ onBack }) {
                     onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                   >
                     <div style={{ position: 'relative', aspectRatio: '2 / 3', background: 'var(--mr-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div style={{ fontSize: '3rem', color: 'var(--mr-text-secondary)' }}>{getAuthorInitials(author.name)}</div>
+                      {cover ? (
+                        <img src={cover} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ fontSize: '3rem', color: 'var(--mr-text-secondary)' }}>{getAuthorInitials(author.name)}</div>
+                      )}
                       <div style={{ position: 'absolute', top: 6, left: 6, background: i < 3 ? 'var(--mr-gold)' : 'rgba(0,0,0,0.7)', color: i < 3 ? '#000' : '#fff', fontWeight: 700, fontSize: '0.75rem', padding: '2px 8px', borderRadius: 12 }}>
                         #{i + 1}
                       </div>
