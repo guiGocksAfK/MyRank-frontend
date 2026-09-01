@@ -1359,6 +1359,81 @@
   margin-bottom: 8px;
 }
 
+/* ============ APIs ============ */
+.mr-api-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.mr-api-card {
+  background: var(--mr-card);
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius);
+  padding: 18px 20px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mr-api-card:hover {
+  border-color: rgba(212, 175, 55, 0.35);
+}
+
+/* TMDB — destaque só por ocupar a linha toda */
+.mr-api-card.is-feature {
+  grid-column: 1 / -1;
+}
+
+.mr-api-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.mr-api-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.mr-api-card.is-feature .mr-api-icon { font-size: 2rem; }
+
+.mr-api-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.mr-api-card.is-feature .mr-api-name { font-size: 1.05rem; }
+
+.mr-api-site {
+  font-size: 0.72rem;
+  color: var(--mr-text-muted);
+  margin-top: 1px;
+}
+
+.mr-api-scope {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--mr-gold);
+  background: var(--mr-gold-10, rgba(212, 175, 55, 0.10));
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.mr-api-desc {
+  font-size: 0.82rem;
+  color: var(--mr-text-secondary);
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .mr-api-list { grid-template-columns: 1fr; }
+}
+
 /* ============ COMPAT CIRCLE ============ */
 .mr-compat-circle {
   position: relative;

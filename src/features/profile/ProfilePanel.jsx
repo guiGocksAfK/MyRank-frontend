@@ -26,6 +26,16 @@ const typeIcons = {
   outro:  '📦',
 };
 
+// APIs externas que o MyRank consome. `feature` = TMDB, ocupa a linha inteira.
+// Descrição e escopo vêm do i18n (tp.apis).
+const APIS = [
+  { key: 'tmdb',   name: 'TMDB',          icon: '🎬', site: 'themoviedb.org',   feature: true },
+  { key: 'rawg',   name: 'RAWG',          icon: '🎮', site: 'rawg.io' },
+  { key: 'mal',    name: 'MyAnimeList',   icon: '🌸', site: 'myanimelist.net' },
+  { key: 'books',  name: 'Google Books',  icon: '📚', site: 'books.google.com' },
+  { key: 'gemini', name: 'Google Gemini', icon: '✨', site: 'ai.google.dev' },
+];
+
 function formatTime(totalMinutes) {
   if (!totalMinutes || totalMinutes <= 0) return '0h';
   const h = Math.floor(totalMinutes / 60);
@@ -226,17 +236,6 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const unlockedCount = badgeList.filter(b => b.unlocked).length;
 
   const hoursLabel = (min) => `${Math.round((min || 0) / 60)}h`;
-
-  // Histórico = obras mais recentes por data de adição
-  const activities = (works || [])
-    .filter(w => w.addedDate)
-    .slice()
-    .sort((a, b) => new Date(b.addedDate) - new Date(a.addedDate))
-    .slice(0, 6)
-    .map(w => ({
-      text: fmt(tp.added, { title: w.title }),
-      time: relativeTime(w.addedDate, lang),
-    }));
 
   // Filtro de badges
   const visibleBadges =
@@ -463,35 +462,6 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
             </div>
           </div>
 
-          {/* Histórico de atividade */}
-          <div className="mr-card">
-            <div className="mr-card-body mr-space-y-4">
-              <div className="mr-flex mr-items-center mr-justify-between">
-                <h3 style={{ fontWeight: 700 }}>{tp.history}</h3>
-                <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)' }}>
-                  {tp.lastActions}
-                </span>
-              </div>
-
-              <div className="mr-space-y-3">
-                {loadingWorks ? (
-                  <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>{tp.loadingShort}</div>
-                ) : activities.length === 0 ? (
-                  <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
-                    {tp.noActivity}
-                  </div>
-                ) : (
-                  activities.map((activity, idx) => (
-                    <div key={idx} style={{ borderRadius: 8, padding: '10px 12px', background: 'var(--mr-surface)', border: '1px solid var(--mr-border)' }}>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{activity.text}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>{activity.time}</div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-
           {/* Destaques */}
           <div className="mr-card">
             <div className="mr-card-body mr-space-y-4">
@@ -562,6 +532,30 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
             </div>
           </div>
 
+        </div>
+      </div>
+
+      {/* ── APIs que usamos — largura total, TMDB em destaque ── */}
+      <div>
+        <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap" style={{ marginBottom: 16 }}>
+          <h2 style={{ fontWeight: 700, fontSize: '1.25rem', marginRight: 'auto' }}>{tp.apis.title}</h2>
+          <div style={{ fontSize: '0.8125rem', color: 'var(--mr-text-muted)' }}>{tp.apis.subtitle}</div>
+        </div>
+
+        <div className="mr-api-list">
+          {APIS.map((api) => (
+            <div key={api.key} className={`mr-api-card${api.feature ? ' is-feature' : ''}`}>
+              <div className="mr-api-card-head">
+                <span className="mr-api-icon">{api.icon}</span>
+                <div className="mr-min-w-0">
+                  <div className="mr-api-name">{api.name}</div>
+                  <div className="mr-api-site">{api.site}</div>
+                </div>
+                <span className="mr-api-scope">{tp.apis.scope[api.key]}</span>
+              </div>
+              <p className="mr-api-desc">{tp.apis[api.key]}</p>
+            </div>
+          ))}
         </div>
       </div>
 
