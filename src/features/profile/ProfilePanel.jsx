@@ -522,7 +522,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                           {fmt(b.count === 1 ? tp.distLineOne : tp.distLineMany, { count: b.count, avg: b.avgLabel })}
                         </span>
                       </div>
-                      <div style={{ height: 6, borderRadius: 3, background: 'var(--mr-surface)', border: '1px solid var(--mr-border)', overflow: 'hidden' }}>
+                      <div style={{ height: 6, borderRadius: 3, background: 'var(--mr-track)', border: '1px solid var(--mr-border)', overflow: 'hidden' }}>
                         <div style={{ width: `${Math.round(b.share * 100)}%`, height: '100%', background: 'var(--mr-gold)' }} />
                       </div>
                     </div>

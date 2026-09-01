@@ -28,6 +28,8 @@
   --mr-muted-bg: #111111;
   --mr-bubble-in: #26262b;
   --mr-bubble-out: rgba(212, 175, 55, 0.18);
+  --mr-track: rgba(255, 255, 255, 0.06);
+  --mr-card-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
   --mr-radius: 14px;
   --mr-radius-sm: 10px;
   --mr-radius-xs: 6px;
@@ -35,30 +37,65 @@
 
 /* Light theme */
 .myrank-light {
-  --mr-bg: #f4f4f4;
+  --mr-bg: #eceef1;
   --mr-surface: #ffffff;
   --mr-card: #ffffff;
-  --mr-card-hover: #f0f0f0;
-  --mr-border: rgba(0, 0, 0, 0.1);
-  --mr-border-light: rgba(0, 0, 0, 0.05);
-  --mr-text: #111111;
-  --mr-text-secondary: #555555;
-  --mr-text-muted: #999999;
-  --mr-gold: #b8860b;
-  --mr-gold-10: rgba(184, 134, 11, 0.1);
-  --mr-gold-20: rgba(184, 134, 11, 0.2);
-  --mr-gold-glow: rgba(184, 134, 11, 0.2);
+  --mr-card-hover: #f6f7f9;
+  --mr-border: rgba(15, 23, 42, 0.12);
+  --mr-border-light: rgba(15, 23, 42, 0.07);
+  --mr-text: #1a1c1f;
+  --mr-text-secondary: #56606e;
+  --mr-text-muted: #8a94a2;
+  --mr-gold: #9a6b12;
+  --mr-gold-10: rgba(154, 107, 18, 0.1);
+  --mr-gold-20: rgba(154, 107, 18, 0.18);
+  --mr-gold-glow: rgba(154, 107, 18, 0.18);
   --mr-blue: #2563eb;
-  --mr-blue-light: #3b82f6;
-  --mr-blue-20: rgba(59, 130, 246, 0.15);
+  --mr-blue-light: #2563eb;
+  --mr-blue-20: rgba(37, 99, 235, 0.12);
   --mr-green: #15803d;
   --mr-red: #dc2626;
   --mr-purple: #7c3aed;
-  --mr-input-bg: #eeeeee;
-  --mr-muted-bg: #e8e8e8;
-  --mr-bubble-in: #ededed;
-  --mr-bubble-out: rgba(184, 134, 11, 0.16);
+  --mr-input-bg: #f1f3f5;
+  --mr-muted-bg: #eef0f2;
+  --mr-bubble-in: #eef0f2;
+  --mr-bubble-out: rgba(154, 107, 18, 0.14);
+  --mr-track: rgba(15, 23, 42, 0.09);
+  --mr-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 26px rgba(15, 23, 42, 0.06);
 }
+
+/* ============ LIGHT THEME — ajustes que os tokens não cobrem ============ */
+/* Fundo da página: gradiente dourado bem sutil sobre o cinza claro,
+   no lugar do #000 cravado que fazia os cards brancos "flutuarem". */
+.myrank-dashboard.myrank-light {
+  background:
+    linear-gradient(115deg, rgba(154, 107, 18, 0.06), transparent 30%),
+    radial-gradient(circle at 82% 6%, rgba(154, 107, 18, 0.05), transparent 24%),
+    var(--mr-bg);
+}
+
+.myrank-light .mr-navbar {
+  background: rgba(255, 255, 255, 0.82);
+  border-bottom-color: var(--mr-border);
+}
+
+/* Trilhos de toggle/slider — o #1e1e1e some no claro */
+.myrank-light .mr-switch { background: #d3d7dd; }
+.myrank-light .mr-switch-thumb { box-shadow: 0 1px 2px rgba(15, 23, 42, 0.25); }
+
+/* Placeholder de pôster sem imagem */
+.myrank-light .mr-poster-placeholder {
+  background: linear-gradient(135deg, #edeef1 0%, #dcdfe4 100%);
+}
+
+/* Cards de API/badge acompanham a sombra suave dos .mr-card */
+.myrank-light .mr-api-card,
+.myrank-light .mr-badge-card {
+  box-shadow: var(--mr-card-shadow);
+}
+
+.myrank-light ::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.18); }
+.myrank-light ::-webkit-scrollbar-thumb:hover { background: rgba(154, 107, 18, 0.35); }
 
 /* ============ GLOBAL DASHBOARD ============ */
 .myrank-dashboard {
@@ -783,7 +820,7 @@
   background: var(--mr-card);
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--mr-card-shadow);
 }
 
 .mr-card-body { padding: 20px; }
@@ -943,7 +980,7 @@
 
 /* ============ PROGRESS BARS ============ */
 .mr-progress {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--mr-track);
   border-radius: 999px;
   overflow: hidden;
   height: 8px;
@@ -1197,7 +1234,7 @@
 .mr-note-bar {
   flex: 1;
   height: 6px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--mr-track);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1279,7 +1316,7 @@
 .mr-compare-bar {
   flex: 1;
   height: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--mr-track);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1444,7 +1481,7 @@
 
 .mr-compat-circle-bg {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.06);
+  stroke: var(--mr-track);
   stroke-width: 6;
 }
 
