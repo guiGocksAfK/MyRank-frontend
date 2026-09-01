@@ -196,23 +196,33 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult
       <InsightChat
         insightId={result.id}
         initialChat={Array.isArray(result.chat) ? result.chat : []}
-        limit={result.chatLimit || 3}
+        dailyLimit={result.dailyLimit || 15}
+        dailyRemaining={typeof result.dailyRemaining === 'number' ? result.dailyRemaining : 15}
         onResult={onResult}
       />
     </>
   );
 }
 
-/** Chat de follow-up sobre a análise — no máximo `limit` perguntas. */
-function InsightChat({ insightId, initialChat, limit, onResult }) {
+const SendArrow = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+    <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a1 1 0 00-1.4 1.15L4 11l10 1-10 1-2 6.25a1 1 0 001.4 1.15z" />
+  </svg>
+);
+
+/**
+ * Chat de follow-up sobre a análise. Cada pergunta consome 1 do orçamento diário
+ * de mensagens de IA (15/dia, reseta às 6h) — o mesmo orçamento de gerar análise.
+ */
+function InsightChat({ insightId, initialChat, dailyLimit, dailyRemaining, onResult }) {
   const [thread, setThread] = useState(() => initialChat);
+  const [remaining, setRemaining] = useState(dailyRemaining);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [showHelp, setShowHelp] = useState(false);
   const scrollRef = useRef(null);
 
-  const asked = thread.filter((m) => m.role === 'USER').length;
-  const remaining = Math.max(0, limit - asked);
   const canSend = remaining > 0 && !sending;
 
   useEffect(() => {
@@ -228,13 +238,16 @@ function InsightChat({ insightId, initialChat, limit, onResult }) {
     setError('');
     setSending(true);
     setThread((prev) => [...prev, { role: 'USER', content: question, at: new Date().toISOString() }]);
+    setRemaining((r) => Math.max(0, r - 1));
 
     try {
       const data = await sendInsightChat(insightId, question);
       if (Array.isArray(data?.chat)) setThread(data.chat);
+      if (typeof data?.dailyRemaining === 'number') setRemaining(data.dailyRemaining);
       onResult?.(data);
     } catch (err) {
       setThread((prev) => prev.slice(0, -1)); // desfaz a bolha otimista
+      setRemaining((r) => Math.min(dailyLimit, r + 1));
       setDraft(question);
       setError(
         err?.response?.data?.message
@@ -245,23 +258,33 @@ function InsightChat({ insightId, initialChat, limit, onResult }) {
     }
   };
 
+  const quota = remaining > 0
+    ? `${remaining} de ${dailyLimit} ${remaining === 1 ? 'mensagem restante hoje' : 'mensagens restantes hoje'}`
+    : 'limite diário atingido';
+
   return (
     <section className="insights-chat insights-enter" style={{ '--d': '240ms' }}>
       <div className="insights-chat-head">
-        <h2 className="insights-section-title" style={{ marginBottom: 0 }}>💬 Pergunte à IA</h2>
-        <span className="insights-chat-quota">
-          {remaining > 0
-            ? `${remaining} de ${limit} ${remaining === 1 ? 'pergunta restante' : 'perguntas restantes'}`
-            : 'limite desta análise atingido'}
-        </span>
+        <div className="insights-chat-title-row">
+          <h2 className="insights-section-title" style={{ marginBottom: 0 }}>💬 Pergunte à IA</h2>
+          <button
+            type="button"
+            className="insights-chat-help"
+            aria-label="Como funciona"
+            aria-expanded={showHelp}
+            onClick={() => setShowHelp((v) => !v)}
+          >
+            !
+            {showHelp && (
+              <span className="insights-chat-help-pop" role="tooltip">
+                Questione a análise: peça mais recomendações, entenda um traço, compare gêneros.
+                São {dailyLimit} mensagens de IA por dia (gerar análise conta também) e o limite zera às 6h.
+              </span>
+            )}
+          </button>
+        </div>
+        <span className="insights-chat-quota">{quota}</span>
       </div>
-
-      {thread.length === 0 && !sending && (
-        <p className="insights-chat-hint">
-          Questione a análise: peça mais recomendações, entenda um traço, compare gêneros…
-          Você tem {limit} perguntas por análise.
-        </p>
-      )}
 
       {(thread.length > 0 || sending) && (
         <div className="insights-chat-thread" ref={scrollRef}>
@@ -292,13 +315,18 @@ function InsightChat({ insightId, initialChat, limit, onResult }) {
             maxLength={500}
             disabled={sending}
           />
-          <button className="mr-btn mr-btn-gold" type="submit" disabled={!canSend || !draft.trim()}>
-            {sending ? 'Enviando…' : 'Perguntar'}
+          <button
+            className="insights-chat-send"
+            type="submit"
+            disabled={!canSend || !draft.trim()}
+            aria-label="Perguntar"
+          >
+            <SendArrow />
           </button>
         </form>
       ) : (
         <p className="insights-chat-hint">
-          Você usou as {limit} perguntas desta análise. Gere uma nova análise para conversar de novo.
+          Você usou suas {dailyLimit} mensagens de IA de hoje. O limite zera às 6h.
         </p>
       )}
     </section>

@@ -17,8 +17,9 @@ export async function getLatestInsights() {
 }
 
 /**
- * Pergunta de follow-up sobre uma análise. Máx. 3 por análise (limite no backend).
- * Devolve o InsightResponseDTO atualizado, com `chat` e `chatLimit`.
+ * Pergunta de follow-up sobre uma análise. Consome 1 do orçamento diário de
+ * mensagens de IA (15/dia, reseta às 6h; gerar análise também conta).
+ * Devolve o InsightResponseDTO atualizado, com `chat`, `dailyRemaining` e `dailyLimit`.
  */
 export async function sendInsightChat(insightId, question) {
   const { data } = await api.post(`/insights/${insightId}/chat`, { question });
