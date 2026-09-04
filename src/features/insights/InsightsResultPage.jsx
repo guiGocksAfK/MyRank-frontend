@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { generateInsights, getLatestInsights } from '../../services/insightsService';
+import { generateInsights, getLatestInsights, sendInsightChat } from '../../services/insightsService';
 import DashboardFooter from '../dashboard/DashboardFooter';
 import { BAR_COLORS, relativeFromNow } from './aiInsightsHelpers';
 import '../dashboard/dashboard.css';
@@ -89,6 +89,7 @@ export default function InsightsResult() {
             canRegenerate={Boolean(workIds)}
             regenerating={regenerating}
             onRegenerate={regenerate}
+            onResult={setResult}
           />
         )}
       </div>
@@ -98,7 +99,7 @@ export default function InsightsResult() {
   );
 }
 
-function ReadyView({ result, canRegenerate, regenerating, onRegenerate }) {
+function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult }) {
   const { analysis, model, workCount, cached, generatedAt } = result;
   const traits = Array.isArray(analysis.traits) ? analysis.traits : [];
   const taste = Array.isArray(analysis.tasteProfile) ? analysis.tasteProfile : [];
@@ -191,7 +192,144 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate }) {
           )}
         </div>
       )}
+
+      <InsightChat
+        insightId={result.id}
+        initialChat={Array.isArray(result.chat) ? result.chat : []}
+        dailyLimit={result.dailyLimit || 15}
+        dailyRemaining={typeof result.dailyRemaining === 'number' ? result.dailyRemaining : 15}
+        onResult={onResult}
+      />
     </>
+  );
+}
+
+const SendArrow = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+    <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a1 1 0 00-1.4 1.15L4 11l10 1-10 1-2 6.25a1 1 0 001.4 1.15z" />
+  </svg>
+);
+
+/**
+ * Chat de follow-up sobre a análise. Cada pergunta consome 1 do orçamento diário
+ * de mensagens de IA (15/dia, reseta às 6h) — o mesmo orçamento de gerar análise.
+ */
+function InsightChat({ insightId, initialChat, dailyLimit, dailyRemaining, onResult }) {
+  const [thread, setThread] = useState(() => initialChat);
+  const [remaining, setRemaining] = useState(dailyRemaining);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+  const [showHelp, setShowHelp] = useState(false);
+  const scrollRef = useRef(null);
+
+  const canSend = remaining > 0 && !sending;
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [thread, sending]);
+
+  const submit = async (e) => {
+    e?.preventDefault();
+    const question = draft.trim();
+    if (!question || !canSend) return;
+
+    setDraft('');
+    setError('');
+    setSending(true);
+    setThread((prev) => [...prev, { role: 'USER', content: question, at: new Date().toISOString() }]);
+    setRemaining((r) => Math.max(0, r - 1));
+
+    try {
+      const data = await sendInsightChat(insightId, question);
+      if (Array.isArray(data?.chat)) setThread(data.chat);
+      if (typeof data?.dailyRemaining === 'number') setRemaining(data.dailyRemaining);
+      onResult?.(data);
+    } catch (err) {
+      setThread((prev) => prev.slice(0, -1)); // desfaz a bolha otimista
+      setRemaining((r) => Math.min(dailyLimit, r + 1));
+      setDraft(question);
+      setError(
+        err?.response?.data?.message
+        || 'Não consegui responder agora. Tente de novo em instantes.',
+      );
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const quota = remaining > 0
+    ? `${remaining} de ${dailyLimit} ${remaining === 1 ? 'mensagem restante hoje' : 'mensagens restantes hoje'}`
+    : 'limite diário atingido';
+
+  return (
+    <section className="insights-chat insights-enter" style={{ '--d': '240ms' }}>
+      <div className="insights-chat-head">
+        <div className="insights-chat-title-row">
+          <h2 className="insights-section-title" style={{ marginBottom: 0 }}>💬 Pergunte à IA</h2>
+          <button
+            type="button"
+            className="insights-chat-help"
+            aria-label="Como funciona"
+            aria-expanded={showHelp}
+            onClick={() => setShowHelp((v) => !v)}
+          >
+            !
+            {showHelp && (
+              <span className="insights-chat-help-pop" role="tooltip">
+                Questione a análise: peça mais recomendações, entenda um traço, compare gêneros.
+                São {dailyLimit} mensagens de IA por dia (gerar análise conta também) e o limite zera às 6h.
+              </span>
+            )}
+          </button>
+        </div>
+        <span className="insights-chat-quota">{quota}</span>
+      </div>
+
+      {(thread.length > 0 || sending) && (
+        <div className="insights-chat-thread" ref={scrollRef}>
+          {thread.map((m, i) => (
+            <div key={i} className={`insights-chat-msg ${m.role === 'USER' ? 'is-user' : 'is-ai'}`}>
+              <div className="insights-chat-bubble">{m.content}</div>
+            </div>
+          ))}
+          {sending && (
+            <div className="insights-chat-msg is-ai">
+              <div className="insights-chat-bubble insights-chat-typing">
+                <span /><span /><span />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {error && <p className="insights-chat-error">{error}</p>}
+
+      {remaining > 0 ? (
+        <form className="insights-chat-form" onSubmit={submit}>
+          <input
+            className="mr-input"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Escreva sua pergunta…"
+            maxLength={500}
+            disabled={sending}
+          />
+          <button
+            className="insights-chat-send"
+            type="submit"
+            disabled={!canSend || !draft.trim()}
+            aria-label="Perguntar"
+          >
+            <SendArrow />
+          </button>
+        </form>
+      ) : (
+        <p className="insights-chat-hint">
+          Você usou suas {dailyLimit} mensagens de IA de hoje. O limite zera às 6h.
+        </p>
+      )}
+    </section>
   );
 }
 

@@ -15,3 +15,13 @@ export async function getLatestInsights() {
   const res = await api.get('/insights/latest');
   return res.status === 204 ? null : res.data;
 }
+
+/**
+ * Pergunta de follow-up sobre uma análise. Consome 1 do orçamento diário de
+ * mensagens de IA (15/dia, reseta às 6h; gerar análise também conta).
+ * Devolve o InsightResponseDTO atualizado, com `chat`, `dailyRemaining` e `dailyLimit`.
+ */
+export async function sendInsightChat(insightId, question) {
+  const { data } = await api.post(`/insights/${insightId}/chat`, { question });
+  return data;
+}

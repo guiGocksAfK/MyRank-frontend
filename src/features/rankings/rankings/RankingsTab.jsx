@@ -10,6 +10,7 @@ import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../..
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../../utils/mapWork';
 import { applyFilters } from '../../../utils/formatters';
 import { useBadges } from '../../../shared/badges';
+import { useWorks } from '../../../shared/worksContext';
 import { useLanguage } from '../../../shared/i18n';
 
 function getTableOrderKey() {
@@ -64,6 +65,7 @@ function saveItemOrder(tableId, items) {
 
 export default function RankingsTab({ onNavigateToCreators }) {
   const { refresh: refreshBadges } = useBadges();
+  const { bumpWorks } = useWorks();
   const { t } = useLanguage();
   const tr = t.rankings;
   const [tables,           setTables]           = useState([]);
@@ -151,6 +153,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
     }));
 
     refreshBadges(); // pode ter desbloqueado badge → dispara o toast
+    bumpWorks();     // Home / rodapé / perfil re-buscam as obras
   }
 
   // ── Excluir obra ──
@@ -164,6 +167,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
     }));
 
     refreshBadges();
+    bumpWorks();
   }
 
   function handleMoveItem(tableId, itemId, targetId) {
@@ -186,6 +190,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
   // ── Criar tabela (categoria) ──
   async function handleCreateTable(label) {
     const cat = await createCategory(label);
+    bumpWorks();
     const newTable = mapCategoryToTable(cat);
     setTables(prev => {
       const nextTables = [...prev, newTable];
@@ -228,12 +233,14 @@ export default function RankingsTab({ onNavigateToCreators }) {
     setTables(prev => prev.filter(t => t.id !== id));
     setSelectedTableIds(prev => prev.filter(x => x !== id));
     setActiveTab('unified');
+    bumpWorks();
   }
 
   async function handleRenameTable(id, name) {
     const updatedCategory = await updateCategory(id, name);
     const updatedName = updatedCategory?.name || name;
     setTables(prev => prev.map(table => table.id === id ? { ...table, label: updatedName } : table));
+    bumpWorks();
   }
 
   // ── Mudar seleção do Unificado (persiste no master_table_group) ──
