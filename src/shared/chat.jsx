@@ -6,7 +6,10 @@ import { getChatUnreadCount } from '../services/chatService';
 
 // Fallback lento: o WS empurra em tempo real; o poll cobre reconexões/queda.
 const POLL_MS = 60_000;
-const WS_URL = 'http://localhost:8080/ws';
+// Deriva do VITE_API_URL (troca /api por /ws) pra não exigir uma 2ª env var;
+// VITE_WS_URL sobrescreve se precisar de um host diferente.
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const WS_URL = import.meta.env.VITE_WS_URL || API_URL.replace(/\/api\/?$/, '/ws');
 
 const ChatContext = createContext(null);
 
