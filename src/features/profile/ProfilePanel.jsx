@@ -154,7 +154,6 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
 
   const [profileUsername, setProfileUsername] = useState('usuario');
   const [profileBio,      setProfileBio]      = useState('');
-  const [profilePlan,     setProfilePlan]     = useState('FREE');
   const [createdAt,       setCreatedAt]       = useState(null);
   const [loadingProfile,  setLoadingProfile]  = useState(true);
   const [editMode,        setEditMode]        = useState(false);
@@ -181,7 +180,6 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
         applyUser(user);
         setProfileUsername(user.username || 'usuario');
         setProfileBio(user.bio || tp.defaultBio);
-        setProfilePlan(user.plan || 'FREE');
         setCreatedAt(user.createdAt || null);
       } catch (err) {
         setError(tp.loadError);
@@ -332,9 +330,6 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                 <>
                   <div className="mr-flex mr-items-center mr-justify-center mr-gap-2">
                     <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>{profileUsername}</span>
-                    {profilePlan === 'PRO' && (
-                      <span className="mr-badge mr-badge-gold" style={{ fontSize: '0.65rem' }}>PRO</span>
-                    )}
                     <button
                       type="button"
                       className="mr-profile-edit-pencil"
@@ -363,12 +358,6 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                     style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginTop: 12, flexWrap: 'wrap' }}
                   >
                     <span>{profile?.isPublic ? tp.publicProfile : tp.privateProfile}</span>
-                    {profilePlan !== 'PRO' && (
-                      <>
-                        <span style={{ color: 'var(--mr-text-muted)' }}>·</span>
-                        <span style={{ color: 'var(--mr-text-muted)' }}>{tp.freePlan}</span>
-                      </>
-                    )}
                   </div>
                 </>
               )}
