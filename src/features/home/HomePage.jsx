@@ -318,25 +318,7 @@ const HomePage = () => {
     ))}
   </div>
 
-  {/* Coluna 3 — MyRank Pro */}
-  <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxWidth: "200px" }}>
-    <span style={{ fontSize: "11px", fontWeight: "700", color: "#555", fontFamily: "'DM Sans', sans-serif", textTransform: "uppercase", letterSpacing: "1.5px" }}>{t.home.footer.colPro}</span>
-    <p style={{ fontSize: "13px", color: "#888", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.7 }}>
-      {t.home.footer.proText}
-    </p>
-    <Link to="/pro" style={{
-      fontSize: "13px",
-      fontWeight: "700",
-      color: "#d4af37",
-      fontFamily: "'DM Sans', sans-serif",
-      textDecoration: "none",
-    }}
-      onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
-      onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-    >{t.home.footer.proCta}</Link>
-  </div>
-
-  {/* Coluna 4 — Redes */}
+  {/* Coluna 3 — Redes */}
   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
     <span style={{ fontSize: "11px", fontWeight: "700", color: "#555", fontFamily: "'DM Sans', sans-serif", textTransform: "uppercase", letterSpacing: "1.5px" }}>{t.home.footer.colSocial}</span>
     {[

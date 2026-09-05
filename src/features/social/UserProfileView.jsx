@@ -106,7 +106,6 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
             <div className="mr-min-w-0" style={{ flex: 1 }}>
               <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap">
                 <span style={{ fontSize: '1.15rem', fontWeight: 700 }}>{profile.username}</span>
-                {profile.plan === 'PRO' && <span className="mr-badge mr-badge-gold" style={{ fontSize: '0.65rem' }}>PRO</span>}
                 {profile.followsYou && <span className="social-tag">{tv.followsYou}</span>}
               </div>
               <div className="social-muted" style={{ fontSize: '0.85rem' }}>@{profile.handle}</div>

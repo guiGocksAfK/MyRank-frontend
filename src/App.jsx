@@ -9,7 +9,6 @@ import Dashboard from './features/dashboard/DashboardPage'
 import InsightsResult from './features/insights/InsightsResultPage'
 import DiscordCallback from './features/auth/DiscordCallbackPage'
 import ChatInvitePage from './features/chat/ChatInvitePage'
-import Pro from './features/home/ProPage';
 
 
 
@@ -26,7 +25,6 @@ function Layout() {
     '/entrar',
     '/cadastrar',
     '/dashboard',
-    '/pro',
     '/insights',
     '/auth/discord/callback',
   ].includes(location.pathname) || location.pathname.startsWith('/chat/invite/');
@@ -42,7 +40,6 @@ function Layout() {
         <Route path="/cadastrar" element={<Register />} />
         <Route path="/auth/discord/callback" element={<DiscordCallback />} />
         <Route path="/chat/invite/:token" element={<ChatInvitePage />} />
-        <Route path="/pro" element={<Pro />} />
       </Routes>
     </div>
   )
