@@ -353,12 +353,6 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                     </div>
                   )}
 
-                  <div
-                    className="mr-flex mr-items-center mr-justify-center mr-gap-2"
-                    style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)', marginTop: 12, flexWrap: 'wrap' }}
-                  >
-                    <span>{profile?.isPublic ? tp.publicProfile : tp.privateProfile}</span>
-                  </div>
                 </>
               )}
             </div>
