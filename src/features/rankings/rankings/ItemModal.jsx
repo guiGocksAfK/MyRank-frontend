@@ -184,7 +184,6 @@ export default function ItemModal({ item, onSave, onClose }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         gap: 16,
       }}
-      onClick={onClose}
     >
       {/* Modal principal */}
       <div
