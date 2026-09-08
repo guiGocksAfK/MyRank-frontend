@@ -283,7 +283,7 @@ export default function HomeOverview({ onNavigate }) {
           <div className="mr-card-body">
 
             {/* Header do card com switch */}
-            <div className="mr-flex mr-items-center mr-justify-between mr-mb-4">
+            <div className="mr-flex mr-items-center mr-justify-between mr-mb-4 mr-card-head">
               <h3 className="mr-section-title">{th.recentRatings}</h3>
               <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>{th.lastFive}</span>
 
@@ -457,7 +457,7 @@ export default function HomeOverview({ onNavigate }) {
               {th.seeAll}
             </button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          <div className="mr-upcoming-grid">
             {upcomingBadges.length === 0 && (
               <span style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
                 {th.noProgress}

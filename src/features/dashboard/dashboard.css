@@ -797,8 +797,37 @@
   gap: 20px;
 }
 
+/* itens de grid encolhem até o conteúdo truncar, sem estourar a coluna */
+.mr-two-col > * { min-width: 0; }
+
 @media (max-width: 768px) {
   .mr-two-col { grid-template-columns: 1fr; }
+}
+
+/* ============ PRÓXIMAS CONQUISTAS (grid de badges em progresso) ============ */
+.mr-upcoming-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.mr-upcoming-grid > * { min-width: 0; }
+
+@media (max-width: 1024px) {
+  .mr-upcoming-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .mr-upcoming-grid { grid-template-columns: 1fr; gap: 10px; }
+}
+
+/* Header de card (título + rótulo) empilha no mobile */
+@media (max-width: 640px) {
+  .mr-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
 }
 
 /* ============ CARDS ============ */
@@ -1185,6 +1214,49 @@
 .mr-note-bar-fill.yellow { background: #facc15; }
 .mr-note-bar-fill.red    { background: var(--mr-red); }
 
+/* ============ MOBILE: tabela compacta + escala geral menor ============ */
+@media (max-width: 640px) {
+  /* cabeçalho de colunas não faz sentido no layout compacto */
+  .mr-table-header { display: none !important; }
+
+  .mr-table-row {
+    grid-template-columns: 18px 28px minmax(0, 1fr) auto auto !important;
+    gap: 8px !important;
+    padding: 9px 10px !important;
+    min-height: 0 !important;
+  }
+
+  /* miniatura de pôster (img real ou placeholder 🎬) — 2ª célula da linha */
+  .mr-table-row > .mr-poster-image-thumb,
+  .mr-table-row > div:nth-child(2):not(.mr-min-w-0) {
+    width: 28px !important;
+    height: 42px !important;
+    max-width: 28px !important;
+    max-height: 42px !important;
+    min-width: 0 !important;
+    font-size: 0.7rem !important;
+  }
+
+  /* barra de nota some no mobile — fica só o número */
+  .mr-table-row .mr-note-bar { display: none !important; }
+
+  .mr-table-row .mr-truncate { font-size: 0.8125rem; }
+  .mr-table-row .mr-min-w-0 > div:last-child { font-size: 0.6875rem; }
+  .mr-table-row .mr-flex > span[style*="minWidth"] { min-width: 0 !important; }
+
+  /* ---- escala geral menor (padrões de app mobile) ---- */
+  .mr-main { padding: 16px 0 32px; }
+  .mr-card-body { padding: 14px; }
+  .mr-section-title { font-size: 1rem; }
+  .mr-btn { padding: 0.45rem 0.7rem; font-size: 0.8125rem; }
+  .mr-btn-sm { padding: 0.35rem 0.6rem; font-size: 0.75rem; white-space: nowrap; }
+  .mr-tab-trigger { padding: 7px 10px; font-size: 0.8125rem; }
+
+  /* botões da toolbar da tabela: quebram em grade, sem texto em 2 linhas */
+  .mr-toolbar-actions { width: 100%; }
+  .mr-toolbar-actions .mr-btn-sm { flex: 1 1 auto; justify-content: center; }
+}
+
 /* ============ AI INSIGHTS ============ */
 .mr-grid-3col {
   display: grid;
@@ -1529,4 +1601,59 @@
 
 @keyframes mr-skeleton-shimmer {
   to { background-position: -200% 0; }
+}
+
+/* ============ MODAIS (Nova tabela / Nova obra) — compactos e centralizados no mobile ============ */
+@media (max-width: 640px) {
+  .mr-modal-scrim {
+    /* trava na viewport visível mesmo se a página tiver overflow horizontal
+       (senão o position:fixed se referencia à largura rolável e o modal sai pra direita) */
+    left: 0 !important;
+    right: auto !important;
+    top: 0 !important;
+    bottom: auto !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    justify-content: center !important;
+    overflow-y: auto !important;
+    padding: 12px 10px !important;
+    gap: 10px !important;
+  }
+
+  /* painel nunca passa da tela; margin:auto centra quando cabe
+     e deixa rolar a partir do topo quando não cabe */
+  .mr-modal-scrim > div {
+    width: 100% !important;
+    max-width: calc(100vw - 20px) !important;
+    margin: auto !important;
+    padding: 16px !important;
+    border-radius: 10px !important;
+    box-sizing: border-box;
+  }
+
+  /* modal simples (Nova tabela): 1 painel, centralizado */
+  .mr-modal-scrim:not(.mr-modal-scrim--wide) {
+    align-items: center !important;
+  }
+
+  /* modal de obra (form + sugestões): empilha e alinha ao topo p/ rolar */
+  .mr-modal-scrim--wide {
+    align-items: flex-start !important;
+    align-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .mr-modal-scrim--wide > div {
+    max-height: none !important;
+  }
+
+  /* aperta o conteúdo: título, campos e espaçamentos menores */
+  .mr-modal-scrim > div > h3 {
+    margin-bottom: 0.75rem !important;
+    font-size: 1rem !important;
+  }
+
+  .mr-modal-scrim > div > div {
+    margin-bottom: 10px !important;
+  }
 }

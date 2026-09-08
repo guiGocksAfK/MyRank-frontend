@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../../../shared/i18n';
 
 const TYPE_EMOJI = { filme: '🎬', jogo: '🎮', serie: '📺', livro: '📚', anime: '🎌', outro: '📦' };
@@ -39,8 +40,8 @@ export default function NewTableModal({ onSave, onClose }) {
     fontSize: '0.875rem',
   };
 
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
+  return createPortal(
+    <div className="mr-modal-scrim" style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={onClose}>
       <div style={{ background: 'var(--mr-surface)', border: '1px solid var(--mr-border)', borderRadius: 12, padding: '1.5rem', width: 340, maxWidth: '90vw' }} onClick={e => e.stopPropagation()}>
         <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>{tm.title}</h3>
 
@@ -87,6 +88,7 @@ export default function NewTableModal({ onSave, onClose }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

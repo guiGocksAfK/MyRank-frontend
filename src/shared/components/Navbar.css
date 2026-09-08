@@ -147,39 +147,53 @@
 
 @media (max-width: 640px) {
   .navbar {
-    padding: 0 16px;
-    gap: 12px;
+    height: 64px;
+    padding: 0 14px;
+    gap: 10px;
   }
 
   .navbar-logo span {
-    font-size: 23px;
+    font-size: 21px;
   }
 
   .navbar-actions {
-    gap: 8px;
+    gap: 7px;
   }
 
   .hide-on-small {
     display: none;
   }
 
+  .navbar-link,
+  .navbar-ghost,
   .navbar-primary {
-    padding: 7px 12px;
+    min-height: 34px;
     font-size: 13px;
   }
 
-  .navbar-user {
-    width: 38px;
-    height: 38px;
-  }
-}
-
-@media (max-width: 390px) {
-  .navbar {
-    padding: 0 12px;
+  .navbar-ghost {
+    padding: 6px 10px;
   }
 
   .navbar-primary {
-    display: none;
+    padding: 6px 12px;
+  }
+
+  .navbar-user {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 360px) {
+  .navbar {
+    padding: 0 10px;
+    gap: 6px;
+  }
+
+  .navbar-ghost,
+  .navbar-primary {
+    padding: 6px 9px;
+    font-size: 12px;
   }
 }

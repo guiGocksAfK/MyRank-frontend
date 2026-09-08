@@ -18,7 +18,7 @@ function TableToolbar({ table, onDeleteTable, onEditTable, onAddWork }) {
       <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>
         {fmt(table.items.length === 1 ? tr.worksOne : tr.worksMany, { n: table.items.length })}
       </span>
-      <div className="mr-flex mr-gap-2">
+      <div className="mr-flex mr-gap-2 mr-flex-wrap mr-toolbar-actions">
         <button
           className="mr-btn mr-btn-outline mr-btn-sm"
           style={{ color: '#e24b4a', borderColor: 'rgba(226,75,74,0.35)' }}

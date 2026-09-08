@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { formatTime, minutesToHHMM } from '../../../utils/formatters';
 import { searchByType, getDetailsByType } from '../../../services/ExternalSearchService';
 import { useLanguage } from '../../../shared/i18n';
@@ -176,15 +177,15 @@ export default function ItemModal({ item, onSave, onClose }) {
 
   const showSidePanel = suggestions.length > 0;
 
-  return (
+  return createPortal(
     <div
+      className="mr-modal-scrim mr-modal-scrim--wide"
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
         background: 'rgba(0,0,0,0.6)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        gap: 16,
+        gap: 16, padding: 16,
       }}
-      onClick={onClose}
     >
       {/* Modal principal */}
       <div
@@ -378,6 +379,7 @@ export default function ItemModal({ item, onSave, onClose }) {
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
