@@ -289,10 +289,12 @@ export default function RankingsTab({ onNavigateToCreators }) {
             </button>
           )}
           <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
-          <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>{tr.timeWeight}</span>
-          <button className={`mr-switch ${useTimeWeight ? 'checked' : ''}`} onClick={() => setUseTimeWeight(v => !v)}>
-            <span className="mr-switch-thumb" />
-          </button>
+          <div className="mr-flex mr-items-center mr-gap-3" style={{ flexShrink: 0 }}>
+            <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)', whiteSpace: 'nowrap' }}>{tr.timeWeight}</span>
+            <button className={`mr-switch ${useTimeWeight ? 'checked' : ''}`} onClick={() => setUseTimeWeight(v => !v)}>
+              <span className="mr-switch-thumb" />
+            </button>
+          </div>
         </div>
       </div>
 
