@@ -142,14 +142,14 @@ const HomePage = () => {
       </section>
 
   {/* Como funciona */}
-<section style={{
+<section className="home-section" style={{
   padding: "60px 2rem",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   gap: "40px",
 }}>
-  <h2 style={{
+  <h2 className="home-section-title" style={{
     fontSize: "36px",
     fontWeight: "800",
     color: "#e5e5e5",
@@ -159,7 +159,7 @@ const HomePage = () => {
     {t.home.how.title}
   </h2>
 
-  <div style={{
+  <div className="home-steps" style={{
     display: "flex",
     gap: "24px",
     flexWrap: "wrap",
@@ -167,7 +167,7 @@ const HomePage = () => {
     maxWidth: "1400px",
   }}>
    {t.home.how.steps.map((rawStep, stepIndex) => ({ ...rawStep, num: STEP_NUMS[stepIndex] })).map((step) => (
-          <div key={step.num} style={{
+          <div key={step.num} className="home-step-card" style={{
         backgroundColor: "#111111",
         borderTop: "2px solid #d4af37",
         border: "1px solid #2a2a2a",
@@ -218,7 +218,7 @@ const HomePage = () => {
 </section>
 
 {/* Números de impacto */}
-<section style={{
+<section className="home-impact" style={{
   padding: "60px 2rem",
   display: "flex",
   justifyContent: "center",
@@ -234,7 +234,7 @@ const HomePage = () => {
       alignItems: "center",
       gap: "8px",
     }}>
-      <span style={{
+      <span className="home-impact-num" style={{
         fontSize: "48px",
         fontWeight: "800",
         color: "#d4af37",
@@ -251,14 +251,14 @@ const HomePage = () => {
 </section>
 
 {/* FAQ */}
-<section id="faq" style={{
+<section id="faq" className="home-section" style={{
   padding: "80px 2rem",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   gap: "48px",
 }}>
-  <h2 style={{
+  <h2 className="home-section-title" style={{
     fontSize: "36px",
     fontWeight: "800",
     color: "#e5e5e5",
@@ -268,7 +268,7 @@ const HomePage = () => {
     {t.home.faq.title}
   </h2>
 
-  <div style={{
+  <div className="home-faq-list" style={{
     display: "flex",
     flexDirection: "column",
     gap: "12px",
@@ -282,15 +282,15 @@ const HomePage = () => {
 </section>
 
 {/* Footer */}
-<footer style={{
+<footer className="home-footer" style={{
   borderTop: "1px solid #2a2a2a",
   padding: "26px 6rem 24px",
   display: "flex",
   flexDirection: "column",
   gap: "48px",
 }}>
-  
-<div style={{
+
+<div className="home-footer-cols" style={{
   display: "flex",
   justifyContent: "space-between",
   alignItems: "flex-start",
@@ -300,7 +300,7 @@ const HomePage = () => {
 }}>
 
   {/* Coluna 1 — Logo */}
-  <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "180px" }}>
+  <div className="home-footer-logo" style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "180px" }}>
     <img src={logo} alt="MyRank" style={{ height: "48px", objectFit: "contain" }} />
     <p style={{ fontSize: "13px", color: "#555", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.7, textAlign: "center" }}>
       {t.home.footer.tagline}

@@ -70,7 +70,7 @@ const Navbar = () => {
           )}
         </div>
 
-        <Link className="navbar-ghost hide-on-small" to="/entrar">
+        <Link className="navbar-ghost" to="/entrar">
           {t.nav.login}
         </Link>
 
