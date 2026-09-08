@@ -1214,6 +1214,49 @@
 .mr-note-bar-fill.yellow { background: #facc15; }
 .mr-note-bar-fill.red    { background: var(--mr-red); }
 
+/* ============ MOBILE: tabela compacta + escala geral menor ============ */
+@media (max-width: 640px) {
+  /* cabeçalho de colunas não faz sentido no layout compacto */
+  .mr-table-header { display: none !important; }
+
+  .mr-table-row {
+    grid-template-columns: 18px 28px minmax(0, 1fr) auto auto !important;
+    gap: 8px !important;
+    padding: 9px 10px !important;
+    min-height: 0 !important;
+  }
+
+  /* miniatura de pôster (img real ou placeholder 🎬) — 2ª célula da linha */
+  .mr-table-row > .mr-poster-image-thumb,
+  .mr-table-row > div:nth-child(2):not(.mr-min-w-0) {
+    width: 28px !important;
+    height: 42px !important;
+    max-width: 28px !important;
+    max-height: 42px !important;
+    min-width: 0 !important;
+    font-size: 0.7rem !important;
+  }
+
+  /* barra de nota some no mobile — fica só o número */
+  .mr-table-row .mr-note-bar { display: none !important; }
+
+  .mr-table-row .mr-truncate { font-size: 0.8125rem; }
+  .mr-table-row .mr-min-w-0 > div:last-child { font-size: 0.6875rem; }
+  .mr-table-row .mr-flex > span[style*="minWidth"] { min-width: 0 !important; }
+
+  /* ---- escala geral menor (padrões de app mobile) ---- */
+  .mr-main { padding: 16px 0 32px; }
+  .mr-card-body { padding: 14px; }
+  .mr-section-title { font-size: 1rem; }
+  .mr-btn { padding: 0.45rem 0.7rem; font-size: 0.8125rem; }
+  .mr-btn-sm { padding: 0.35rem 0.6rem; font-size: 0.75rem; white-space: nowrap; }
+  .mr-tab-trigger { padding: 7px 10px; font-size: 0.8125rem; }
+
+  /* botões da toolbar da tabela: quebram em grade, sem texto em 2 linhas */
+  .mr-toolbar-actions { width: 100%; }
+  .mr-toolbar-actions .mr-btn-sm { flex: 1 1 auto; justify-content: center; }
+}
+
 /* ============ AI INSIGHTS ============ */
 .mr-grid-3col {
   display: grid;
