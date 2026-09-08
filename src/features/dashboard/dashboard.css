@@ -797,8 +797,37 @@
   gap: 20px;
 }
 
+/* itens de grid encolhem até o conteúdo truncar, sem estourar a coluna */
+.mr-two-col > * { min-width: 0; }
+
 @media (max-width: 768px) {
   .mr-two-col { grid-template-columns: 1fr; }
+}
+
+/* ============ PRÓXIMAS CONQUISTAS (grid de badges em progresso) ============ */
+.mr-upcoming-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.mr-upcoming-grid > * { min-width: 0; }
+
+@media (max-width: 1024px) {
+  .mr-upcoming-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .mr-upcoming-grid { grid-template-columns: 1fr; gap: 10px; }
+}
+
+/* Header de card (título + rótulo) empilha no mobile */
+@media (max-width: 640px) {
+  .mr-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
 }
 
 /* ============ CARDS ============ */
