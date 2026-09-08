@@ -106,7 +106,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <main className="auth-page auth-page--noscroll">
+    <main className="auth-page auth-page--noscroll auth-page--cardonly">
 
       <button onClick={handleBack} className="auth-back">
         {tAuth.back}

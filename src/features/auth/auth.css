@@ -467,6 +467,61 @@
   }
 }
 
+/* Auth no mobile: só o card, tela estática (sem scroll) */
+@media (max-width: 640px) {
+  .auth-page--cardonly.auth-page--noscroll,
+  .auth-page--cardonly .auth-hero {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .auth-page--cardonly .auth-copy {
+    display: none;
+  }
+
+  .auth-page--cardonly .auth-hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    padding: 64px 16px 16px;
+  }
+
+  /* card dimensionado pelo conteúdo, tela travada — enxuga pra caber */
+  .auth-page--cardonly .auth-card {
+    max-height: none;
+    overflow: visible;
+    margin: 0 auto;
+    padding: 22px 18px;
+  }
+
+  .auth-page--cardonly .auth-card-header {
+    margin-bottom: 10px;
+  }
+
+  .auth-page--cardonly .auth-fields {
+    gap: 11px;
+  }
+
+  .auth-page--cardonly .auth-divider {
+    margin: 14px 0;
+  }
+
+  .auth-page--cardonly .auth-forgot {
+    margin: 12px 0 18px;
+  }
+
+  .auth-page--cardonly .auth-signup-note {
+    margin-top: 14px;
+  }
+
+  .auth-page--cardonly .auth-social-button--discord {
+    margin-top: 10px;
+  }
+}
+
 @media (max-width: 560px) {
   .auth-hero {
     padding: 32px 16px;
