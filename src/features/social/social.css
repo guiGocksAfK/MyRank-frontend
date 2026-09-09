@@ -841,3 +841,24 @@
   }
   .social-panel .mr-card-body { overflow-x: auto; }
 }
+
+/* ── Feed compacto no mobile (estava grande demais) ──────── */
+@media (max-width: 640px) {
+  .social-panel.mr-space-y-5 > * + * { margin-top: 0.85rem; }
+
+  .social-tab-trigger { font-size: 0.75rem; padding: 6px 9px; }
+
+  .social-card { padding: 11px 12px; gap: 10px; }
+  .social-card-avatar > span { width: 38px !important; height: 38px !important; font-size: 15px !important; }
+  .social-card-head { font-size: 0.78rem; }
+  .social-card-head .social-link { font-size: 0.86rem; }
+  .social-act-line { font-size: 0.85rem; }
+  .social-take-ctx { font-size: 0.78rem; }
+  .social-take-text { margin-top: 6px; padding: 9px 12px; font-size: 0.85rem; }
+
+  .social-card-actions { margin-top: 10px; padding-top: 8px; gap: 5px; }
+  .social-react-btn,
+  .social-comment-btn { padding: 4px 9px; font-size: 0.75rem; }
+
+  .social-composer-collapsed { padding: 10px 13px; font-size: 0.82rem; }
+}

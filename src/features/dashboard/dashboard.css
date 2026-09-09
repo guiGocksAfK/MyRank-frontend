@@ -69,9 +69,10 @@
    no lugar do #000 cravado que fazia os cards brancos "flutuarem". */
 .myrank-dashboard.myrank-light {
   background:
-    linear-gradient(115deg, rgba(154, 107, 18, 0.06), transparent 30%),
-    radial-gradient(circle at 82% 6%, rgba(154, 107, 18, 0.05), transparent 24%),
+    linear-gradient(160deg, rgba(154, 107, 18, 0.05), transparent 45%) no-repeat,
+    radial-gradient(120% 300px at 85% 0%, rgba(154, 107, 18, 0.045), transparent 70%) no-repeat,
     var(--mr-bg);
+  background-size: 100% 420px, 100% 320px, auto;
 }
 
 .myrank-light .mr-navbar {
@@ -99,10 +100,14 @@
 
 /* ============ GLOBAL DASHBOARD ============ */
 .myrank-dashboard {
+  /* o brilho dourado fica preso a uma faixa no topo (no-repeat + size fixo);
+     antes esticava com a altura da página e telas longas (ex.: feed) ficavam
+     com o fundo todo dourado */
   background:
-    linear-gradient(115deg, rgba(212, 175, 55, 0.1), rgba(0, 0, 0, 0) 34%),
-    radial-gradient(circle at 80% 10%, rgba(212, 175, 55, 0.08), transparent 28%),
+    linear-gradient(160deg, rgba(212, 175, 55, 0.06), rgba(0, 0, 0, 0) 45%) no-repeat,
+    radial-gradient(120% 300px at 85% 0%, rgba(212, 175, 55, 0.07), transparent 70%) no-repeat,
     #000000;
+  background-size: 100% 420px, 100% 320px, auto;
   color: var(--mr-text);
   min-height: 100vh;
   display: flex;
