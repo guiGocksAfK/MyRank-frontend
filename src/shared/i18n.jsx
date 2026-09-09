@@ -15,6 +15,13 @@ const TRANSLATIONS = {
     nav: { home: 'Home', login: 'Entrar', signup: 'Cadastrar' },
     common: {
       loading: 'Carregando…',
+      serverWake: {
+        title: 'Acordando o servidor',
+        subtitle: 'A hospedagem gratuita hiberna quando fica um tempo sem uso. O primeiro acesso pode levar até 1 minuto — esta página carrega sozinha assim que o servidor responder.',
+        elapsed: 'Aguardando há {s}s',
+        stillWorking: 'Ainda tentando… quase lá.',
+        retry: 'Recarregar agora',
+      },
       seeAll: 'Ver todas →',
       mediaTypes: { filme: 'Filmes', serie: 'Séries', jogo: 'Jogos', livro: 'Livros', anime: 'Animes', outro: 'Outros' },
       badgeBuckets: { jogo: 'Jogos', filme: 'Filmes', serie: 'Séries', livro: 'Livros', anime: 'Animes', geral: 'Gerais', site: 'Usar o site' },
@@ -646,6 +653,13 @@ const TRANSLATIONS = {
     nav: { home: 'Home', login: 'Sign in', signup: 'Sign up' },
     common: {
       loading: 'Loading…',
+      serverWake: {
+        title: 'Waking the server',
+        subtitle: 'Free hosting goes to sleep after a while idle. The first request can take up to a minute — this page will load itself as soon as the server responds.',
+        elapsed: 'Waiting for {s}s',
+        stillWorking: 'Still trying… almost there.',
+        retry: 'Reload now',
+      },
       seeAll: 'See all →',
       mediaTypes: { filme: 'Movies', serie: 'Series', jogo: 'Games', livro: 'Books', anime: 'Anime', outro: 'Other' },
       badgeBuckets: { jogo: 'Games', filme: 'Movies', serie: 'Series', livro: 'Books', anime: 'Anime', geral: 'General', site: 'Using the site' },
@@ -1277,6 +1291,13 @@ const TRANSLATIONS = {
     nav: { home: 'Inicio', login: 'Iniciar sesión', signup: 'Registrarse' },
     common: {
       loading: 'Cargando…',
+      serverWake: {
+        title: 'Despertando el servidor',
+        subtitle: 'El hosting gratuito se suspende tras un rato sin uso. El primer acceso puede tardar hasta un minuto — esta página se cargará sola en cuanto el servidor responda.',
+        elapsed: 'Esperando {s}s',
+        stillWorking: 'Aún intentando… casi listo.',
+        retry: 'Recargar ahora',
+      },
       seeAll: 'Ver todas →',
       mediaTypes: { filme: 'Películas', serie: 'Series', jogo: 'Juegos', livro: 'Libros', anime: 'Animes', outro: 'Otros' },
       badgeBuckets: { jogo: 'Juegos', filme: 'Películas', serie: 'Series', livro: 'Libros', anime: 'Animes', geral: 'Generales', site: 'Usar el sitio' },
