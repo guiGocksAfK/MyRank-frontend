@@ -285,7 +285,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
   }
 
   return (
-    <div className="mr-space-y-6">
+    <div className="mr-space-y-6 mr-rankings-tab">
       <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{tr.title}</h1>

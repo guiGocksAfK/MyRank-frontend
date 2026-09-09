@@ -1219,29 +1219,59 @@
   /* cabeçalho de colunas não faz sentido no layout compacto */
   .mr-table-header { display: none !important; }
 
+  /* linha vira flex: some com o grid de colunas fixas (que estourava no modo
+     "ponderado", com nota + bônus + nota final). O título encolhe, o resto
+     fica compacto e nada quebra pra segunda linha. */
   .mr-table-row {
-    grid-template-columns: 18px 28px minmax(0, 1fr) auto auto !important;
+    display: flex !important;
+    align-items: center;
+    flex-wrap: nowrap;
     gap: 8px !important;
     padding: 9px 10px !important;
     min-height: 0 !important;
   }
 
+  .mr-table-row > * { flex: 0 0 auto; }
+
+  /* rank */
+  .mr-table-row > span:first-child {
+    flex: 0 0 16px;
+    text-align: center;
+  }
+
   /* miniatura de pôster (img real ou placeholder 🎬) — 2ª célula da linha */
   .mr-table-row > .mr-poster-image-thumb,
   .mr-table-row > div:nth-child(2):not(.mr-min-w-0) {
-    width: 28px !important;
-    height: 42px !important;
-    max-width: 28px !important;
-    max-height: 42px !important;
+    flex: 0 0 34px;
+    width: 34px !important;
+    height: 51px !important;
+    max-width: 34px !important;
+    max-height: 51px !important;
     min-width: 0 !important;
-    font-size: 0.7rem !important;
+    font-size: 0.8rem !important;
   }
 
-  /* barra de nota some no mobile — fica só o número */
-  .mr-table-row .mr-note-bar { display: none !important; }
+  /* título ocupa o espaço livre e trunca */
+  .mr-table-row > .mr-min-w-0 {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 
-  .mr-table-row .mr-truncate { font-size: 0.8125rem; }
-  .mr-table-row .mr-min-w-0 > div:last-child { font-size: 0.6875rem; }
+  /* selo da tabela ("Filmes", "Jogos"…) no ranking unificado */
+  .mr-table-row > .mr-badge {
+    max-width: 78px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* barra de nota e o "+bônus" somem no mobile — fica só nota / nota final */
+  .mr-table-row .mr-note-bar { display: none !important; }
+  .mr-table-row .mr-cell-bonus { display: none !important; }
+
+  /* obra em si um pouco maior — era o que ficava pequeno demais */
+  .mr-table-row { padding: 11px 12px !important; font-size: 0.9rem; }
+  .mr-table-row .mr-truncate { font-size: 0.9rem; }
+  .mr-table-row .mr-min-w-0 > div:last-child { font-size: 0.75rem; }
   .mr-table-row .mr-flex > span[style*="minWidth"] { min-width: 0 !important; }
 
   /* ---- escala geral menor (padrões de app mobile) ---- */
@@ -1255,6 +1285,23 @@
   /* botões da toolbar da tabela: quebram em grade, sem texto em 2 linhas */
   .mr-toolbar-actions { width: 100%; }
   .mr-toolbar-actions .mr-btn-sm { flex: 1 1 auto; justify-content: center; }
+
+  /* ---- Rankings: enxuga os controles (estavam grandes demais p/ o conteúdo) ---- */
+  .mr-rankings-tab.mr-space-y-6 > * + * { margin-top: 0.8rem; }
+
+  .mr-rankings-tab h1 { font-size: 1.15rem !important; }
+  .mr-rankings-tab > .mr-flex:first-child p { font-size: 0.75rem !important; margin-top: 2px !important; }
+
+  .mr-rankings-tab .mr-tab-trigger { padding: 5px 9px; font-size: 0.72rem; }
+  .mr-rankings-tab .mr-btn,
+  .mr-rankings-tab .mr-btn-sm { padding: 0.3rem 0.55rem; font-size: 0.72rem; }
+
+  /* painel "Selecione quais tabelas incluir" */
+  .mr-table-selector { padding: 9px 11px !important; margin-bottom: 0 !important; }
+  .mr-table-selector > div:first-child { font-size: 0.7rem !important; margin-bottom: 6px !important; }
+
+  /* nota "Este ranking é gerado automaticamente..." */
+  .mr-unified-note { padding: 7px 10px !important; font-size: 0.72rem !important; }
 }
 
 /* ============ AI INSIGHTS ============ */

@@ -110,7 +110,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
     <div key="unified-list-view">
       <div className="mr-space-y-4">
         <div
-          className="mr-flex mr-items-center mr-gap-2"
+          className="mr-flex mr-items-center mr-gap-2 mr-unified-note"
           style={{
             padding: '8px 14px', borderRadius: 8,
             background: 'var(--mr-surface)',
@@ -158,7 +158,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
                 {mode === 'weight' && (
                   <>
                     <span style={{ fontWeight: 600 }}><AnimatedNumber value={item.note} /></span>
-                    <span style={{ color: 'var(--mr-blue-light)', fontWeight: 500, fontSize: '0.875rem' }}>
+                    <span className="mr-cell-bonus" style={{ color: 'var(--mr-blue-light)', fontWeight: 500, fontSize: '0.875rem' }}>
                       {bonus > 0 ? <AnimatedNumber value={bonus} prefix="+" /> : '—'}
                     </span>
                     <div className="mr-flex mr-items-center mr-gap-3">
