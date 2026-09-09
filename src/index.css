@@ -26,3 +26,77 @@ body {
   margin: 0 auto;
   align-items: stretch;
 }
+
+/* ===== Tela de "acordando o servidor" (cold start do plano free do Render) ===== */
+.mr-wake {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 28%, #141210, #000000 70%);
+  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+}
+
+.mr-wake-card {
+  max-width: 380px;
+  text-align: center;
+  color: #e8e6e1;
+}
+
+.mr-wake-spinner {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  border: 3px solid rgba(212, 175, 55, 0.2);
+  border-top-color: #d4af37;
+  animation: mr-wake-spin 0.9s linear infinite;
+}
+
+@keyframes mr-wake-spin {
+  to { transform: rotate(360deg); }
+}
+
+.mr-wake-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #f5f5f5;
+}
+
+.mr-wake-sub {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #a5a5a5;
+}
+
+.mr-wake-elapsed {
+  margin-top: 16px;
+  font-size: 0.8rem;
+  color: #d4af37;
+  font-variant-numeric: tabular-nums;
+}
+
+.mr-wake-retry {
+  margin-top: 20px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid #d4af37;
+  background: transparent;
+  color: #d4af37;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.mr-wake-retry:hover {
+  background: rgba(212, 175, 55, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr-wake-spinner { animation-duration: 2.4s; }
+}
