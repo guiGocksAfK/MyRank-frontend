@@ -5,22 +5,8 @@ import AnimatedNumber from './AnimatedNumber';
 import { getNoteBarColor, formatTime, sortItems, getMode, applyFilters, getColumnConfig, badgeStyle } from '../../../utils/formatters';
 import { useLanguage } from '../../../shared/i18n';
 
-function getUnifiedOrderKey() {
-  const userKey = localStorage.getItem('myrank_username') || 'anonymous';
-  return `myrank_unified_item_order_${userKey}`;
-}
-
 function getItemKey(item) {
   return `${item._tableId}:${item.id}`;
-}
-
-function readUnifiedOrder() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(getUnifiedOrderKey()) || '[]');
-    return Array.isArray(saved) ? saved : [];
-  } catch {
-    return [];
-  }
 }
 
 function applyUnifiedOrder(items, savedOrder) {
@@ -30,13 +16,15 @@ function applyUnifiedOrder(items, savedOrder) {
   return [...ordered, ...items.filter(item => !orderedKeys.has(getItemKey(item)))];
 }
 
-export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy, useTimeWeight, viewMode, filters }) {
+export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy, useTimeWeight, viewMode, filters, manualOrder = [], onReorder }) {
   const { t } = useLanguage();
   const tr = t.rankings;
   const mode    = getMode(sortBy, useTimeWeight);
   const maxNote = mode === 'weight' ? 12 : 10;
   const cols    = getColumnConfig(mode, false, viewMode === 'list', tr.cols);
-  const [unifiedOrder, setUnifiedOrder] = useState(readUnifiedOrder);
+  // ordem vinda do backend (via prop); localOrder é o override otimista durante o drag
+  const [localOrder, setLocalOrder] = useState(null);
+  const unifiedOrder = localOrder ?? manualOrder;
   const [draggedItemKey, setDraggedItemKey] = useState(null);
 
   const selectedTables = tables.filter(t => selectedTableIds.includes(t.id));
@@ -87,8 +75,8 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
     const insertIndex = draggedIndex < targetIndex ? targetPosition + 1 : targetPosition;
     nextItems.splice(insertIndex, 0, draggedItem);
     const nextOrder = nextItems.map(getItemKey);
-    setUnifiedOrder(nextOrder);
-    localStorage.setItem(getUnifiedOrderKey(), JSON.stringify(nextOrder));
+    setLocalOrder(nextOrder);
+    onReorder?.(nextOrder);
     setDraggedItemKey(null);
   }
 

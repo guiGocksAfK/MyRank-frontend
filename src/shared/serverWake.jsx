@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import { API_URL } from '../services/api';
-import { onServerDown } from './serverStatus';
+import { onServerDown, reportServerUp } from './serverStatus';
 import { useLanguage } from './i18n';
 
 const HEALTH_URL = `${API_URL.replace(/\/+$/, '')}/health`;
@@ -48,7 +48,9 @@ export function ServerWakeProvider({ children }) {
   // o interceptor do axios avisa por aqui. Nada de sondar no load do site.
   useEffect(() => onServerDown(startWaking), [startWaking]);
 
-  // Enquanto acorda: conta o tempo e tenta a cada 5s. Recarrega quando subir.
+  // Enquanto acorda: conta o tempo e tenta a cada 5s. Quando o servidor volta,
+  // esconde a tela e libera o interceptor pra refazer a requisição que falhou
+  // (sem reload — o usuário não precisa refazer o login/ação).
   useEffect(() => {
     if (!waking) return;
     const tick = setInterval(() => setSeconds((s) => s + 1), 1000);
@@ -56,7 +58,9 @@ export function ServerWakeProvider({ children }) {
       if (await probe()) {
         clearInterval(poll);
         clearInterval(tick);
-        window.location.reload();
+        wakingRef.current = false;
+        setWaking(false);
+        reportServerUp();
       }
     }, POLL_MS);
     return () => {

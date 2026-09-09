@@ -4,7 +4,7 @@ import IndividualTable from './IndividualTable';
 import TableSelector from './TableSelector';
 import FilterPanel from './FilterPanel';
 import NewTableModal from './NewTableModal';
-import { getGroups, createGroup, updateGroup } from '../../../services/masterTableGroupService';
+import { getGroups, createGroup, updateGroup, updateGroupOrder } from '../../../services/masterTableGroupService';
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../../../services/CategoryService.js';
 import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../../services/WorkService.js';
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../../utils/mapWork';
@@ -80,6 +80,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
   const [selectedTableIds, setSelectedTableIds] = useState([]);
   const [showNewTable,     setShowNewTable]     = useState(false);
   const [unifiedGroupId,   setUnifiedGroupId]   = useState(null);
+  const [unifiedOrder,     setUnifiedOrder]     = useState([]);
   const [draggedTableId,   setDraggedTableId]   = useState(null);
 
   // ── Carrega categorias + obras + grupo "Unificado" do backend ao montar ──
@@ -126,6 +127,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
         if (unifiedGroup) {
           setUnifiedGroupId(unifiedGroup.id);
           setSelectedTableIds(unifiedGroup.categoryIds);
+          setUnifiedOrder(unifiedGroup.manualOrder || []);
         }
       } catch (err) {
         if (!cancelled) setLoadError(err?.response?.data?.message || err.message || tr.loadError);
@@ -185,6 +187,15 @@ export default function RankingsTab({ onNavigateToCreators }) {
       saveItemOrder(tableId, nextItems);
       return { ...table, items: nextItems };
     }));
+  }
+
+  // ── Reordenar o ranking unificado (drag-and-drop) — persiste no backend ──
+  function handleUnifiedReorder(nextOrder) {
+    setUnifiedOrder(nextOrder);
+    if (!unifiedGroupId) return;
+    updateGroupOrder(unifiedGroupId, nextOrder).catch(err => {
+      console.error('Não foi possível salvar a ordem do ranking unificado', err);
+    });
   }
 
   // ── Criar tabela (categoria) ──
@@ -371,6 +382,8 @@ export default function RankingsTab({ onNavigateToCreators }) {
           useTimeWeight={useTimeWeight}
           viewMode={viewMode}
           filters={filters}
+          manualOrder={unifiedOrder}
+          onReorder={handleUnifiedReorder}
         />
       ) : (
         (() => {
