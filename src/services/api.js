@@ -1,5 +1,5 @@
 import axios from "axios";
-import { reportServerDown } from "../shared/serverStatus";
+import { reportServerDown, whenServerUp } from "../shared/serverStatus";
 
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
@@ -21,24 +21,39 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Detecta o back fora do ar / hibernando: sem resposta, timeout ou 502/503/504.
-// 4xx (login errado, etc.) NÃO conta. Chamadas passivas de enriquecimento
-// (/external/*: pôsteres do hero, autocomplete) também NÃO disparam a tela —
-// elas já têm fallback próprio e não valem uma tela cheia.
+// Cold start do Render (plano free): sem resposta, timeout ou 502/503/504.
+// Nesse caso mostra a tela de "acordando o servidor", espera o /health voltar
+// e REFAZ a mesma requisição — o await de quem chamou (ex.: loginWithGoogle)
+// resolve normalmente, sem o usuário refazer nada.
+// 4xx (login errado, etc.) NÃO conta. /external/* (pôsteres do hero, autocomplete)
+// tem fallback próprio e não dispara a tela.
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const config = error?.config;
     const status = error?.response?.status;
-    const url = error?.config?.url || "";
-    const coldStart =
-      (!error?.response ||
-        error.code === "ECONNABORTED" ||
-        status === 502 ||
-        status === 503 ||
-        status === 504) &&
-      !url.includes("/external/");
-    if (coldStart) reportServerDown();
-    return Promise.reject(error);
+    const url = config?.url || "";
+
+    const looksAsleep =
+      !error?.response ||
+      error.code === "ECONNABORTED" ||
+      status === 502 ||
+      status === 503 ||
+      status === 504;
+
+    if (
+      !looksAsleep ||
+      !config ||
+      config._wokeRetry ||
+      url.includes("/external/")
+    ) {
+      return Promise.reject(error);
+    }
+
+    reportServerDown();       // mostra a tela de carregamento
+    await whenServerUp();     // resolve quando o /health responde (poll no provider)
+    config._wokeRetry = true; // uma única re-tentativa
+    return api(config);       // refaz a requisição original (mesmo corpo/headers)
   },
 );
 

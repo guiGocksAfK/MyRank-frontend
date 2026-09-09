@@ -13,7 +13,7 @@ export default function TableSelector({ tables, selectedIds, onChange }) {
   }
 
   return (
-    <div style={{
+    <div className="mr-table-selector" style={{
       padding: '0.75rem 1rem', borderRadius: 8, marginBottom: '1rem',
       background: 'var(--mr-surface)', border: '1px solid var(--mr-border)',
     }}>

@@ -830,7 +830,91 @@
 }
 @media (max-width: 900px) {
   .social-feed-layout { grid-template-columns: 1fr; }
-  .social-rail { display: none; }
+  .social-feed-layout > * { min-width: 0; }
+
+  /* Sem coluna lateral: o trilho sobe pro topo do feed, compacto.
+     "Você" vira uma faixa fina; "Sugestões" vira carrossel horizontal. */
+  .social-rail {
+    order: -1;
+    position: static;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 2px;
+    min-width: 0;
+  }
+  .social-rail-card { min-width: 0; }
+
+  /* --- card "Você": faixa horizontal (contadores + público/privado) --- */
+  .social-rail-card:first-child {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    box-shadow: none;
+  }
+  .social-rail-card:first-child .social-rail-title { display: none; }
+  .social-rail-card:first-child .social-rail-stats {
+    margin-bottom: 0;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+  }
+  .social-rail-card:first-child .social-rail-stats button {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 2px 0;
+  }
+  .social-rail-card:first-child .social-rail-stats b {
+    display: inline;
+    font-size: 0.95rem;
+  }
+  .social-rail-card:first-child .social-visibility {
+    width: auto;
+    flex-shrink: 0;
+    padding: 6px 11px;
+    font-size: 0.76rem;
+  }
+
+  /* --- card "Sugestões": carrossel horizontal --- */
+  .social-rail-card:last-child { padding: 12px; box-shadow: none; }
+  .social-rail-card:last-child .social-rail-list {
+    flex-direction: row;
+    overflow-x: auto;
+    min-width: 0;
+    gap: 8px;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .social-rail-card:last-child .social-rail-list::-webkit-scrollbar { display: none; }
+  .social-rail-card:last-child .social-rail-user {
+    flex: 0 0 auto;
+    width: 116px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 7px;
+    padding: 10px 8px;
+    border: 1px solid var(--mr-border);
+    border-radius: 10px;
+  }
+  .social-rail-card:last-child .social-rail-user-main {
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+  }
+  .social-rail-card:last-child .social-rail-user-name {
+    max-width: 100%;
+    font-size: 0.8rem;
+  }
+  .social-rail-card:last-child .social-rail-user .mr-btn-sm {
+    width: 100%;
+    padding: 0.3rem 0.4rem;
+    font-size: 0.72rem;
+  }
+  .social-rail-card:last-child .social-rail-more { margin-top: 8px; }
 }
 @media (max-width: 720px) {
   .social-card { padding: 12px 14px; }
@@ -840,4 +924,25 @@
     min-width: 480px;
   }
   .social-panel .mr-card-body { overflow-x: auto; }
+}
+
+/* ── Feed compacto no mobile (estava grande demais) ──────── */
+@media (max-width: 640px) {
+  .social-panel.mr-space-y-5 > * + * { margin-top: 0.85rem; }
+
+  .social-tab-trigger { font-size: 0.75rem; padding: 6px 9px; }
+
+  .social-card { padding: 11px 12px; gap: 10px; }
+  .social-card-avatar > span { width: 38px !important; height: 38px !important; font-size: 15px !important; }
+  .social-card-head { font-size: 0.78rem; }
+  .social-card-head .social-link { font-size: 0.86rem; }
+  .social-act-line { font-size: 0.85rem; }
+  .social-take-ctx { font-size: 0.78rem; }
+  .social-take-text { margin-top: 6px; padding: 9px 12px; font-size: 0.85rem; }
+
+  .social-card-actions { margin-top: 10px; padding-top: 8px; gap: 5px; }
+  .social-react-btn,
+  .social-comment-btn { padding: 4px 9px; font-size: 0.75rem; }
+
+  .social-composer-collapsed { padding: 10px 13px; font-size: 0.82rem; }
 }

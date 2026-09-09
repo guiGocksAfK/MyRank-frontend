@@ -14,3 +14,9 @@ export async function updateGroup(id, name, categoryIds) {
   const res = await api.put(`/master-table-groups/${id}`, { name, categoryIds });
   return res.data;
 }
+
+/** Salva a ordem manual (drag-and-drop) do ranking unificado. `order` = ["catId:obraId", ...] */
+export async function updateGroupOrder(id, order) {
+  const res = await api.put(`/master-table-groups/${id}/order`, { order });
+  return res.data;
+}

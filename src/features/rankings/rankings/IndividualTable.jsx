@@ -208,7 +208,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
               {mode === 'weight' && (
                 <>
                   <span style={{ fontWeight: 600 }}><AnimatedNumber value={item.note} /></span>
-                  <span style={{ color: 'var(--mr-blue-light)', fontWeight: 500, fontSize: '0.875rem' }}>
+                  <span className="mr-cell-bonus" style={{ color: 'var(--mr-blue-light)', fontWeight: 500, fontSize: '0.875rem' }}>
                     {bonus > 0 ? <AnimatedNumber value={bonus} prefix="+" /> : '—'}
                   </span>
                   <div className="mr-flex mr-items-center mr-gap-3">

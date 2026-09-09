@@ -28,11 +28,6 @@ function formatTime(minutes) {
   return `${h}h`;
 }
 
-function getUnifiedOrderKey() {
-  const userKey = localStorage.getItem('myrank_username') || 'anonymous';
-  return `myrank_unified_item_order_${userKey}`;
-}
-
 function getTableOrderKey() {
   const userKey = localStorage.getItem('myrank_username') || 'anonymous';
   return `myrank_table_order_${userKey}`;
@@ -58,16 +53,7 @@ function getUnifiedItemKey(item) {
   return `${item._tableId}:${item.id}`;
 }
 
-function applyUnifiedOrder(items) {
-  const savedOrder = (() => {
-    try {
-      const parsedOrder = JSON.parse(localStorage.getItem(getUnifiedOrderKey()) || '[]');
-      return Array.isArray(parsedOrder) ? parsedOrder : [];
-    } catch {
-      return [];
-    }
-  })();
-
+function applyUnifiedOrder(items, savedOrder = []) {
   const itemByKey = new Map(items.map(item => [getUnifiedItemKey(item), item]));
   const ordered = savedOrder.map(key => itemByKey.get(key)).filter(Boolean);
   const orderedKeys = new Set(ordered.map(getUnifiedItemKey));
@@ -78,6 +64,7 @@ export default function HomeOverview({ onNavigate }) {
   const [weighted, setWeighted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [mediaItems, setMediaItems] = useState([]);
+  const [unifiedOrder, setUnifiedOrder] = useState([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const { user } = useUser();
   const { worksVersion } = useWorks();
@@ -100,6 +87,7 @@ export default function HomeOverview({ onNavigate }) {
           if (unifiedGroup?.categoryIds?.length) {
             selectedCategoryIds = unifiedGroup.categoryIds.map(categoryId => String(categoryId));
           }
+          if (!cancelled) setUnifiedOrder(unifiedGroup?.manualOrder || []);
         } catch {
           // A Home continua funcional mesmo se o grupo unificado não estiver disponível.
         }
@@ -133,11 +121,11 @@ export default function HomeOverview({ onNavigate }) {
     avgNote: mediaItems.length
       ? (mediaItems.reduce((sum, item) => sum + (item.note || 0), 0) / mediaItems.length).toFixed(1)
       : '0.0',
-    top6: sortItems(applyUnifiedOrder(mediaItems), 'nota', weighted).slice(0, 6),
+    top6: sortItems(applyUnifiedOrder(mediaItems, unifiedOrder), 'nota', weighted).slice(0, 6),
     recentItems: [...mediaItems]
       .sort((a, b) => new Date(b.addedDate || 0) - new Date(a.addedDate || 0))
       .slice(0, 5),
-  }), [mediaItems, weighted]);
+  }), [mediaItems, weighted, unifiedOrder]);
 
   const recentBadges = badges
     .filter((b) => b.unlocked)
