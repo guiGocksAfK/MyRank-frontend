@@ -329,6 +329,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
               ) : (
                 <>
                   <div className="mr-flex mr-items-center mr-justify-center mr-gap-2">
+                    <span aria-hidden="true" style={{ width: 24, flexShrink: 0 }} />
                     <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>{profileUsername}</span>
                     <button
                       type="button"
@@ -342,15 +343,17 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                   </div>
 
                   {profile?.email && (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
-                      @{profile.email}
+                    <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)', marginTop: 4, textAlign: 'center' }}>
+                      {profile.email}
                     </div>
                   )}
 
                   {createdAt && (
-                    <span className="mr-profile-since-pill">
-                      {fmt(tp.memberSince, { date: formatDate(createdAt, locale) })}
-                    </span>
+                    <div style={{ textAlign: 'center' }}>
+                      <span className="mr-profile-since-pill">
+                        {fmt(tp.memberSince, { date: formatDate(createdAt, locale) })}
+                      </span>
+                    </div>
                   )}
 
                 </>

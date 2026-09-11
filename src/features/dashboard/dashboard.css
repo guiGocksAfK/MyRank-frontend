@@ -435,8 +435,8 @@
 }
 
 .mr-avatar-lg {
-  width: 80px;
-  height: 80px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--mr-gold), #f1d98a);
   color: #111;
@@ -448,6 +448,8 @@
   margin: 0 auto;
   font-family: 'DM Sans', sans-serif;
   overflow: hidden;
+  border: 3px solid var(--mr-surface);
+  box-shadow: 0 0 0 1px var(--mr-border);
 }
 
 .mr-avatar-sm {
@@ -1109,24 +1111,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
-  border: 1px solid var(--mr-border);
-  border-radius: var(--mr-radius-xs);
-  background: var(--mr-surface);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   line-height: 1;
-  opacity: 0.75;
-  transition: opacity 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+  opacity: 0.6;
+  transition: opacity 0.16s ease, background 0.16s ease;
+}
+
+/* emojis costumam ter uma folga extra embutida embaixo do glyph — sem isso
+   o lápis parecia "descido" em relação ao nome ao lado */
+.mr-profile-edit-pencil {
+  transform: translateY(-1px);
 }
 
 .mr-profile-edit-pencil:hover,
 .mr-profile-edit-pencil:focus-visible {
   opacity: 1;
   background: var(--mr-gold-10);
-  border-color: var(--mr-gold);
   outline: none;
 }
 
