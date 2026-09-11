@@ -348,9 +348,9 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                   )}
 
                   {createdAt && (
-                    <div style={{ fontSize: '0.8rem', color: 'var(--mr-text-muted)', marginTop: 6 }}>
+                    <span className="mr-profile-since-pill">
                       {fmt(tp.memberSince, { date: formatDate(createdAt, locale) })}
-                    </div>
+                    </span>
                   )}
 
                 </>
@@ -358,7 +358,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
             </div>
 
             {/* Mini stats inline */}
-            <div className="mr-grid-3col" style={{ textAlign: 'center' }}>
+            <div className="mr-profile-stats">
               {[
                 { label: tp.statWorks, value: loadingWorks ? '—' : stats.obras },
                 { label: tp.statHours, value: loadingWorks ? '—' : `${stats.totalHours}h` },
@@ -375,15 +375,22 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
               ))}
             </div>
 
-            {/* Bio e conquistas rápidas */}
-            <div style={{ borderTop: '1px solid var(--mr-border)', paddingTop: 16, textAlign: 'left' }}>
-              <div style={{ fontSize: '0.9rem', color: 'var(--mr-text)', marginBottom: 10 }}>
+            {/* Bio */}
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--mr-text)', lineHeight: 1.5 }}>
                 {profileBio}
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginBottom: 12 }}>
-                {tp.quickBadges}
+            </div>
+
+            {/* Conquistas rápidas */}
+            <div className="mr-profile-quickbadges">
+              <div className="mr-flex mr-items-center mr-justify-between">
+                <span className="mr-profile-quickbadges-label">{tp.quickBadges}</span>
+                <span className="mr-profile-quickbadges-count">
+                  {fmt(tp.unlockedShort, { n: unlockedCount, m: badgeList.length })}
+                </span>
               </div>
-              <div className="mr-flex mr-flex-wrap mr-justify-center mr-gap-2" style={{ minHeight: '1.4rem' }}>
+              <div className="mr-flex mr-flex-wrap mr-gap-2" style={{ marginTop: 12 }}>
                 {loadingBadges ? (
                   <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{tp.loadingShort}</span>
                 ) : unlockedCount === 0 ? (
@@ -395,15 +402,12 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                     <span
                       key={badge.id}
                       title={badge.name}
-                      style={{ fontSize: '1.4rem', cursor: 'default', lineHeight: 1 }}
+                      className="mr-profile-quickbadge-chip"
                     >
                       {badge.icon}
                     </span>
                   ))
                 )}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)', marginTop: 10 }}>
-                {fmt(tp.unlockedOf, { n: unlockedCount, m: badgeList.length })}
               </div>
             </div>
 
