@@ -1683,7 +1683,13 @@
   to { background-position: -200% 0; }
 }
 
-/* ============ MODAIS (Nova tabela / Nova obra) — compactos e centralizados no mobile ============ */
+/* ============ MODAIS (Nova tabela / Nova obra) ============ */
+/* Os modais são renderizados via portal no <body>, fora do .myrank-dashboard,
+   então não herdam o `color` do tema — texto sem cor explícita (ex.: o <h3>
+   do título) ficava preto. Reforça a cor do tema aqui. */
+.mr-modal-scrim { color: var(--mr-text); }
+
+/* compactos e centralizados no mobile */
 @media (max-width: 640px) {
   .mr-modal-scrim {
     /* trava na viewport visível mesmo se a página tiver overflow horizontal
