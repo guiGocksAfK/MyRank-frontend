@@ -58,27 +58,41 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
     event.dataTransfer.dropEffect = 'move';
   }
 
-  function handleDrop(event, target) {
-    event.preventDefault();
-    if (!canDropOn(target)) {
-      setDraggedItemKey(null);
-      return;
-    }
-
-    const draggedIndex = orderedItems.findIndex(item => getItemKey(item) === draggedItemKey);
-    const targetIndex = orderedItems.findIndex(item => getItemKey(item) === getItemKey(target));
-    if (draggedIndex < 0 || targetIndex < 0) return;
+  /** Move draggedKey pra posição de targetKey dentro da ordem manual e persiste. */
+  function applyMove(draggedKey, targetKey) {
+    const draggedIndex = orderedItems.findIndex(item => getItemKey(item) === draggedKey);
+    const targetIndex = orderedItems.findIndex(item => getItemKey(item) === targetKey);
+    if (draggedIndex < 0 || targetIndex < 0 || draggedIndex === targetIndex) return;
 
     const nextItems = [...orderedItems];
     const [draggedItem] = nextItems.splice(draggedIndex, 1);
-    const targetPosition = nextItems.findIndex(item => getItemKey(item) === getItemKey(target));
+    const targetPosition = nextItems.findIndex(item => getItemKey(item) === targetKey);
     const insertIndex = draggedIndex < targetIndex ? targetPosition + 1 : targetPosition;
     nextItems.splice(insertIndex, 0, draggedItem);
     const nextOrder = nextItems.map(getItemKey);
     setLocalOrder(nextOrder);
     onReorder?.(nextOrder);
+  }
+
+  function handleDrop(event, target) {
+    event.preventDefault();
+    if (canDropOn(target)) applyMove(draggedItemKey, getItemKey(target));
     setDraggedItemKey(null);
   }
+
+  const noteOf = (item) => (useTimeWeight ? item.finalNote : item.note);
+
+  /** No mobile, no lugar do arrastar: sobe/desce a obra trocando com a vizinha de mesma nota. */
+  function moveRow(index, dir) {
+    const neighbor = sorted[index + (dir === 'up' ? -1 : 1)];
+    if (sortBy === 'time' || !neighbor || noteOf(sorted[index]) !== noteOf(neighbor)) return;
+    applyMove(getItemKey(sorted[index]), getItemKey(neighbor));
+  }
+
+  const canMoveRow = (index, dir) => {
+    const neighbor = sorted[index + (dir === 'up' ? -1 : 1)];
+    return sortBy !== 'time' && !!neighbor && noteOf(sorted[index]) === noteOf(neighbor);
+  };
 
   if (viewMode === 'grid') {
     return (
@@ -184,6 +198,13 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
                     <span style={{ fontWeight: 600 }}><AnimatedNumber value={item.note} /></span>
                     <span style={{ fontWeight: 600, color: 'var(--mr-blue-light)' }}>{formatTime(item.timeMinutes)}</span>
                   </>
+                )}
+
+                {(canMoveRow(i, 'up') || canMoveRow(i, 'down')) && (
+                  <div className="mr-reorder-mobile">
+                    <button type="button" aria-label={tr.moveUp} onClick={() => moveRow(i, 'up')} disabled={!canMoveRow(i, 'up')}>▲</button>
+                    <button type="button" aria-label={tr.moveDown} onClick={() => moveRow(i, 'down')} disabled={!canMoveRow(i, 'down')}>▼</button>
+                  </div>
                 )}
               </div>
             );
