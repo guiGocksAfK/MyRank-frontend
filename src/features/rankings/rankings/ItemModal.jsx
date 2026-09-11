@@ -289,9 +289,6 @@ export default function ItemModal({ item, onSave, onClose }) {
               </div>
             )}
           </div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
-            {tm.imageHint}
-          </div>
         </div>
 
         {validationError && (
