@@ -435,8 +435,8 @@
 }
 
 .mr-avatar-lg {
-  width: 80px;
-  height: 80px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--mr-gold), #f1d98a);
   color: #111;
@@ -448,6 +448,8 @@
   margin: 0 auto;
   font-family: 'DM Sans', sans-serif;
   overflow: hidden;
+  border: 3px solid var(--mr-surface);
+  box-shadow: 0 0 0 1px var(--mr-border);
 }
 
 .mr-avatar-sm {
@@ -1109,24 +1111,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
-  border: 1px solid var(--mr-border);
-  border-radius: var(--mr-radius-xs);
-  background: var(--mr-surface);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   line-height: 1;
-  opacity: 0.75;
-  transition: opacity 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+  opacity: 0.6;
+  transition: opacity 0.16s ease, background 0.16s ease;
+}
+
+/* emojis costumam ter uma folga extra embutida embaixo do glyph — sem isso
+   o lápis parecia "descido" em relação ao nome ao lado */
+.mr-profile-edit-pencil {
+  transform: translateY(-1px);
 }
 
 .mr-profile-edit-pencil:hover,
 .mr-profile-edit-pencil:focus-visible {
   opacity: 1;
   background: var(--mr-gold-10);
-  border-color: var(--mr-gold);
   outline: none;
 }
 
@@ -1464,6 +1471,74 @@
 
 @media (max-width: 768px) {
   .mr-profile-grid { grid-template-columns: 1fr; }
+}
+
+/* ============ PROFILE CARD (avatar/stats/badges) ============ */
+.mr-profile-since-pill {
+  display: inline-block;
+  font-size: 0.7rem;
+  color: var(--mr-text-muted);
+  background: var(--mr-surface);
+  border: 1px solid var(--mr-border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  margin-top: 8px;
+}
+
+.mr-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  background: var(--mr-surface);
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  padding: 12px 0;
+}
+
+.mr-profile-stats > div {
+  position: relative;
+  text-align: center;
+}
+
+.mr-profile-stats > div:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 10%;
+  height: 80%;
+  width: 1px;
+  background: var(--mr-border);
+}
+
+.mr-profile-quickbadges {
+  text-align: left;
+  border-top: 1px solid var(--mr-border);
+  padding-top: 16px;
+}
+
+.mr-profile-quickbadges-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mr-text-secondary);
+}
+
+.mr-profile-quickbadges-count {
+  font-size: 0.72rem;
+  color: var(--mr-text-muted);
+}
+
+.mr-profile-quickbadge-chip {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--mr-gold-10);
+  border: 1px solid var(--mr-gold-20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: default;
 }
 
 /* ============ SCROLLBAR ============ */

@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import { API_URL } from '../services/api';
-import { onServerDown, reportServerUp } from './serverStatus';
+import { onServerDown } from './serverStatus';
 import { useLanguage } from './i18n';
 
 const HEALTH_URL = `${API_URL.replace(/\/+$/, '')}/health`;
@@ -60,9 +60,10 @@ export function ServerWakeProvider({ children }) {
     };
   }, [startWaking]);
 
-  // Enquanto acorda: conta o tempo e tenta a cada 5s. Quando o servidor volta,
-  // esconde a tela e libera o interceptor pra refazer a requisição que falhou
-  // (sem reload — o usuário não precisa refazer o login/ação).
+  // Enquanto acorda: conta o tempo e sonda o /health a cada 5s só pra saber
+  // quando esconder a tela. A requisição que falhou de verdade já está sendo
+  // re-tentada por conta própria no interceptor do axios (api.js), então essa
+  // sonda aqui não precisa avisar mais ninguém.
   useEffect(() => {
     if (!waking) return;
     const tick = setInterval(() => setSeconds((s) => s + 1), 1000);
@@ -72,7 +73,6 @@ export function ServerWakeProvider({ children }) {
         clearInterval(tick);
         wakingRef.current = false;
         setWaking(false);
-        reportServerUp();
       }
     }, POLL_MS);
     return () => {
