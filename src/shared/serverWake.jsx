@@ -44,9 +44,21 @@ export function ServerWakeProvider({ children }) {
     setWaking(true);
   }, []);
 
-  // A tela só aparece quando uma requisição de verdade falha por cold start —
-  // o interceptor do axios avisa por aqui. Nada de sondar no load do site.
+  // Além do aviso do interceptor (quando uma requisição de verdade falha),
+  // já testa o /health assim que o site abre: se o back estiver dormindo
+  // (hospedagem gratuita no Render), acorda e mostra a tela na hora, sem
+  // esperar o usuário disparar alguma ação que vá falhar primeiro.
   useEffect(() => onServerDown(startWaking), [startWaking]);
+
+  useEffect(() => {
+    let cancelled = false;
+    probe().then((up) => {
+      if (!up && !cancelled) startWaking();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [startWaking]);
 
   // Enquanto acorda: conta o tempo e tenta a cada 5s. Quando o servidor volta,
   // esconde a tela e libera o interceptor pra refazer a requisição que falhou
