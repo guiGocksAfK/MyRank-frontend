@@ -1219,6 +1219,9 @@
 .mr-note-bar-fill.yellow { background: #facc15; }
 .mr-note-bar-fill.red    { background: var(--mr-red); }
 
+/* Setinhas de reordenar obra empatada — só no mobile (no desktop é arrastar). */
+.mr-reorder-mobile { display: none; }
+
 /* ============ MOBILE: tabela compacta + escala geral menor ============ */
 @media (max-width: 640px) {
   /* cabeçalho de colunas não faz sentido no layout compacto */
@@ -1272,6 +1275,31 @@
   /* barra de nota e o "+bônus" somem no mobile — fica só nota / nota final */
   .mr-table-row .mr-note-bar { display: none !important; }
   .mr-table-row .mr-cell-bonus { display: none !important; }
+
+  /* setinhas de reordenar obra empatada (substituem o arrastar no touch) */
+  .mr-reorder-mobile {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    gap: 2px;
+  }
+  .mr-reorder-mobile button {
+    width: 24px;
+    height: 19px;
+    padding: 0;
+    border: 1px solid var(--mr-border);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--mr-text-secondary);
+    font-size: 0.58rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mr-reorder-mobile button:not(:disabled):active { background: var(--mr-gold-10); }
+  .mr-reorder-mobile button:disabled { opacity: 0.25; cursor: default; }
 
   /* obra em si um pouco maior — era o que ficava pequeno demais */
   .mr-table-row { padding: 11px 12px !important; font-size: 0.9rem; }

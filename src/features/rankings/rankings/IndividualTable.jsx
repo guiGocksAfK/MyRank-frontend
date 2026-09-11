@@ -70,6 +70,17 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
     setDraggedItemId(null);
   }
 
+  /** No mobile (sem arrastar): sobe/desce a obra trocando com a vizinha de mesma nota. */
+  const canMoveRow = (index, dir) => {
+    const neighbor = sorted[index + (dir === 'up' ? -1 : 1)];
+    return sortBy !== 'time' && !!neighbor
+      && getDisplayedNote(sorted[index], useTimeWeight) === getDisplayedNote(neighbor, useTimeWeight);
+  };
+  const moveRow = (index, dir) => {
+    if (!canMoveRow(index, dir)) return;
+    onMoveItem(table.id, sorted[index].id, sorted[index + (dir === 'up' ? -1 : 1)].id);
+  };
+
   async function handleSave(payload) {
     await onSaveWork(table.id, payload);
   }
@@ -234,6 +245,13 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
                   <span style={{ fontWeight: 600 }}><AnimatedNumber value={item.note} /></span>
                   <span style={{ fontWeight: 600, color: 'var(--mr-blue-light)' }}>{formatTime(item.timeMinutes)}</span>
                 </>
+              )}
+
+              {(canMoveRow(i, 'up') || canMoveRow(i, 'down')) && (
+                <div className="mr-reorder-mobile">
+                  <button type="button" aria-label={tr.moveUp} onClick={() => moveRow(i, 'up')} disabled={!canMoveRow(i, 'up')}>▲</button>
+                  <button type="button" aria-label={tr.moveDown} onClick={() => moveRow(i, 'down')} disabled={!canMoveRow(i, 'down')}>▼</button>
+                </div>
               )}
 
               <div className="mr-flex mr-gap-1" style={{ justifyContent: 'flex-end' }}>
