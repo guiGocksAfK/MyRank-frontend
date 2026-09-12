@@ -66,18 +66,39 @@ export function ServerWakeProvider({ children }) {
   // sonda aqui não precisa avisar mais ninguém.
   useEffect(() => {
     if (!waking) return;
+    let checking = false;
     const tick = setInterval(() => setSeconds((s) => s + 1), 1000);
-    const poll = setInterval(async () => {
-      if (await probe()) {
-        clearInterval(poll);
-        clearInterval(tick);
-        wakingRef.current = false;
-        setWaking(false);
+
+    const checkNow = async () => {
+      if (checking) return;
+      checking = true;
+      try {
+        if (await probe()) {
+          clearInterval(poll);
+          clearInterval(tick);
+          wakingRef.current = false;
+          setWaking(false);
+        }
+      } finally {
+        checking = false;
       }
-    }, POLL_MS);
+    };
+
+    const poll = setInterval(checkNow, POLL_MS);
+
+    // Navegadores jogam o setInterval de abas em segundo plano pra só 1x/min —
+    // se o usuário sair da aba (ex.: ir checar o painel do banco) enquanto
+    // espera, a sondagem quase para. Ao voltar pra aba, testa na hora em vez
+    // de esperar o próximo tick throttled.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') checkNow();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
     return () => {
       clearInterval(poll);
       clearInterval(tick);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [waking]);
 
