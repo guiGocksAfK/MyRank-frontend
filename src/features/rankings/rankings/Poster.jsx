@@ -1,9 +1,12 @@
-import React from 'react';
+import { useState } from 'react';
 
 export default function Poster({ src, title, size = 'thumb' }) {
+  const [failedSrc, setFailedSrc] = useState(null);
   const dimensions = size === 'thumb' ? { w: 36, h: 54 } : { w: 200, h: 300 };
   const placeholder = (
-    <div style={{
+    <div className={`mr-poster-image mr-poster-image-${size}`}
+      role="img" aria-label={title ? `Capa indisponivel: ${title}` : "Capa indisponivel"}
+      style={{
       width: dimensions.w, height: dimensions.h,
       borderRadius: size === 'thumb' ? 4 : 8,
       background: 'var(--mr-surface)', border: '1px solid var(--mr-border)',
@@ -13,7 +16,7 @@ export default function Poster({ src, title, size = 'thumb' }) {
     }}>🎬</div>
   );
 
-  if (!src) return placeholder;
+  if (!src || failedSrc === src) return placeholder;
 
   return (
     <img
@@ -21,10 +24,7 @@ export default function Poster({ src, title, size = 'thumb' }) {
       src={src}
       alt={title}
       loading="lazy"
-      onError={(e) => {
-        e.target.style.display = 'none';
-        e.target.nextSibling.style.display = 'flex';
-      }}
+      onError={() => setFailedSrc(src)}
       style={{
         width: dimensions.w, height: dimensions.h,
         borderRadius: size === 'thumb' ? 4 : 8,
