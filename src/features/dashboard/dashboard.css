@@ -1137,6 +1137,25 @@
   outline: none;
 }
 
+/* "Excluir conta" no modo de edição: discreto de propósito, só ganha cor no hover */
+.mr-profile-delete-link {
+  margin-top: 4px;
+  padding: 2px 4px;
+  border: none;
+  background: transparent;
+  color: var(--mr-text-muted);
+  font: inherit;
+  font-size: 0.72rem;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.16s ease;
+}
+
+.mr-profile-delete-link:hover,
+.mr-profile-delete-link:focus-visible {
+  color: #ff8d8b;
+}
+
 .mr-tab-trigger {
   padding: 7px 16px;
   border-radius: 999px;

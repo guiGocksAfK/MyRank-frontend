@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getMe, updateMe } from '../../services/userService';
 import Avatar from '../../shared/components/Avatar';
 import AvatarUrlModal from './AvatarUrlModal';
+import DeleteAccountModal from './DeleteAccountModal';
 import { useUser } from '../../shared/userContext';
 import { useLanguage, LANGUAGES } from '../../shared/i18n';
 import {
@@ -165,6 +166,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const [profile,         setProfile]         = useState(null);  // objeto /users/me completo (id, avatarUrl, updatedAt...)
   const [avatarVersion,   setAvatarVersion]   = useState(0);     // muda pra furar o cache do <img> após troca
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { setUser } = useUser();
 
   // atualiza o form local + o usuário compartilhado (header, saudação da home)
@@ -323,6 +325,17 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                     </button>
                     <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving}>
                       {saving ? tp.saving : tp.save}
+                    </button>
+                  </div>
+                  {/* De propósito só no modo de edição e sem destaque: é irreversível. */}
+                  <div style={{ textAlign: 'center' }}>
+                    <button
+                      type="button"
+                      className="mr-profile-delete-link"
+                      onClick={() => setDeleteModalOpen(true)}
+                      disabled={!profile}
+                    >
+                      {tp.deleteAccount}
                     </button>
                   </div>
                 </div>
@@ -618,6 +631,10 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
           onClose={() => setAvatarModalOpen(false)}
           onDone={handleAvatarDone}
         />
+      )}
+
+      {deleteModalOpen && profile && (
+        <DeleteAccountModal user={profile} onClose={() => setDeleteModalOpen(false)} />
       )}
 
     </div>
