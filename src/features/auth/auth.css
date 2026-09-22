@@ -547,6 +547,9 @@
 
 .auth-google-wrapper {
   position: relative;
+  /* Contem a camada transparente do Google sem cobrir os botoes vizinhos. */
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   width: 100%;
@@ -559,6 +562,18 @@
   pointer-events: none;
 }
 
+/* O botao real do Google fica invisivel por cima: repassa hover e foco (Tab)
+   pro botao visual (foco via useIframeFocus). Sombra interna porque o overflow do wrapper corta a externa. */
+.auth-google-wrapper:hover .auth-google-trigger {
+  border-color: rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.auth-google-wrapper.is-focused .auth-google-trigger {
+  border-color: #d4af37;
+  box-shadow: inset 0 0 0 2px rgba(212, 175, 55, 0.45);
+}
+
 .auth-google-provider {
   position: absolute;
   inset: 0;
@@ -567,8 +582,23 @@
   opacity: 0;
 }
 
-.auth-google-provider > div,
-.auth-google-provider iframe {
+.auth-google-provider > div {
   width: 100% !important;
   height: 100% !important;
+}
+
+/* O Google cria o iframe abaixo do botao e com 150px de altura; com escala de
+   tela != 100% o Chrome ignora o overflow do wrapper e o iframe engole os
+   cliques do Discord e dos links. Prende ele exatamente em cima do botao
+   (divs internas do Google static pra o iframe se medir pelo provider). */
+.auth-google-provider div {
+  position: static !important;
+}
+
+.auth-google-provider iframe {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
 }

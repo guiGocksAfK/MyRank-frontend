@@ -4,6 +4,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { createUser } from "../../services/userService";
 import { getDiscordAuthUrl, login, loginWithGoogle } from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
+import useIframeFocus from "./useIframeFocus";
 import "./auth.css";
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
@@ -19,6 +20,7 @@ const RegisterPage = () => {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleWrapperRef, googleFocused] = useIframeFocus();
 
   const handleBack = () => {
     if (step === 2) {
@@ -167,7 +169,7 @@ const RegisterPage = () => {
                 </div>
 
                 {googleClientId ? (
-                  <div className="auth-google-wrapper">
+                  <div ref={googleWrapperRef} className={`auth-google-wrapper${googleFocused ? " is-focused" : ""}`}>
                     <button
                       className="auth-social-button auth-social-button--google auth-google-trigger"
                       type="button"
