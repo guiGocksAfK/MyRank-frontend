@@ -9,6 +9,7 @@ import Register from './features/auth/RegisterPage'
 import Dashboard from './features/dashboard/DashboardPage'
 import InsightsResult from './features/insights/InsightsResultPage'
 import DiscordCallback from './features/auth/DiscordCallbackPage'
+import VerifyEmail from './features/auth/VerifyEmailPage'
 import ChatInvitePage from './features/chat/ChatInvitePage'
 
 
@@ -40,6 +41,7 @@ function Layout() {
         <Route path="/entrar" element={<Login />} />
         <Route path="/cadastrar" element={<Register />} />
         <Route path="/auth/discord/callback" element={<DiscordCallback />} />
+        <Route path="/confirmar-email" element={<VerifyEmail />} />
         <Route path="/chat/invite/:token" element={<ChatInvitePage />} />
       </Routes>
     </div>

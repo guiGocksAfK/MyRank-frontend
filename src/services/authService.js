@@ -23,6 +23,21 @@ export const loginWithDiscord = async (accessToken) => {
   return response.data;
 };
 
+/** Token do link do email de confirmação; o backend já devolve a sessão. */
+export const verifyEmail = async (token) => {
+  const response = await api.post("/auth/verify-email", { token });
+  saveAuthResponse(response.data);
+  return response.data;
+};
+
+export const resendVerification = async (email) => {
+  await api.post("/auth/resend-verification", { email });
+};
+
+/** Login com senha recusado só porque a conta ainda não confirmou o email. */
+export const isEmailNotVerifiedError = (err) =>
+  err?.response?.status === 403 && err.response.data?.code === "EMAIL_NOT_VERIFIED";
+
 export const getDiscordAuthUrl = () => {
   const clientId = import.meta.env.VITE_DISCORD_CLIENT_ID?.trim();
 

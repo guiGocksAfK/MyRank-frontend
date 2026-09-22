@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { createUser } from "../../services/userService";
-import { getDiscordAuthUrl, login, loginWithGoogle } from "../../services/authService";
+import { getDiscordAuthUrl, loginWithGoogle } from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
+import ResendVerification from "./ResendVerification";
 import useIframeFocus from "./useIframeFocus";
 import "./auth.css";
 
@@ -11,9 +12,9 @@ const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const tAuth = t.auth;
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(1); // 1 email · 2 usuário/senha · 3 "confira seu email"
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -83,7 +84,7 @@ const RegisterPage = () => {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       setError(tAuth.errors.passwordShort);
       return;
     }
@@ -96,9 +97,9 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      await createUser({ username: username.trim(), email: email.trim(), password });
-      await login(email.trim(), password);
-      navigate("/dashboard");
+      // Conta nasce sem confirmar: só entra depois do clique no link do email.
+      await createUser({ username: username.trim(), email: email.trim(), password, language: lang });
+      setStep(3);
     } catch (err) {
       const message = err.response?.data?.message || tAuth.errors.createAccount;
       setError(message);
@@ -129,10 +130,26 @@ const RegisterPage = () => {
         <form className="auth-card" onSubmit={handleSubmit}>
           <div className="auth-card-header">
             <h2>My<span>Rank</span></h2>
-            <p className="auth-step-label">{tAuth.register.stepLabel.replace("{step}", step)}</p>
+            {step !== 3 && (
+              <p className="auth-step-label">{tAuth.register.stepLabel.replace("{step}", step)}</p>
+            )}
           </div>
 
-          {step === 1 ? (
+          {step === 3 ? (
+            <div className="auth-step-panel">
+              <div className="auth-step-copy">
+                <h3>{tAuth.verify.checkTitle}</h3>
+                <p>{tAuth.verify.checkCopy.replace("{email}", email.trim())}</p>
+                <p>{tAuth.verify.checkSpam}</p>
+              </div>
+
+              <ResendVerification email={email.trim()} />
+
+              <p className="auth-signup-note">
+                <Link to="/entrar">{tAuth.verify.backToLogin}</Link>
+              </p>
+            </div>
+          ) : step === 1 ? (
             <div className="auth-step-panel">
               <div className="auth-step-copy">
                 <h3>{tAuth.register.step1Title}</h3>

@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import { getDiscordAuthUrl, login, loginWithGoogle, takePostAuthPath } from "../../services/authService";
+import {
+  getDiscordAuthUrl,
+  isEmailNotVerifiedError,
+  login,
+  loginWithGoogle,
+  takePostAuthPath,
+} from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
+import ResendVerification from "./ResendVerification";
 import useIframeFocus from "./useIframeFocus";
 import "./auth.css";
 
@@ -16,17 +23,24 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [notVerified, setNotVerified] = useState(false);
   const [googleWrapperRef, googleFocused] = useIframeFocus();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+    setNotVerified(false);
     setLoading(true);
 
     try {
       await login(email, password);
       navigate(takePostAuthPath());
     } catch (err) {
+      if (isEmailNotVerifiedError(err)) {
+        setNotVerified(true);
+        setError(tAuth.verify.notVerified);
+        return;
+      }
       const message = err.response?.data?.message || tAuth.errors.login;
       setError(message);
     } finally {
@@ -122,6 +136,7 @@ const LoginPage = () => {
           </div>
 
           {error && <p className="auth-error">{error}</p>}
+          {notVerified && <ResendVerification email={email.trim()} />}
 
           <a className="auth-forgot" href="#">
             {tAuth.login.forgot}
