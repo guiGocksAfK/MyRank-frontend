@@ -139,30 +139,33 @@ const RegisterPage = () => {
                 <p>{tAuth.register.step1Copy}</p>
               </div>
 
-              <div className="auth-fields">
-                <label className="auth-field" htmlFor="email">
-                  <span>{tAuth.emailLabel}</span>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder={tAuth.emailPlaceholder}
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </label>
+              {/* bloco comum (nao grid) pra ter o mesmo espacamento da tela de entrar */}
+              <div>
+                <div className="auth-fields">
+                  <label className="auth-field" htmlFor="email">
+                    <span>{tAuth.emailLabel}</span>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder={tAuth.emailPlaceholder}
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </label>
 
-                {error && <p className="auth-error">{error}</p>}
+                  {error && <p className="auth-error">{error}</p>}
 
-                <button
-                  className="auth-submit auth-submit--compact"
-                  type="button"
-                  onClick={handleContinue}
-                  disabled={loading}
-                >
-                  {tAuth.register.continue}
-                </button>
+                  <button
+                    className="auth-submit auth-submit--compact"
+                    type="button"
+                    onClick={handleContinue}
+                    disabled={loading}
+                  >
+                    {tAuth.register.continue}
+                  </button>
+                </div>
 
                 <div className="auth-divider">
                   <span>{tAuth.orContinue}</span>
@@ -219,11 +222,11 @@ const RegisterPage = () => {
                   </span>
                   {tAuth.discord}
                 </button>
-              </div>
 
-              <p className="auth-signup-note">
-                {tAuth.register.loginNote} <Link to="/entrar">{tAuth.register.loginLink}</Link>
-              </p>
+                <p className="auth-signup-note">
+                  {tAuth.register.loginNote} <Link to="/entrar">{tAuth.register.loginLink}</Link>
+                </p>
+              </div>
             </div>
           ) : (
             <div className="auth-step-panel">
