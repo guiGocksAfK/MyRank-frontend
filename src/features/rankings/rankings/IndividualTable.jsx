@@ -37,7 +37,33 @@ function TableToolbar({ table, onDeleteTable, onEditTable, onAddWork }) {
   );
 }
 
-export default function IndividualTable({ table, loading, sortBy, useTimeWeight, viewMode, filters, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem, onRenameTable }) {
+/** Botões "Todas | <subcategorias> | Sem subcategoria" — só aparecem se a tabela tiver subcategorias. */
+function SubcategoryFilter({ subcategories, value, onChange }) {
+  const { t } = useLanguage();
+  const ts = t.rankings.subcategories;
+  const options = [
+    { id: 'all', label: ts.filterAll },
+    ...subcategories.map(sub => ({ id: sub.id, label: sub.name })),
+    { id: 'none', label: ts.filterNone },
+  ];
+  return (
+    <div className="mr-flex mr-gap-2 mr-flex-wrap" style={{ marginBottom: '1rem' }} role="group" aria-label={ts.heading}>
+      {options.map(option => (
+        <button
+          key={option.id}
+          type="button"
+          className={`mr-btn mr-btn-sm ${value === option.id ? 'mr-btn-gold' : 'mr-btn-outline'}`}
+          aria-pressed={value === option.id}
+          onClick={() => onChange(option.id)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default function IndividualTable({ table, loading, sortBy, useTimeWeight, viewMode, filters, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem, onRenameTable, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory }) {
   const { t } = useLanguage();
   const tr = t.rankings;
   const [modal, setModal] = useState(null);
@@ -45,12 +71,27 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
   const [confirmAction, setConfirmAction] = useState(null);
   const [draggedItemId, setDraggedItemId] = useState(null);
   const [showEditTable, setShowEditTable] = useState(false);
+  const [subFilterChoice, setSubFilterChoice] = useState('all'); // 'all' | 'none' | id da subcategoria
   const mode    = getMode(sortBy, useTimeWeight);
   const maxNote = mode === 'weight' ? 12 : 10;
   const cols    = getColumnConfig(mode, true, viewMode === 'list', tr.cols);
 
-  const filteredItems = useMemo(() => applyFilters(table.items, filters), [table.items, filters]);
+  const subcategories = table.subcategories;
+  const hasSubcategories = subcategories.length > 0;
+  // Subcategoria filtrada que foi apagada → volta pra "Todas".
+  const subFilter = subFilterChoice === 'all' || subFilterChoice === 'none'
+    || subcategories.some(sub => sub.id === subFilterChoice) ? subFilterChoice : 'all';
+
+  const filteredItems = useMemo(() => {
+    const bySub = subFilter === 'all' ? table.items
+      : subFilter === 'none' ? table.items.filter(item => !item.subcategoryId)
+      : table.items.filter(item => item.subcategoryId === subFilter);
+    return applyFilters(bySub, filters);
+  }, [table.items, filters, subFilter]);
   const sorted = sortItems(filteredItems, sortBy, useTimeWeight);
+
+  // Adicionar obra com uma subcategoria filtrada já deixa ela selecionada.
+  const defaultSubcategoryId = typeof subFilter === 'number' ? subFilter : null;
 
   function canDropOn(target) {
     const draggedItem = sorted.find(item => item.id === draggedItemId);
@@ -109,11 +150,37 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
   }
 
   const toolbar = (
-    <TableToolbar
+    <>
+      <TableToolbar
+        table={table}
+        onEditTable={() => setShowEditTable(true)}
+        onDeleteTable={() => setConfirmAction({ type: 'table' })}
+        onAddWork={() => setModal('add')}
+      />
+      {hasSubcategories && (
+        <SubcategoryFilter subcategories={subcategories} value={subFilter} onChange={setSubFilterChoice} />
+      )}
+    </>
+  );
+
+  const itemModal = modal && (
+    <ItemModal
+      item={modal === 'add' ? null : modal}
+      subcategories={subcategories}
+      defaultSubcategoryId={defaultSubcategoryId}
+      onSave={handleSave}
+      onClose={() => setModal(null)}
+    />
+  );
+
+  const editTableModal = showEditTable && (
+    <EditTableModal
       table={table}
-      onEditTable={() => setShowEditTable(true)}
-      onDeleteTable={() => setConfirmAction({ type: 'table' })}
-      onAddWork={() => setModal('add')}
+      onSave={name => onRenameTable(table.id, name)}
+      onAddSubcategory={name => onAddSubcategory(table.id, name)}
+      onRenameSubcategory={(subId, name) => onRenameSubcategory(table.id, subId, name)}
+      onDeleteSubcategory={subId => onDeleteSubcategory(table.id, subId)}
+      onClose={() => setShowEditTable(false)}
     />
   );
 
@@ -144,9 +211,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
             {tr.noResults}
           </div>
         )}
-        {modal && (
-          <ItemModal item={modal === 'add' ? null : modal} onSave={handleSave} onClose={() => setModal(null)} />
-        )}
+        {itemModal}
         {confirmAction?.type === 'item' && (
           <ConfirmModal
             title={tr.confirm.removeWorkTitle}
@@ -163,13 +228,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
             onClose={() => setConfirmAction(null)}
           />
         )}
-        {showEditTable && (
-          <EditTableModal
-            table={table}
-            onSave={name => onRenameTable(table.id, name)}
-            onClose={() => setShowEditTable(false)}
-          />
-        )}
+        {editTableModal}
       </div>
     );
   }
@@ -213,7 +272,13 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
 
               <div className="mr-min-w-0">
                 <div className="mr-truncate" style={{ fontWeight: 500 }}>{item.title}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{item.sub}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
+                  {item.sub}
+                  {/* Em "Todas", mostra de qual subcategoria a obra é */}
+                  {subFilter === 'all' && item.subcategoryName && (
+                    <span className="mr-subcategory-tag">{item.subcategoryName}</span>
+                  )}
+                </div>
               </div>
 
               {mode === 'weight' && (
@@ -269,9 +334,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
         })}
       </div>
 
-      {modal && (
-        <ItemModal item={modal === 'add' ? null : modal} onSave={handleSave} onClose={() => setModal(null)} />
-      )}
+      {itemModal}
       {confirmAction?.type === 'item' && (
         <ConfirmModal
           title={tr.confirm.removeWorkTitle}
@@ -288,13 +351,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
           onClose={() => setConfirmAction(null)}
         />
       )}
-      {showEditTable && (
-        <EditTableModal
-          table={table}
-          onSave={name => onRenameTable(table.id, name)}
-          onClose={() => setShowEditTable(false)}
-        />
-      )}
+      {editTableModal}
     </div>
   );
 }
