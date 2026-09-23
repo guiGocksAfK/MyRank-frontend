@@ -5,7 +5,10 @@ import TableSelector from './TableSelector';
 import FilterPanel from './FilterPanel';
 import NewTableModal from './NewTableModal';
 import { getGroups, createGroup, updateGroup, updateGroupOrder } from '../../../services/masterTableGroupService';
-import { getCategories, createCategory, updateCategory, deleteCategory } from '../../../services/CategoryService.js';
+import {
+  getCategories, createCategory, updateCategory, deleteCategory,
+  createSubcategory, renameSubcategory, deleteSubcategory,
+} from '../../../services/CategoryService.js';
 import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../../services/WorkService.js';
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../../utils/mapWork';
 import { applyFilters } from '../../../utils/formatters';
@@ -254,6 +257,37 @@ export default function RankingsTab({ onNavigateToCreators }) {
     bumpWorks();
   }
 
+  // ── Subcategorias (salvam na hora, direto do modal de editar tabela) ──
+  async function handleAddSubcategory(tableId, name) {
+    const created = await createSubcategory(tableId, name);
+    setTables(prev => prev.map(table => table.id === tableId
+      ? { ...table, subcategories: [...table.subcategories, created] }
+      : table));
+  }
+
+  async function handleRenameSubcategory(tableId, subcategoryId, name) {
+    const renamed = await renameSubcategory(tableId, subcategoryId, name);
+    setTables(prev => prev.map(table => table.id !== tableId ? table : {
+      ...table,
+      subcategories: table.subcategories.map(sub => sub.id === subcategoryId ? renamed : sub),
+      items: table.items.map(item => item.subcategoryId === subcategoryId
+        ? { ...item, subcategoryName: renamed.name }
+        : item),
+    }));
+  }
+
+  /** As obras ficam na tabela, só perdem a subcategoria (igual ao ON DELETE SET NULL do banco). */
+  async function handleDeleteSubcategory(tableId, subcategoryId) {
+    await deleteSubcategory(tableId, subcategoryId);
+    setTables(prev => prev.map(table => table.id !== tableId ? table : {
+      ...table,
+      subcategories: table.subcategories.filter(sub => sub.id !== subcategoryId),
+      items: table.items.map(item => item.subcategoryId === subcategoryId
+        ? { ...item, subcategoryId: null, subcategoryName: null }
+        : item),
+    }));
+  }
+
   // ── Mudar seleção do Unificado (persiste no master_table_group) ──
   async function handleChangeSelectedTables(newIds) {
     setSelectedTableIds(newIds); // atualiza a UI na hora
@@ -391,6 +425,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
           if (!table) return null;
           return (
             <IndividualTable
+              key={table.id} // zera o filtro de subcategoria ao trocar de tabela
               table={table}
               loading={loadingTableIds.includes(table.id)}
               sortBy={sortBy}
@@ -402,6 +437,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
               onDeleteTable={handleDeleteTable}
               onMoveItem={handleMoveItem}
               onRenameTable={handleRenameTable}
+              onAddSubcategory={handleAddSubcategory}
+              onRenameSubcategory={handleRenameSubcategory}
+              onDeleteSubcategory={handleDeleteSubcategory}
             />
           );
         })()

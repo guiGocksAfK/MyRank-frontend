@@ -11,6 +11,8 @@ export function mapWorkToItem(work) {
     addedDate: work.createdAt ?? null,
     releaseDate: work.releaseDate,
     image: work.imageUrl ?? '',
+    subcategoryId: work.subcategoryId ?? null,
+    subcategoryName: work.subcategoryName ?? null,
   };
 }
 
@@ -24,6 +26,8 @@ export function mapItemToWorkDTO(item, categoryId) {
     releaseDate: item.releaseDate || null,
     timeMinutes: item.timeMinutes,
     score: item.note,
+    // 0 = sem subcategoria (no update, null significaria "não mexe")
+    subcategoryId: item.subcategoryId ?? 0,
   };
 }
 
@@ -32,6 +36,7 @@ export function mapCategoryToTable(category, items = []) {
   return {
     id: category.id,
     label: category.name,
+    subcategories: category.subcategories ?? [],
     items,
   };
 }
