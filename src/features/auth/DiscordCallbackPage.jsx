@@ -1,18 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginWithDiscord, takePostAuthPath } from "../../services/authService";
+import { consumeDiscordState, loginWithDiscord, takePostAuthPath } from "../../services/authService";
 import "./auth.css";
 
 export default function DiscordCallbackPage() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  // O token e o state só valem uma vez; sem isso o StrictMode (dev) rodaria duas.
+  const handled = useRef(false);
 
   useEffect(() => {
+    if (handled.current) return;
+    handled.current = true;
+
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const queryParams = new URLSearchParams(window.location.search);
     const accessToken = hashParams.get("access_token");
+    const returnedState = hashParams.get("state") || queryParams.get("state");
     const oauthError = hashParams.get("error") || queryParams.get("error");
     const errorDescription = hashParams.get("error_description") || queryParams.get("error_description");
+
+    // Tira o token do Discord da barra de endereço (e do histórico do navegador).
+    window.history.replaceState(null, "", window.location.pathname);
 
     if (oauthError) {
       setError(errorDescription || "Autorização cancelada ou negada.");
@@ -21,6 +30,12 @@ export default function DiscordCallbackPage() {
 
     if (!accessToken) {
       setError("Token do Discord não encontrado. Verifique se a redirect URI cadastrada no Discord bate exatamente com a URL atual.");
+      return;
+    }
+
+    // Login que não foi iniciado por esta aba (link forjado) é descartado.
+    if (!consumeDiscordState(returnedState)) {
+      setError("Não foi possível confirmar que este login começou aqui. Tente entrar com o Discord de novo.");
       return;
     }
 
