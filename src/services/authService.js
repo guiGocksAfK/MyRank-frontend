@@ -56,9 +56,36 @@ export const getDiscordAuthUrl = () => {
     redirect_uri: redirectUri,
     response_type: "token",
     scope: "identify email",
+    state: createDiscordState(),
   });
 
   return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
+};
+
+const DISCORD_STATE_KEY = "myrank_discord_oauth_state";
+
+/**
+ * `state` do OAuth: valor aleatório guardado nesta aba e conferido na volta. Sem
+ * ele, um link com o access_token da conta de outra pessoa logaria a vítima na
+ * conta do atacante (login CSRF).
+ */
+function createDiscordState() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  const state = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  sessionStorage.setItem(DISCORD_STATE_KEY, state);
+  return state;
+}
+
+/** Confere o `state` que voltou do Discord e descarta o guardado (só vale uma vez). */
+export const consumeDiscordState = (returnedState) => {
+  let expected = null;
+  try {
+    expected = sessionStorage.getItem(DISCORD_STATE_KEY);
+    sessionStorage.removeItem(DISCORD_STATE_KEY);
+  } catch {
+    /* storage bloqueado: expected fica null e o login é recusado */
+  }
+  return !!expected && !!returnedState && expected === returnedState;
 };
 
 const PENDING_INVITE_KEY = "myrank_pending_invite";
