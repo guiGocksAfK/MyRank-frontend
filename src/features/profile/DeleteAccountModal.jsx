@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { deleteMe } from '../../services/userService';
+import { deleteMe, requestDeletionCode } from '../../services/userService';
 import { logout } from '../../services/authService';
 import { useLanguage } from '../../shared/i18n';
 
@@ -16,6 +16,8 @@ export default function DeleteAccountModal({ user, onClose }) {
 
   const [confirmUsername, setConfirmUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [deletionCode, setDeletionCode] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,7 +27,21 @@ export default function DeleteAccountModal({ user, onClose }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [busy, onClose]);
 
-  const canSubmit = confirmUsername.trim() === user.username && (!user.hasPassword || password.length > 0);
+  const canSubmit = confirmUsername.trim() === user.username
+    && (user.hasPassword ? password.length > 0 : deletionCode.trim().length > 0);
+
+  const handleRequestCode = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      await requestDeletionCode();
+      setCodeSent(true);
+    } catch (err) {
+      setError(err?.response?.data?.message || tp.deleteCodeError);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleDelete = async (event) => {
     event.preventDefault();
@@ -33,7 +49,11 @@ export default function DeleteAccountModal({ user, onClose }) {
     setBusy(true);
     setError('');
     try {
-      await deleteMe({ confirmUsername: confirmUsername.trim(), password: user.hasPassword ? password : null });
+      await deleteMe({
+        confirmUsername: confirmUsername.trim(),
+        password: user.hasPassword ? password : null,
+        deletionCode: user.hasPassword ? null : deletionCode.trim(),
+      });
       logout();
       // Recarrega do zero: derruba o chat em tempo real e qualquer estado da sessão antiga.
       window.location.replace('/');
@@ -97,6 +117,24 @@ export default function DeleteAccountModal({ user, onClose }) {
               autoComplete="current-password"
               style={{ width: '100%' }}
             />
+          </>
+        )}
+
+        {!user.hasPassword && (
+          <>
+            <button className="mr-btn mr-btn-outline mr-btn-sm" type="button"
+              onClick={handleRequestCode} disabled={busy} style={{ marginTop: 12 }}>
+              {codeSent ? tp.deleteResendCode : tp.deleteSendCode}
+            </button>
+            {codeSent && <p style={{ fontSize: '0.8rem', color: 'var(--mr-text-secondary)' }}>
+              {tp.deleteCodeSent}
+            </p>}
+            <label className="mr-setting-label" style={{ margin: '12px 0 6px', display: 'block' }}>
+              {tp.deleteCodeLabel}
+            </label>
+            <input className="mr-input" value={deletionCode}
+              onChange={(e) => setDeletionCode(e.target.value.toUpperCase())}
+              autoComplete="one-time-code" maxLength={8} style={{ width: '100%' }} />
           </>
         )}
 

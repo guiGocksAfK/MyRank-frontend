@@ -15,9 +15,13 @@ export const updateMe = async (data) => {
   return response.data;
 };
 
-/** Exclusão definitiva: { confirmUsername, password? } (senha só se a conta tiver). */
-export const deleteMe = async ({ confirmUsername, password }) => {
-  await api.delete("/users/me", { data: { confirmUsername, password } });
+export const requestDeletionCode = async () => {
+  await api.post("/users/me/deletion-code");
+};
+
+/** Exclusão definitiva: senha ou código enviado ao email da conta. */
+export const deleteMe = async ({ confirmUsername, password, deletionCode }) => {
+  await api.delete("/users/me", { data: { confirmUsername, password, deletionCode } });
 };
 
 /**
