@@ -2,8 +2,116 @@ import { useState } from 'react';
 import { useLanguage } from '../../../shared/i18n';
 
 const TYPE_EMOJI = { filme: '🎬', jogo: '🎮', serie: '📺', livro: '📚', anime: '🎌', outro: '📦' };
+const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
-export default function EditTableModal({ table, onSave, onClose }) {
+/** Cria/renomeia/remove subcategorias na hora (independe do botão Salvar do nome). */
+function SubcategoryManager({ subcategories, onAdd, onRename, onDelete, inputStyle }) {
+  const { t } = useLanguage();
+  const ts = t.rankings.subcategories;
+  const [newName, setNewName] = useState('');
+  const [drafts, setDrafts] = useState({}); // id → nome sendo editado
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const clearDraft = (id) => setDrafts(current => {
+    const next = { ...current };
+    delete next[id];
+    return next;
+  });
+
+  async function run(action) {
+    setBusy(true);
+    setError('');
+    try {
+      await action();
+      return true;
+    } catch (err) {
+      setError(err?.response?.data?.message || ts.error);
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleAdd() {
+    const name = newName.trim();
+    if (!name) return;
+    if (await run(() => onAdd(name))) setNewName('');
+  }
+
+  async function handleRename(sub) {
+    const name = (drafts[sub.id] ?? sub.name).trim();
+    if (!name || name === sub.name) {
+      clearDraft(sub.id);
+      return;
+    }
+    if (await run(() => onRename(sub.id, name))) clearDraft(sub.id);
+  }
+
+  async function handleDelete(sub) {
+    if (!window.confirm(fmt(ts.removeConfirm, { name: sub.name }))) return;
+    await run(() => onDelete(sub.id));
+  }
+
+  return (
+    <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--mr-border)' }}>
+      <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{ts.heading}</div>
+      <p style={{ margin: '4px 0 10px', fontSize: '0.72rem', color: 'var(--mr-text-secondary)', lineHeight: 1.45 }}>
+        {ts.hint}
+      </p>
+
+      {subcategories.length === 0 && (
+        <p style={{ margin: '0 0 10px', fontSize: '0.75rem', color: 'var(--mr-text-muted)' }}>{ts.empty}</p>
+      )}
+
+      <div className="mr-space-y-2" style={{ marginBottom: 10 }}>
+        {subcategories.map(sub => (
+          <div key={sub.id} className="mr-flex mr-items-center mr-gap-2">
+            <input
+              aria-label={ts.rename}
+              value={drafts[sub.id] ?? sub.name}
+              onChange={event => setDrafts(current => ({ ...current, [sub.id]: event.target.value }))}
+              onBlur={() => handleRename(sub)}
+              onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }}
+              maxLength={60}
+              style={inputStyle}
+              disabled={busy}
+            />
+            <button
+              type="button"
+              className="mr-btn mr-btn-ghost mr-btn-sm"
+              title={ts.remove}
+              aria-label={`${ts.remove} ${sub.name}`}
+              onClick={() => handleDelete(sub)}
+              disabled={busy}
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="mr-flex mr-items-center mr-gap-2">
+        <input
+          value={newName}
+          placeholder={ts.placeholder}
+          onChange={event => setNewName(event.target.value)}
+          onKeyDown={event => { if (event.key === 'Enter') handleAdd(); }}
+          maxLength={60}
+          style={inputStyle}
+          disabled={busy}
+        />
+        <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={handleAdd} disabled={busy || !newName.trim()}>
+          {ts.add}
+        </button>
+      </div>
+
+      {error && <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#ff6b6b' }} role="alert">{error}</p>}
+    </div>
+  );
+}
+
+export default function EditTableModal({ table, onSave, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.editTableModal;
   const TYPE_OPTIONS = Object.keys(TYPE_EMOJI).map((value) => ({
@@ -49,7 +157,7 @@ export default function EditTableModal({ table, onSave, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="mr-edit-table-title"
-        style={{ width: 360, maxWidth: '100%', padding: '1.5rem', background: 'var(--mr-surface)', border: '1px solid var(--mr-border)', borderRadius: 12, boxShadow: '0 18px 50px rgba(0,0,0,0.5)' }}
+        style={{ width: 400, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', background: 'var(--mr-surface)', border: '1px solid var(--mr-border)', borderRadius: 12, boxShadow: '0 18px 50px rgba(0,0,0,0.5)' }}
         onClick={event => event.stopPropagation()}
       >
         <h2 id="mr-edit-table-title" style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>
@@ -81,6 +189,13 @@ export default function EditTableModal({ table, onSave, onClose }) {
             <input id="mr-edit-table-emoji" value={customEmoji} onChange={event => setCustomEmoji(event.target.value)} maxLength={4} style={{ ...inputStyle, width: 90, textAlign: 'center', fontSize: '1.1rem' }} disabled={saving} />
           </>
         )}
+        <SubcategoryManager
+          subcategories={table.subcategories}
+          onAdd={onAddSubcategory}
+          onRename={onRenameSubcategory}
+          onDelete={onDeleteSubcategory}
+          inputStyle={inputStyle}
+        />
         <div className="mr-flex mr-gap-2" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
           <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={saving}>{tm.cancel}</button>
           <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving || !name.trim()}>

@@ -1248,6 +1248,19 @@
 /* Setinhas de reordenar obra empatada — só no mobile (no desktop é arrastar). */
 .mr-reorder-mobile { display: none; }
 
+/* Etiqueta da subcategoria na linha da obra (tabela individual, filtro "Todas") */
+.mr-subcategory-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border: 1px solid var(--mr-border);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--mr-text-secondary);
+  vertical-align: middle;
+}
+
 /* ============ MOBILE: tabela compacta + escala geral menor ============ */
 @media (max-width: 640px) {
   /* cabeçalho de colunas não faz sentido no layout compacto */
