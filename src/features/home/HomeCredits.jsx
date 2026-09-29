@@ -1,65 +1,66 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { prefersReducedMotion } from "./useRevealOnce";
+import useRevealOnce, { prefersReducedMotion } from "./useRevealOnce";
 import "./homeCredits.css";
 
+const START_MS = 300; // respiro antes do 1º cartão
+const CARD_MS = 800;  // cada crédito: entra, fica e sai (o próximo entra enquanto ele sai)
+
 /**
- * Chamada final como fim de filme: os créditos sobem conforme a pessoa rola
- * (a rolagem controla o ritmo) e, quando parece que acabou, entra a
- * "cena pós-créditos" com o botão de criar conta.
- *
- * A seção é alta e o conteúdo fica "grudado" na tela (sticky); o progresso
- * da rolagem dentro dela vira a variável CSS --p (0 → 1), que o CSS usa pra
- * mover os créditos e revelar a cena pós-créditos.
+ * Chamada final como fim de filme: os créditos aparecem e somem no mesmo
+ * lugar, um de cada vez, e depois entra a "cena pós-créditos" com o botão.
+ * Toca sozinho, uma vez, quando a seção aparece na tela.
  */
 const HomeCredits = ({ credits }) => {
-  const sectionRef = useRef(null);
+  const [sectionRef, visible] = useRevealOnce(0.5);
+
+  const cards = [
+    ...credits.roles.map(([role, name]) => ({ key: role, role, name })),
+    { key: "disclaimer", text: credits.disclaimer },
+    { key: "brand", brand: true },
+  ];
+
+  // step = cartão na tela; cards.length = cena pós-créditos
+  const [step, setStep] = useState(() => (prefersReducedMotion() ? Infinity : -1));
 
   useEffect(() => {
-    const el = sectionRef.current;
-    if (!el || prefersReducedMotion()) return undefined;
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      const rect = el.getBoundingClientRect();
-      const range = rect.height - window.innerHeight;
-      const p = range > 0 ? Math.min(Math.max(-rect.top / range, 0), 1) : 1;
-      el.style.setProperty("--p", p.toFixed(4));
-      el.classList.toggle("is-post", p > 0.8); // botão só clicável depois que a cena aparece
-    };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(update);
-    };
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      cancelAnimationFrame(frame);
-    };
-  }, []);
+    if (!visible || prefersReducedMotion()) return undefined;
+    const timers = Array.from({ length: cards.length + 1 }, (_, i) =>
+      setTimeout(() => setStep(i), START_MS + i * CARD_MS)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [visible, cards.length]);
+
+  const isPost = step >= cards.length;
 
   return (
     <section ref={sectionRef} className="credits">
       <div className="credits-stage">
-        <div className="credits-roll" aria-hidden="true">
-          {credits.roles.map(([role, name]) => (
-            <div key={role} className="credits-entry">
-              <small>{role}</small>
-              <span>{name}</span>
-            </div>
-          ))}
-          <p className="credits-disclaimer">{credits.disclaimer}</p>
-          <p className="credits-brand">
-            My<span>Rank</span>
-          </p>
-        </div>
+        {cards.map((card, i) => (
+          <div
+            key={card.key}
+            className={`credits-card${step === i ? " is-active" : ""}`}
+            aria-hidden="true"
+          >
+            {card.role && (
+              <>
+                <small>{card.role}</small>
+                <span>{card.name}</span>
+              </>
+            )}
+            {card.text && <p className="credits-disclaimer">{card.text}</p>}
+            {card.brand && (
+              <p className="credits-brand">
+                My<span>Rank</span>
+              </p>
+            )}
+          </div>
+        ))}
 
-        <div className="credits-post">
+        <div className={`credits-post${isPost ? " is-active" : ""}`}>
           <p className="credits-post-label">{credits.post}</p>
           <h2 className="credits-title">{credits.title}</h2>
-          <Link to="/cadastrar" className="mr-btn mr-btn-gold mr-btn-lg">
+          <Link to="/cadastrar" className="mr-btn mr-btn-gold mr-btn-lg" tabIndex={isPost ? 0 : -1}>
             {credits.cta}
           </Link>
           <p className="credits-fine">{credits.fine}</p>

@@ -1,52 +1,45 @@
 /* ============ Chamada final: créditos + cena pós-créditos ============
-   A seção tem 260vh; o palco fica grudado na tela e --p (0 → 1, vindo da
-   rolagem) move os créditos de baixo pra cima. Depois deles, a cena
-   pós-créditos aparece no mesmo lugar. Dourado só no botão e no "Rank". */
+   Os créditos aparecem e somem no mesmo lugar, um de cada vez (cross-fade:
+   o próximo entra enquanto o anterior sai), e depois vem a cena pós-créditos.
+   Dourado só no botão e no "Rank". */
 .credits {
-  --p: 0;
-  /* créditos rolam até 70% da seção; a cena pós-créditos entra logo depois */
-  --roll: min(calc(var(--p) / 0.7), 1);
-  --post: clamp(0, calc((var(--p) - 0.74) * 7), 1);
-  position: relative;
-  height: 260vh;
+  padding: 0 1.5rem;
 }
 
 .credits-stage {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow: hidden;
+  min-height: max(70vh, 480px);
   display: grid;
   place-items: center;
-  /* créditos somem nas bordas, como na tela de cinema */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
+  text-align: center;
 }
 
-.credits-roll,
+/* todos os cartões ocupam a mesma célula: só o ativo aparece */
+.credits-card,
 .credits-post {
   grid-area: 1 / 1;
 }
 
-.credits-roll {
-  align-self: start;
+.credits-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 44px;
-  text-align: center;
-  /* começa abaixo da tela e sai por cima */
-  transform: translateY(calc(100vh - var(--roll) * (100vh + 100%)));
-  will-change: transform;
+  gap: 10px;
+  opacity: 0;
+  filter: blur(6px);
+  transform: scale(0.97);
+  transition:
+    opacity 380ms var(--mr-ease),
+    filter 380ms var(--mr-ease),
+    transform 700ms var(--mr-ease-out);
 }
 
-.credits-entry {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.credits-card.is-active {
+  opacity: 1;
+  filter: none;
+  transform: none;
 }
 
-.credits-entry small {
+.credits-card small {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.28em;
@@ -54,24 +47,24 @@
   color: var(--mr-text-muted);
 }
 
-.credits-entry span {
-  font-size: clamp(20px, 2.4vw, 28px);
+.credits-card span {
+  font-size: clamp(26px, 3.2vw, 40px);
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--mr-text);
 }
 
 .credits-disclaimer {
-  max-width: 34ch;
-  margin: 24px 0 0;
-  font-size: var(--mr-text-sm);
+  max-width: 30ch;
+  margin: 0;
+  font-size: var(--mr-text-lg);
   line-height: 1.6;
-  color: var(--mr-text-muted);
+  color: var(--mr-text-secondary);
 }
 
 .credits-brand {
-  margin: 40px 0 0;
-  font-size: clamp(36px, 5vw, 56px);
+  margin: 0;
+  font-size: clamp(44px, 6vw, 72px);
   font-weight: 800;
   letter-spacing: var(--mr-tracking-tight);
   color: var(--mr-text);
@@ -87,15 +80,17 @@
   flex-direction: column;
   align-items: center;
   gap: var(--mr-space-5);
-  padding: 0 1.5rem;
-  text-align: center;
-  opacity: var(--post);
-  transform: translateY(calc((1 - var(--post)) * 24px));
-  /* invisível = não clicável, pra não pegar clique por cima dos créditos */
+  opacity: 0;
+  transform: translateY(16px);
   pointer-events: none;
+  transition:
+    opacity 700ms var(--mr-ease-out),
+    transform 700ms var(--mr-ease-out);
 }
 
-.credits.is-post .credits-post {
+.credits-post.is-active {
+  opacity: 1;
+  transform: none;
   pointer-events: auto;
 }
 
@@ -123,30 +118,9 @@
   color: var(--mr-text-muted);
 }
 
-/* sem animação: créditos parados e a chamada logo abaixo, tudo visível */
 @media (prefers-reduced-motion: reduce) {
-  .credits {
-    height: auto;
-    padding: 96px 1.5rem;
-  }
-
-  .credits-stage {
-    position: static;
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 96px;
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-
-  .credits-roll {
-    transform: none;
-  }
-
+  .credits-card,
   .credits-post {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
+    transition: none;
   }
 }
