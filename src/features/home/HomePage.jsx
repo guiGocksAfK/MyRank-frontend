@@ -9,6 +9,7 @@ import HowItWorks from './HowItWorks';
 import HomeIdentity from './HomeIdentity';
 import HomeSocial from './HomeSocial';
 import HomeFaq from './HomeFaq';
+import HomeCredits from './HomeCredits';
 
 const POSTER_TILES = 20; // grid 5x4 do hero
 const GRID_COLS = 5;
@@ -127,6 +128,7 @@ const HomePage = () => {
   <HomeSocial social={t.home.social} compare={t.home.compare} takes={t.home.takes} />
 
   <HomeFaq faq={t.home.faq} />
+  <HomeCredits credits={t.home.credits} />
 
 {/* Footer */}
 <footer className="home-footer" style={{

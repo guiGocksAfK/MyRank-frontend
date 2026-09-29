@@ -1,0 +1,152 @@
+/* ============ Chamada final: créditos + cena pós-créditos ============
+   A seção tem 260vh; o palco fica grudado na tela e --p (0 → 1, vindo da
+   rolagem) move os créditos de baixo pra cima. Depois deles, a cena
+   pós-créditos aparece no mesmo lugar. Dourado só no botão e no "Rank". */
+.credits {
+  --p: 0;
+  /* créditos rolam até 70% da seção; a cena pós-créditos entra logo depois */
+  --roll: min(calc(var(--p) / 0.7), 1);
+  --post: clamp(0, calc((var(--p) - 0.74) * 7), 1);
+  position: relative;
+  height: 260vh;
+}
+
+.credits-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  /* créditos somem nas bordas, como na tela de cinema */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
+}
+
+.credits-roll,
+.credits-post {
+  grid-area: 1 / 1;
+}
+
+.credits-roll {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 44px;
+  text-align: center;
+  /* começa abaixo da tela e sai por cima */
+  transform: translateY(calc(100vh - var(--roll) * (100vh + 100%)));
+  will-change: transform;
+}
+
+.credits-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.credits-entry small {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+.credits-entry span {
+  font-size: clamp(20px, 2.4vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--mr-text);
+}
+
+.credits-disclaimer {
+  max-width: 34ch;
+  margin: 24px 0 0;
+  font-size: var(--mr-text-sm);
+  line-height: 1.6;
+  color: var(--mr-text-muted);
+}
+
+.credits-brand {
+  margin: 40px 0 0;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 800;
+  letter-spacing: var(--mr-tracking-tight);
+  color: var(--mr-text);
+}
+
+.credits-brand span {
+  color: var(--mr-gold);
+}
+
+/* cena pós-créditos */
+.credits-post {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mr-space-5);
+  padding: 0 1.5rem;
+  text-align: center;
+  opacity: var(--post);
+  transform: translateY(calc((1 - var(--post)) * 24px));
+  /* invisível = não clicável, pra não pegar clique por cima dos créditos */
+  pointer-events: none;
+}
+
+.credits.is-post .credits-post {
+  pointer-events: auto;
+}
+
+.credits-post-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+.credits-title {
+  margin: 0 0 var(--mr-space-3);
+  font-size: clamp(34px, 5.5vw, 72px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: var(--mr-tracking-tight);
+  color: var(--mr-text);
+}
+
+.credits-fine {
+  margin: 0;
+  font-size: var(--mr-text-xs);
+  color: var(--mr-text-muted);
+}
+
+/* sem animação: créditos parados e a chamada logo abaixo, tudo visível */
+@media (prefers-reduced-motion: reduce) {
+  .credits {
+    height: auto;
+    padding: 96px 1.5rem;
+  }
+
+  .credits-stage {
+    position: static;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 96px;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .credits-roll {
+    transform: none;
+  }
+
+  .credits-post {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+}
