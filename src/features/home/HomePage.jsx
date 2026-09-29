@@ -8,6 +8,7 @@ import { useLanguage } from '../../shared/i18n';
 import HowItWorks from './HowItWorks';
 import HomeIdentity from './HomeIdentity';
 import HomeSocial from './HomeSocial';
+import HomeFaq from './HomeFaq';
 
 const POSTER_TILES = 20; // grid 5x4 do hero
 const GRID_COLS = 5;
@@ -46,23 +47,6 @@ const preloadAll = (urls) =>
         })
     )
   );
-
-const FAQItem = ({ question, answer }) => {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div
-      className={`home-faq-item ${open ? 'is-open' : ''}`}
-      onClick={() => setOpen(!open)}
-    >
-      <div className="home-faq-row">
-        <span className="home-faq-question">{question}</span>
-        <span className="home-faq-plus">+</span>
-      </div>
-      {open && <p className="home-faq-answer">{answer}</p>}
-    </div>
-  );
-};
 
 const HomePage = () => {
   const { t } = useLanguage();
@@ -142,36 +126,7 @@ const HomePage = () => {
   <HomeIdentity identity={t.home.identity} />
   <HomeSocial social={t.home.social} compare={t.home.compare} takes={t.home.takes} />
 
-{/* FAQ */}
-<section id="faq" className="home-section" style={{
-  padding: "80px 2rem",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: "48px",
-}}>
-  <h2 className="home-section-title" style={{
-    fontSize: "36px",
-    fontWeight: "800",
-    color: "#e5e5e5",
-    fontFamily: "var(--mr-font)",
-    textAlign: "center",
-  }}>
-    {t.home.faq.title}
-  </h2>
-
-  <div className="home-faq-list" style={{
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-    width: "100%",
-    maxWidth: "800px",
-  }}>
-    {t.home.faq.items.map((item, i) => (
-      <FAQItem key={i} question={item.q} answer={item.a} />
-    ))}
-  </div>
-</section>
+  <HomeFaq faq={t.home.faq} />
 
 {/* Footer */}
 <footer className="home-footer" style={{

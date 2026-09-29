@@ -123,56 +123,6 @@
   color: var(--mr-text-muted);
 }
 
-.home-faq-item {
-  background-color: #111111;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 24px 28px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.home-faq-item.is-open {
-  background-color: #1a1a1a;
-  border-color: #d4af37;
-}
-
-.home-faq-item:hover {
-  border-color: #555;
-}
-
-.home-faq-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.home-faq-question {
-  font-size: 15px;
-  font-weight: 600;
-  color: #e5e5e5;
-}
-
-.home-faq-plus {
-  color: #d4af37;
-  font-size: 22px;
-  font-weight: 300;
-  flex-shrink: 0;
-  transition: transform 0.2s;
-}
-
-.home-faq-item.is-open .home-faq-plus {
-  transform: rotate(45deg);
-}
-
-.home-faq-answer {
-  font-size: 14px;
-  color: #888;
-  line-height: 1.7;
-  margin-top: 16px;
-}
-
 /* ============ Seções da home (peças compartilhadas) ============
    .home-block      seção: cabeçalho + conteúdo, largura máx. 1200px
    .home-feature    coluna: miniatura + título (h3) + frase (p)
@@ -373,21 +323,6 @@
   }
 
 
-  /* seções com estilo inline no JSX */
-  .home-section {
-    padding: 40px 1.25rem !important;
-    gap: 16px !important;
-  }
-
-  .home-section-title {
-    font-size: 18px !important;
-    font-weight: 700 !important;
-  }
-
-  .home-faq-list {
-    gap: 8px !important;
-  }
-
   /* seções da home */
   .home-block {
     gap: var(--mr-space-6);
@@ -409,23 +344,6 @@
 
   .home-feature p {
     font-size: 14px;
-  }
-
-  .home-faq-item {
-    padding: 15px 18px;
-  }
-
-  .home-faq-question {
-    font-size: 13.5px;
-  }
-
-  .home-faq-plus {
-    font-size: 19px;
-  }
-
-  .home-faq-answer {
-    font-size: 13px;
-    margin-top: 12px;
   }
 
   .home-footer {

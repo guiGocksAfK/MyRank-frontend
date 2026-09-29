@@ -664,43 +664,14 @@ const TRANSLATIONS = {
       },
       faq: {
         title: 'Perguntas frequentes',
+        lede: 'O que não coube nas seções acima.',
         items: [
-          {
-            q: 'O MyRank é gratuito?',
-            a: 'Sim, 100% gratuito e sem anúncios. Criar conta, montar tabelas, avaliar obras, usar o ranking unificado e comparar com amigos não custa nada. Sempre.',
-          },
-          {
-            q: 'Como funciona o ranking unificado?',
-            a: 'Você escolhe quais tabelas quer unir — pode ser todas de uma vez ou só uma seleção específica, como suas tabelas de filmes e séries juntas, ou filmes e jogos. O MyRank funde tudo em uma única lista ordenada, onde cada obra recebe sua posição com base na nota — e opcionalmente na média ponderada por tempo consumido. O resultado é um ranking personalizado que cruza mídias diferentes e mostra o que realmente ficou no topo da sua história como consumidor.',
-          },
-          {
-            q: 'Como funciona a média ponderada por tempo?',
-            a: 'Quando você registra o tempo dedicado a uma obra, a nota recebe um bônus proporcional. Um filme de 2h com nota 8.0 praticamente não é afetado — continua quase o mesmo 8.0. Já uma série que você maratonou por 30h com nota 8.0 sobe para 8.3, reconhecendo o tempo real que você investiu. O bônus é calibrado para não distorcer as notas — obras longas sobem com justiça, obras curtas não são punidas.',
-          },
-          {
-            q: 'Posso comparar meu ranking com o de amigos?',
-            a: 'Sim! Você pode seguir outros usuários e comparar suas notas individuais, rankings gerais e ver as últimas alterações que eles fizeram nas tabelas públicas deles. É a melhor forma de descobrir o que seus amigos estão consumindo e onde vocês concordam ou discordam.',
-          },
-          {
-            q: 'As tabelas são públicas ou privadas?',
-            a: 'Você decide. Cada tabela pode ser configurada como pública — visível para seus seguidores — ou privada, visível só para você. Seu perfil também pode ser público ou privado, te dando controle total sobre o que compartilha.',
-          },
-          {
-            q: 'Como é o dashboard visual?',
-            a: 'Suas obras são exibidas em um grid de posters — visual, organizado e fácil de navegar. Você também conta com filtros para ordenar por data de lançamento, data em que adicionou a obra, e até ver o que seus amigos mais consumiram.',
-          },
-          {
-            q: 'Como as informações das obras são cadastradas?',
-            a: 'Automaticamente. O MyRank usa APIs externas para buscar os metadados de cada obra assim que você a adiciona — diretor do filme, produtora do jogo, autor do livro, estúdio do anime e muito mais. Você não precisa preencher nada na mão.',
-          },
-          {
-            q: 'Existe um ranking por autor ou empresa?',
-            a: 'Sim! O MyRank gera rankings automáticos por criador — seja um diretor, uma produtora de jogos ou um autor de livros. Cada um recebe uma nota média ponderada, que favorece criadores com mais obras avaliadas por você. É a forma mais honesta de descobrir quem realmente domina o seu gosto.',
-          },
-          {
-            q: 'Conquistas e badges',
-            a: 'O MyRank gera badges automáticos baseados no seu consumo. Maratonou mais de 500 horas em jogos? Você é um "Maratonista de Elite". Consumiu mais de 50 obras de ficção científica? Vira "Explorador do Futuro". Seu perfil vira um reflexo real do que você consome.',
-          },
+          { q: 'O MyRank é gratuito?', a: 'Sim, 100% gratuito e sem anúncios. Tabelas, notas, ranking unificado e comparação com amigos não custam nada.' },
+          { q: 'Meu perfil precisa ser público?', a: 'Não. Seu perfil e cada tabela podem ser privados, visíveis só pra você. Abrir é opcional, pra quem quer comparar e comentar com amigos.' },
+          { q: 'Como funciona o ranking unificado?', a: 'Você escolhe quais tabelas juntar e o MyRank funde tudo numa lista só, ordenada pela nota. Dá pra cruzar filmes com jogos, séries com animes, o que quiser.' },
+          { q: 'Como funciona a média ponderada por tempo?', a: 'Se você registrar o tempo dedicado, a nota ganha um bônus proporcional. Uma série de 30h com nota 8.0 sobe pra 8.3; um filme de 2h continua praticamente em 8.0.' },
+          { q: 'Preciso cadastrar as informações das obras?', a: 'Não. Assim que você adiciona uma obra, o MyRank busca sozinho diretor, estúdio, autor, produtora e o resto dos dados.' },
+          { q: 'Tem conquistas?', a: 'Tem. Os badges saem do seu consumo: passou de 500 horas em jogos, vira "Maratonista de Elite"; 50 obras de ficção científica, "Explorador do Futuro".' },
         ],
       },
       footer: {
@@ -1359,43 +1330,14 @@ const TRANSLATIONS = {
       },
       faq: {
         title: 'Frequently asked questions',
+        lede: "What didn't fit in the sections above.",
         items: [
-          {
-            q: 'Is MyRank free?',
-            a: 'Yes, 100% free and ad-free. Creating an account, building tables, rating titles, using the unified ranking and comparing with friends costs nothing. Ever.',
-          },
-          {
-            q: 'How does the unified ranking work?',
-            a: 'You choose which tables to merge — all at once or a specific selection, like your movie and series tables together, or movies and games. MyRank fuses everything into a single ordered list, where each title gets its position based on its score — and optionally on the average weighted by time consumed. The result is a personalized ranking that crosses different media and shows what truly rose to the top of your history as a consumer.',
-          },
-          {
-            q: 'How does the time-weighted average work?',
-            a: 'When you log the time spent on a title, its score gets a proportional bonus. A 2-hour movie rated 8.0 is barely affected — it stays almost the same 8.0. But a series you binged for 30 hours rated 8.0 rises to 8.3, acknowledging the real time you invested. The bonus is calibrated not to distort scores — long titles rise fairly, short ones aren\'t punished.',
-          },
-          {
-            q: "Can I compare my ranking with friends'?",
-            a: 'Yes! You can follow other users and compare individual scores, overall rankings, and see the latest changes they made to their public tables. It\'s the best way to find out what your friends are consuming and where you agree or disagree.',
-          },
-          {
-            q: 'Are tables public or private?',
-            a: 'You decide. Each table can be set as public — visible to your followers — or private, visible only to you. Your profile can also be public or private, giving you full control over what you share.',
-          },
-          {
-            q: 'What is the visual dashboard like?',
-            a: 'Your titles are shown in a poster grid — visual, organized and easy to browse. You also get filters to sort by release date, the date you added the title, and even see what your friends consumed the most.',
-          },
-          {
-            q: 'How is title information added?',
-            a: "Automatically. MyRank uses external APIs to fetch each title's metadata as soon as you add it — the movie's director, the game's studio, the book's author, the anime's studio and much more. You don't have to fill in anything by hand.",
-          },
-          {
-            q: 'Is there a ranking by author or company?',
-            a: 'Yes! MyRank generates automatic rankings by creator — whether a director, a game studio or a book author. Each one gets a weighted average score that favors creators with more titles rated by you. It\'s the most honest way to find out who really rules your taste.',
-          },
-          {
-            q: 'Achievements and badges',
-            a: 'MyRank generates automatic badges based on your consumption. Binged more than 500 hours of games? You\'re an "Elite Marathoner". Consumed more than 50 sci-fi titles? You become a "Future Explorer". Your profile turns into a real reflection of what you consume.',
-          },
+          { q: 'Is MyRank free?', a: 'Yes, 100% free and ad-free. Tables, scores, the unified ranking and comparing with friends cost nothing.' },
+          { q: 'Does my profile have to be public?', a: 'No. Your profile and each table can be private, visible only to you. Opening up is optional, for when you want to compare and comment with friends.' },
+          { q: 'How does the unified ranking work?', a: 'You pick which tables to merge and MyRank fuses them into a single list, ordered by score. Mix movies with games, series with anime, whatever you like.' },
+          { q: 'How does the time-weighted average work?', a: 'If you log the time you spent, the score gets a proportional bonus. A 30-hour series rated 8.0 rises to 8.3; a 2-hour movie stays at roughly 8.0.' },
+          { q: 'Do I have to fill in the title details?', a: "No. As soon as you add a title, MyRank fetches the director, studio, author, publisher and the rest on its own." },
+          { q: 'Are there achievements?', a: 'Yes. Badges come from what you consume: pass 500 hours of games and you become an "Elite Marathoner"; 50 sci-fi titles, a "Future Explorer".' },
         ],
       },
       footer: {
@@ -2054,43 +1996,14 @@ const TRANSLATIONS = {
       },
       faq: {
         title: 'Preguntas frecuentes',
+        lede: 'Lo que no cupo en las secciones de arriba.',
         items: [
-          {
-            q: '¿MyRank es gratis?',
-            a: 'Sí, 100% gratis y sin anuncios. Crear una cuenta, armar tablas, puntuar obras, usar el ranking unificado y comparar con amigos no cuesta nada. Nunca.',
-          },
-          {
-            q: '¿Cómo funciona el ranking unificado?',
-            a: 'Eliges qué tablas quieres unir — pueden ser todas a la vez o solo una selección específica, como tus tablas de películas y series juntas, o películas y juegos. MyRank fusiona todo en una única lista ordenada, donde cada obra recibe su posición según la nota — y opcionalmente según el promedio ponderado por tiempo consumido. El resultado es un ranking personalizado que cruza medios distintos y muestra lo que de verdad quedó en la cima de tu historia como consumidor.',
-          },
-          {
-            q: '¿Cómo funciona el promedio ponderado por tiempo?',
-            a: 'Cuando registras el tiempo dedicado a una obra, la nota recibe un bono proporcional. Una película de 2h con nota 8.0 casi no se ve afectada — se queda casi en el mismo 8.0. En cambio, una serie que maratoneaste durante 30h con nota 8.0 sube a 8.3, reconociendo el tiempo real que invertiste. El bono está calibrado para no distorsionar las notas — las obras largas suben con justicia, las cortas no se penalizan.',
-          },
-          {
-            q: '¿Puedo comparar mi ranking con el de amigos?',
-            a: '¡Sí! Puedes seguir a otros usuarios y comparar sus notas individuales, rankings generales y ver los últimos cambios que hicieron en sus tablas públicas. Es la mejor forma de descubrir qué están consumiendo tus amigos y en qué coinciden o discrepan.',
-          },
-          {
-            q: '¿Las tablas son públicas o privadas?',
-            a: 'Tú decides. Cada tabla se puede configurar como pública — visible para tus seguidores — o privada, visible solo para ti. Tu perfil también puede ser público o privado, dándote control total sobre lo que compartes.',
-          },
-          {
-            q: '¿Cómo es el panel visual?',
-            a: 'Tus obras se muestran en una cuadrícula de pósters — visual, organizada y fácil de navegar. También cuentas con filtros para ordenar por fecha de estreno, fecha en que agregaste la obra, e incluso ver lo que tus amigos más consumieron.',
-          },
-          {
-            q: '¿Cómo se registran los datos de las obras?',
-            a: 'Automáticamente. MyRank usa APIs externas para buscar los metadatos de cada obra en cuanto la agregas — director de la película, desarrolladora del juego, autor del libro, estudio del anime y mucho más. No necesitas rellenar nada a mano.',
-          },
-          {
-            q: '¿Existe un ranking por autor o empresa?',
-            a: '¡Sí! MyRank genera rankings automáticos por creador — ya sea un director, una desarrolladora de juegos o un autor de libros. Cada uno recibe una nota media ponderada que favorece a los creadores con más obras puntuadas por ti. Es la forma más honesta de descubrir quién domina de verdad tu gusto.',
-          },
-          {
-            q: 'Logros y badges',
-            a: 'MyRank genera badges automáticos según tu consumo. ¿Maratoneaste más de 500 horas de juegos? Eres un "Maratonista de Élite". ¿Consumiste más de 50 obras de ciencia ficción? Te conviertes en "Explorador del Futuro". Tu perfil se vuelve un reflejo real de lo que consumes.',
-          },
+          { q: '¿MyRank es gratis?', a: 'Sí, 100% gratis y sin anuncios. Tablas, notas, ranking unificado y comparar con amigos no cuestan nada.' },
+          { q: '¿Mi perfil tiene que ser público?', a: 'No. Tu perfil y cada tabla pueden ser privados, visibles solo para ti. Abrirlos es opcional, para quien quiere comparar y comentar con amigos.' },
+          { q: '¿Cómo funciona el ranking unificado?', a: 'Eliges qué tablas juntar y MyRank lo une todo en una sola lista, ordenada por nota. Puedes cruzar películas con juegos, series con animes, lo que quieras.' },
+          { q: '¿Cómo funciona el promedio ponderado por tiempo?', a: 'Si registras el tiempo dedicado, la nota recibe un bono proporcional. Una serie de 30 h con nota 8.0 sube a 8.3; una película de 2 h se queda prácticamente en 8.0.' },
+          { q: '¿Tengo que cargar la información de las obras?', a: 'No. En cuanto agregas una obra, MyRank busca solo el director, estudio, autor, productora y el resto de los datos.' },
+          { q: '¿Hay logros?', a: 'Sí. Los badges salen de tu consumo: pasa las 500 horas de juegos y eres "Maratonista de Élite"; 50 obras de ciencia ficción, "Explorador del Futuro".' },
         ],
       },
       footer: {

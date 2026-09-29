@@ -1,0 +1,142 @@
+/* ============ FAQ editorial ============
+   Título à esquerda (acompanha a rolagem), perguntas à direita separadas por
+   linhas finas. Sem caixas e sem dourado. */
+.faq {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 2rem 96px;
+  box-sizing: content-box;
+  display: grid;
+  grid-template-columns: 4fr 7fr;
+  align-items: start;
+  gap: 64px;
+}
+
+.faq-side {
+  position: sticky;
+  top: calc(var(--mr-navbar-h) + 32px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-3);
+}
+
+.faq-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.faq-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mr-space-5);
+  padding: 22px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--mr-text-lg);
+  font-weight: 600;
+  text-align: left;
+  color: var(--mr-text-secondary);
+  cursor: pointer;
+  transition: color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.faq-question:hover,
+.faq-item.is-open .faq-question {
+  color: var(--mr-text);
+}
+
+.faq-question:focus-visible {
+  outline: 2px solid var(--mr-gold);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* "+" desenhado com duas barras; gira 45° e vira "×" */
+.faq-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: transform var(--mr-duration) var(--mr-ease-out);
+}
+
+.faq-icon::before,
+.faq-icon::after {
+  content: "";
+  position: absolute;
+  inset: 6px 0;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.faq-icon::after {
+  transform: rotate(90deg);
+}
+
+.faq-item.is-open .faq-icon {
+  transform: rotate(45deg);
+}
+
+/* a resposta desliza abrindo (0fr → 1fr) */
+.faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 420ms var(--mr-ease-out);
+}
+
+.faq-answer > div {
+  overflow: hidden;
+}
+
+.faq-item.is-open .faq-answer {
+  grid-template-rows: 1fr;
+}
+
+.faq-answer p {
+  max-width: 60ch;
+  margin: 0;
+  padding: 0 0 24px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--mr-text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-question,
+  .faq-icon,
+  .faq-answer {
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .faq {
+    grid-template-columns: 1fr;
+    gap: var(--mr-space-6);
+    padding: 56px 1.25rem 72px;
+  }
+
+  .faq-side {
+    position: static;
+  }
+
+  .faq-question {
+    padding: 18px 0;
+    font-size: var(--mr-text-md);
+  }
+
+  .faq-answer p {
+    font-size: 14px;
+  }
+}
