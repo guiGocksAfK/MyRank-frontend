@@ -1,0 +1,130 @@
+/* ============ Takes: uma conversa em fio ============
+   Sem cartão: take principal + respostas recuadas, ligadas por uma linha vertical
+   (como os comentários em 2 níveis do produto). */
+.tk {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-5);
+}
+
+.tk-take,
+.tk-reply {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 600ms var(--mr-ease-out),
+    transform 600ms var(--mr-ease-out);
+}
+
+.tk-take.is-shown,
+.tk-reply.is-shown {
+  opacity: 1;
+  transform: none;
+}
+
+.tk-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--mr-text);
+}
+
+.tk-about {
+  color: var(--mr-text-muted);
+}
+
+.tk-work {
+  font-weight: 600;
+  color: var(--mr-text);
+}
+
+.tk-score {
+  padding: 2px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tk-text {
+  margin: var(--mr-space-3) 0 0;
+  font-size: 20px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--mr-text);
+}
+
+.tk-text-reply {
+  margin-top: 6px;
+  font-size: 15px;
+  letter-spacing: 0;
+  color: var(--mr-text-secondary);
+}
+
+.tk-meta {
+  margin: var(--mr-space-3) 0 0;
+  font-size: var(--mr-text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-text-muted);
+}
+
+/* respostas: recuadas e ligadas ao take por uma linha vertical */
+.tk-replies {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-5);
+  margin: 0 0 0 13px;
+  padding: 0 0 0 26px;
+  list-style: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* "digitando…" */
+.tk-typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tk-typing span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--mr-text-secondary);
+  animation: tk-dot 1s var(--mr-ease) infinite;
+}
+
+.tk-typing span:nth-child(2) { animation-delay: 150ms; }
+.tk-typing span:nth-child(3) { animation-delay: 300ms; }
+
+@keyframes tk-dot {
+  0%, 60%, 100% { opacity: 0.3; transform: none; }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tk-take,
+  .tk-reply {
+    transition: none;
+    transform: none;
+  }
+
+  .tk-typing span {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .tk-text {
+    font-size: 17px;
+  }
+
+  .tk-text-reply {
+    font-size: 14px;
+  }
+}
