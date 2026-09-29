@@ -124,8 +124,8 @@ const HomePage = () => {
       </section>
 
   <HowItWorks how={t.home.how} />
-  <HomeIdentity identity={t.home.identity} />
   <HomeSocial social={t.home.social} compare={t.home.compare} takes={t.home.takes} />
+  <HomeIdentity identity={t.home.identity} />
 
   <HomeFaq faq={t.home.faq} />
   <HomeCredits credits={t.home.credits} />
