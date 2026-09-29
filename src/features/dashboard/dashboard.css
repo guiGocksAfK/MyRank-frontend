@@ -3,37 +3,7 @@
    Tema: Preto / Dourado (alinhado com auth.css)
    ============================================ */
 
-/* ============ CSS VARIABLES ============ */
-:root {
-  --mr-bg: #000000;
-  --mr-surface: #0d0d0d;
-  --mr-card: rgba(9, 9, 9, 0.97);
-  --mr-card-hover: rgba(24, 24, 24, 0.98);
-  --mr-border: #303030;
-  --mr-border-light: #1e1e1e;
-  --mr-text: #f5f5f5;
-  --mr-text-secondary: #a5a5a5;
-  --mr-text-muted: #666666;
-  --mr-gold: #d4af37;
-  --mr-gold-10: rgba(212, 175, 55, 0.1);
-  --mr-gold-20: rgba(212, 175, 55, 0.2);
-  --mr-gold-glow: rgba(212, 175, 55, 0.25);
-  --mr-blue: #4A90D9;
-  --mr-blue-light: #6AABFF;
-  --mr-blue-20: rgba(74, 144, 217, 0.2);
-  --mr-green: #6ee7b7;
-  --mr-red: #ff6b6b;
-  --mr-purple: #c4b5fd;
-  --mr-input-bg: #121212;
-  --mr-muted-bg: #111111;
-  --mr-bubble-in: #26262b;
-  --mr-bubble-out: rgba(212, 175, 55, 0.18);
-  --mr-track: rgba(255, 255, 255, 0.06);
-  --mr-card-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
-  --mr-radius: 14px;
-  --mr-radius-sm: 10px;
-  --mr-radius-xs: 6px;
-}
+/* Tokens do tema escuro (padrão do site inteiro): src/styles/base.css */
 
 /* Light theme */
 .myrank-light {
@@ -923,54 +893,7 @@
   box-shadow: 0 0 6px rgba(110, 231, 183, 0.4);
 }
 
-/* ============ BUTTONS ============ */
-.mr-btn {
-  border-radius: 999px;
-  border: 1px solid transparent;
-  padding: 0.55rem 0.85rem;
-  font-weight: 700;
-  font-size: 0.875rem;
-  font-family: var(--mr-font);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.mr-btn-gold {
-  background: linear-gradient(135deg, var(--mr-gold), #f1d98a);
-  color: #111;
-}
-
-.mr-btn-gold:hover {
-  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.28);
-  opacity: 0.92;
-}
-
-.mr-btn-outline {
-  background: transparent;
-  border-color: var(--mr-border);
-  color: var(--mr-text);
-}
-
-.mr-btn-outline:hover {
-  border-color: rgba(212, 175, 55, 0.3);
-  background: var(--mr-gold-10);
-}
-
-.mr-btn-sm { padding: 0.35rem 0.6rem; font-size: 0.8rem; }
-
-.mr-btn-ghost {
-  background: transparent;
-  color: var(--mr-text-secondary);
-  border-color: transparent;
-}
-
-.mr-btn-ghost:hover {
-  color: var(--mr-text);
-  background: var(--mr-gold-10);
-}
+/* Botões (.mr-btn e variantes): src/styles/base.css */
 
 /* ============ BADGES ============ */
 .mr-badge {
@@ -1337,8 +1260,6 @@
   .mr-main { padding: 16px 0 32px; }
   .mr-card-body { padding: 14px; }
   .mr-section-title { font-size: 1rem; }
-  .mr-btn { padding: 0.45rem 0.7rem; font-size: 0.8125rem; }
-  .mr-btn-sm { padding: 0.35rem 0.6rem; font-size: 0.75rem; white-space: nowrap; }
   .mr-tab-trigger { padding: 7px 10px; font-size: 0.8125rem; }
 
   /* botões da toolbar da tabela: quebram em grade, sem texto em 2 linhas */
