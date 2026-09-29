@@ -1,0 +1,227 @@
+/* ============ Sua identidade: cartaz de cinema ============
+   Fundo: as 3 obras favoritas lado a lado, apagadas. Frente: título do cartaz,
+   sinopse, linha de gêneros e bloco de créditos. Dourado só no gênero dominante. */
+.idp {
+  position: relative;
+  min-height: 720px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 96px 2rem;
+  overflow: hidden;
+  text-align: center;
+}
+
+.idp-posters {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.idp-poster {
+  background-size: cover;
+  background-position: center 20%;
+  filter: saturate(0.6);
+  opacity: 0;
+  transform: scale(1.08);
+  transition:
+    opacity 1600ms var(--mr-ease-out),
+    transform 2400ms var(--mr-ease-out);
+}
+
+.is-visible .idp-poster {
+  opacity: 0.32;
+  transform: scale(1);
+}
+
+/* escurece o centro pro texto e funde topo/pé com o preto da página */
+.idp-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, var(--mr-bg) 0%, transparent 22%, transparent 70%, var(--mr-bg) 100%),
+    radial-gradient(ellipse 60% 55% at 50% 50%, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.55) 70%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.idp-content {
+  position: relative;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* cada linha entra no seu tempo, como abertura de filme */
+.idp-content > * {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 900ms var(--mr-ease-out),
+    transform 900ms var(--mr-ease-out);
+}
+
+.is-visible .idp-content > * {
+  opacity: 1;
+  transform: none;
+}
+
+.is-visible .idp-presents { transition-delay: 300ms; }
+.is-visible .idp-starring { transition-delay: 700ms; }
+.is-visible .idp-synopsis { transition-delay: 2100ms; }
+.is-visible .idp-genres { transition-delay: 2400ms; }
+.is-visible .idp-credits { transition-delay: 2800ms; }
+.is-visible .idp-note { transition-delay: 3200ms; }
+
+.idp-presents {
+  margin: 0;
+  font-size: var(--mr-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+.idp-starring {
+  margin: var(--mr-space-5) 0 var(--mr-space-2);
+  font-size: var(--mr-text-lg);
+  color: var(--mr-text-secondary);
+}
+
+/* título do cartaz: o espaçamento entre letras fecha enquanto ele surge do desfoque */
+.idp-title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(34px, 7vw, 88px);
+  font-weight: 800;
+  line-height: 0.98;
+  text-transform: uppercase;
+  color: var(--mr-text);
+}
+
+.idp-title span {
+  white-space: nowrap;
+}
+
+.idp-content > .idp-title {
+  letter-spacing: 0.25em;
+  filter: blur(10px);
+  transform: none;
+  transition:
+    opacity 1400ms var(--mr-ease-out),
+    letter-spacing 1800ms var(--mr-ease-out),
+    filter 1400ms var(--mr-ease-out);
+  transition-delay: 1000ms;
+}
+
+.is-visible .idp-content > .idp-title {
+  letter-spacing: -0.02em;
+  filter: none;
+}
+
+.idp-synopsis {
+  max-width: 520px;
+  margin: var(--mr-space-6) 0 0;
+  font-size: var(--mr-text-lg);
+  line-height: 1.6;
+  text-wrap: balance;
+  color: var(--mr-text-secondary);
+}
+
+/* linha de gênero do cartaz */
+.idp-genres {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 22px;
+  margin: var(--mr-space-5) 0 0;
+  font-size: var(--mr-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+.idp-genres b {
+  color: var(--mr-text);
+}
+
+.idp-genres span:first-child b {
+  color: var(--mr-gold);
+}
+
+/* bloco de créditos: papel pequeno em cima, nome em caixa alta embaixo */
+.idp-credits {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--mr-space-4) var(--mr-space-6);
+  margin-top: var(--mr-space-7);
+  padding-top: var(--mr-space-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.idp-credit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mr-text);
+}
+
+.idp-credit small {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--mr-text-muted);
+}
+
+.idp-note {
+  margin: var(--mr-space-6) 0 0;
+  font-size: var(--mr-text-xs);
+  color: var(--mr-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .idp-poster,
+  .idp-content > *,
+  .idp-content > .idp-title {
+    transition: none;
+    transform: none;
+    filter: none;
+  }
+
+  .idp-poster {
+    opacity: 0.32;
+    filter: saturate(0.6);
+  }
+
+  .idp-content > * {
+    opacity: 1;
+  }
+
+  .idp-content > .idp-title {
+    letter-spacing: -0.02em;
+  }
+}
+
+@media (max-width: 640px) {
+  .idp {
+    min-height: 0;
+    padding: 80px 1.25rem;
+  }
+
+  .idp-starring,
+  .idp-synopsis {
+    font-size: 15px;
+  }
+
+  .idp-credits {
+    margin-top: var(--mr-space-6);
+    gap: var(--mr-space-4);
+  }
+}

@@ -6,6 +6,7 @@ import { getShowcasePosters } from '../../services/ExternalSearchService';
 import { SHOWCASE_FALLBACK } from './showcaseFallback';
 import { useLanguage } from '../../shared/i18n';
 import HowItWorks from './HowItWorks';
+import HomeIdentity from './HomeIdentity';
 
 const POSTER_TILES = 20; // grid 5x4 do hero
 const GRID_COLS = 5;
@@ -137,6 +138,7 @@ const HomePage = () => {
       </section>
 
   <HowItWorks how={t.home.how} />
+  <HomeIdentity identity={t.home.identity} />
 
 {/* FAQ */}
 <section id="faq" className="home-section" style={{
