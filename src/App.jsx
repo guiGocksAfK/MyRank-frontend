@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { LanguageProvider } from './shared/i18n'
-import { ServerWakeProvider } from './shared/serverWake'
 import Navbar from './shared/components/Navbar'
 import Home from './features/home/HomePage'
 import Login from './features/auth/LoginPage'
@@ -51,11 +50,9 @@ function Layout() {
 function App() {
   const tree = (
     <LanguageProvider>
-      <ServerWakeProvider>
-        <BrowserRouter>
-          <Layout />
-        </BrowserRouter>
-      </ServerWakeProvider>
+      <BrowserRouter>
+        <Layout />
+      </BrowserRouter>
     </LanguageProvider>
   )
 
