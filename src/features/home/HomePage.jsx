@@ -5,8 +5,7 @@ import './homePage.css';
 import { getShowcasePosters } from '../../services/ExternalSearchService';
 import { SHOWCASE_FALLBACK } from './showcaseFallback';
 import { useLanguage } from '../../shared/i18n';
-
-const STEP_NUMS = ["01", "02", "03", "04"];
+import HowItWorks from './HowItWorks';
 
 const POSTER_TILES = 20; // grid 5x4 do hero
 const GRID_COLS = 5;
@@ -137,114 +136,7 @@ const HomePage = () => {
         </div>
       </section>
 
-  {/* Como funciona */}
-<section className="home-section" style={{
-  padding: "60px 2rem",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: "40px",
-}}>
-  <h2 className="home-section-title" style={{
-    fontSize: "36px",
-    fontWeight: "800",
-    color: "#e5e5e5",
-    fontFamily: "var(--mr-font)",
-    textAlign: "center",
-  }}>
-    {t.home.how.title}
-  </h2>
-
-  <div className="home-steps" style={{
-    display: "flex",
-    gap: "24px",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    maxWidth: "1400px",
-  }}>
-   {t.home.how.steps.map((rawStep, stepIndex) => ({ ...rawStep, num: STEP_NUMS[stepIndex] })).map((step) => (
-          <div key={step.num} className="home-step-card" style={{
-        backgroundColor: "#111111",
-        borderTop: "2px solid #d4af37",
-        border: "1px solid #2a2a2a",
-        borderRadius: "12px",
-        padding: "28px",
-        flex: "1",
-        minWidth: "240px",
-        maxWidth: "320px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-        cursor: "default",
-        transition: "all 0.2s",
-      }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-6px)";
-          e.currentTarget.style.borderColor = "#d4af37";
-          e.currentTarget.style.boxShadow = "0 8px 32px rgba(212,175,55,0.1)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.borderColor = "#2a2a2a";
-          e.currentTarget.style.boxShadow = "none";
-        }}
->
-        <span style={{
-          fontSize: "36px",
-          fontWeight: "800",
-          color: "#d4af37",
-          fontFamily: "var(--mr-font)",
-          lineHeight: 1,
-        }}>{step.num}</span>
-        <h3 style={{
-          fontSize: "18px",
-          fontWeight: "700",
-          color: "#e5e5e5",
-          fontFamily: "var(--mr-font)",
-        }}>{step.title}</h3>
-        <p style={{
-          fontSize: "14px",
-          color: "#888",
-          fontFamily: "var(--mr-font)",
-          lineHeight: "1.7",
-        }}>{step.desc}</p>
-      </div>
-    ))}
-  </div>
-</section>
-
-{/* Números de impacto */}
-<section className="home-impact" style={{
-  padding: "60px 2rem",
-  display: "flex",
-  justifyContent: "center",
-  gap: "64px",
-  flexWrap: "wrap",
-  borderTop: "1px solid #2a2a2a",
-  borderBottom: "1px solid #2a2a2a",
-}}>
-  {t.home.impact.map((item) => (
-    <div key={item.label} style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: "8px",
-    }}>
-      <span className="home-impact-num" style={{
-        fontSize: "48px",
-        fontWeight: "800",
-        color: "#d4af37",
-        fontFamily: "var(--mr-font)",
-        lineHeight: 1,
-      }}>{item.num}</span>
-      <span style={{
-        fontSize: "14px",
-        color: "#888",
-        fontFamily: "var(--mr-font)",
-      }}>{item.label}</span>
-    </div>
-  ))}
-</section>
+  <HowItWorks how={t.home.how} />
 
 {/* FAQ */}
 <section id="faq" className="home-section" style={{

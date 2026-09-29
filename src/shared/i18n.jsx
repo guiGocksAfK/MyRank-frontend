@@ -600,32 +600,25 @@ const TRANSLATIONS = {
       },
       how: {
         title: 'Como funciona?',
+        lede: 'Três passos. Nenhuma planilha.',
         steps: [
-          {
-            title: 'Crie sua conta',
-            desc: 'Comece de graça, sem cartão e sem pegadinha. Acesso completo a todas as funcionalidades — suas tabelas, seu ranking e sua identidade, tudo seu desde o primeiro login.',
-          },
-          {
-            title: 'Monte suas tabelas',
-            desc: 'Crie tabelas do jeito que fizer sentido pra você — uma só de séries, uma só de animes, ou misture os dois. Prefere separar por categoria? Animes Shonen, Animes de Sci-Fi, Filmes de Máfia. Você define a estrutura, sem limites.',
-          },
-          {
-            title: 'Avalie do seu jeito',
-            desc: 'Dê notas de 0 a 10 para qualquer obra. Se quiser ir além, registre o tempo que dedicou — e a gente cria uma média ponderada especial, valorizando o que você realmente consumiu com atenção.',
-          },
-          {
-            title: 'Unifique tudo',
-            desc: 'Junte as tabelas que quiser num ranking unificado com média ponderada — opcional, mas poderoso. Compare filmes com jogos, séries com animes, e descubra o que realmente te marcou.',
-          },
+          { title: 'Monte suas tabelas', desc: 'Animes, discos, restaurantes da cidade: cada lista do seu jeito.' },
+          { title: 'Avalie do seu jeito', desc: 'Nota de 0 a 10, e se quiser, o tempo que você dedicou.' },
+          { title: 'Unifique tudo', desc: 'Junte as listas num ranking só e descubra o que realmente te marcou.' },
         ],
+        // miniaturas do produto em cada passo; notas = médias públicas reais
+        // (MyAnimeList, IMDb, Metacritic), pra ninguém estranhar os números
+        demo: {
+          tabs: ['Animes', 'Discos', 'Restaurantes'],
+          table: [['Frieren', 9.3], ['Fullmetal Alchemist: Brotherhood', 9.1], ['Vinland Saga', 8.8]],
+          ratedHead: 'Sua avaliação',
+          ratedCategory: 'Filmes',
+          unifiedHead: 'Ranking geral',
+          unifiedMeta: '3 tabelas',
+          rated: { name: 'Interestelar', score: 8.7, timeLabel: 'Tempo dedicado', time: '2h 49min' },
+          unified: [['The Last of Us', 'Jogo', 9.3], ['Frieren', 'Anime', 9.3], ['Interestelar', 'Filme', 8.7]],
+        },
       },
-      impact: [
-        { num: '100%', label: 'Gratuito' },
-        { num: '99+', label: 'Tabelas por usuário' },
-        { num: '5', label: 'Categorias de mídia' },
-        { num: '99+', label: 'Obras por tabela' },
-        { num: '0–10', label: 'Escala de avaliação' },
-      ],
       faq: {
         title: 'Perguntas frequentes',
         items: [
@@ -1266,32 +1259,23 @@ const TRANSLATIONS = {
       },
       how: {
         title: 'How it works',
+        lede: 'Three steps. No spreadsheets.',
         steps: [
-          {
-            title: 'Create your account',
-            desc: 'Start for free, no card and no catch. Full access to every feature — your tables, your ranking and your identity, all yours from the first login.',
-          },
-          {
-            title: 'Build your tables',
-            desc: 'Create tables however makes sense to you — one just for series, one just for anime, or mix the two. Prefer to split by category? Shonen Anime, Sci-Fi Anime, Mafia Movies. You define the structure, no limits.',
-          },
-          {
-            title: 'Rate your way',
-            desc: 'Give scores from 0 to 10 to any title. Want to go further? Log the time you spent — and we build a special weighted average that rewards what you truly consumed with attention.',
-          },
-          {
-            title: 'Unify everything',
-            desc: 'Merge any tables into a unified ranking with a weighted average — optional, but powerful. Compare movies with games, series with anime, and discover what really left a mark on you.',
-          },
+          { title: 'Build your tables', desc: 'Anime, albums, the restaurants in your city: every list your way.' },
+          { title: 'Rate your way', desc: 'A score from 0 to 10 and, if you like, the time you put in.' },
+          { title: 'Unify everything', desc: 'Merge your lists into a single ranking and find out what really stuck with you.' },
         ],
+        demo: {
+          tabs: ['Anime', 'Albums', 'Restaurants'],
+          table: [['Frieren', 9.3], ['Fullmetal Alchemist: Brotherhood', 9.1], ['Vinland Saga', 8.8]],
+          ratedHead: 'Your rating',
+          ratedCategory: 'Movies',
+          unifiedHead: 'Overall ranking',
+          unifiedMeta: '3 tables',
+          rated: { name: 'Interstellar', score: 8.7, timeLabel: 'Time spent', time: '2h 49min' },
+          unified: [['The Last of Us', 'Game', 9.3], ['Frieren', 'Anime', 9.3], ['Interstellar', 'Movie', 8.7]],
+        },
       },
-      impact: [
-        { num: '100%', label: 'Free' },
-        { num: '99+', label: 'Tables per user' },
-        { num: '5', label: 'Media categories' },
-        { num: '99+', label: 'Titles per table' },
-        { num: '0–10', label: 'Rating scale' },
-      ],
       faq: {
         title: 'Frequently asked questions',
         items: [
@@ -1932,32 +1916,23 @@ const TRANSLATIONS = {
       },
       how: {
         title: '¿Cómo funciona?',
+        lede: 'Tres pasos. Ninguna hoja de cálculo.',
         steps: [
-          {
-            title: 'Crea tu cuenta',
-            desc: 'Empieza gratis, sin tarjeta y sin trampas. Acceso completo a todas las funciones — tus tablas, tu ranking y tu identidad, todo tuyo desde el primer inicio de sesión.',
-          },
-          {
-            title: 'Arma tus tablas',
-            desc: 'Crea tablas como tenga sentido para ti — una solo de series, una solo de animes, o mezcla las dos. ¿Prefieres separar por categoría? Animes Shonen, Animes de Sci-Fi, Películas de Mafia. Tú defines la estructura, sin límites.',
-          },
-          {
-            title: 'Puntúa a tu manera',
-            desc: 'Da notas de 0 a 10 a cualquier obra. Si quieres ir más allá, registra el tiempo que le dedicaste — y creamos un promedio ponderado especial que valora lo que realmente consumiste con atención.',
-          },
-          {
-            title: 'Unifica todo',
-            desc: 'Une las tablas que quieras en un ranking unificado con promedio ponderado — opcional, pero poderoso. Compara películas con juegos, series con animes, y descubre lo que de verdad te marcó.',
-          },
+          { title: 'Arma tus tablas', desc: 'Animes, discos, los restaurantes de tu ciudad: cada lista a tu manera.' },
+          { title: 'Puntúa a tu manera', desc: 'Nota de 0 a 10 y, si quieres, el tiempo que le dedicaste.' },
+          { title: 'Unifica todo', desc: 'Junta tus listas en un solo ranking y descubre lo que de verdad te marcó.' },
         ],
+        demo: {
+          tabs: ['Animes', 'Discos', 'Restaurantes'],
+          table: [['Frieren', 9.3], ['Fullmetal Alchemist: Brotherhood', 9.1], ['Vinland Saga', 8.8]],
+          ratedHead: 'Tu puntuación',
+          ratedCategory: 'Películas',
+          unifiedHead: 'Ranking general',
+          unifiedMeta: '3 tablas',
+          rated: { name: 'Interestelar', score: 8.7, timeLabel: 'Tiempo dedicado', time: '2h 49min' },
+          unified: [['The Last of Us', 'Juego', 9.3], ['Frieren', 'Anime', 9.3], ['Interestelar', 'Película', 8.7]],
+        },
       },
-      impact: [
-        { num: '100%', label: 'Gratis' },
-        { num: '99+', label: 'Tablas por usuario' },
-        { num: '5', label: 'Categorías de medios' },
-        { num: '99+', label: 'Obras por tabla' },
-        { num: '0–10', label: 'Escala de puntuación' },
-      ],
       faq: {
         title: 'Preguntas frecuentes',
         items: [

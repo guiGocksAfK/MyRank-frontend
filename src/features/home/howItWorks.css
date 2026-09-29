@@ -1,0 +1,378 @@
+/* ============ Como funciona ============ */
+.home-how {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 44px;
+  padding: 80px 2rem 72px;
+}
+
+/* título à esquerda + frase curta à direita, alinhados com a grade dos passos */
+.home-how-head {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--mr-space-5);
+}
+
+.home-how-title {
+  margin: 0;
+  font-size: clamp(26px, 3.2vw, 40px);
+  font-weight: 800;
+  letter-spacing: var(--mr-tracking-tight);
+  color: var(--mr-text);
+}
+
+.home-how-lede {
+  margin: 0;
+  font-size: 17px;
+  color: var(--mr-text-secondary);
+}
+
+.home-how-steps {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.home-how-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-3);
+}
+
+.home-how-step h3 {
+  margin: var(--mr-space-3) 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--mr-text);
+}
+
+.home-how-step p {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 15px;
+  line-height: 1.6;
+  text-wrap: pretty;
+  color: var(--mr-text-secondary);
+}
+
+/* ============ Miniaturas do produto ============
+   Mesma anatomia nas três: cabeçalho pequeno + corpo que preenche a caixa.
+   Cores: texto em 3 níveis (branco = dado, cinza = descrição, cinza escuro = rótulo);
+   dourado só na nota avaliada, na barra e no 1º lugar. */
+.how-demo {
+  height: 184px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-3);
+  padding: var(--mr-space-4);
+  /* quase preto: quem dá corpo é a borda-reflexo e o conteúdo, não um cinza (cinza vira "lápis") */
+  background: #080808;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--mr-radius-sm);
+  /* fio de luz na borda de cima: dá volume ao cartão sobre o preto */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 12px 32px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.how-demo-head {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: var(--mr-text-xs);
+  color: var(--mr-text-muted);
+}
+
+.how-demo-head span:first-child {
+  font-weight: 600;
+}
+
+.how-demo-tabs {
+  justify-content: flex-start;
+}
+
+.how-demo-tabs span {
+  padding: 3px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.how-demo-tabs span:first-child {
+  font-weight: 400;
+}
+
+.how-demo-tabs .is-active {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--mr-text);
+}
+
+.how-demo-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* lista simples (passo 1) */
+.how-demo-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.how-demo-list li {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.how-demo-list li + li {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.how-demo-pos {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-text-muted);
+}
+
+.how-demo-list li:first-child .how-demo-pos {
+  color: var(--mr-gold);
+}
+
+.how-demo-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--mr-text);
+}
+
+.how-demo-name small {
+  margin-left: var(--mr-space-2);
+  font-size: 11px;
+  color: var(--mr-text-muted);
+}
+
+.how-demo-score {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-text);
+}
+
+/* avaliação (passo 2) */
+.how-demo-rated {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--mr-space-3);
+}
+
+.how-demo-rated .how-demo-name {
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+}
+
+.how-demo-big {
+  display: inline-block;
+  transform-origin: right bottom;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: var(--mr-tracking-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-gold);
+}
+
+/* o "pulso" quando a nota termina de contar */
+.how-demo-big.is-done {
+  animation: how-pulse 700ms var(--mr-ease-out);
+}
+
+@keyframes how-pulse {
+  35% { transform: scale(1.14); }
+}
+
+.how-demo-scale {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+
+.how-demo-scale span {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--mr-track);
+  transition: background-color 220ms var(--mr-ease);
+}
+
+.how-demo-scale .is-on {
+  background: var(--mr-gold);
+}
+
+.how-demo-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--mr-text-xs);
+  color: var(--mr-text-muted);
+}
+
+.how-demo-meta span:last-child {
+  color: var(--mr-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ranking geral (passo 3): números fixos, linhas deslizam entre as posições */
+.how-demo-ranked {
+  position: relative;
+  flex: 1;
+}
+
+.how-demo-slots {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.how-demo-slots li {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-text-muted);
+}
+
+.how-demo-slots li + li {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.how-demo-slots li:first-child {
+  color: var(--mr-gold);
+}
+
+.how-demo-ranked-row {
+  position: absolute;
+  top: 0;
+  left: 28px;
+  right: 0;
+  height: calc(100% / 3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(calc(var(--rank) * 100%));
+  transition:
+    opacity 500ms var(--mr-ease),
+    transform 900ms var(--mr-ease-out);
+}
+
+.how-demo-ranked-row.is-shown {
+  opacity: 1;
+}
+
+/* ============ Entrada ============ */
+.how-demo {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 800ms var(--mr-ease-out),
+    transform 800ms var(--mr-ease-out);
+  transition-delay: calc(var(--i, 0) * 150ms);
+}
+
+.home-how.is-visible .how-demo {
+  opacity: 1;
+  transform: none;
+}
+
+.how-demo-list-enter li {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 600ms var(--mr-ease-out),
+    transform 600ms var(--mr-ease-out);
+  transition-delay: calc(400ms + var(--i) * 120ms);
+}
+
+.home-how.is-visible .how-demo-list-enter li {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-demo,
+  .how-demo-list-enter li,
+  .how-demo-ranked-row,
+  .how-demo-scale span {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .how-demo-ranked-row {
+    transform: translateY(calc(var(--rank) * 100%));
+  }
+
+  .how-demo-big.is-done {
+    animation: none;
+  }
+}
+
+/* ============ Mobile ============ */
+@media (max-width: 640px) {
+  .home-how {
+    gap: var(--mr-space-6);
+    padding: 56px 1.25rem;
+  }
+
+  .home-how-head {
+    flex-direction: column;
+    gap: var(--mr-space-2);
+  }
+
+  .home-how-lede {
+    font-size: 15px;
+  }
+
+  .home-how-steps {
+    grid-template-columns: 1fr;
+    gap: var(--mr-space-7);
+  }
+
+  .home-how-step h3 {
+    font-size: 17px;
+  }
+
+  .home-how-step p {
+    font-size: 14px;
+  }
+}
