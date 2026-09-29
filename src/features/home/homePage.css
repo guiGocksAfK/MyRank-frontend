@@ -65,7 +65,7 @@
   /* mais escuro atrás do texto, mais leve nas bordas; o pé funde com a seção seguinte */
   background:
     linear-gradient(to bottom, rgba(15, 15, 15, 0.85) 0, transparent 160px),
-    linear-gradient(to bottom, transparent 70%, #0f0f0f 100%),
+    linear-gradient(to bottom, transparent 70%, var(--mr-bg) 100%), /* funde com o preto da seção de baixo */
     radial-gradient(ellipse 55% 60% at 50% 50%, rgba(15, 15, 15, 0.9) 0%, rgba(15, 15, 15, 0.8) 55%, rgba(15, 15, 15, 0.7) 100%);
   z-index: 1;
 }
@@ -212,50 +212,6 @@
 
   .home-faq-list {
     gap: 8px !important;
-  }
-
-  /* cards "Como funciona" */
-  .home-steps {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
-    width: 100%;
-  }
-
-  .home-step-card {
-    padding: 18px !important;
-    gap: 6px !important;
-    width: 100%;
-    min-width: 0 !important;
-    max-width: none !important;
-    border-radius: 10px !important;
-  }
-
-  .home-step-card > span {
-    font-size: 24px !important;
-  }
-
-  .home-step-card > h3 {
-    font-size: 15px !important;
-  }
-
-  .home-step-card > p {
-    font-size: 13px !important;
-    line-height: 1.6 !important;
-  }
-
-  /* números de impacto */
-  .home-impact {
-    gap: 12px 28px !important;
-    padding: 32px 1.25rem !important;
-  }
-
-  .home-impact-num {
-    font-size: 30px !important;
-  }
-
-  .home-impact > div > span:last-child {
-    font-size: 12px !important;
   }
 
   .home-faq-item {
