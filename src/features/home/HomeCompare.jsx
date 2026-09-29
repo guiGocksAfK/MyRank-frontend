@@ -8,8 +8,8 @@ const SCALE_TOP = 10;
 const SCALE_BOTTOM = 6;
 const GRID = [10, 9, 8, 7, 6];
 const AGREE_MAX_DIFF = 0.5; // até meio ponto de diferença conta como "concordam"
-const COUNT_UP_MS = 1400;
-const COUNT_UP_DELAY_MS = 1600;
+const COUNT_UP_MS = 980;
+const COUNT_UP_DELAY_MS = 1120;
 
 const yOf = (score) => ((SCALE_TOP - score) / (SCALE_TOP - SCALE_BOTTOM)) * 100;
 
@@ -67,19 +67,15 @@ const CompareBoard = ({ compare, active }) => {
 
   return (
     <div className="cmp-board">
+      {/* a % gigante, só no contorno, atrás do gráfico */}
+      <div className="cmp-ghost">
+        <b>{pct}%</b>
+        <small>{compare.affinityLabel}</small>
+      </div>
+
       <div className="cmp-top">
-        <span className="cmp-person">
-          <span className="home-avatar">{compare.you[0]}</span>
-          {compare.you}
-        </span>
-        <span className="cmp-affinity">
-          <b>{pct}%</b>
-          <small>{compare.affinityLabel}</small>
-        </span>
-        <span className="cmp-person cmp-person-right">
-          {compare.friend}
-          <span className="home-avatar">{compare.friend[0]}</span>
-        </span>
+        <span className="cmp-person">{compare.you}</span>
+        <span className="cmp-person cmp-person-right">{compare.friend}</span>
       </div>
 
       <div className="cmp-chart" aria-hidden="true">

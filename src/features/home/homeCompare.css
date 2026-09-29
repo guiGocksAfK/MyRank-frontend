@@ -3,6 +3,8 @@
    A altura de cada ponta é a nota: fio reto = concordam, inclinado = discordam.
    Dourado só nos fios de concordância e na % de afinidade. */
 .cmp-board {
+  --label-col: 170px;
+  position: relative;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -10,46 +12,56 @@
 }
 
 .cmp-top {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: end;
-  gap: var(--mr-space-4);
+  grid-template-columns: var(--label-col) 1fr var(--label-col);
 }
 
+/* legenda de coluna do gráfico (pequena, cinza), não um título */
 .cmp-person {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: var(--mr-text-sm);
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  grid-column: 1;
+  justify-self: end;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--mr-text);
+  color: var(--mr-text-muted);
 }
 
 .cmp-person-right {
-  justify-self: end;
+  grid-column: 3;
+  justify-self: start;
 }
 
-.cmp-affinity {
+/* afinidade como elemento gráfico: número enorme, só o contorno, atrás do gráfico */
+.cmp-ghost {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  z-index: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  line-height: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
-.cmp-affinity b {
-  font-size: clamp(36px, 4vw, 48px);
+.cmp-ghost b {
+  font-size: clamp(150px, 19vw, 280px);
   font-weight: 800;
-  letter-spacing: var(--mr-tracking-tight);
+  line-height: 0.8;
+  letter-spacing: -0.05em;
   font-variant-numeric: tabular-nums;
-  color: var(--mr-gold);
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--mr-gold) 50%, transparent);
 }
 
-.cmp-affinity small {
-  margin-top: 6px;
+.cmp-ghost small {
+  margin-top: var(--mr-space-4);
   font-size: var(--mr-text-xs);
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--mr-text-muted);
 }
@@ -58,9 +70,10 @@
 .cmp-chart {
   --chart-h: 320px;
   position: relative;
+  z-index: 1;
   height: var(--chart-h);
   display: grid;
-  grid-template-columns: 170px 1fr 170px;
+  grid-template-columns: var(--label-col) 1fr var(--label-col);
   /* sem isso o SVG (quadrado por natureza) estica a linha até ficar da altura da largura */
   grid-template-rows: var(--chart-h);
 }
@@ -79,8 +92,8 @@
   transform: translateY(-50%);
   font-size: 13px;
   opacity: 0;
-  transition: opacity 600ms var(--mr-ease-out);
-  transition-delay: calc(200ms + var(--i) * 90ms);
+  transition: opacity 420ms var(--mr-ease-out);
+  transition-delay: calc(140ms + var(--i) * 63ms);
 }
 
 .cmp-col-left .cmp-label {
@@ -128,7 +141,7 @@
   overflow: visible;
   /* os fios são revelados da esquerda pra direita, como se estivessem sendo desenhados */
   clip-path: inset(-4px 100% -4px 0);
-  transition: clip-path 1400ms var(--mr-ease-out) 500ms;
+  transition: clip-path 980ms var(--mr-ease-out) 350ms;
 }
 
 .is-visible .cmp-lines {
@@ -148,7 +161,7 @@
   stroke-width: 1.5;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
-  transition: stroke 600ms var(--mr-ease);
+  transition: stroke 420ms var(--mr-ease);
 }
 
 .cmp-wire.is-fight {
@@ -159,17 +172,19 @@
 .is-visible .cmp-wire.is-agree {
   stroke: var(--mr-gold);
   stroke-width: 2;
-  transition-delay: 1900ms;
+  transition-delay: 1330ms;
 }
 
 .cmp-foot {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: var(--mr-space-3);
   padding-top: var(--mr-space-4);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   opacity: 0;
-  transition: opacity 800ms var(--mr-ease-out) 2200ms;
+  transition: opacity 560ms var(--mr-ease-out) 1540ms;
 }
 
 .is-visible .cmp-foot {
@@ -220,9 +235,13 @@
 }
 
 @media (max-width: 640px) {
+  .cmp-board {
+    --label-col: 124px;
+  }
+
   .cmp-chart {
     --chart-h: 300px;
-    grid-template-columns: 124px 1fr 124px;
+    grid-template-columns: var(--label-col) 1fr var(--label-col);
   }
 
   .cmp-label {

@@ -12,8 +12,8 @@
   opacity: 0;
   transform: translateY(8px);
   transition:
-    opacity 600ms var(--mr-ease-out),
-    transform 600ms var(--mr-ease-out);
+    opacity 420ms var(--mr-ease-out),
+    transform 420ms var(--mr-ease-out);
 }
 
 .tk-take.is-shown,

@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import useRevealOnce, { prefersReducedMotion } from "./useRevealOnce";
+import { useState } from "react";
+import useRevealOnce from "./useRevealOnce";
 import CompareBoard from "./HomeCompare";
 import TakeThread from "./HomeTakes";
 import "./homeSocial.css";
-
-const AUTO_UNLOCK_MS = 1200; // o interruptor "Perfil privado" desliga sozinho e a história começa
 
 const LockIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -15,33 +13,14 @@ const LockIcon = () => (
 );
 
 /**
- * "Com amigos, se quiser": o lado social é opcional. Começa com o perfil
- * privado (tudo apagado com cadeado); o interruptor desliga sozinho e aí o
- * gráfico de afinidade e a conversa nos takes acontecem. A pessoa pode ligar
- * e desligar o interruptor pra ver os dois estados.
+ * "Com amigos, se quiser": o lado social é opcional. O gráfico de afinidade
+ * e a conversa nos takes acontecem quando a seção aparece; o interruptor
+ * "Perfil privado" começa desligado e, se a pessoa ligar, tudo apaga com o
+ * cadeado ("só você vê suas tabelas").
  */
 const HomeSocial = ({ social, compare, takes }) => {
-  const reduced = prefersReducedMotion();
   const [sectionRef, visible] = useRevealOnce(0.35);
-  const [isPrivate, setIsPrivate] = useState(!reduced);
-  const [started, setStarted] = useState(reduced);
-  const touched = useRef(false);
-
-  useEffect(() => {
-    if (!visible || reduced) return undefined;
-    const timer = setTimeout(() => {
-      if (touched.current) return;
-      setIsPrivate(false);
-      setStarted(true);
-    }, AUTO_UNLOCK_MS);
-    return () => clearTimeout(timer);
-  }, [visible, reduced]);
-
-  const toggle = () => {
-    touched.current = true;
-    if (isPrivate) setStarted(true); // abrir o perfil pela primeira vez também dá a partida
-    setIsPrivate(!isPrivate);
-  };
+  const [isPrivate, setIsPrivate] = useState(false);
 
   return (
     <section ref={sectionRef} className="home-block">
@@ -54,7 +33,7 @@ const HomeSocial = ({ social, compare, takes }) => {
             role="switch"
             aria-checked={isPrivate}
             className="social-switch"
-            onClick={toggle}
+            onClick={() => setIsPrivate(!isPrivate)}
           >
             <span className="social-switch-track">
               <span className="social-switch-knob" />
@@ -67,15 +46,15 @@ const HomeSocial = ({ social, compare, takes }) => {
       <div
         className={[
           "social-grid",
-          started ? "is-visible" : "",
+          visible ? "is-visible" : "",
           isPrivate ? "is-private" : "",
         ].join(" ")}
       >
         <div className="social-col">
-          <CompareBoard compare={compare} active={started} />
+          <CompareBoard compare={compare} active={visible} />
         </div>
         <div className="social-col">
-          <TakeThread takes={takes} active={started} />
+          <TakeThread takes={takes} active={visible} />
         </div>
 
         <p className="social-lock" aria-hidden={!isPrivate}>

@@ -8,13 +8,13 @@ import "./homeTakes.css";
  * chegam uma a uma, cada uma precedida de "digitando…". (ms depois de `active`)
  */
 const TIMELINE = [
-  [2400, { take: true }],
-  [3200, { typing: 0 }],
-  [4100, { shown: 1, typing: -1 }],
-  [4600, { typing: 1 }],
-  [5500, { shown: 2, typing: -1 }],
-  [6000, { typing: 2 }],
-  [6800, { shown: 3, typing: -1 }],
+  [1680, { take: true }],
+  [2240, { typing: 0 }],
+  [2870, { shown: 1, typing: -1 }],
+  [3220, { typing: 1 }],
+  [3850, { shown: 2, typing: -1 }],
+  [4200, { typing: 2 }],
+  [4760, { shown: 3, typing: -1 }],
 ];
 
 const HIDDEN = { take: false, shown: 0, typing: -1 };
