@@ -1,7 +1,9 @@
 .navbar {
-  height: 80px;
+  height: var(--mr-navbar-h);
   padding: 0 32px;
-  background: #0f0f0f;
+  background: color-mix(in srgb, #0f0f0f 82%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
   border-bottom: 1px solid #2a2a2a;
   display: flex;
   align-items: center;
@@ -36,60 +38,47 @@
   gap: 16px;
 }
 
-.navbar-link,
-.navbar-ghost,
-.navbar-primary {
-  min-height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 7px;
-  color: #8f8f8f;
-  font-size: 15px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+.navbar-lang-btn {
+  gap: 6px;
 }
 
-.navbar-link {
-  padding: 7px 4px;
-}
-
-.navbar-link:hover,
-.navbar-ghost:hover {
-  color: #e5e5e5;
-}
-
-.navbar-ghost {
-  border: 1px solid #2a2a2a;
-  background: transparent;
-  padding: 7px 12px;
-  cursor: pointer;
-  font: inherit;
-}
-
-.navbar-ghost:hover {
-  border-color: #555;
-}
-
-.navbar-ghost span {
-  margin-left: 5px;
-  font-size: 10px;
+.navbar-lang-btn svg {
   opacity: 0.65;
+  transition: transform var(--mr-duration-fast) var(--mr-ease);
 }
 
-.navbar-primary {
-  border: 0;
-  background: #d4af37;
-  color: #0f0f0f;
-  padding: 7px 17px;
-  font-size: 14px;
-  font-weight: 800;
+.navbar-lang-btn[aria-expanded="true"] svg {
+  transform: rotate(180deg);
 }
 
-.navbar-primary:hover {
-  opacity: 0.88;
-  box-shadow: 0 0 22px rgba(212, 175, 55, 0.32);
+/* Legenda de filme no pé da tela ao trocar o idioma */
+.navbar-caption {
+  position: fixed;
+  left: 50%;
+  bottom: 9vh;
+  z-index: 1000;
+  max-width: 90vw;
+  margin: 0;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: clamp(17px, 2vw, 24px);
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  /* contorno preto clássico de legenda: legível sobre qualquer imagem */
+  text-shadow:
+    0 0 3px #000,
+    0 0 3px #000,
+    0 2px 6px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  animation: navbar-caption 2.8s var(--mr-ease) forwards;
+}
+
+@keyframes navbar-caption {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .navbar-user {
@@ -115,39 +104,14 @@
   position: relative;
 }
 
-.navbar-menu {
-  min-width: 76px;
+.navbar-lang-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
-}
-
-.navbar-menu button {
-  width: 100%;
-  padding: 9px 14px;
-  border: 0;
-  background: transparent;
-  color: #8f8f8f;
-  text-align: left;
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.navbar-menu button:hover,
-.navbar-menu button.active {
-  background: #242424;
-  color: #d4af37;
 }
 
 @media (max-width: 640px) {
   .navbar {
-    height: 64px;
     padding: 0 14px;
     gap: 10px;
   }
@@ -158,25 +122,6 @@
 
   .navbar-actions {
     gap: 7px;
-  }
-
-  .hide-on-small {
-    display: none;
-  }
-
-  .navbar-link,
-  .navbar-ghost,
-  .navbar-primary {
-    min-height: 34px;
-    font-size: 13px;
-  }
-
-  .navbar-ghost {
-    padding: 6px 10px;
-  }
-
-  .navbar-primary {
-    padding: 6px 12px;
   }
 
   .navbar-user {
@@ -191,9 +136,8 @@
     gap: 6px;
   }
 
-  .navbar-ghost,
-  .navbar-primary {
-    padding: 6px 9px;
+  .navbar-actions .mr-btn {
+    padding: 0.4rem 0.55rem;
     font-size: 12px;
   }
 }

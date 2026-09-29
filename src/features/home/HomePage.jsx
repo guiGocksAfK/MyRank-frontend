@@ -6,7 +6,6 @@ import { getShowcasePosters } from '../../services/ExternalSearchService';
 import { SHOWCASE_FALLBACK } from './showcaseFallback';
 import { useLanguage } from '../../shared/i18n';
 
-const MEDIA_ICONS = ["🎬", "📺", "🎮", "📚", "⛩️"];
 const STEP_NUMS = ["01", "02", "03", "04"];
 
 const POSTER_TILES = 20; // grid 5x4 do hero
@@ -126,18 +125,15 @@ const HomePage = () => {
             {t.home.hero.subtitle}
           </p>
 
-          <Link to="/cadastrar" className="home-cta">
+          <Link to="/cadastrar" className="mr-btn mr-btn-gold mr-btn-lg home-cta">
             {t.home.hero.cta}
           </Link>
 
-          <div className="home-media-grid">
-            {t.home.medias.map((label, i) => (
-              <div key={label} className="home-media-item">
-                <span className="home-media-icon">{MEDIA_ICONS[i]}</span>
-                {label}
-              </div>
+          <p className="home-categories">
+            {t.home.hero.categories.map((label) => (
+              <span key={label}>{label}</span>
             ))}
-          </div>
+          </p>
         </div>
       </section>
 

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { useLanguage, LANGUAGES } from "../i18n";
 import "./Navbar.css";
@@ -20,9 +21,50 @@ const UserIcon = () => (
   </svg>
 );
 
+const ChevronIcon = () => (
+  <svg
+    width="10"
+    height="10"
+    viewBox="0 0 10 10"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M2 3.5 5 6.5 8 3.5" />
+  </svg>
+);
+
 const Navbar = () => {
   const [langOpen, setLangOpen] = useState(false);
   const { lang, setLang, t } = useLanguage();
+  const langRef = useRef(null);
+  const langButtonRef = useRef(null);
+  // legenda de filme que aparece no pé da tela ao trocar o idioma;
+  // a key reinicia a animação se a pessoa trocar de novo antes dela sumir
+  const [captionKey, setCaptionKey] = useState(0);
+
+  // Fecha o menu de idioma ao clicar fora ou apertar Esc
+  useEffect(() => {
+    if (!langOpen) return undefined;
+    const onPointerDown = (e) => {
+      if (!langRef.current?.contains(e.target)) setLangOpen(false);
+    };
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setLangOpen(false);
+        langButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [langOpen]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -36,33 +78,39 @@ const Navbar = () => {
       </Link>
 
       <div className="navbar-actions">
-        <Link className="navbar-link hide-on-small" to="/" onClick={scrollToTop}>
-          {t.nav.home}
-        </Link>
-
-        <div className="navbar-language">
+        <div className="navbar-language" ref={langRef}>
           <button
-            className="navbar-ghost"
+            ref={langButtonRef}
+            className="mr-btn mr-btn-ghost navbar-lang-btn"
             type="button"
             onClick={() => setLangOpen((open) => !open)}
             aria-expanded={langOpen}
+            aria-haspopup="menu"
+            aria-label={`${t.nav.subtitles}: ${lang}`}
           >
             {lang}
-            <span aria-hidden="true">&#9662;</span>
+            <ChevronIcon />
           </button>
 
           {langOpen && (
-            <div className="navbar-menu">
+            <div className="mr-menu navbar-lang-menu" role="menu" aria-label={t.nav.subtitles}>
+              <div className="mr-menu-label" aria-hidden="true">{t.nav.subtitles}</div>
               {LANGUAGES.map((language) => (
                 <button
                   key={language}
-                  className={language === lang ? "active" : ""}
+                  className="mr-menu-item"
                   type="button"
+                  role="menuitemradio"
+                  aria-checked={language === lang}
                   onClick={() => {
-                    setLang(language);
+                    if (language !== lang) {
+                      setLang(language);
+                      setCaptionKey((k) => k + 1);
+                    }
                     setLangOpen(false);
                   }}
                 >
+                  <span className="mr-menu-radio" aria-hidden="true" />
                   {language}
                 </button>
               ))}
@@ -70,14 +118,27 @@ const Navbar = () => {
           )}
         </div>
 
-        <Link className="navbar-ghost" to="/entrar">
+        <Link className="mr-btn mr-btn-ghost" to="/entrar">
           {t.nav.login}
         </Link>
 
-        <Link className="navbar-primary" to="/cadastrar">
+        <Link className="mr-btn mr-btn-gold" to="/cadastrar">
           {t.nav.signup}
         </Link>
       </div>
+
+      {captionKey > 0 &&
+        createPortal(
+          <p
+            key={captionKey}
+            className="navbar-caption"
+            role="status"
+            onAnimationEnd={() => setCaptionKey(0)}
+          >
+            {t.nav.switched}
+          </p>,
+          document.body
+        )}
     </nav>
   );
 };

@@ -7,14 +7,17 @@
 
 .home-hero {
   position: relative;
+  /* sobe por baixo da navbar transparente e ocupa a tela inteira */
+  margin-top: calc(-1 * var(--mr-navbar-h));
+  padding: var(--mr-navbar-h) 2rem 0;
   min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   overflow: hidden;
-  padding: 0 2rem;
 }
 
 .home-poster-grid {
@@ -34,6 +37,8 @@
   background-position: center;
   background-repeat: no-repeat;
   border-radius: 6px;
+  /* pôsteres mais apagados: o dourado fica sendo a única cor forte */
+  filter: saturate(0.6);
   opacity: 0;
   transform: translate(var(--tile-shift, 0px), var(--tile-shift, 0px)) scale(0.94);
   transition: opacity 0.55s ease, transform 0.55s ease;
@@ -57,7 +62,11 @@
 .home-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(15, 15, 15, 0.6) 0%, rgba(15, 15, 15, 0.85) 60%, #0f0f0f 100%);
+  /* mais escuro atrás do texto, mais leve nas bordas; o pé funde com a seção seguinte */
+  background:
+    linear-gradient(to bottom, rgba(15, 15, 15, 0.85) 0, transparent 160px),
+    linear-gradient(to bottom, transparent 70%, #0f0f0f 100%),
+    radial-gradient(ellipse 55% 60% at 50% 50%, rgba(15, 15, 15, 0.9) 0%, rgba(15, 15, 15, 0.8) 55%, rgba(15, 15, 15, 0.7) 100%);
   z-index: 1;
 }
 
@@ -67,15 +76,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
 }
 
 .home-title {
-  font-size: clamp(30px, 8vw, 56px);
+  font-size: clamp(30px, 6vw, 72px);
   font-weight: 800;
   color: #e5e5e5;
-  line-height: 1.15;
-  max-width: 700px;
+  line-height: 1.08;
+  letter-spacing: var(--mr-tracking-tight);
+  max-width: 900px;
   margin: 0;
 }
 
@@ -86,69 +95,32 @@
 .home-subtitle {
   font-size: 16px;
   color: #aaa;
-  max-width: 480px;
+  max-width: 520px;
   line-height: 1.7;
-  margin: 0;
+  text-wrap: balance;
+  margin: var(--mr-space-4) 0 0;
 }
 
 .home-cta {
-  background-color: #d4af37;
-  border: none;
-  border-radius: 8px;
-  color: #0f0f0f;
-  font-size: 15px;
-  font-weight: 700;
-  padding: 14px 36px;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
+  margin-top: 40px;
 }
 
-.home-cta:hover {
-  opacity: 0.85;
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
-}
-
-.home-cta:active {
-  transform: scale(0.92);
-}
-
-.home-media-grid {
+/* "Filmes · Séries · ... · Comidas" */
+.home-categories {
   display: flex;
-  gap: 16px;
-  margin-top: 24px;
   flex-wrap: wrap;
   justify-content: center;
+  max-width: 560px;
+  margin: 20px 0 0;
+  font-size: var(--mr-text-sm);
+  color: var(--mr-text-secondary);
+  line-height: 1.8;
 }
 
-.home-media-item {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 16px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: #e5e5e5;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.home-media-item:hover {
-  background-color: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.4);
-  transform: translateY(-4px);
-}
-
-.home-media-icon {
-  font-size: 28px;
+.home-categories span + span::before {
+  content: "·";
+  margin: 0 10px;
+  color: var(--mr-text-muted);
 }
 
 .home-faq-item {
@@ -205,39 +177,27 @@
 @media (max-width: 640px) {
   .home-hero {
     min-height: auto;
-    padding: 96px 1.25rem 64px;
-  }
-
-  .home-content {
-    gap: 18px;
+    padding: calc(var(--mr-navbar-h) + 72px) 1.25rem 64px;
   }
 
   .home-subtitle {
     font-size: 14px;
+    margin-top: var(--mr-space-3);
   }
 
   .home-cta {
-    padding: 13px 28px;
-    font-size: 14px;
+    margin-top: 28px;
   }
 
-  .home-media-grid {
-    gap: 10px;
-    margin-top: 16px;
+  .home-categories {
+    margin-top: var(--mr-space-4);
+    font-size: var(--mr-text-xs);
   }
 
-  .home-media-item {
-    padding: 10px 6px;
-    gap: 4px;
-    font-size: 11px;
-    border-radius: 10px;
-    flex: 1 1 calc(33.333% - 8px);
-    min-width: 84px;
+  .home-categories span + span::before {
+    margin: 0 7px;
   }
 
-  .home-media-icon {
-    font-size: 19px;
-  }
 
   /* seções com estilo inline no JSX */
   .home-section {

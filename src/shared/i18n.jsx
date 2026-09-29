@@ -12,7 +12,7 @@ export const LANGUAGES = ['PT', 'EN', 'ES'];
 
 const TRANSLATIONS = {
   PT: {
-    nav: { home: 'Home', login: 'Entrar', signup: 'Cadastrar' },
+    nav: { login: 'Entrar', signup: 'Cadastrar', subtitles: 'Legendas', switched: '— Agora a gente fala português.' },
     common: {
       loading: 'Carregando…',
       serverWake: {
@@ -594,10 +594,10 @@ const TRANSLATIONS = {
         title2: 'Seu ranking.',
         title3: 'Sua identidade.',
         subtitle:
-          'Avalie filmes, séries, jogos, livros e animes em um só lugar. Compare com amigos e descubra seu perfil de consumo.',
+          'Ranqueie seus filmes, séries e jogos favoritos, ou qualquer coisa que você ama. Compare com amigos e descubra seu perfil.',
         cta: 'Criar conta grátis',
+        categories: ['Filmes', 'Séries', 'Jogos', 'Livros', 'Animes', 'Músicas', 'Comidas'],
       },
-      medias: ['Filmes', 'Séries', 'Jogos', 'Livros', 'Animes'],
       how: {
         title: 'Como funciona?',
         steps: [
@@ -678,7 +678,7 @@ const TRANSLATIONS = {
   },
 
   EN: {
-    nav: { home: 'Home', login: 'Sign in', signup: 'Sign up' },
+    nav: { login: 'Sign in', signup: 'Sign up', subtitles: 'Subtitles', switched: '— Now we speak English.' },
     common: {
       loading: 'Loading…',
       serverWake: {
@@ -1260,10 +1260,10 @@ const TRANSLATIONS = {
         title2: 'Your ranking.',
         title3: 'Your identity.',
         subtitle:
-          'Rate movies, series, games, books and anime all in one place. Compare with friends and discover your consumption profile.',
+          'Rank your favorite movies, series and games, or anything you love. Compare with friends and discover your profile.',
         cta: 'Create free account',
+        categories: ['Movies', 'Series', 'Games', 'Books', 'Anime', 'Music', 'Food'],
       },
-      medias: ['Movies', 'Series', 'Games', 'Books', 'Anime'],
       how: {
         title: 'How it works',
         steps: [
@@ -1344,7 +1344,7 @@ const TRANSLATIONS = {
   },
 
   ES: {
-    nav: { home: 'Inicio', login: 'Iniciar sesión', signup: 'Registrarse' },
+    nav: { login: 'Iniciar sesión', signup: 'Registrarse', subtitles: 'Subtítulos', switched: '— Ahora hablamos español.' },
     common: {
       loading: 'Cargando…',
       serverWake: {
@@ -1926,10 +1926,10 @@ const TRANSLATIONS = {
         title2: 'Tu ranking.',
         title3: 'Tu identidad.',
         subtitle:
-          'Puntúa películas, series, juegos, libros y animes en un solo lugar. Compara con amigos y descubre tu perfil de consumo.',
+          'Clasifica tus películas, series y juegos favoritos, o cualquier cosa que ames. Compara con amigos y descubre tu perfil.',
         cta: 'Crear cuenta gratis',
+        categories: ['Películas', 'Series', 'Juegos', 'Libros', 'Animes', 'Música', 'Comidas'],
       },
-      medias: ['Películas', 'Series', 'Juegos', 'Libros', 'Animes'],
       how: {
         title: '¿Cómo funciona?',
         steps: [
