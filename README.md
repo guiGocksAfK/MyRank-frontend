@@ -49,9 +49,6 @@ on a phone. A few decisions follow from that:
 - **Real data in examples.** Scores shown on the landing page are real public
   averages (MyAnimeList, IMDb, Metacritic), and the affinity example uses the
   same formula as the product.
-- **Graceful cold starts.** If the API does not answer, a "waking the server"
-  screen takes over and retries the request, so the user never has to redo an
-  action.
 
 ## Hosting
 
@@ -67,7 +64,7 @@ for the full architecture.
 | React 19 | UI |
 | Vite 8 | Dev server and production build |
 | React Router 7 | Client-side routing |
-| Axios | HTTP client with auth and retry interceptors |
+| Axios | HTTP client with an auth interceptor |
 | STOMP over SockJS | Real-time chat |
 | `@react-oauth/google` | Google sign-in (Discord uses a custom OAuth flow) |
 | Plain CSS | Shared design system in `src/styles/base.css` plus per-feature stylesheets |
