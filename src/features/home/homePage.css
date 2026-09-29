@@ -2,7 +2,7 @@
   background-color: #000000;
   min-height: 100vh;
   color: #e5e5e5;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--mr-font);
 }
 
 .home-hero {

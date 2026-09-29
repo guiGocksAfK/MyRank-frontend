@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: var(--mr-font);
   position: sticky;
   top: 0;
   z-index: 100;
