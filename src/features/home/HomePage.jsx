@@ -7,6 +7,7 @@ import { SHOWCASE_FALLBACK } from './showcaseFallback';
 import { useLanguage } from '../../shared/i18n';
 import HowItWorks from './HowItWorks';
 import HomeIdentity from './HomeIdentity';
+import HomeSocial from './HomeSocial';
 
 const POSTER_TILES = 20; // grid 5x4 do hero
 const GRID_COLS = 5;
@@ -139,6 +140,7 @@ const HomePage = () => {
 
   <HowItWorks how={t.home.how} />
   <HomeIdentity identity={t.home.identity} />
+  <HomeSocial social={t.home.social} compare={t.home.compare} takes={t.home.takes} />
 
 {/* FAQ */}
 <section id="faq" className="home-section" style={{
