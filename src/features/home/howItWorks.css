@@ -1,0 +1,204 @@
+/* ============ Como funciona ============
+   Cabeçalho, cartões, legendas e entrada vêm das peças compartilhadas
+   (.home-block, .home-feature, .home-reveal, .demo-* em homePage.css; .mr-panel na base). */
+.home-how-steps {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+/* miniaturas com a mesma altura nos três passos */
+.how-demo {
+  height: 184px;
+}
+
+.how-demo-tabs {
+  justify-content: flex-start;
+}
+
+.how-demo-tabs span {
+  padding: 3px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.how-demo-tabs span:first-child {
+  font-weight: 400;
+}
+
+.how-demo-tabs .is-active {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--mr-text);
+}
+
+.how-demo-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* avaliação (passo 2) */
+.how-demo-rated {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--mr-space-3);
+}
+
+.how-demo-rated .demo-name {
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+}
+
+.how-demo-big {
+  display: inline-block;
+  transform-origin: right bottom;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: var(--mr-tracking-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-gold);
+}
+
+/* o "pulso" quando a nota termina de contar */
+.how-demo-big.is-done {
+  animation: how-pulse 700ms var(--mr-ease-out);
+}
+
+@keyframes how-pulse {
+  35% { transform: scale(1.14); }
+}
+
+.how-demo-scale {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+
+.how-demo-scale span {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--mr-track);
+  transition: background-color 220ms var(--mr-ease);
+}
+
+.how-demo-scale .is-on {
+  background: var(--mr-gold);
+}
+
+.how-demo-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--mr-text-xs);
+  color: var(--mr-text-muted);
+}
+
+.how-demo-meta span:last-child {
+  color: var(--mr-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ranking geral (passo 3): números fixos, linhas deslizam entre as posições */
+.how-demo-ranked {
+  position: relative;
+  flex: 1;
+}
+
+.how-demo-slots {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.how-demo-slots li {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-text-muted);
+}
+
+.how-demo-slots li + li {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.how-demo-slots li:first-child {
+  color: var(--mr-gold);
+}
+
+.how-demo-ranked-row {
+  position: absolute;
+  top: 0;
+  left: 28px;
+  right: 0;
+  height: calc(100% / 3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(calc(var(--rank) * 100%));
+  transition:
+    opacity 500ms var(--mr-ease),
+    transform 700ms var(--mr-ease-out);
+}
+
+.how-demo-ranked-row.is-shown {
+  opacity: 1;
+}
+
+/* linhas da tabela (passo 1) entram uma a uma depois do cartão */
+.how-demo-list-enter li {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 600ms var(--mr-ease-out),
+    transform 600ms var(--mr-ease-out);
+  transition-delay: calc(300ms + var(--i) * 90ms);
+}
+
+.is-visible .how-demo-list-enter li {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-demo-list-enter li,
+  .how-demo-ranked-row,
+  .how-demo-scale span {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .how-demo-ranked-row {
+    transform: translateY(calc(var(--rank) * 100%));
+  }
+
+  .how-demo-big.is-done {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-how-steps {
+    grid-template-columns: 1fr;
+    gap: var(--mr-space-7);
+  }
+}

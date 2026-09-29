@@ -12,7 +12,7 @@ export const LANGUAGES = ['PT', 'EN', 'ES'];
 
 const TRANSLATIONS = {
   PT: {
-    nav: { home: 'Home', login: 'Entrar', signup: 'Cadastrar' },
+    nav: { login: 'Entrar', signup: 'Cadastrar', subtitles: 'Legendas', switched: '— Agora a gente fala português.' },
     common: {
       loading: 'Carregando…',
       serverWake: {
@@ -531,6 +531,11 @@ const TRANSLATIONS = {
       deleteWarn: 'Isso é permanente. Suas conversas privadas somem; nos grupos, suas mensagens são apagadas e, se você for o dono, o grupo passa para outro membro.',
       deleteConfirmLabel: 'Digite {username} para confirmar',
       deletePasswordLabel: 'Sua senha',
+      deleteSendCode: 'Enviar código por email',
+      deleteResendCode: 'Reenviar código',
+      deleteCodeSent: 'Enviamos um código para o email da sua conta. Ele vale por 10 minutos.',
+      deleteCodeLabel: 'Código recebido por email',
+      deleteCodeError: 'Não foi possível enviar o código. Tente de novo.',
       deleteConfirmBtn: 'Excluir minha conta',
       deleting: 'Excluindo...',
       deleteError: 'Não foi possível excluir a conta. Tente de novo.',
@@ -604,91 +609,108 @@ const TRANSLATIONS = {
         title2: 'Seu ranking.',
         title3: 'Sua identidade.',
         subtitle:
-          'Avalie filmes, séries, jogos, livros e animes em um só lugar. Compare com amigos e descubra seu perfil de consumo.',
+          'Ranqueie seus filmes, séries e jogos favoritos, ou qualquer coisa que você ama. Compare com amigos e descubra seu perfil.',
         cta: 'Criar conta grátis',
+        categories: ['Filmes', 'Séries', 'Jogos', 'Livros', 'Animes', 'Músicas', 'Comidas'],
       },
-      medias: ['Filmes', 'Séries', 'Jogos', 'Livros', 'Animes'],
       how: {
         title: 'Como funciona?',
+        lede: 'Três passos. Nenhuma planilha.',
         steps: [
-          {
-            title: 'Crie sua conta',
-            desc: 'Comece de graça, sem cartão e sem pegadinha. Acesso completo a todas as funcionalidades — suas tabelas, seu ranking e sua identidade, tudo seu desde o primeiro login.',
-          },
-          {
-            title: 'Monte suas tabelas',
-            desc: 'Crie tabelas do jeito que fizer sentido pra você — uma só de séries, uma só de animes, ou misture os dois. Prefere separar por categoria? Animes Shonen, Animes de Sci-Fi, Filmes de Máfia. Você define a estrutura, sem limites.',
-          },
-          {
-            title: 'Avalie do seu jeito',
-            desc: 'Dê notas de 0 a 10 para qualquer obra. Se quiser ir além, registre o tempo que dedicou — e a gente cria uma média ponderada especial, valorizando o que você realmente consumiu com atenção.',
-          },
-          {
-            title: 'Unifique tudo',
-            desc: 'Junte as tabelas que quiser num ranking unificado com média ponderada — opcional, mas poderoso. Compare filmes com jogos, séries com animes, e descubra o que realmente te marcou.',
-          },
+          { title: 'Monte suas tabelas', desc: 'Animes, discos, restaurantes da cidade: cada lista do seu jeito.' },
+          { title: 'Avalie do seu jeito', desc: 'Nota de 0 a 10, e se quiser, o tempo que você dedicou.' },
+          { title: 'Unifique tudo', desc: 'Junte as listas num ranking só e descubra o que realmente te marcou.' },
+        ],
+        // miniaturas do produto em cada passo; notas = médias públicas reais
+        // (MyAnimeList, IMDb, Metacritic), pra ninguém estranhar os números
+        demo: {
+          tabs: ['Animes', 'Discos', 'Restaurantes'],
+          table: [['Frieren', 9.3], ['Fullmetal Alchemist: Brotherhood', 9.1], ['Vinland Saga', 8.8]],
+          ratedHead: 'Sua avaliação',
+          ratedCategory: 'Filmes',
+          unifiedHead: 'Ranking geral',
+          unifiedMeta: '3 tabelas',
+          rated: { name: 'Interestelar', score: 8.7, timeLabel: 'Tempo dedicado', time: '2h 49min' },
+          unified: [['The Last of Us', 'Jogo', 9.3], ['Frieren', 'Anime', 9.3], ['Interestelar', 'Filme', 8.7]],
+        },
+      },
+      // "Sua identidade" como cartaz de cinema: perfil fictício montado a partir de 3 obras reais
+      identity: {
+        label: 'Sua identidade',
+        presents: 'MyRank apresenta',
+        starring: 'Você em',
+        persona: ['O Fora', 'da Lei'], // uma linha do cartaz por item
+        synopsis: 'Histórias sobre família, lealdade e homens que passam do limite. Você torce pelo anti-herói sem culpa.',
+        taste: [['Séries', 38], ['Jogos', 34], ['Filmes', 28]],
+        credits: [['Criação', 'Vince Gilligan'], ['Direção', 'Francis Ford Coppola'], ['Estúdio', 'Rockstar Games']],
+        recoLabel: 'Recomendado pela IA',
+        reco: 'Os Sopranos',
+        note: 'Seu perfil é gerado pela IA a partir das suas notas.',
+      },
+      // "Com amigos, se quiser": o social é opcional; o interruptor mostra o perfil privado
+      social: {
+        title: 'Com amigos, se quiser',
+        lede: 'Seu perfil pode ser privado, só pras suas tabelas. Ou aberto, pra comparar notas e comentar.',
+        privateLabel: 'Perfil privado',
+        lockedText: 'Perfil privado: só você vê suas tabelas.',
+      },
+      // afinidade: notas fictícias de duas pessoas; a % sai da mesma conta do produto
+      compare: {
+        you: 'Você',
+        friend: 'Marina',
+        affinityLabel: 'de afinidade',
+        legend: 'Cada fio liga a mesma obra nas duas listas, na altura da nota que cada um deu. Fio reto: notas parecidas. Fio inclinado: vocês discordam.',
+        fightLabel: 'Maior divergência',
+        // [obra, sua nota, nota da amiga]
+        works: [['Breaking Bad', 9.8, 9.6], ['Red Dead 2', 9.4, 6.4], ['O Poderoso Chefão', 9.0, 8.0], ['Interestelar', 8.4, 8.8], ['Frieren', 7.2, 9.2]],
+      },
+      // takes: a conversa sobre a maior divergência do gráfico (Red Dead 2)
+      takes: {
+        about: 'sobre',
+        agree: 'Concordo',
+        disagree: 'Discordo',
+        repliesLabel: 'respostas',
+        take: { author: 'Marina', work: 'Red Dead Redemption 2', score: 6.4, agree: 18, disagree: 31, text: 'Lindo, mas 40 minutos cavalgando pra entregar uma carta? Não dá.' },
+        replies: [
+          { author: 'Você', score: 9.4, text: 'A cavalgada É o jogo. Você que tá jogando com pressa.' },
+          { author: 'Lucas', score: 8.1, text: 'Tô com a Marina nessa. Lindo, mas lento.' },
+          { author: 'Marina', text: '6.4, com todo o respeito ao Arthur.' },
         ],
       },
-      impact: [
-        { num: '100%', label: 'Gratuito' },
-        { num: '99+', label: 'Tabelas por usuário' },
-        { num: '5', label: 'Categorias de mídia' },
-        { num: '99+', label: 'Obras por tabela' },
-        { num: '0–10', label: 'Escala de avaliação' },
-      ],
       faq: {
         title: 'Perguntas frequentes',
+        lede: 'O que não coube nas seções acima.',
         items: [
-          {
-            q: 'O MyRank é gratuito?',
-            a: 'Sim, 100% gratuito e sem anúncios. Criar conta, montar tabelas, avaliar obras, usar o ranking unificado e comparar com amigos não custa nada. Sempre.',
-          },
-          {
-            q: 'Como funciona o ranking unificado?',
-            a: 'Você escolhe quais tabelas quer unir — pode ser todas de uma vez ou só uma seleção específica, como suas tabelas de filmes e séries juntas, ou filmes e jogos. O MyRank funde tudo em uma única lista ordenada, onde cada obra recebe sua posição com base na nota — e opcionalmente na média ponderada por tempo consumido. O resultado é um ranking personalizado que cruza mídias diferentes e mostra o que realmente ficou no topo da sua história como consumidor.',
-          },
-          {
-            q: 'Como funciona a média ponderada por tempo?',
-            a: 'Quando você registra o tempo dedicado a uma obra, a nota recebe um bônus proporcional. Um filme de 2h com nota 8.0 praticamente não é afetado — continua quase o mesmo 8.0. Já uma série que você maratonou por 30h com nota 8.0 sobe para 8.3, reconhecendo o tempo real que você investiu. O bônus é calibrado para não distorcer as notas — obras longas sobem com justiça, obras curtas não são punidas.',
-          },
-          {
-            q: 'Posso comparar meu ranking com o de amigos?',
-            a: 'Sim! Você pode seguir outros usuários e comparar suas notas individuais, rankings gerais e ver as últimas alterações que eles fizeram nas tabelas públicas deles. É a melhor forma de descobrir o que seus amigos estão consumindo e onde vocês concordam ou discordam.',
-          },
-          {
-            q: 'As tabelas são públicas ou privadas?',
-            a: 'Você decide. Cada tabela pode ser configurada como pública — visível para seus seguidores — ou privada, visível só para você. Seu perfil também pode ser público ou privado, te dando controle total sobre o que compartilha.',
-          },
-          {
-            q: 'Como é o dashboard visual?',
-            a: 'Suas obras são exibidas em um grid de posters — visual, organizado e fácil de navegar. Você também conta com filtros para ordenar por data de lançamento, data em que adicionou a obra, e até ver o que seus amigos mais consumiram.',
-          },
-          {
-            q: 'Como as informações das obras são cadastradas?',
-            a: 'Automaticamente. O MyRank usa APIs externas para buscar os metadados de cada obra assim que você a adiciona — diretor do filme, produtora do jogo, autor do livro, estúdio do anime e muito mais. Você não precisa preencher nada na mão.',
-          },
-          {
-            q: 'Existe um ranking por autor ou empresa?',
-            a: 'Sim! O MyRank gera rankings automáticos por criador — seja um diretor, uma produtora de jogos ou um autor de livros. Cada um recebe uma nota média ponderada, que favorece criadores com mais obras avaliadas por você. É a forma mais honesta de descobrir quem realmente domina o seu gosto.',
-          },
-          {
-            q: 'Conquistas e badges',
-            a: 'O MyRank gera badges automáticos baseados no seu consumo. Maratonou mais de 500 horas em jogos? Você é um "Maratonista de Elite". Consumiu mais de 50 obras de ficção científica? Vira "Explorador do Futuro". Seu perfil vira um reflexo real do que você consome.',
-          },
+          { q: 'O MyRank é gratuito?', a: 'Sim, 100% gratuito e sem anúncios. Tabelas, notas, ranking unificado e comparação com amigos não custam nada.', v: { kind: 'free', big: 'R$ 0', label: 'pra sempre' } },
+          { q: 'Meu perfil precisa ser público?', a: 'Não. Seu perfil e cada tabela podem ser privados, visíveis só pra você. Abrir é opcional, pra quem quer comparar e comentar com amigos.', v: { kind: 'switch', label: 'Perfil privado', on: 'Só você vê suas tabelas', off: 'Amigos podem comparar e comentar' } },
+          { q: 'Como funciona o ranking unificado?', a: 'Você escolhe quais tabelas juntar e o MyRank funde tudo numa lista só, ordenada pela nota. Dá pra cruzar filmes com jogos, séries com animes, o que quiser.', v: { kind: 'list', rows: [['The Last of Us', 'Jogo', 9.3], ['Frieren', 'Anime', 9.3], ['Interestelar', 'Filme', 8.7]] } },
+          { q: 'Como funciona a média ponderada por tempo?', a: 'Se você registrar o tempo dedicado, a nota ganha um bônus proporcional. Uma série de 30h com nota 8.0 sobe pra 8.3; um filme de 2h continua praticamente em 8.0.', v: { kind: 'weighted', chip: 'Série · 30h', from: '8.0', to: '8.3', sub: 'Filme de 2h: 8.0 → 8.0' } },
+          { q: 'Preciso cadastrar as informações das obras?', a: 'Não. Assim que você adiciona uma obra, o MyRank busca sozinho diretor, estúdio, autor, produtora e o resto dos dados.', v: { kind: 'auto', title: 'Interestelar', tag: 'preenchido sozinho', fields: [['Diretor', 'Christopher Nolan'], ['Ano', '2014'], ['Gênero', 'Ficção científica']] } },
+          { q: 'Tem conquistas?', a: 'Tem. Os badges saem do seu consumo: passou de 500 horas em jogos, vira "Maratonista de Elite"; 50 obras de ficção científica, "Explorador do Futuro".', v: { kind: 'badge', name: 'Maratonista de Elite', meta: '500h em jogos' } },
         ],
       },
-      footer: {
-        tagline: 'Tudo em um só lugar.',
-        colProduct: 'Produto',
-        productLinks: ['Sobre', 'Contato', 'Termos de uso', 'Privacidade'],
-        colSocial: 'Redes',
-        copyright: '© 2026 MyRank. Todos os direitos reservados.',
+      // chamada final: créditos de filme + "cena pós-créditos" com o botão
+      credits: {
+        roles: [
+          ['Elenco principal', 'Você'],
+          ['Roteiro', 'Suas notas'],
+          ['Direção', 'Seu gosto'],
+          ['Trilha sonora original', 'Aquele álbum que você deu 10'],
+          ['Consultoria de roteiro', 'A IA do MyRank'],
+          ['Participação especial', 'Seus amigos (se você quiser)'],
+        ],
+        disclaimer: 'Nenhuma planilha foi ferida durante as filmagens.',
+        post: 'Cena pós-créditos',
+        title: 'Seu ranking começa agora.',
+        cta: 'Criar conta grátis',
+        fine: 'Grátis. Sem anúncios.',
       },
+      footer: { terms: 'Termos de uso', privacy: 'Privacidade', contact: 'Contato', madeBy: 'Feito por' },
     },
   },
 
   EN: {
-    nav: { home: 'Home', login: 'Sign in', signup: 'Sign up' },
+    nav: { login: 'Sign in', signup: 'Sign up', subtitles: 'Subtitles', switched: '— Now we speak English.' },
     common: {
       loading: 'Loading…',
       serverWake: {
@@ -1207,6 +1229,11 @@ const TRANSLATIONS = {
       deleteWarn: 'This is permanent. Your private chats disappear; in groups your messages are deleted and, if you own the group, it passes to another member.',
       deleteConfirmLabel: 'Type {username} to confirm',
       deletePasswordLabel: 'Your password',
+      deleteSendCode: 'Send code by email',
+      deleteResendCode: 'Resend code',
+      deleteCodeSent: 'We sent a code to your account email. It is valid for 10 minutes.',
+      deleteCodeLabel: 'Code received by email',
+      deleteCodeError: "Couldn't send the code. Please try again.",
       deleteConfirmBtn: 'Delete my account',
       deleting: 'Deleting...',
       deleteError: "Couldn't delete the account. Please try again.",
@@ -1280,91 +1307,100 @@ const TRANSLATIONS = {
         title2: 'Your ranking.',
         title3: 'Your identity.',
         subtitle:
-          'Rate movies, series, games, books and anime all in one place. Compare with friends and discover your consumption profile.',
+          'Rank your favorite movies, series and games, or anything you love. Compare with friends and discover your profile.',
         cta: 'Create free account',
+        categories: ['Movies', 'Series', 'Games', 'Books', 'Anime', 'Music', 'Food'],
       },
-      medias: ['Movies', 'Series', 'Games', 'Books', 'Anime'],
       how: {
         title: 'How it works',
+        lede: 'Three steps. No spreadsheets.',
         steps: [
-          {
-            title: 'Create your account',
-            desc: 'Start for free, no card and no catch. Full access to every feature — your tables, your ranking and your identity, all yours from the first login.',
-          },
-          {
-            title: 'Build your tables',
-            desc: 'Create tables however makes sense to you — one just for series, one just for anime, or mix the two. Prefer to split by category? Shonen Anime, Sci-Fi Anime, Mafia Movies. You define the structure, no limits.',
-          },
-          {
-            title: 'Rate your way',
-            desc: 'Give scores from 0 to 10 to any title. Want to go further? Log the time you spent — and we build a special weighted average that rewards what you truly consumed with attention.',
-          },
-          {
-            title: 'Unify everything',
-            desc: 'Merge any tables into a unified ranking with a weighted average — optional, but powerful. Compare movies with games, series with anime, and discover what really left a mark on you.',
-          },
+          { title: 'Build your tables', desc: 'Anime, albums, the restaurants in your city: every list your way.' },
+          { title: 'Rate your way', desc: 'A score from 0 to 10 and, if you like, the time you put in.' },
+          { title: 'Unify everything', desc: 'Merge your lists into a single ranking and find out what really stuck with you.' },
+        ],
+        demo: {
+          tabs: ['Anime', 'Albums', 'Restaurants'],
+          table: [['Frieren', 9.3], ['Fullmetal Alchemist: Brotherhood', 9.1], ['Vinland Saga', 8.8]],
+          ratedHead: 'Your rating',
+          ratedCategory: 'Movies',
+          unifiedHead: 'Overall ranking',
+          unifiedMeta: '3 tables',
+          rated: { name: 'Interstellar', score: 8.7, timeLabel: 'Time spent', time: '2h 49min' },
+          unified: [['The Last of Us', 'Game', 9.3], ['Frieren', 'Anime', 9.3], ['Interstellar', 'Movie', 8.7]],
+        },
+      },
+      identity: {
+        label: 'Your identity',
+        presents: 'MyRank presents',
+        starring: 'You in',
+        persona: ['The Outlaw'],
+        synopsis: 'Stories about family, loyalty and men who cross the line. You root for the antihero, guilt-free.',
+        taste: [['Series', 38], ['Games', 34], ['Movies', 28]],
+        credits: [['Created by', 'Vince Gilligan'], ['Directed by', 'Francis Ford Coppola'], ['Studio', 'Rockstar Games']],
+        recoLabel: 'Recommended by AI',
+        reco: 'The Sopranos',
+        note: 'Your profile is generated by AI from your scores.',
+      },
+      social: {
+        title: 'With friends, if you want',
+        lede: 'Your profile can be private, just for your tables. Or open, to compare scores and comment.',
+        privateLabel: 'Private profile',
+        lockedText: 'Private profile: only you see your tables.',
+      },
+      compare: {
+        you: 'You',
+        friend: 'Marina',
+        affinityLabel: 'affinity',
+        legend: 'Each wire links the same title on both lists, at the height of the score each person gave. Flat wire: similar scores. Steep wire: you disagree.',
+        fightLabel: 'Biggest gap',
+        works: [['Breaking Bad', 9.8, 9.6], ['Red Dead 2', 9.4, 6.4], ['The Godfather', 9.0, 8.0], ['Interstellar', 8.4, 8.8], ['Frieren', 7.2, 9.2]],
+      },
+      takes: {
+        about: 'on',
+        agree: 'Agree',
+        disagree: 'Disagree',
+        repliesLabel: 'replies',
+        take: { author: 'Marina', work: 'Red Dead Redemption 2', score: 6.4, agree: 18, disagree: 31, text: 'Gorgeous, but 40 minutes on horseback to deliver a letter? No thanks.' },
+        replies: [
+          { author: 'You', score: 9.4, text: "The horse ride IS the game. You're just playing in a hurry." },
+          { author: 'Lucas', score: 8.1, text: "I'm with Marina on this one. Beautiful, but slow." },
+          { author: 'Marina', text: '6.4, with all due respect to Arthur.' },
         ],
       },
-      impact: [
-        { num: '100%', label: 'Free' },
-        { num: '99+', label: 'Tables per user' },
-        { num: '5', label: 'Media categories' },
-        { num: '99+', label: 'Titles per table' },
-        { num: '0–10', label: 'Rating scale' },
-      ],
       faq: {
         title: 'Frequently asked questions',
+        lede: "What didn't fit in the sections above.",
         items: [
-          {
-            q: 'Is MyRank free?',
-            a: 'Yes, 100% free and ad-free. Creating an account, building tables, rating titles, using the unified ranking and comparing with friends costs nothing. Ever.',
-          },
-          {
-            q: 'How does the unified ranking work?',
-            a: 'You choose which tables to merge — all at once or a specific selection, like your movie and series tables together, or movies and games. MyRank fuses everything into a single ordered list, where each title gets its position based on its score — and optionally on the average weighted by time consumed. The result is a personalized ranking that crosses different media and shows what truly rose to the top of your history as a consumer.',
-          },
-          {
-            q: 'How does the time-weighted average work?',
-            a: 'When you log the time spent on a title, its score gets a proportional bonus. A 2-hour movie rated 8.0 is barely affected — it stays almost the same 8.0. But a series you binged for 30 hours rated 8.0 rises to 8.3, acknowledging the real time you invested. The bonus is calibrated not to distort scores — long titles rise fairly, short ones aren\'t punished.',
-          },
-          {
-            q: "Can I compare my ranking with friends'?",
-            a: 'Yes! You can follow other users and compare individual scores, overall rankings, and see the latest changes they made to their public tables. It\'s the best way to find out what your friends are consuming and where you agree or disagree.',
-          },
-          {
-            q: 'Are tables public or private?',
-            a: 'You decide. Each table can be set as public — visible to your followers — or private, visible only to you. Your profile can also be public or private, giving you full control over what you share.',
-          },
-          {
-            q: 'What is the visual dashboard like?',
-            a: 'Your titles are shown in a poster grid — visual, organized and easy to browse. You also get filters to sort by release date, the date you added the title, and even see what your friends consumed the most.',
-          },
-          {
-            q: 'How is title information added?',
-            a: "Automatically. MyRank uses external APIs to fetch each title's metadata as soon as you add it — the movie's director, the game's studio, the book's author, the anime's studio and much more. You don't have to fill in anything by hand.",
-          },
-          {
-            q: 'Is there a ranking by author or company?',
-            a: 'Yes! MyRank generates automatic rankings by creator — whether a director, a game studio or a book author. Each one gets a weighted average score that favors creators with more titles rated by you. It\'s the most honest way to find out who really rules your taste.',
-          },
-          {
-            q: 'Achievements and badges',
-            a: 'MyRank generates automatic badges based on your consumption. Binged more than 500 hours of games? You\'re an "Elite Marathoner". Consumed more than 50 sci-fi titles? You become a "Future Explorer". Your profile turns into a real reflection of what you consume.',
-          },
+          { q: 'Is MyRank free?', a: 'Yes, 100% free and ad-free. Tables, scores, the unified ranking and comparing with friends cost nothing.', v: { kind: 'free', big: '$0', label: 'forever' } },
+          { q: 'Does my profile have to be public?', a: 'No. Your profile and each table can be private, visible only to you. Opening up is optional, for when you want to compare and comment with friends.', v: { kind: 'switch', label: 'Private profile', on: 'Only you see your tables', off: 'Friends can compare and comment' } },
+          { q: 'How does the unified ranking work?', a: 'You pick which tables to merge and MyRank fuses them into a single list, ordered by score. Mix movies with games, series with anime, whatever you like.', v: { kind: 'list', rows: [['The Last of Us', 'Game', 9.3], ['Frieren', 'Anime', 9.3], ['Interstellar', 'Movie', 8.7]] } },
+          { q: 'How does the time-weighted average work?', a: 'If you log the time you spent, the score gets a proportional bonus. A 30-hour series rated 8.0 rises to 8.3; a 2-hour movie stays at roughly 8.0.', v: { kind: 'weighted', chip: 'Series · 30h', from: '8.0', to: '8.3', sub: '2h movie: 8.0 → 8.0' } },
+          { q: 'Do I have to fill in the title details?', a: "No. As soon as you add a title, MyRank fetches the director, studio, author, publisher and the rest on its own.", v: { kind: 'auto', title: 'Interstellar', tag: 'filled in automatically', fields: [['Director', 'Christopher Nolan'], ['Year', '2014'], ['Genre', 'Science fiction']] } },
+          { q: 'Are there achievements?', a: 'Yes. Badges come from what you consume: pass 500 hours of games and you become an "Elite Marathoner"; 50 sci-fi titles, a "Future Explorer".', v: { kind: 'badge', name: 'Elite Marathoner', meta: '500h of games' } },
         ],
       },
-      footer: {
-        tagline: 'Everything in one place.',
-        colProduct: 'Product',
-        productLinks: ['About', 'Contact', 'Terms of use', 'Privacy'],
-        colSocial: 'Social',
-        copyright: '© 2026 MyRank. All rights reserved.',
+      credits: {
+        roles: [
+          ['Starring', 'You'],
+          ['Screenplay', 'Your scores'],
+          ['Directed by', 'Your taste'],
+          ['Original soundtrack', 'That album you gave a 10'],
+          ['Script consultant', "MyRank's AI"],
+          ['Special appearance', 'Your friends (if you want)'],
+        ],
+        disclaimer: 'No spreadsheets were harmed in the making of this ranking.',
+        post: 'Post-credits scene',
+        title: 'Your ranking starts now.',
+        cta: 'Create free account',
+        fine: 'Free. No ads.',
       },
+      footer: { terms: 'Terms of use', privacy: 'Privacy', contact: 'Contact', madeBy: 'Made by' },
     },
   },
 
   ES: {
-    nav: { home: 'Inicio', login: 'Iniciar sesión', signup: 'Registrarse' },
+    nav: { login: 'Iniciar sesión', signup: 'Registrarse', subtitles: 'Subtítulos', switched: '— Ahora hablamos español.' },
     common: {
       loading: 'Cargando…',
       serverWake: {
@@ -1883,6 +1919,11 @@ const TRANSLATIONS = {
       deleteWarn: 'Es permanente. Tus chats privados desaparecen; en los grupos se borran tus mensajes y, si eres el dueño, el grupo pasa a otro miembro.',
       deleteConfirmLabel: 'Escribe {username} para confirmar',
       deletePasswordLabel: 'Tu contraseña',
+      deleteSendCode: 'Enviar código por email',
+      deleteResendCode: 'Reenviar código',
+      deleteCodeSent: 'Enviamos un código al email de tu cuenta. Vale por 10 minutos.',
+      deleteCodeLabel: 'Código recibido por email',
+      deleteCodeError: 'No se pudo enviar el código. Inténtalo de nuevo.',
       deleteConfirmBtn: 'Eliminar mi cuenta',
       deleting: 'Eliminando...',
       deleteError: 'No se pudo eliminar la cuenta. Inténtalo de nuevo.',
@@ -1956,86 +1997,95 @@ const TRANSLATIONS = {
         title2: 'Tu ranking.',
         title3: 'Tu identidad.',
         subtitle:
-          'Puntúa películas, series, juegos, libros y animes en un solo lugar. Compara con amigos y descubre tu perfil de consumo.',
+          'Clasifica tus películas, series y juegos favoritos, o cualquier cosa que ames. Compara con amigos y descubre tu perfil.',
         cta: 'Crear cuenta gratis',
+        categories: ['Películas', 'Series', 'Juegos', 'Libros', 'Animes', 'Música', 'Comidas'],
       },
-      medias: ['Películas', 'Series', 'Juegos', 'Libros', 'Animes'],
       how: {
         title: '¿Cómo funciona?',
+        lede: 'Tres pasos. Ninguna hoja de cálculo.',
         steps: [
-          {
-            title: 'Crea tu cuenta',
-            desc: 'Empieza gratis, sin tarjeta y sin trampas. Acceso completo a todas las funciones — tus tablas, tu ranking y tu identidad, todo tuyo desde el primer inicio de sesión.',
-          },
-          {
-            title: 'Arma tus tablas',
-            desc: 'Crea tablas como tenga sentido para ti — una solo de series, una solo de animes, o mezcla las dos. ¿Prefieres separar por categoría? Animes Shonen, Animes de Sci-Fi, Películas de Mafia. Tú defines la estructura, sin límites.',
-          },
-          {
-            title: 'Puntúa a tu manera',
-            desc: 'Da notas de 0 a 10 a cualquier obra. Si quieres ir más allá, registra el tiempo que le dedicaste — y creamos un promedio ponderado especial que valora lo que realmente consumiste con atención.',
-          },
-          {
-            title: 'Unifica todo',
-            desc: 'Une las tablas que quieras en un ranking unificado con promedio ponderado — opcional, pero poderoso. Compara películas con juegos, series con animes, y descubre lo que de verdad te marcó.',
-          },
+          { title: 'Arma tus tablas', desc: 'Animes, discos, los restaurantes de tu ciudad: cada lista a tu manera.' },
+          { title: 'Puntúa a tu manera', desc: 'Nota de 0 a 10 y, si quieres, el tiempo que le dedicaste.' },
+          { title: 'Unifica todo', desc: 'Junta tus listas en un solo ranking y descubre lo que de verdad te marcó.' },
+        ],
+        demo: {
+          tabs: ['Animes', 'Discos', 'Restaurantes'],
+          table: [['Frieren', 9.3], ['Fullmetal Alchemist: Brotherhood', 9.1], ['Vinland Saga', 8.8]],
+          ratedHead: 'Tu puntuación',
+          ratedCategory: 'Películas',
+          unifiedHead: 'Ranking general',
+          unifiedMeta: '3 tablas',
+          rated: { name: 'Interestelar', score: 8.7, timeLabel: 'Tiempo dedicado', time: '2h 49min' },
+          unified: [['The Last of Us', 'Juego', 9.3], ['Frieren', 'Anime', 9.3], ['Interestelar', 'Película', 8.7]],
+        },
+      },
+      identity: {
+        label: 'Tu identidad',
+        presents: 'MyRank presenta',
+        starring: 'Tú en',
+        persona: ['El Forajido'],
+        synopsis: 'Historias sobre familia, lealtad y hombres que cruzan el límite. Apoyas al antihéroe sin culpa.',
+        taste: [['Series', 38], ['Juegos', 34], ['Películas', 28]],
+        credits: [['Creación', 'Vince Gilligan'], ['Dirección', 'Francis Ford Coppola'], ['Estudio', 'Rockstar Games']],
+        recoLabel: 'Recomendado por la IA',
+        reco: 'Los Soprano',
+        note: 'Tu perfil lo genera la IA a partir de tus notas.',
+      },
+      social: {
+        title: 'Con amigos, si quieres',
+        lede: 'Tu perfil puede ser privado, solo para tus tablas. O abierto, para comparar notas y comentar.',
+        privateLabel: 'Perfil privado',
+        lockedText: 'Perfil privado: solo tú ves tus tablas.',
+      },
+      compare: {
+        you: 'Tú',
+        friend: 'Marina',
+        affinityLabel: 'de afinidad',
+        legend: 'Cada hilo une la misma obra en las dos listas, a la altura de la nota que dio cada uno. Hilo recto: notas parecidas. Hilo inclinado: no están de acuerdo.',
+        fightLabel: 'Mayor diferencia',
+        works: [['Breaking Bad', 9.8, 9.6], ['Red Dead 2', 9.4, 6.4], ['El Padrino', 9.0, 8.0], ['Interestelar', 8.4, 8.8], ['Frieren', 7.2, 9.2]],
+      },
+      takes: {
+        about: 'sobre',
+        agree: 'De acuerdo',
+        disagree: 'En desacuerdo',
+        repliesLabel: 'respuestas',
+        take: { author: 'Marina', work: 'Red Dead Redemption 2', score: 6.4, agree: 18, disagree: 31, text: 'Precioso, pero ¿40 minutos a caballo para entregar una carta? No.' },
+        replies: [
+          { author: 'Tú', score: 9.4, text: 'La cabalgata ES el juego. Estás jugando con prisa.' },
+          { author: 'Lucas', score: 8.1, text: 'Estoy con Marina en esta. Precioso, pero lento.' },
+          { author: 'Marina', text: 'Un 6.4, con todo respeto a Arthur.' },
         ],
       },
-      impact: [
-        { num: '100%', label: 'Gratis' },
-        { num: '99+', label: 'Tablas por usuario' },
-        { num: '5', label: 'Categorías de medios' },
-        { num: '99+', label: 'Obras por tabla' },
-        { num: '0–10', label: 'Escala de puntuación' },
-      ],
       faq: {
         title: 'Preguntas frecuentes',
+        lede: 'Lo que no cupo en las secciones de arriba.',
         items: [
-          {
-            q: '¿MyRank es gratis?',
-            a: 'Sí, 100% gratis y sin anuncios. Crear una cuenta, armar tablas, puntuar obras, usar el ranking unificado y comparar con amigos no cuesta nada. Nunca.',
-          },
-          {
-            q: '¿Cómo funciona el ranking unificado?',
-            a: 'Eliges qué tablas quieres unir — pueden ser todas a la vez o solo una selección específica, como tus tablas de películas y series juntas, o películas y juegos. MyRank fusiona todo en una única lista ordenada, donde cada obra recibe su posición según la nota — y opcionalmente según el promedio ponderado por tiempo consumido. El resultado es un ranking personalizado que cruza medios distintos y muestra lo que de verdad quedó en la cima de tu historia como consumidor.',
-          },
-          {
-            q: '¿Cómo funciona el promedio ponderado por tiempo?',
-            a: 'Cuando registras el tiempo dedicado a una obra, la nota recibe un bono proporcional. Una película de 2h con nota 8.0 casi no se ve afectada — se queda casi en el mismo 8.0. En cambio, una serie que maratoneaste durante 30h con nota 8.0 sube a 8.3, reconociendo el tiempo real que invertiste. El bono está calibrado para no distorsionar las notas — las obras largas suben con justicia, las cortas no se penalizan.',
-          },
-          {
-            q: '¿Puedo comparar mi ranking con el de amigos?',
-            a: '¡Sí! Puedes seguir a otros usuarios y comparar sus notas individuales, rankings generales y ver los últimos cambios que hicieron en sus tablas públicas. Es la mejor forma de descubrir qué están consumiendo tus amigos y en qué coinciden o discrepan.',
-          },
-          {
-            q: '¿Las tablas son públicas o privadas?',
-            a: 'Tú decides. Cada tabla se puede configurar como pública — visible para tus seguidores — o privada, visible solo para ti. Tu perfil también puede ser público o privado, dándote control total sobre lo que compartes.',
-          },
-          {
-            q: '¿Cómo es el panel visual?',
-            a: 'Tus obras se muestran en una cuadrícula de pósters — visual, organizada y fácil de navegar. También cuentas con filtros para ordenar por fecha de estreno, fecha en que agregaste la obra, e incluso ver lo que tus amigos más consumieron.',
-          },
-          {
-            q: '¿Cómo se registran los datos de las obras?',
-            a: 'Automáticamente. MyRank usa APIs externas para buscar los metadatos de cada obra en cuanto la agregas — director de la película, desarrolladora del juego, autor del libro, estudio del anime y mucho más. No necesitas rellenar nada a mano.',
-          },
-          {
-            q: '¿Existe un ranking por autor o empresa?',
-            a: '¡Sí! MyRank genera rankings automáticos por creador — ya sea un director, una desarrolladora de juegos o un autor de libros. Cada uno recibe una nota media ponderada que favorece a los creadores con más obras puntuadas por ti. Es la forma más honesta de descubrir quién domina de verdad tu gusto.',
-          },
-          {
-            q: 'Logros y badges',
-            a: 'MyRank genera badges automáticos según tu consumo. ¿Maratoneaste más de 500 horas de juegos? Eres un "Maratonista de Élite". ¿Consumiste más de 50 obras de ciencia ficción? Te conviertes en "Explorador del Futuro". Tu perfil se vuelve un reflejo real de lo que consumes.',
-          },
+          { q: '¿MyRank es gratis?', a: 'Sí, 100% gratis y sin anuncios. Tablas, notas, ranking unificado y comparar con amigos no cuestan nada.', v: { kind: 'free', big: '$0', label: 'para siempre' } },
+          { q: '¿Mi perfil tiene que ser público?', a: 'No. Tu perfil y cada tabla pueden ser privados, visibles solo para ti. Abrirlos es opcional, para quien quiere comparar y comentar con amigos.', v: { kind: 'switch', label: 'Perfil privado', on: 'Solo tú ves tus tablas', off: 'Tus amigos pueden comparar y comentar' } },
+          { q: '¿Cómo funciona el ranking unificado?', a: 'Eliges qué tablas juntar y MyRank lo une todo en una sola lista, ordenada por nota. Puedes cruzar películas con juegos, series con animes, lo que quieras.', v: { kind: 'list', rows: [['The Last of Us', 'Juego', 9.3], ['Frieren', 'Anime', 9.3], ['Interestelar', 'Película', 8.7]] } },
+          { q: '¿Cómo funciona el promedio ponderado por tiempo?', a: 'Si registras el tiempo dedicado, la nota recibe un bono proporcional. Una serie de 30 h con nota 8.0 sube a 8.3; una película de 2 h se queda prácticamente en 8.0.', v: { kind: 'weighted', chip: 'Serie · 30 h', from: '8.0', to: '8.3', sub: 'Película de 2 h: 8.0 → 8.0' } },
+          { q: '¿Tengo que cargar la información de las obras?', a: 'No. En cuanto agregas una obra, MyRank busca solo el director, estudio, autor, productora y el resto de los datos.', v: { kind: 'auto', title: 'Interestelar', tag: 'completado solo', fields: [['Director', 'Christopher Nolan'], ['Año', '2014'], ['Género', 'Ciencia ficción']] } },
+          { q: '¿Hay logros?', a: 'Sí. Los badges salen de tu consumo: pasa las 500 horas de juegos y eres "Maratonista de Élite"; 50 obras de ciencia ficción, "Explorador del Futuro".', v: { kind: 'badge', name: 'Maratonista de Élite', meta: '500 h de juegos' } },
         ],
       },
-      footer: {
-        tagline: 'Todo en un solo lugar.',
-        colProduct: 'Producto',
-        productLinks: ['Acerca de', 'Contacto', 'Términos de uso', 'Privacidad'],
-        colSocial: 'Redes',
-        copyright: '© 2026 MyRank. Todos los derechos reservados.',
+      credits: {
+        roles: [
+          ['Reparto principal', 'Tú'],
+          ['Guion', 'Tus notas'],
+          ['Dirección', 'Tu gusto'],
+          ['Banda sonora original', 'Ese álbum al que le diste un 10'],
+          ['Asesoría de guion', 'La IA de MyRank'],
+          ['Aparición especial', 'Tus amigos (si quieres)'],
+        ],
+        disclaimer: 'Ninguna hoja de cálculo resultó herida durante el rodaje.',
+        post: 'Escena poscréditos',
+        title: 'Tu ranking empieza ahora.',
+        cta: 'Crear cuenta gratis',
+        fine: 'Gratis. Sin anuncios.',
       },
+      footer: { terms: 'Términos de uso', privacy: 'Privacidad', contact: 'Contacto', madeBy: 'Hecho por' },
     },
   },
 };

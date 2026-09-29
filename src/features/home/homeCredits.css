@@ -1,0 +1,126 @@
+/* ============ Chamada final: créditos + cena pós-créditos ============
+   Os créditos aparecem e somem no mesmo lugar, um de cada vez (cross-fade:
+   o próximo entra enquanto o anterior sai), e depois vem a cena pós-créditos.
+   Dourado só no botão e no "Rank". */
+.credits {
+  padding: 0 1.5rem;
+}
+
+.credits-stage {
+  min-height: max(70vh, 480px);
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+/* todos os cartões ocupam a mesma célula: só o ativo aparece */
+.credits-card,
+.credits-post {
+  grid-area: 1 / 1;
+}
+
+.credits-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  filter: blur(6px);
+  transform: scale(0.97);
+  transition:
+    opacity 380ms var(--mr-ease),
+    filter 380ms var(--mr-ease),
+    transform 700ms var(--mr-ease-out);
+}
+
+.credits-card.is-active {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+.credits-card small {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+.credits-card span {
+  font-size: clamp(26px, 3.2vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--mr-text);
+}
+
+.credits-disclaimer {
+  max-width: 30ch;
+  margin: 0;
+  font-size: var(--mr-text-lg);
+  line-height: 1.6;
+  color: var(--mr-text-secondary);
+}
+
+.credits-brand {
+  margin: 0;
+  font-size: clamp(44px, 6vw, 72px);
+  font-weight: 800;
+  letter-spacing: var(--mr-tracking-tight);
+  color: var(--mr-text);
+}
+
+.credits-brand span {
+  color: var(--mr-gold);
+}
+
+/* cena pós-créditos */
+.credits-post {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mr-space-5);
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+  transition:
+    opacity 700ms var(--mr-ease-out),
+    transform 700ms var(--mr-ease-out);
+}
+
+.credits-post.is-active {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.credits-post-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+.credits-title {
+  margin: 0 0 var(--mr-space-3);
+  font-size: clamp(34px, 5.5vw, 72px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: var(--mr-tracking-tight);
+  color: var(--mr-text);
+}
+
+.credits-fine {
+  margin: 0;
+  font-size: var(--mr-text-xs);
+  color: var(--mr-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .credits-card,
+  .credits-post {
+    transition: none;
+  }
+}

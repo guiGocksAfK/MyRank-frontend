@@ -17,8 +17,7 @@ const ChatContext = createContext(null);
  * Estado global do chat:
  * - `unreadCount` + poll de fallback
  * - `openChatWith(peer)` — pedido pra abrir um DM (DashboardPage troca de aba via `openNonce`)
- * - STOMP: `subscribeConversation(convId, handler)` pra thread aberta, e um canal
- *   privado /user/queue/chat que dispara `touchNonce` (sidebar recarrega) + `refreshCount`.
+ * - STOMP: eventos chegam em canais privados; handlers locais filtram pela conversa.
  */
 export function ChatProvider({ children }) {
   const { user } = useUser();
@@ -31,8 +30,7 @@ export function ChatProvider({ children }) {
   const [connected, setConnected] = useState(false);
   const timerRef = useRef(null);
 
-  const clientRef = useRef(null);
-  const subsRef = useRef(new Map()); // id -> { convId, handler, sub }
+  const subsRef = useRef(new Map()); // id -> { convId, handler }
   const subSeq = useRef(0);
 
   const refreshCount = useCallback(async () => {
@@ -53,37 +51,17 @@ export function ChatProvider({ children }) {
     setPendingPeer(null);
   }, []);
 
-  const attach = useCallback((entry) => {
-    const client = clientRef.current;
-    if (!client || !client.connected || entry.sub) return;
-    entry.sub = client.subscribe(`/topic/conversation.${entry.convId}`, (frame) => {
-      try {
-        entry.handler(JSON.parse(frame.body));
-      } catch {
-        /* ignore frame malformado */
-      }
-    });
-  }, []);
-
-  /** Assina os eventos de uma conversa. Retorna a função de cancelamento. */
+  /** Registra o handler da conversa aberta. Retorna a função de cancelamento. */
   const subscribeConversation = useCallback(
     (convId, handler) => {
       if (convId == null) return () => {};
       const id = ++subSeq.current;
-      const entry = { convId, handler, sub: null };
-      subsRef.current.set(id, entry);
-      attach(entry);
+      subsRef.current.set(id, { convId, handler });
       return () => {
-        const e = subsRef.current.get(id);
-        try {
-          e?.sub?.unsubscribe();
-        } catch {
-          /* já desconectado */
-        }
         subsRef.current.delete(id);
       };
     },
-    [attach],
+    [],
   );
 
   // ── STOMP: conecta enquanto logado ────────────────────────────────────
@@ -106,9 +84,15 @@ export function ChatProvider({ children }) {
           setTouchNonce((n) => n + 1);
           refreshCount();
         });
-        subsRef.current.forEach((entry) => {
-          entry.sub = null;
-          attach(entry);
+        client.subscribe('/user/queue/chat-events', (frame) => {
+          try {
+            const event = JSON.parse(frame.body);
+            subsRef.current.forEach((entry) => {
+              if (String(entry.convId) === String(event.conversationId)) entry.handler(event);
+            });
+          } catch {
+            /* ignore frame malformado */
+          }
         });
       },
       onDisconnect: () => setConnected(false),
@@ -116,23 +100,13 @@ export function ChatProvider({ children }) {
       onStompError: () => setConnected(false),
     });
 
-    clientRef.current = client;
     client.activate();
 
     return () => {
-      subsRef.current.forEach((entry) => {
-        try {
-          entry.sub?.unsubscribe();
-        } catch {
-          /* ignore */
-        }
-        entry.sub = null;
-      });
       client.deactivate();
-      clientRef.current = null;
       setConnected(false);
     };
-  }, [userId, refreshCount, attach]);
+  }, [userId, refreshCount]);
 
   // ── Poll de fallback ─────────────────────────────────────────────────
   useEffect(() => {

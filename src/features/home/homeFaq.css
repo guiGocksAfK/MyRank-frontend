@@ -1,0 +1,403 @@
+/* ============ FAQ editorial ============
+   Título à esquerda (acompanha a rolagem), perguntas à direita separadas por
+   linhas finas. Sem caixas e sem dourado. */
+.faq {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 2rem 96px;
+  box-sizing: content-box;
+  display: grid;
+  grid-template-columns: 4fr 7fr;
+  align-items: start;
+  gap: 64px;
+}
+
+.faq-side {
+  position: sticky;
+  top: calc(var(--mr-navbar-h) + 32px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-3);
+}
+
+.faq-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.faq-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mr-space-5);
+  padding: 22px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--mr-text-lg);
+  font-weight: 600;
+  text-align: left;
+  color: var(--mr-text-secondary);
+  cursor: pointer;
+  transition: color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.faq-question:hover,
+.faq-item.is-open .faq-question {
+  color: var(--mr-text);
+}
+
+.faq-question:focus-visible {
+  outline: 2px solid var(--mr-gold);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* "+" desenhado com duas barras; gira 45° e vira "×" */
+.faq-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: transform var(--mr-duration) var(--mr-ease-out);
+}
+
+.faq-icon::before,
+.faq-icon::after {
+  content: "";
+  position: absolute;
+  inset: 6px 0;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.faq-icon::after {
+  transform: rotate(90deg);
+}
+
+.faq-item.is-open .faq-icon {
+  transform: rotate(45deg);
+}
+
+/* a resposta desliza abrindo (0fr → 1fr) */
+.faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 420ms var(--mr-ease-out);
+}
+
+.faq-answer > div {
+  overflow: hidden;
+}
+
+.faq-item.is-open .faq-answer {
+  grid-template-rows: 1fr;
+}
+
+.faq-answer p {
+  max-width: 60ch;
+  margin: 0;
+  padding: 0 0 24px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--mr-text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-question,
+  .faq-icon,
+  .faq-answer {
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .faq {
+    grid-template-columns: 1fr;
+    gap: var(--mr-space-6);
+    padding: 56px 1.25rem 72px;
+  }
+
+  .faq-side {
+    position: static;
+  }
+
+  .faq-question {
+    padding: 18px 0;
+    font-size: var(--mr-text-md);
+  }
+
+  .faq-answer p {
+    font-size: 14px;
+  }
+}
+
+/* ============ Miniatura da resposta (lado esquerdo) ============
+   Troca com um fade rápido quando outra pergunta abre. Dourado só no destaque. */
+.faq-visual {
+  margin-top: var(--mr-space-7);
+  min-height: 240px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.faqv {
+  width: 100%;
+  max-width: 360px;
+  animation: faqv-in 360ms var(--mr-ease-out);
+}
+
+@keyframes faqv-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.faqv small {
+  font-size: var(--mr-text-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+/* R$ 0: número gigante vazado, como o 84% da seção social */
+.faqv-free {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-3);
+}
+
+.faqv-free b {
+  font-size: clamp(96px, 11vw, 160px);
+  font-weight: 800;
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--mr-gold) 60%, transparent);
+}
+
+/* interruptor que liga e desliga sozinho */
+.faqv-switch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-4);
+}
+
+.faqv-switch-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: var(--mr-text-lg);
+  font-weight: 600;
+  color: var(--mr-text);
+}
+
+.faqv-track {
+  position: relative;
+  width: 56px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: faqv-track 3.2s var(--mr-ease) infinite;
+}
+
+.faqv-knob {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  animation: faqv-knob 3.2s var(--mr-ease-out) infinite;
+}
+
+@keyframes faqv-track {
+  0%, 45% { background: var(--mr-gold); border-color: var(--mr-gold); }
+  55%, 100% { background: transparent; border-color: rgba(255, 255, 255, 0.2); }
+}
+
+@keyframes faqv-knob {
+  0%, 45% { transform: translateX(24px); background: #111; }
+  55%, 100% { transform: none; background: var(--mr-text-secondary); }
+}
+
+/* legenda acompanha o interruptor: ligado = só você; desligado = amigos */
+.faqv-captions {
+  display: grid;
+  font-size: var(--mr-text-sm);
+  color: var(--mr-text-secondary);
+}
+
+.faqv-captions span {
+  grid-area: 1 / 1;
+}
+
+.faqv-captions span:first-child {
+  animation: faqv-cap-on 3.2s var(--mr-ease) infinite;
+}
+
+.faqv-captions span:last-child {
+  animation: faqv-cap-off 3.2s var(--mr-ease) infinite;
+}
+
+@keyframes faqv-cap-on {
+  0%, 45% { opacity: 1; }
+  55%, 100% { opacity: 0; }
+}
+
+@keyframes faqv-cap-off {
+  0%, 45% { opacity: 0; }
+  55%, 100% { opacity: 1; }
+}
+
+/* 8.0 → 8.3 */
+.faqv-weighted {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--mr-space-3);
+}
+
+.faqv-chip {
+  padding: 3px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  font-size: var(--mr-text-xs);
+  color: var(--mr-text-secondary);
+}
+
+.faqv-scores {
+  font-size: clamp(48px, 5vw, 72px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: var(--mr-tracking-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-text-muted);
+}
+
+.faqv-scores span {
+  font-weight: 400;
+}
+
+.faqv-scores b {
+  color: var(--mr-gold);
+}
+
+/* ficha preenchida sozinha */
+.faqv-auto dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.faqv-auto dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--mr-space-4);
+  padding: 9px 0;
+  font-size: 13px;
+}
+
+.faqv-auto dl div + div {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.faqv-auto dt {
+  color: var(--mr-text-muted);
+}
+
+.faqv-auto dd {
+  margin: 0;
+  color: var(--mr-text);
+}
+
+.faqv-auto .demo-head span:first-child {
+  font-size: var(--mr-text-sm);
+  color: var(--mr-text);
+}
+
+.faqv-tag {
+  padding: 2px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+}
+
+/* badge de conquista */
+.faqv-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--mr-space-3);
+}
+
+.faqv-medal {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--mr-gold);
+  border-radius: 50%;
+  font-size: 24px;
+  color: var(--mr-gold);
+}
+
+.faqv-badge b {
+  font-size: var(--mr-text-xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--mr-text);
+}
+
+.faqv-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--mr-track);
+  overflow: hidden;
+}
+
+.faqv-bar span {
+  display: block;
+  height: 100%;
+  background: var(--mr-gold);
+  animation: faqv-fill 900ms var(--mr-ease-out) both;
+}
+
+@keyframes faqv-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faqv,
+  .faqv-bar span,
+  .faqv-captions span {
+    animation: none;
+  }
+
+  .faqv-track,
+  .faqv-knob {
+    animation: none;
+  }
+
+  /* sem animação o interruptor fica desligado: mostra a legenda de "desligado" */
+  .faqv-captions span:first-child {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .faq-visual {
+    display: none;
+  }
+}

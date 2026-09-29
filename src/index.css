@@ -4,6 +4,14 @@
   box-sizing: border-box;
 }
 
+/* Campos de formulário não herdam a fonte da página por padrão */
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
 html,
 body {
   width: 100%;
@@ -13,6 +21,7 @@ body {
 body {
   margin: 0;
   background-color: #000000;
+  font-family: var(--mr-font);
   display: flex;
   justify-content: center;
 }
@@ -37,7 +46,7 @@ body {
   justify-content: center;
   padding: 24px;
   background: radial-gradient(circle at 50% 28%, #141210, #000000 70%);
-  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+  font-family: var(--mr-font);
 }
 
 .mr-wake-card {

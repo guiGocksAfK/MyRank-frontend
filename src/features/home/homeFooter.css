@@ -1,0 +1,73 @@
+/* ============ Rodapé mínimo ============
+   Uma faixa só, alinhada à grade de 1200px das seções. Sem dourado além do "Rank". */
+.sf {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 28px 2rem;
+}
+
+.sf-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mr-space-5);
+  font-size: 13px;
+  color: var(--mr-text-muted);
+}
+
+.sf-brand,
+.sf-links,
+.sf-author {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-4);
+}
+
+.sf-logo {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--mr-text);
+}
+
+.sf-logo span {
+  color: var(--mr-gold);
+}
+
+.sf-links {
+  gap: var(--mr-space-5);
+}
+
+.sf a {
+  display: inline-flex;
+  color: var(--mr-text-secondary);
+  text-decoration: none;
+  transition: color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.sf a:hover {
+  color: var(--mr-text);
+}
+
+.sf a:focus-visible {
+  outline: 2px solid var(--mr-gold);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.sf-author {
+  gap: var(--mr-space-3);
+}
+
+.sf-author b {
+  font-weight: 600;
+  color: var(--mr-text-secondary);
+}
+
+@media (max-width: 900px) {
+  .sf-inner {
+    flex-direction: column;
+    gap: var(--mr-space-4);
+    text-align: center;
+  }
+}

@@ -1,0 +1,251 @@
+/* ============ Compare com amigos: os fios ============
+   Dois rankings lado a lado; cada obra ligada à mesma obra do outro lado.
+   A altura de cada ponta é a nota: fio reto = concordam, inclinado = discordam.
+   Dourado só nos fios de concordância e na % de afinidade. */
+.cmp-board {
+  --label-col: 170px;
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-5);
+}
+
+.cmp-top {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: var(--label-col) 1fr var(--label-col);
+}
+
+/* legenda de coluna do gráfico (pequena, cinza), não um título */
+.cmp-person {
+  grid-column: 1;
+  justify-self: end;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+.cmp-person-right {
+  grid-column: 3;
+  justify-self: start;
+}
+
+/* afinidade como elemento gráfico: número enorme, só o contorno, atrás do gráfico */
+.cmp-ghost {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.cmp-ghost b {
+  font-size: clamp(150px, 19vw, 280px);
+  font-weight: 800;
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--mr-gold) 50%, transparent);
+}
+
+.cmp-ghost small {
+  margin-top: var(--mr-space-4);
+  font-size: var(--mr-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+/* gráfico: rótulos | fios | rótulos */
+.cmp-chart {
+  --chart-h: 320px;
+  position: relative;
+  z-index: 1;
+  height: var(--chart-h);
+  display: grid;
+  grid-template-columns: var(--label-col) 1fr var(--label-col);
+  /* sem isso o SVG (quadrado por natureza) estica a linha até ficar da altura da largura */
+  grid-template-rows: var(--chart-h);
+}
+
+.cmp-col {
+  position: relative;
+}
+
+.cmp-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(-50%);
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 420ms var(--mr-ease-out);
+  transition-delay: calc(140ms + var(--i) * 63ms);
+}
+
+.cmp-col-left .cmp-label {
+  justify-content: flex-end;
+}
+
+.is-visible .cmp-label {
+  opacity: 1;
+}
+
+.cmp-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--mr-text-secondary);
+}
+
+.cmp-score {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-text);
+}
+
+.cmp-dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--mr-text);
+}
+
+.cmp-col-left .cmp-dot {
+  margin-right: -4px;
+}
+
+.cmp-col-right .cmp-dot {
+  margin-left: -4px;
+}
+
+.cmp-lines {
+  display: block;
+  width: 100%;
+  height: var(--chart-h);
+  overflow: visible;
+  /* os fios são revelados da esquerda pra direita, como se estivessem sendo desenhados */
+  clip-path: inset(-4px 100% -4px 0);
+  transition: clip-path 980ms var(--mr-ease-out) 350ms;
+}
+
+.is-visible .cmp-lines {
+  clip-path: inset(-4px 0 -4px 0);
+}
+
+/* linhas de grade: marcam as notas 10 a 6 */
+.cmp-grid {
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.cmp-wire {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 420ms var(--mr-ease);
+}
+
+.cmp-wire.is-fight {
+  stroke: rgba(255, 255, 255, 0.55);
+}
+
+/* concordâncias acendem em dourado depois que tudo foi desenhado */
+.is-visible .cmp-wire.is-agree {
+  stroke: var(--mr-gold);
+  stroke-width: 2;
+  transition-delay: 1330ms;
+}
+
+.cmp-foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-3);
+  padding-top: var(--mr-space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  transition: opacity 560ms var(--mr-ease-out) 1540ms;
+}
+
+.is-visible .cmp-foot {
+  opacity: 1;
+}
+
+.cmp-legend {
+  max-width: 52ch;
+  margin: 0;
+  font-size: var(--mr-text-sm);
+  line-height: 1.6;
+  color: var(--mr-text-secondary);
+}
+
+.cmp-fight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 0;
+  flex-shrink: 0;
+  font-size: var(--mr-text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-text);
+}
+
+.cmp-fight small {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmp-label,
+  .cmp-wire,
+  .cmp-foot {
+    opacity: 1;
+    transition: none;
+  }
+
+  .cmp-lines {
+    clip-path: none;
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .cmp-board {
+    --label-col: 124px;
+  }
+
+  .cmp-chart {
+    --chart-h: 300px;
+    grid-template-columns: var(--label-col) 1fr var(--label-col);
+  }
+
+  .cmp-label {
+    gap: 6px;
+    font-size: 12px;
+  }
+}

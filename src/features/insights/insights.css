@@ -35,7 +35,7 @@
 .insights-metric-value {
   font-size: 1.6rem;
   font-weight: 800;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--mr-font);
   line-height: 1;
   color: var(--mr-text);
 }
@@ -127,7 +127,7 @@
 }
 
 .insights-rank-num {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--mr-font);
   font-weight: 800;
   font-size: 0.95rem;
   width: 20px;
@@ -175,7 +175,7 @@
 .insights-aside-count {
   font-size: 1.35rem;
   font-weight: 800;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--mr-font);
   color: var(--mr-text);
 }
 
@@ -220,7 +220,7 @@
   width: 100%;
   min-height: 100vh;
   color: var(--mr-text);
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--mr-font);
   background:
     linear-gradient(115deg, rgba(212, 175, 55, 0.1), rgba(0, 0, 0, 0) 34%),
     radial-gradient(circle at 80% 10%, rgba(212, 175, 55, 0.08), transparent 28%),
@@ -244,7 +244,7 @@
 }
 
 .insights-brand {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--mr-font);
   font-weight: 800;
   font-size: 1.05rem;
   letter-spacing: -0.01em;
@@ -280,7 +280,7 @@
 }
 
 .insights-hero-title {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--mr-font);
   font-size: clamp(1.6rem, 3.2vw, 2.15rem);
   font-weight: 800;
   line-height: 1.15;
@@ -316,7 +316,7 @@
 
 /* ---- seções ---- */
 .insights-section-title {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--mr-font);
   font-size: 1.05rem;
   font-weight: 700;
   margin-bottom: 14px;
@@ -422,7 +422,7 @@
 }
 
 .insights-reco-title {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--mr-font);
   font-size: 1.25rem;
   font-weight: 800;
   margin: 6px 0 10px;

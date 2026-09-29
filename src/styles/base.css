@@ -1,0 +1,276 @@
+/* ============================================
+   MyRank - Base visual compartilhada
+   Tokens, escalas e peças reaproveitadas por todas as telas.
+   O tema claro do dashboard sobrescreve as cores em .myrank-light.
+   ============================================ */
+
+:root {
+  --mr-font: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --mr-bg: #000000;
+  --mr-surface: #0d0d0d;
+  --mr-card: rgba(9, 9, 9, 0.97);
+  --mr-card-hover: rgba(24, 24, 24, 0.98);
+  --mr-border: #303030;
+  --mr-border-light: #1e1e1e;
+  --mr-text: #f5f5f5;
+  --mr-text-secondary: #a5a5a5;
+  --mr-text-muted: #666666;
+  --mr-gold: #d4af37;
+  --mr-gold-10: rgba(212, 175, 55, 0.1);
+  --mr-gold-20: rgba(212, 175, 55, 0.2);
+  --mr-gold-glow: rgba(212, 175, 55, 0.25);
+  --mr-blue: #4A90D9;
+  --mr-blue-light: #6AABFF;
+  --mr-blue-20: rgba(74, 144, 217, 0.2);
+  --mr-green: #6ee7b7;
+  --mr-red: #ff6b6b;
+  --mr-purple: #c4b5fd;
+  --mr-input-bg: #121212;
+  --mr-muted-bg: #111111;
+  --mr-bubble-in: #26262b;
+  --mr-bubble-out: rgba(212, 175, 55, 0.18);
+  --mr-track: rgba(255, 255, 255, 0.06);
+  --mr-card-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  --mr-radius: 14px;
+  --mr-radius-sm: 10px;
+  --mr-radius-xs: 6px;
+  /* Escala de texto */
+  --mr-text-xs: 0.75rem;
+  --mr-text-sm: 0.875rem;
+  --mr-text-md: 1rem;
+  --mr-text-lg: 1.125rem;
+  --mr-text-xl: 1.5rem;
+  --mr-text-2xl: 2rem;
+  --mr-tracking-tight: -0.035em; /* títulos grandes */
+
+  /* Espaçamento */
+  --mr-space-1: 4px;
+  --mr-space-2: 8px;
+  --mr-space-3: 12px;
+  --mr-space-4: 16px;
+  --mr-space-5: 24px;
+  --mr-space-6: 32px;
+  --mr-space-7: 48px;
+  --mr-space-8: 64px;
+
+  /* Layout */
+  --mr-navbar-h: 64px;
+
+  /* Movimento */
+  --mr-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --mr-ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* entradas e deslizes mais longos */
+  --mr-duration-fast: 150ms;
+  --mr-duration: 250ms;
+}
+
+/* ============ BOTÃO ============
+   .mr-btn + uma variante (-gold, -outline, -ghost) + tamanho opcional (-sm, -lg).
+   Nomes herdados do dashboard, que já usava esse sistema em todo o app logado. */
+.mr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--mr-font);
+  font-size: var(--mr-text-sm);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color var(--mr-duration-fast) var(--mr-ease),
+    background-color var(--mr-duration-fast) var(--mr-ease),
+    border-color var(--mr-duration-fast) var(--mr-ease),
+    transform var(--mr-duration-fast) var(--mr-ease);
+}
+
+.mr-btn:active {
+  transform: scale(0.97);
+}
+
+.mr-btn:focus-visible {
+  outline: 2px solid var(--mr-gold);
+  outline-offset: 2px;
+}
+
+.mr-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.mr-btn-gold {
+  background: var(--mr-gold);
+  color: #111;
+}
+
+.mr-btn-gold:hover {
+  background: color-mix(in srgb, var(--mr-gold) 85%, white);
+}
+
+.mr-btn-outline {
+  border-color: var(--mr-border);
+  color: var(--mr-text);
+}
+
+.mr-btn-outline:hover {
+  border-color: color-mix(in srgb, var(--mr-gold) 30%, transparent);
+  background: var(--mr-gold-10);
+}
+
+.mr-btn-ghost {
+  color: var(--mr-text-secondary);
+}
+
+.mr-btn-ghost:hover {
+  color: var(--mr-text);
+  background: var(--mr-gold-10);
+}
+
+.mr-btn-sm {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.mr-btn-lg {
+  padding: 0.95rem 2rem;
+  font-size: var(--mr-text-md);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --mr-navbar-h: 56px;
+  }
+
+  .mr-btn {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.8125rem;
+  }
+
+  .mr-btn-sm {
+    padding: 0.35rem 0.6rem;
+    font-size: var(--mr-text-xs);
+  }
+
+  .mr-btn-lg {
+    padding: 0.85rem 1.6rem;
+    font-size: 0.9375rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr-btn {
+    transition: none;
+  }
+
+  .mr-btn:active {
+    transform: none;
+  }
+}
+
+/* ============ MENU SUSPENSO ============
+   .mr-menu (caixa) + .mr-menu-item (opção). Quem usa cuida só do posicionamento.
+   Título opcional: .mr-menu-label. Escolha única: .mr-menu-radio no começo do item,
+   preenchido em dourado no item com aria-checked="true". */
+.mr-menu {
+  padding: var(--mr-space-1);
+  background: color-mix(in srgb, #0f0f0f 88%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45);
+  animation: mr-menu-in var(--mr-duration-fast) var(--mr-ease);
+}
+
+.mr-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-2);
+  padding: 6px var(--mr-space-3) 6px var(--mr-space-2);
+  border: 0;
+  border-radius: var(--mr-radius-xs);
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: nowrap;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color var(--mr-duration-fast) var(--mr-ease),
+    background-color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.mr-menu-item:hover,
+.mr-menu-item:focus-visible {
+  outline: none;
+  background: var(--mr-track);
+  color: var(--mr-text);
+}
+
+.mr-menu-item[aria-checked="true"] {
+  color: var(--mr-text);
+}
+
+.mr-menu-label {
+  padding: 6px var(--mr-space-3) var(--mr-space-1) var(--mr-space-2);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+.mr-menu-radio {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--mr-text-muted);
+  border-radius: 50%;
+  transition:
+    background-color var(--mr-duration-fast) var(--mr-ease),
+    border-color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.mr-menu-item[aria-checked="true"] .mr-menu-radio {
+  background: var(--mr-gold);
+  border-color: var(--mr-gold);
+}
+
+@keyframes mr-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr-menu {
+    animation: none;
+  }
+
+  .mr-menu-item {
+    transition: none;
+  }
+}
+
+/* ============ PAINEL ============
+   Cartão quase preto sobre o fundo preto. Quem dá corpo é a borda-reflexo e o
+   fio de luz no topo, não um cinza (cinza sobre preto vira "lápis"). */
+.mr-panel {
+  background: #080808;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--mr-radius-sm);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 12px 32px rgba(0, 0, 0, 0.4);
+}
