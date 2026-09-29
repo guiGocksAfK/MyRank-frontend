@@ -691,13 +691,7 @@ const TRANSLATIONS = {
         cta: 'Criar conta grátis',
         fine: 'Grátis. Sem anúncios.',
       },
-      footer: {
-        tagline: 'Tudo em um só lugar.',
-        colProduct: 'Produto',
-        productLinks: ['Sobre', 'Contato', 'Termos de uso', 'Privacidade'],
-        colSocial: 'Redes',
-        copyright: '© 2026 MyRank. Todos os direitos reservados.',
-      },
+      footer: { terms: 'Termos de uso', privacy: 'Privacidade', contact: 'Contato', madeBy: 'Feito por' },
     },
   },
 
@@ -1373,13 +1367,7 @@ const TRANSLATIONS = {
         cta: 'Create free account',
         fine: 'Free. No ads.',
       },
-      footer: {
-        tagline: 'Everything in one place.',
-        colProduct: 'Product',
-        productLinks: ['About', 'Contact', 'Terms of use', 'Privacy'],
-        colSocial: 'Social',
-        copyright: '© 2026 MyRank. All rights reserved.',
-      },
+      footer: { terms: 'Terms of use', privacy: 'Privacy', contact: 'Contact', madeBy: 'Made by' },
     },
   },
 
@@ -2055,13 +2043,7 @@ const TRANSLATIONS = {
         cta: 'Crear cuenta gratis',
         fine: 'Gratis. Sin anuncios.',
       },
-      footer: {
-        tagline: 'Todo en un solo lugar.',
-        colProduct: 'Producto',
-        productLinks: ['Acerca de', 'Contacto', 'Términos de uso', 'Privacidad'],
-        colSocial: 'Redes',
-        copyright: '© 2026 MyRank. Todos los derechos reservados.',
-      },
+      footer: { terms: 'Términos de uso', privacy: 'Privacidad', contact: 'Contacto', madeBy: 'Hecho por' },
     },
   },
 };
