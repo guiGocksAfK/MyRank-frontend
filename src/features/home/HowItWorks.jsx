@@ -9,12 +9,12 @@ import "./howItWorks.css";
  */
 const STAGE = { IDLE: 0, RATING: 1, NEW_ITEM: 2, OTHERS: 3, SORTED: 4 };
 const TIMELINE = [
-  [STAGE.RATING, 1200],
-  [STAGE.NEW_ITEM, 3000],
-  [STAGE.OTHERS, 3700],
-  [STAGE.SORTED, 4500],
+  [STAGE.RATING, 900],
+  [STAGE.NEW_ITEM, 2250],
+  [STAGE.OTHERS, 2800],
+  [STAGE.SORTED, 3400],
 ];
-const COUNT_UP_MS = 1600;
+const COUNT_UP_MS = 1200;
 
 /** Passo 1: abas de tabelas + top 3 da tabela ativa (linhas entram uma a uma). */
 const DemoTable = ({ demo }) => (

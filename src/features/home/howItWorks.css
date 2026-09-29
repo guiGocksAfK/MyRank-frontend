@@ -156,7 +156,7 @@
   transform: translateY(calc(var(--rank) * 100%));
   transition:
     opacity 500ms var(--mr-ease),
-    transform 900ms var(--mr-ease-out);
+    transform 700ms var(--mr-ease-out);
 }
 
 .how-demo-ranked-row.is-shown {
@@ -170,7 +170,7 @@
   transition:
     opacity 600ms var(--mr-ease-out),
     transform 600ms var(--mr-ease-out);
-  transition-delay: calc(400ms + var(--i) * 120ms);
+  transition-delay: calc(300ms + var(--i) * 90ms);
 }
 
 .is-visible .how-demo-list-enter li {
