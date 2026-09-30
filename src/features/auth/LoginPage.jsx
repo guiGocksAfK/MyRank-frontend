@@ -9,6 +9,8 @@ import {
   takePostAuthPath,
 } from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
+import AuthBackdrop from "./AuthBackdrop";
+import PasswordInput from "./PasswordInput";
 import ResendVerification from "./ResendVerification";
 import useIframeFocus from "./useIframeFocus";
 import "./auth.css";
@@ -81,30 +83,18 @@ const LoginPage = () => {
   };
 
   return (
-    <main className="auth-page auth-page--noscroll auth-page--cardonly">
+    <main className="auth-page">
+      <AuthBackdrop />
 
-      <button
-        onClick={() => navigate("/")}
-        className="auth-back"
-      >
+      <Link to="/" className="mr-btn mr-btn-outline mr-btn-sm auth-back">
         {tAuth.back}
-      </button>
+      </Link>
 
       <section className="auth-hero" aria-label={tAuth.login.title}>
-        <div className="auth-copy">
-          <p className="auth-kicker">MyRank</p>
-          <h1>{tAuth.login.title}</h1>
-          <p>
-            {tAuth.login.subtitle}
-          </p>
-          <div className="auth-highlights" aria-hidden="true">
-            {tAuth.highlights.map((h) => <span key={h}>{h}</span>)}
-          </div>
-        </div>
-
-        <form className="auth-card" onSubmit={handleSubmit}>
+        <form className="auth-card mr-panel" onSubmit={handleSubmit}>
           <div className="auth-card-header">
             <h2>My<span>Rank</span></h2>
+            <p className="auth-tagline">{tAuth.tagline}</p>
           </div>
 
           <div className="auth-fields">
@@ -123,10 +113,9 @@ const LoginPage = () => {
 
             <label className="auth-field" htmlFor="password">
               <span>{tAuth.passwordLabel}</span>
-              <input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 placeholder="••••••••"
                 autoComplete="current-password"
                 value={password}
@@ -138,11 +127,11 @@ const LoginPage = () => {
           {error && <p className="auth-error">{error}</p>}
           {notVerified && <ResendVerification email={email.trim()} />}
 
-          <a className="auth-forgot" href="#">
+          <Link className="auth-forgot" to="/esqueci-senha">
             {tAuth.login.forgot}
-          </a>
+          </Link>
 
-          <button className="auth-submit" type="submit" disabled={loading}>
+          <button className="mr-btn mr-btn-gold auth-submit" type="submit" disabled={loading}>
             {loading ? tAuth.login.submitting : tAuth.login.submit}
           </button>
 

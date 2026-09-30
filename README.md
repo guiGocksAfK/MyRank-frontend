@@ -1,170 +1,151 @@
-# MyRank — Frontend
+# MyRank — Web App
 
-Web client for **MyRank**, a platform where you rate and rank the movies, TV
-shows, games, books and anime you consume, unify everything into a single
-ranking, compare with friends and unlock achievements.
+Rate and rank anything you love. MyRank is built around pop culture (movies,
+series, games, books and anime), but a table can hold music, food, football
+teams or school subjects just as well. Scores become tables, tables merge into
+a single ranking, and your ranking becomes a profile of your taste.
 
-This repository contains the **React single-page app**. The Spring Boot API lives
-in [`guiGocksAfK/MyRank-backend`](https://github.com/guiGocksAfK/MyRank-backend).
-
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
-![React Router](https://img.shields.io/badge/React%20Router-7-CA4245?logo=reactrouter&logoColor=white)
-
-## Table of Contents
-
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Configuration](#configuration)
-- [Available Scripts](#available-scripts)
-- [Routes](#routes)
-- [Project Structure](#project-structure)
-- [Talking to the API](#talking-to-the-api)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
+Live at **[myrank-oficial.vercel.app](https://myrank-oficial.vercel.app/)**.
+This repository contains the web app; the API, database and infrastructure live
+in [MyRank-backend](https://github.com/guiGocksAfK/MyRank-backend).
 
 ## Features
 
-- **Landing page** with a live poster grid (fed by the API's `/external/showcase`
-  endpoint) that reveals from two diagonal fronts.
-- **Auth** — e-mail/password, Google One Tap and Discord OAuth. JWT is stored in
-  `localStorage` and attached to every request by an Axios interceptor.
-- **Dashboard** with tabs:
-  - **Overview** — real stats, recent activity, top works, badge progress.
-  - **Rankings** — per-category tables and a unified cross-category ranking, with
-    drag-to-reorder, filters and an optional time-weighted score.
-  - **Creators** — ranking of directors / authors / studios derived from your works.
-  - **Social** — friends & comparison (mock data for now).
-  - **AI Insights** — consumption profile analysis.
-  - **Profile** — editable bio, avatar upload with client-side crop/resize,
-    highlights, category breakdown and the full achievements grid.
-- **Achievements** — 48 badges fetched from the API, grouped by bucket, with a
-  toast that pops when you unlock one.
+- **Tables your way.** One table per category, per genre or mixed, with
+  scores from 0 to 10 and drag-to-reorder.
+- **Unified ranking** that merges any selection of tables into a single list,
+  with an optional **time-weighted score** that rewards what you spent more
+  time on.
+- **Automatic metadata.** Directors, studios, authors and posters are fetched
+  when a title is added; nothing is filled in by hand.
+- **Creators ranking** of directors, authors and studios, derived from your
+  own scores.
+- **AI Insights**: a consumer profile generated from your scores, with a
+  follow-up chat.
+- **Optional social layer.** Profiles and tables can stay private. Open ones
+  can be followed (private profiles use follow requests), compared through a
+  **taste affinity** score and discussed in **takes** with threaded comments.
+- **Chat** with direct messages, groups and invite links.
+- **Achievements**: badges unlocked from what you consume, with a toast when
+  one is earned.
+- **Accounts** with e-mail and password (with e-mail confirmation), Google or
+  Discord, plus account deletion.
 
-## Tech Stack
+## User experience
 
-| Concern     | Choice                                             |
-| ----------- | ------------------------------------------------- |
-| Framework   | React 19                                          |
-| Build tool  | Vite 8 (`@vitejs/plugin-react`)                   |
-| Routing     | React Router 7                                    |
-| HTTP        | Axios (single instance + auth interceptor)        |
-| OAuth       | `@react-oauth/google`, custom Discord flow        |
-| Styling     | Hand-written CSS design system (`mr-*` classes, per-feature stylesheets) |
+Most visitors arrive curious about a single thing, their taste, and many are
+on a phone. A few decisions follow from that:
 
-## Getting Started
+- **Show, don't explain.** The landing page uses product mini-mockups and a
+  few one-time animations (a ranking re-sorting itself, an affinity chart
+  drawing its wires, film-style end credits) instead of feature lists.
+- **Three languages.** Portuguese, English and Spanish, switchable at any time
+  from the navbar and saved to the account.
+- **Motion with restraint.** Animations play once, and every one of them
+  respects `prefers-reduced-motion`, falling back to the final state.
+- **One visual base.** Tokens, scales, buttons, menus and panels live in
+  `src/styles/base.css`, so every screen shares the same black-and-gold
+  system instead of re-styling its own components.
+- **Real data in examples.** Scores shown on the landing page are real public
+  averages (MyAnimeList, IMDb, Metacritic), and the affinity example uses the
+  same formula as the product.
 
-### Prerequisites
+## Hosting
 
-- Node.js 20+
-- The [backend API](https://github.com/guiGocksAfK/MyRank-backend) running on
-  `http://localhost:8080`
+Deployed on **Vercel**, with every push to `main` going live automatically.
+The API runs on a separate Oracle Cloud VM; see the
+[backend README](https://github.com/guiGocksAfK/MyRank-backend#architecture)
+for the full architecture.
 
-### Install & run
+## Tech stack
+
+| Technology | Purpose |
+|---|---|
+| React 19 | UI |
+| Vite 8 | Dev server and production build |
+| React Router 7 | Client-side routing |
+| Axios | HTTP client with an auth interceptor |
+| STOMP over SockJS | Real-time chat |
+| `@react-oauth/google` | Google sign-in (Discord uses a custom OAuth flow) |
+| Plain CSS | Shared design system in `src/styles/base.css` plus per-feature stylesheets |
+
+The Geist font is self-hosted through `@fontsource-variable`, so the app makes
+no requests to font CDNs.
+
+## Security
+
+- **Strict Content Security Policy** served as an HTTP header: scripts only
+  from the app's own origin and Google sign-in, no `eval`, network access
+  limited to the API and Google, and no plugins (`object-src 'none'`).
+- **Hardened headers**: clickjacking protection (`frame-ancestors 'none'` and
+  `X-Frame-Options: DENY`), `nosniff`, a strict referrer policy and a
+  Permissions-Policy that disables camera, microphone, geolocation and
+  payments.
+- **Token sent only to the API.** The session token is attached by the API's
+  own Axios instance, never to other URLs.
+- **Fonts and scripts served locally**, keeping third-party origins to the
+  minimum the CSP allows.
+
+Authorization is always enforced by the API; route checks on the frontend only
+shape the navigation.
+
+## Running locally
+
+Requirements: Node.js 20+, and the
+[backend](https://github.com/guiGocksAfK/MyRank-backend) running on
+`http://localhost:8080`.
 
 ```bash
 npm install
-cp .env.example .env   # then fill in the values
-npm run dev
+cp .env.example .env    # then fill in the values
+npm run dev             # http://localhost:5173
 ```
 
-The app starts on `http://localhost:5173` (the origin the backend's CORS config
-expects).
+The app must run on `http://localhost:5173`, the origin the backend's CORS
+configuration expects.
 
-### Production build
+### Scripts
 
-```bash
-npm run build
-npm run preview   # serve the built bundle locally
-```
+| Script | Description |
+|---|---|
+| `npm run dev` | Development server with hot reload. |
+| `npm run build` | Production build to `dist/`. |
+| `npm run preview` | Serves the production build locally. |
+| `npm run lint` | Runs ESLint over the project. |
 
-## Configuration
+### Environment variables
 
-Environment variables are read at build time via `import.meta.env` and must be
-prefixed with `VITE_`. Copy `.env.example` to `.env`:
+Read at build time and prefixed with `VITE_`:
 
-| Variable                    | Description                                   |
-| --------------------------- | ------------------------------------------- |
-| `VITE_GOOGLE_CLIENT_ID`     | Google OAuth client id. If unset, Google login is disabled (with a console warning). |
-| `VITE_DISCORD_CLIENT_ID`    | Discord OAuth client id.                     |
-| `VITE_DISCORD_REDIRECT_URI` | Discord OAuth redirect, e.g. `http://localhost:5173/auth/discord/callback`. |
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | API base URL. Defaults to `http://localhost:8080/api`. |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth client id. Google sign-in is disabled if empty. |
+| `VITE_DISCORD_CLIENT_ID` | Discord OAuth client id. |
+| `VITE_DISCORD_REDIRECT_URI` | Discord redirect, e.g. `http://localhost:5173/auth/discord/callback`. |
 
-> **Note:** the API base URL is currently hard-coded to
-> `http://localhost:8080/api` in [`src/services/api.js`](src/services/api.js).
-> Making it an env var (`VITE_API_URL`) is on the [roadmap](#roadmap).
+Changing the production API domain also requires updating `connect-src` in the
+CSP in `vercel.json`.
 
-## Available Scripts
-
-| Command           | What it does                          |
-| ----------------- | ------------------------------------ |
-| `npm run dev`     | Start the Vite dev server with HMR    |
-| `npm run build`   | Production build into `dist/`         |
-| `npm run preview` | Preview the production build          |
-| `npm run lint`    | Run ESLint over the project           |
-
-## Routes
-
-| Path                       | Screen                          |
-| -------------------------- | ------------------------------ |
-| `/`                        | Landing page                   |
-| `/cadastrar`               | Register                       |
-| `/entrar`                  | Login                          |
-| `/auth/discord/callback`   | Discord OAuth callback handler |
-| `/dashboard`               | Main app (tabbed)              |
-| `/pro`                     | Pro plan page                  |
-| `/insights`                | AI insights result            |
-
-## Project Structure
+## Project structure
 
 ```
 src/
 ├── features/
-│   ├── auth/        login, register, Discord callback
-│   ├── home/        landing page, Pro page, dashboard Overview
-│   ├── dashboard/   shell, header, footer, tab routing
-│   ├── rankings/    category tables + unified ranking
-│   ├── creators/    creator ranking
-│   ├── social/      friends & comparison
-│   ├── insights/    AI insights
-│   └── profile/     profile, avatar upload, badges grid
-├── services/        Axios instance + one module per API resource
-├── shared/          cross-cutting React context & hooks
-│   ├── userContext.jsx     current user, shared across tabs
-│   ├── badges.jsx          badge fetch, unlock detection, toast
-│   └── useUnifiedItems.js  works + derived stats
-├── utils/           mappers (DTO ⇄ view model), formatters
-├── data/            static fallback data
-└── components/      shared presentational components
+│   ├── home/        landing page sections
+│   ├── auth/        login, register, e-mail confirmation, Discord callback
+│   ├── dashboard/   authenticated shell and tabs
+│   ├── rankings/    category tables and the unified ranking
+│   ├── creators/    creators ranking
+│   ├── insights/    AI Insights
+│   ├── social/      feed, discover, compare, takes and profiles
+│   ├── chat/        direct messages, groups and invites
+│   └── profile/     profile, avatar and achievements
+├── services/        Axios instance and one module per API resource
+├── shared/          contexts (user, works, chat, notifications), i18n, shared components
+├── styles/          base.css: tokens, scales and reusable pieces
+└── utils/           formatters and DTO to view-model mappers
 ```
-
-## Talking to the API
-
-- [`src/services/api.js`](src/services/api.js) creates the shared Axios instance
-  and injects `Authorization: Bearer <token>` from `localStorage` on every
-  request.
-- Each file in `src/services/` wraps one backend resource
-  (`userService`, `WorkService`, `CategoryService`, `badgeService`, …).
-- Backend DTOs are converted to view models in
-  [`src/utils/mapWork`](src/utils/mapWork) so components never depend on the raw
-  API shape.
-
-## Roadmap
-
-- [ ] Move the API base URL to `VITE_API_URL`
-- [ ] Replace the mock Social tab with the real follow API
-- [ ] Live achievement progress without a manual refresh
-- [ ] TypeScript migration
-
-## Contributing
-
-This is a personal project, but issues and PRs are welcome.
-
-1. `npm run lint` and `npm run build` should pass.
-2. Follow the existing `mr-*` CSS conventions and the per-feature folder layout.
-3. Keep API calls inside `src/services/`; keep DTO ⇄ view-model mapping in
-   `src/utils/`.
 
 ## License
 

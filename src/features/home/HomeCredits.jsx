@@ -4,32 +4,49 @@ import useRevealOnce, { prefersReducedMotion } from "./useRevealOnce";
 import "./homeCredits.css";
 
 const START_MS = 300; // respiro antes do 1º cartão
-const CARD_MS = 800;  // cada crédito: entra, fica e sai (o próximo entra enquanto ele sai)
+
+// Tempo de leitura de cada cartão, calculado pelas palavras dele: ~5 palavras
+// por segundo (leitura um pouco acima da média) + 0,5s pra o olho achar o
+// texto depois do fade. Assim cada idioma ganha o tempo que o próprio texto pede.
+// Em PT a sequência inteira dá ~10s até o botão.
+const REACTION_MS = 500;
+const MS_PER_WORD = 190;
+const countWords = (...texts) => texts.join(" ").split(/\s+/).filter(Boolean).length;
+const readingMs = (...texts) => REACTION_MS + countWords(...texts) * MS_PER_WORD;
 
 /**
  * Chamada final como fim de filme: os créditos aparecem e somem no mesmo
- * lugar, um de cada vez, e depois entra a "cena pós-créditos" com o botão.
- * Toca sozinho, uma vez, quando a seção aparece na tela.
+ * lugar, dois por cartão, e depois entra a "cena pós-créditos" com o botão.
+ * Toca sozinho, uma vez, quando a seção aparece na tela; cada cartão fica o
+ * tempo de leitura do próprio texto.
  */
 const HomeCredits = ({ credits }) => {
   const [sectionRef, visible] = useRevealOnce(0.5);
 
+  const pairs = [];
+  for (let i = 0; i < credits.roles.length; i += 2) pairs.push(credits.roles.slice(i, i + 2));
   const cards = [
-    ...credits.roles.map(([role, name]) => ({ key: role, role, name })),
-    { key: "disclaimer", text: credits.disclaimer },
-    { key: "brand", brand: true },
+    ...pairs.map((pair) => ({ key: pair[0][0], pair, ms: readingMs(...pair.flat()) })),
+    { key: "end", end: true, ms: readingMs("MyRank", credits.disclaimer) },
   ];
+  const cardMs = cards.map((card) => card.ms);
 
   // step = cartão na tela; cards.length = cena pós-créditos
   const [step, setStep] = useState(() => (prefersReducedMotion() ? Infinity : -1));
 
+  const timing = cardMs.join(",");
   useEffect(() => {
     if (!visible || prefersReducedMotion()) return undefined;
-    const timers = Array.from({ length: cards.length + 1 }, (_, i) =>
-      setTimeout(() => setStep(i), START_MS + i * CARD_MS)
-    );
+    // cada cartão entra quando o anterior termina; o último passo é a cena pós-créditos
+    const durations = timing.split(",").map(Number);
+    let at = START_MS;
+    const timers = [...durations, 0].map((ms, i) => {
+      const timer = setTimeout(() => setStep(i), at);
+      at += ms;
+      return timer;
+    });
     return () => timers.forEach(clearTimeout);
-  }, [visible, cards.length]);
+  }, [visible, timing]);
 
   const isPost = step >= cards.length;
 
@@ -39,20 +56,22 @@ const HomeCredits = ({ credits }) => {
         {cards.map((card, i) => (
           <div
             key={card.key}
-            className={`credits-card${step === i ? " is-active" : ""}`}
+            className={`credits-card${card.end ? " credits-card-end" : ""}${step === i ? " is-active" : ""}`}
             aria-hidden="true"
           >
-            {card.role && (
+            {card.pair?.map(([role, name]) => (
+              <div key={role} className="credits-entry">
+                <small>{role}</small>
+                <span>{name}</span>
+              </div>
+            ))}
+            {card.end && (
               <>
-                <small>{card.role}</small>
-                <span>{card.name}</span>
+                <p className="credits-brand">
+                  My<span>Rank</span>
+                </p>
+                <p className="credits-disclaimer">{credits.disclaimer}</p>
               </>
-            )}
-            {card.text && <p className="credits-disclaimer">{card.text}</p>}
-            {card.brand && (
-              <p className="credits-brand">
-                My<span>Rank</span>
-              </p>
             )}
           </div>
         ))}

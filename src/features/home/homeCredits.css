@@ -1,5 +1,5 @@
 /* ============ Chamada final: créditos + cena pós-créditos ============
-   Os créditos aparecem e somem no mesmo lugar, um de cada vez (cross-fade:
+   Os créditos aparecem e somem no mesmo lugar, dois por cartão (cross-fade:
    o próximo entra enquanto o anterior sai), e depois vem a cena pós-créditos.
    Dourado só no botão e no "Rank". */
 .credits {
@@ -21,12 +21,14 @@
 
 .credits-card {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 72px;
   opacity: 0;
   filter: blur(6px);
   transform: scale(0.97);
+  /* os cartões são só texto: invisíveis, eles ficavam por cima do botão e roubavam o clique */
+  pointer-events: none;
   transition:
     opacity 380ms var(--mr-ease),
     filter 380ms var(--mr-ease),
@@ -37,6 +39,20 @@
   opacity: 1;
   filter: none;
   transform: none;
+}
+
+.credits-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* cartão final: logo e, embaixo, a frase da planilha */
+.credits-card-end {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mr-space-4);
 }
 
 .credits-card small {
@@ -76,6 +92,8 @@
 
 /* cena pós-créditos */
 .credits-post {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -116,6 +134,14 @@
   margin: 0;
   font-size: var(--mr-text-xs);
   color: var(--mr-text-muted);
+}
+
+@media (max-width: 640px) {
+  .credits-card {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--mr-space-6);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

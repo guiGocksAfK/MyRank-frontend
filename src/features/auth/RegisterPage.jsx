@@ -4,6 +4,8 @@ import { GoogleLogin } from "@react-oauth/google";
 import { createUser } from "../../services/userService";
 import { getDiscordAuthUrl, loginWithGoogle } from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
+import AuthBackdrop from "./AuthBackdrop";
+import PasswordInput from "./PasswordInput";
 import ResendVerification from "./ResendVerification";
 import useIframeFocus from "./useIframeFocus";
 import "./auth.css";
@@ -22,15 +24,6 @@ const RegisterPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleWrapperRef, googleFocused] = useIframeFocus();
-
-  const handleBack = () => {
-    if (step === 2) {
-      setStep(1);
-      return;
-    }
-
-    navigate("/");
-  };
 
   const handleContinue = () => {
     setError("");
@@ -109,27 +102,18 @@ const RegisterPage = () => {
   };
 
   return (
-    <main className="auth-page auth-page--noscroll auth-page--cardonly">
+    <main className="auth-page">
+      <AuthBackdrop />
 
-      <button onClick={handleBack} className="auth-back">
+      <Link to="/" className="mr-btn mr-btn-outline mr-btn-sm auth-back">
         {tAuth.back}
-      </button>
+      </Link>
 
       <section className="auth-hero" aria-label={tAuth.register.title}>
-        <div className="auth-copy">
-          <p className="auth-kicker">MyRank</p>
-          <h1>{tAuth.register.title}</h1>
-          <p>
-            {tAuth.register.subtitle}
-          </p>
-          <div className="auth-highlights" aria-hidden="true">
-            {tAuth.highlights.map((h) => <span key={h}>{h}</span>)}
-          </div>
-        </div>
-
-        <form className="auth-card" onSubmit={handleSubmit}>
+        <form className="auth-card mr-panel" onSubmit={handleSubmit}>
           <div className="auth-card-header">
             <h2>My<span>Rank</span></h2>
+            <p className="auth-tagline">{tAuth.tagline}</p>
             {step !== 3 && (
               <p className="auth-step-label">{tAuth.register.stepLabel.replace("{step}", step)}</p>
             )}
@@ -175,7 +159,7 @@ const RegisterPage = () => {
                   {error && <p className="auth-error">{error}</p>}
 
                   <button
-                    className="auth-submit auth-submit--compact"
+                    className="mr-btn mr-btn-gold auth-submit auth-submit--compact"
                     type="button"
                     onClick={handleContinue}
                     disabled={loading}
@@ -268,10 +252,9 @@ const RegisterPage = () => {
 
                 <label className="auth-field" htmlFor="password">
                   <span>{tAuth.passwordLabel}</span>
-                  <input
+                  <PasswordInput
                     id="password"
                     name="password"
-                    type="password"
                     placeholder="••••••••"
                     autoComplete="new-password"
                     value={password}
@@ -281,10 +264,9 @@ const RegisterPage = () => {
 
                 <label className="auth-field" htmlFor="confirm">
                   <span>{tAuth.passwordConfirmLabel}</span>
-                  <input
+                  <PasswordInput
                     id="confirm"
                     name="confirm"
-                    type="password"
                     placeholder="••••••••"
                     autoComplete="new-password"
                     value={confirm}
@@ -299,7 +281,7 @@ const RegisterPage = () => {
                 <button className="auth-secondary-button" type="button" onClick={() => setStep(1)}>
                   {tAuth.register.back}
                 </button>
-                <button className="auth-submit auth-submit--inline" type="submit" disabled={loading}>
+                <button className="mr-btn mr-btn-gold auth-submit auth-submit--inline" type="submit" disabled={loading}>
                   {loading ? tAuth.register.submitting : tAuth.register.submit}
                 </button>
               </div>

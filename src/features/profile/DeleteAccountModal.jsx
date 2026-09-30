@@ -7,15 +7,14 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
 const DANGER = '#ff8d8b';
 
 /**
- * Exclusão definitiva da conta. Pede o username digitado e, se a conta tiver
- * senha (cadastro com email), a senha — o backend confere os dois.
+ * Exclusão definitiva da conta. Pede o username digitado e o código mandado ao
+ * email da conta (vale pra todas, com ou sem senha) — o backend confere os dois.
  */
 export default function DeleteAccountModal({ user, onClose }) {
   const { t } = useLanguage();
   const tp = t.profile;
 
   const [confirmUsername, setConfirmUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [deletionCode, setDeletionCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -27,8 +26,7 @@ export default function DeleteAccountModal({ user, onClose }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [busy, onClose]);
 
-  const canSubmit = confirmUsername.trim() === user.username
-    && (user.hasPassword ? password.length > 0 : deletionCode.trim().length > 0);
+  const canSubmit = confirmUsername.trim() === user.username && deletionCode.trim().length > 0;
 
   const handleRequestCode = async () => {
     setBusy(true);
@@ -51,8 +49,7 @@ export default function DeleteAccountModal({ user, onClose }) {
     try {
       await deleteMe({
         confirmUsername: confirmUsername.trim(),
-        password: user.hasPassword ? password : null,
-        deletionCode: user.hasPassword ? null : deletionCode.trim(),
+        deletionCode: deletionCode.trim(),
       });
       logout();
       // Recarrega do zero: derruba o chat em tempo real e qualquer estado da sessão antiga.
@@ -104,24 +101,7 @@ export default function DeleteAccountModal({ user, onClose }) {
           style={{ width: '100%' }}
         />
 
-        {user.hasPassword && (
-          <>
-            <label className="mr-setting-label" style={{ margin: '12px 0 6px', display: 'block' }}>
-              {tp.deletePasswordLabel}
-            </label>
-            <input
-              className="mr-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              style={{ width: '100%' }}
-            />
-          </>
-        )}
-
-        {!user.hasPassword && (
-          <>
+        <>
             <button className="mr-btn mr-btn-outline mr-btn-sm" type="button"
               onClick={handleRequestCode} disabled={busy} style={{ marginTop: 12 }}>
               {codeSent ? tp.deleteResendCode : tp.deleteSendCode}
@@ -135,8 +115,7 @@ export default function DeleteAccountModal({ user, onClose }) {
             <input className="mr-input" value={deletionCode}
               onChange={(e) => setDeletionCode(e.target.value.toUpperCase())}
               autoComplete="one-time-code" maxLength={8} style={{ width: '100%' }} />
-          </>
-        )}
+        </>
 
         {error && <p className="auth-error" style={{ marginTop: 10 }}>{error}</p>}
 

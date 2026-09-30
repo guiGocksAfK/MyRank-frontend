@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import './homePage.css';
-import { getShowcasePosters } from '../../services/ExternalSearchService';
-import { SHOWCASE_FALLBACK } from './showcaseFallback';
+import { POSTER_TILES, buildTiles, loadShowcaseTiles } from './showcaseTiles';
 import { useLanguage } from '../../shared/i18n';
 import HowItWorks from './HowItWorks';
 import HomeIdentity from './HomeIdentity';
@@ -11,7 +10,6 @@ import HomeFaq from './HomeFaq';
 import HomeCredits from './HomeCredits';
 import HomeFooter from './HomeFooter';
 
-const POSTER_TILES = 20; // grid 5x4 do hero
 const GRID_COLS = 5;
 const GRID_ROWS = POSTER_TILES / GRID_COLS;            // 4
 const MAX_DIAG = (GRID_ROWS - 1) + (GRID_COLS - 1);    // 7 — diagonal do canto NO ao SE
@@ -29,11 +27,7 @@ const tileReveal = (i) => {
   const shift = diag < half ? '-14px' : diag > half ? '14px' : '0px';
   return { '--tile-delay': `${wave * TILE_STEP_MS}ms`, '--tile-shift': shift };
 };
-const SHOWCASE_WAIT_MS = 600;   // espera curta pelo /showcase antes de decidir a lista
 const REVEAL_CAP_MS = 1200;     // teto: revela o grid mesmo que alguma imagem trave
-
-/** Junta os pôsteres ao vivo com o fallback estático, sem repetir, até 20 tiles. */
-const buildTiles = (live) => [...new Set([...live, ...SHOWCASE_FALLBACK])].slice(0, POSTER_TILES);
 
 /** Pré-carrega todas as URLs; resolve quando todas terminam (load ou erro). */
 const preloadAll = (urls) =>
@@ -57,13 +51,9 @@ const HomePage = () => {
   useEffect(() => {
     let active = true;
 
-    // 1. Decide a lista final: usa o /showcase se responder rápido, senão o fallback.
-    Promise.race([
-      getShowcasePosters().catch(() => []),
-      new Promise((resolve) => setTimeout(() => resolve(null), SHOWCASE_WAIT_MS)),
-    ])
-      .then((live) => {
-        const finalTiles = Array.isArray(live) && live.length ? buildTiles(live) : buildTiles([]);
+    // 1. Decide a lista final (a mesma que entrar/cadastrar vão mostrar na sessão).
+    loadShowcaseTiles()
+      .then((finalTiles) => {
         if (active) setTiles(finalTiles);
         // 2. Pré-carrega tudo antes de revelar — sem "pipoca".
         return preloadAll(finalTiles);
