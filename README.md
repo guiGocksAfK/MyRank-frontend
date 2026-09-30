@@ -146,3 +146,8 @@ src/
 ├── styles/          base.css: tokens, scales and reusable pieces
 └── utils/           formatters and DTO to view-model mappers
 ```
+
+## License
+
+© 2026 Guilherme Gocks. All rights reserved.
+This source code is shared for portfolio purposes only and may not be copied, modified or redistributed without permission.

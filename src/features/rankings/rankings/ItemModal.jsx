@@ -10,9 +10,10 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
 const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3; // evita disparar busca com 1-2 caracteres
 
-export default function ItemModal({ item, onSave, onClose }) {
+export default function ItemModal({ item, subcategories = [], defaultSubcategoryId = null, onSave, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.itemModal;
+  const ts = t.rankings.subcategories;
   const WORK_TYPES = WORK_TYPE_VALUES.map((value) => ({ value, label: t.rankings.itemTypes[value], enabled: true }));
   const isEdit = !!item;
 
@@ -25,6 +26,7 @@ export default function ItemModal({ item, onSave, onClose }) {
   const [mins,  setMins]    = useState(initialHHMM.mins  ?? '');
   const [image, setImage]   = useState(item?.image       ?? '');
   const [releaseDate, setReleaseDate] = useState(item?.releaseDate ?? '');
+  const [subcategoryId, setSubcategoryId] = useState(item ? item.subcategoryId ?? null : defaultSubcategoryId);
 
   const [searching, setSearching] = useState(false);
   const [searchMsg, setSearchMsg] = useState('');
@@ -141,6 +143,7 @@ export default function ItemModal({ item, onSave, onClose }) {
       timeMinutes: t,
       releaseDate: releaseDate || null,
       image: image.trim(),
+      subcategoryId,
     };
 
     setSaving(true);
@@ -248,6 +251,20 @@ export default function ItemModal({ item, onSave, onClose }) {
             </div>
           )}
         </div>
+
+        {subcategories.length > 0 && (
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>{ts.fieldLabel}</label>
+            <select
+              value={subcategoryId ?? ''}
+              onChange={e => setSubcategoryId(e.target.value ? Number(e.target.value) : null)}
+              style={inputStyle}
+            >
+              <option value="">{ts.fieldNone}</option>
+              {subcategories.map(sub => <option key={sub.id} value={sub.id}>{sub.name}</option>)}
+            </select>
+          </div>
+        )}
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>{tm.creatorLabel}</label>
