@@ -5,13 +5,13 @@ export async function getCategories() {
   return res.data;
 }
 
-export async function createCategory(name) {
-  const res = await api.post('/categories', { name });
+export async function createCategory(table) {
+  const res = await api.post('/categories', table);
   return res.data;
 }
 
-export async function updateCategory(id, name) {
-  const res = await api.put(`/categories/${id}`, { name });
+export async function updateCategory(id, table) {
+  const res = await api.put(`/categories/${id}`, table);
   return res.data;
 }
 

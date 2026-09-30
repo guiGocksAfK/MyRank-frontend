@@ -8,22 +8,6 @@ import { useWorks } from './worksContext';
  * dos componentes visuais. Usado pelo rodapé e pelo perfil — nada de mockData.
  */
 
-const ACCENTS = /[̀-ͯ]/g;
-
-const TYPE_BY_KEYWORD = [
-  [/livro|book/, 'livro'],
-  [/jogo|game/, 'jogo'],
-  [/anime/, 'anime'],
-  [/serie|series|show|\btv\b/, 'serie'],
-  [/filme|movie/, 'filme'],
-];
-
-function inferType(categoryName) {
-  const s = (categoryName || '').normalize('NFD').replace(ACCENTS, '').toLowerCase();
-  for (const [re, type] of TYPE_BY_KEYWORD) if (re.test(s)) return type;
-  return 'outro';
-}
-
 export function useUnifiedItems() {
   const [items, setItems] = useState(null); // null = carregando
   const [error, setError] = useState(null);
@@ -36,7 +20,6 @@ export function useUnifiedItems() {
         if (!active) return;
         const list = (Array.isArray(data) ? data : []).map((w) => ({
           ...mapWorkToItem(w),
-          type: inferType(w.categoryName),
           categoryName: w.categoryName,
           creator: (w.creator || '').trim(),
         }));
