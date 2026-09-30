@@ -5,6 +5,7 @@ import { createUser } from "../../services/userService";
 import { getDiscordAuthUrl, loginWithGoogle } from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
 import AuthBackdrop from "./AuthBackdrop";
+import PasswordInput from "./PasswordInput";
 import ResendVerification from "./ResendVerification";
 import useIframeFocus from "./useIframeFocus";
 import "./auth.css";
@@ -251,10 +252,9 @@ const RegisterPage = () => {
 
                 <label className="auth-field" htmlFor="password">
                   <span>{tAuth.passwordLabel}</span>
-                  <input
+                  <PasswordInput
                     id="password"
                     name="password"
-                    type="password"
                     placeholder="••••••••"
                     autoComplete="new-password"
                     value={password}
@@ -264,10 +264,9 @@ const RegisterPage = () => {
 
                 <label className="auth-field" htmlFor="confirm">
                   <span>{tAuth.passwordConfirmLabel}</span>
-                  <input
+                  <PasswordInput
                     id="confirm"
                     name="confirm"
-                    type="password"
                     placeholder="••••••••"
                     autoComplete="new-password"
                     value={confirm}

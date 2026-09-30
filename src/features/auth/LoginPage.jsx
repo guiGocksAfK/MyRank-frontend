@@ -10,6 +10,7 @@ import {
 } from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
 import AuthBackdrop from "./AuthBackdrop";
+import PasswordInput from "./PasswordInput";
 import ResendVerification from "./ResendVerification";
 import useIframeFocus from "./useIframeFocus";
 import "./auth.css";
@@ -112,10 +113,9 @@ const LoginPage = () => {
 
             <label className="auth-field" htmlFor="password">
               <span>{tAuth.passwordLabel}</span>
-              <input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 placeholder="••••••••"
                 autoComplete="current-password"
                 value={password}

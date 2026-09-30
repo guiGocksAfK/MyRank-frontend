@@ -520,6 +520,8 @@ const TRANSLATIONS = {
     },
     auth: {
       back: '← Voltar',
+      showPassword: 'Mostrar senha',
+      hidePassword: 'Ocultar senha',
       tagline: 'Seu gosto. Seu ranking. Sua identidade.',
       emailLabel: 'Email',
       emailPlaceholder: 'seu@email.com',
@@ -1194,6 +1196,8 @@ const TRANSLATIONS = {
     },
     auth: {
       back: '← Back',
+      showPassword: 'Show password',
+      hidePassword: 'Hide password',
       tagline: 'Your taste. Your ranking. Your identity.',
       emailLabel: 'Email',
       emailPlaceholder: 'you@email.com',
@@ -1860,6 +1864,8 @@ const TRANSLATIONS = {
     },
     auth: {
       back: '← Volver',
+      showPassword: 'Mostrar contraseña',
+      hidePassword: 'Ocultar contraseña',
       tagline: 'Tu gusto. Tu ranking. Tu identidad.',
       emailLabel: 'Email',
       emailPlaceholder: 'tu@email.com',

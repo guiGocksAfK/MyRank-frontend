@@ -184,6 +184,80 @@
   box-shadow: 0 0 0 3px var(--mr-gold-10);
 }
 
+/* senha com o olho de mostrar/ocultar dentro do campo */
+.auth-password {
+  position: relative;
+  display: block;
+}
+
+.auth-password input {
+  padding-right: 52px;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mr-text-muted);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.auth-password-toggle:hover,
+.auth-password-toggle[aria-pressed="true"] {
+  color: var(--mr-text);
+}
+
+.auth-password-toggle:focus-visible {
+  outline: 2px solid var(--mr-gold);
+  outline-offset: 1px;
+}
+
+.auth-eye-pupil {
+  fill: var(--mr-gold);
+}
+
+/* olho abre "esticando" de uma linha até o olho inteiro; o fechado some junto */
+.auth-eye-open,
+.auth-eye-closed {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 240ms var(--mr-ease-out),
+    opacity 180ms var(--mr-ease);
+}
+
+.auth-eye-open {
+  opacity: 0;
+  transform: scaleY(0.1);
+}
+
+.auth-password-toggle[aria-pressed="true"] .auth-eye-open {
+  opacity: 1;
+  transform: none;
+}
+
+.auth-password-toggle[aria-pressed="true"] .auth-eye-closed {
+  opacity: 0;
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-eye-open,
+  .auth-eye-closed {
+    transition: none;
+  }
+}
+
 /* Trava o autofill do Chrome (fundo lavanda) no tema escuro */
 .auth-field input:-webkit-autofill,
 .auth-field input:-webkit-autofill:hover,
