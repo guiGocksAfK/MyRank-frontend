@@ -20,8 +20,8 @@ export const requestDeletionCode = async () => {
 };
 
 /** Exclusão definitiva: senha ou código enviado ao email da conta. */
-export const deleteMe = async ({ confirmUsername, password, deletionCode }) => {
-  await api.delete("/users/me", { data: { confirmUsername, password, deletionCode } });
+export const deleteMe = async ({ confirmUsername, deletionCode }) => {
+  await api.delete("/users/me", { data: { confirmUsername, deletionCode } });
 };
 
 /**
