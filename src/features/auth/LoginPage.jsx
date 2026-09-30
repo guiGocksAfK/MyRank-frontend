@@ -127,9 +127,9 @@ const LoginPage = () => {
           {error && <p className="auth-error">{error}</p>}
           {notVerified && <ResendVerification email={email.trim()} />}
 
-          <a className="auth-forgot" href="#">
+          <Link className="auth-forgot" to="/esqueci-senha">
             {tAuth.login.forgot}
-          </a>
+          </Link>
 
           <button className="mr-btn mr-btn-gold auth-submit" type="submit" disabled={loading}>
             {loading ? tAuth.login.submitting : tAuth.login.submit}

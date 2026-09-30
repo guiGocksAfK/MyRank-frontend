@@ -35,6 +35,17 @@ export const resendVerification = async (email) => {
 };
 
 /** Login com senha recusado só porque a conta ainda não confirmou o email. */
+/** "Esqueci minha senha": { status: "SENT" | "SOCIAL", provider: "GOOGLE" | "DISCORD" | null } */
+export const forgotPassword = async (email) => {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
+};
+
+/** Link do email de redefinição + senha nova. */
+export const resetPassword = async (token, password) => {
+  await api.post("/auth/reset-password", { token, password });
+};
+
 export const isEmailNotVerifiedError = (err) =>
   err?.response?.status === 403 && err.response.data?.code === "EMAIL_NOT_VERIFIED";
 
