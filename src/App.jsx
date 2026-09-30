@@ -10,7 +10,6 @@ import InsightsResult from './features/insights/InsightsResultPage'
 import DiscordCallback from './features/auth/DiscordCallbackPage'
 import VerifyEmail from './features/auth/VerifyEmailPage'
 import ForgotPassword from './features/auth/ForgotPasswordPage'
-import ResetPassword from './features/auth/ResetPasswordPage'
 import ChatInvitePage from './features/chat/ChatInvitePage'
 
 
@@ -28,7 +27,6 @@ function Layout() {
     '/entrar',
     '/cadastrar',
     '/esqueci-senha',
-    '/redefinir-senha',
     '/dashboard',
     '/insights',
     '/auth/discord/callback',
@@ -46,7 +44,6 @@ function Layout() {
         <Route path="/auth/discord/callback" element={<DiscordCallback />} />
         <Route path="/confirmar-email" element={<VerifyEmail />} />
         <Route path="/esqueci-senha" element={<ForgotPassword />} />
-        <Route path="/redefinir-senha" element={<ResetPassword />} />
         <Route path="/chat/invite/:token" element={<ChatInvitePage />} />
       </Routes>
     </div>

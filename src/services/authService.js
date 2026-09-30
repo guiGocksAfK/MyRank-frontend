@@ -42,7 +42,7 @@ export const sendSignupCode = async (email, language) => {
 /** Cadastro, etapa 2: confere o código e devolve o passe que libera a etapa 3. */
 export const verifySignupCode = async (email, code) => {
   const response = await api.post("/auth/signup/verify", { email, code });
-  return response.data.signupPass;
+  return response.data.pass;
 };
 
 /** Cadastro, etapa 3: cria a conta (email vem do passe) e já entra. */
@@ -58,9 +58,17 @@ export const forgotPassword = async (email) => {
   return response.data;
 };
 
-/** Link do email de redefinição + senha nova. */
-export const resetPassword = async (token, password) => {
-  await api.post("/auth/reset-password", { token, password });
+/** "Esqueci minha senha", etapa 2: confere o código e devolve o passe da troca. */
+export const verifyResetCode = async (email, code) => {
+  const response = await api.post("/auth/forgot-password/verify", { email, code });
+  return response.data.pass;
+};
+
+/** "Esqueci minha senha", etapa 3: senha nova, e a pessoa já entra na conta. */
+export const resetPassword = async (resetPass, password) => {
+  const response = await api.post("/auth/reset-password", { resetPass, password });
+  saveAuthResponse(response.data);
+  return response.data;
 };
 
 /** Login com senha recusado só porque a conta ainda não confirmou o email. */
