@@ -202,8 +202,8 @@ export default function RankingsTab({ onNavigateToCreators }) {
   }
 
   // ── Criar tabela (categoria) ──
-  async function handleCreateTable(label) {
-    const cat = await createCategory(label);
+  async function handleCreateTable(table) {
+    const cat = await createCategory(table);
     bumpWorks();
     const newTable = mapCategoryToTable(cat);
     setTables(prev => {
@@ -250,10 +250,10 @@ export default function RankingsTab({ onNavigateToCreators }) {
     bumpWorks();
   }
 
-  async function handleRenameTable(id, name) {
-    const updatedCategory = await updateCategory(id, name);
-    const updatedName = updatedCategory?.name || name;
-    setTables(prev => prev.map(table => table.id === id ? { ...table, label: updatedName } : table));
+  async function handleRenameTable(id, changes) {
+    const updatedCategory = await updateCategory(id, changes);
+    setTables(prev => prev.map(table => table.id === id
+      ? { ...table, ...mapCategoryToTable(updatedCategory, table.items) } : table));
     bumpWorks();
   }
 

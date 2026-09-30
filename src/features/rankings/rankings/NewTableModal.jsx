@@ -1,21 +1,20 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../../shared/i18n';
-
-const TYPE_EMOJI = { filme: '🎬', jogo: '🎮', serie: '📺', livro: '📚', anime: '🎌', outro: '📦' };
+import { TABLE_TEMPLATES } from '../../../shared/tableTemplates';
 
 export default function NewTableModal({ onSave, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.newTableModal;
-  const TYPE_OPTIONS = Object.keys(TYPE_EMOJI).map((value) => ({
-    value, emoji: TYPE_EMOJI[value], label: t.rankings.types[value],
+  const TYPE_OPTIONS = Object.entries(TABLE_TEMPLATES).map(([value, meta]) => ({
+    value, emoji: meta.emoji, label: t.rankings.types[meta.type],
   }));
   const [name,        setName]        = useState('');
-  const [type,        setType]        = useState('filme');
+  const [type,        setType]        = useState('movie');
   const [customEmoji, setCustomEmoji] = useState('📦');
   const [saving,      setSaving]      = useState(false);
 
-  const isOutro = type === 'outro';
+  const isOutro = type === 'custom';
   const selectedType = TYPE_OPTIONS.find(o => o.value === type);
   const finalEmoji = isOutro ? (customEmoji.trim() || '📦') : (selectedType?.emoji ?? '');
   const finalLabel = name.trim() ? `${finalEmoji} ${name.trim()}` : '';
@@ -24,7 +23,7 @@ export default function NewTableModal({ onSave, onClose }) {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await onSave(finalLabel);
+      await onSave({ name: finalLabel, template: type });
       onClose();
     } catch (err) {
       alert(err?.response?.data?.message || err.message || tm.createError);

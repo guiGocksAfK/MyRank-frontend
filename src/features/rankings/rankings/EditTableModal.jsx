@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '../../../shared/i18n';
-
-const TYPE_EMOJI = { filme: '🎬', jogo: '🎮', serie: '📺', livro: '📚', anime: '🎌', outro: '📦' };
+import { TABLE_TEMPLATES } from '../../../shared/tableTemplates';
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 /** Cria/renomeia/remove subcategorias na hora (independe do botão Salvar do nome). */
@@ -114,25 +113,26 @@ function SubcategoryManager({ subcategories, onAdd, onRename, onDelete, inputSty
 export default function EditTableModal({ table, onSave, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.editTableModal;
-  const TYPE_OPTIONS = Object.keys(TYPE_EMOJI).map((value) => ({
-    value, emoji: TYPE_EMOJI[value], label: t.rankings.types[value],
+  const TYPE_OPTIONS = Object.entries(TABLE_TEMPLATES).map(([value, meta]) => ({
+    value, emoji: meta.emoji, label: t.rankings.types[meta.type],
   }));
-  const labelParts = table.label.split(' ');
-  const currentEmoji = labelParts.shift() || '📦';
-  const currentType = TYPE_OPTIONS.find(option => option.emoji === currentEmoji)?.value || 'outro';
-  const [name, setName] = useState(labelParts.join(' '));
+  const currentType = table.template ?? 'custom';
+  const labelParts = table.label.match(/^(\S+)\s+(.+)$/u);
+  const hasEmoji = labelParts && /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(labelParts[1]);
+  const currentEmoji = hasEmoji ? labelParts[1] : TABLE_TEMPLATES[currentType].emoji;
+  const [name, setName] = useState(hasEmoji ? labelParts[2] : table.label);
   const [type, setType] = useState(currentType);
-  const [customEmoji, setCustomEmoji] = useState(currentType === 'outro' ? currentEmoji : '📦');
+  const [customEmoji, setCustomEmoji] = useState(currentType === 'custom' ? currentEmoji : '📦');
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
     const nextName = name.trim();
     if (!nextName) return;
     const selectedType = TYPE_OPTIONS.find(option => option.value === type);
-    const emoji = type === 'outro' ? (customEmoji.trim() || '📦') : selectedType.emoji;
+    const emoji = type === 'custom' ? (customEmoji.trim() || '📦') : selectedType.emoji;
     setSaving(true);
     try {
-      await onSave(`${emoji} ${nextName}`);
+      await onSave({ name: `${emoji} ${nextName}`, template: type });
       onClose();
     } catch (err) {
       alert(err?.response?.data?.message || err.message || tm.renameError);
@@ -181,7 +181,7 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
         <select id="mr-edit-table-type" value={type} onChange={event => setType(event.target.value)} style={inputStyle} disabled={saving}>
           {TYPE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
-        {type === 'outro' && (
+        {type === 'custom' && (
           <>
             <label htmlFor="mr-edit-table-emoji" style={{ display: 'block', margin: '1rem 0 5px', color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>
               {tm.tableEmoji}
