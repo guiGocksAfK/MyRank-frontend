@@ -1,39 +1,120 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import { createUser } from "../../services/userService";
-import { getDiscordAuthUrl, loginWithGoogle } from "../../services/authService";
+import {
+  getDiscordAuthUrl,
+  loginWithGoogle,
+  register,
+  sendSignupCode,
+  takePostAuthPath,
+  verifySignupCode,
+} from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
 import AuthBackdrop from "./AuthBackdrop";
 import PasswordInput from "./PasswordInput";
-import ResendVerification from "./ResendVerification";
 import useIframeFocus from "./useIframeFocus";
 import "./auth.css";
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
+const CODE_LENGTH = 6;
+const RESEND_COOLDOWN_S = 30; // igual ao intervalo mínimo do backend
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { t, lang } = useLanguage();
   const tAuth = t.auth;
-  const [step, setStep] = useState(1); // 1 email · 2 usuário/senha · 3 "confira seu email"
+  const tReg = tAuth.register;
+  // 1 email · 2 código do email · 3 usuário/senha. A conta só nasce na etapa 3.
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [signupPass, setSignupPass] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const [googleWrapperRef, googleFocused] = useIframeFocus();
 
-  const handleContinue = () => {
+  // contagem do "Reenviar em Xs"; o estado só muda dentro do timer
+  useEffect(() => {
+    if (cooldown <= 0) return undefined;
+    const id = setTimeout(() => setCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [cooldown]);
+
+  const apiError = (err, fallback) => err.response?.data?.message || fallback;
+
+  const handleSendCode = async () => {
     setError("");
+    setNotice("");
 
     if (!email.trim()) {
       setError(tAuth.errors.emailRequired);
       return;
     }
 
-    setStep(2);
+    setLoading(true);
+    try {
+      await sendSignupCode(email.trim(), lang);
+      setCode("");
+      setStep(2);
+      setCooldown(RESEND_COOLDOWN_S);
+    } catch (err) {
+      setError(apiError(err, tAuth.errors.createAccount));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setError("");
+    setNotice("");
+    setLoading(true);
+    try {
+      await sendSignupCode(email.trim(), lang);
+      setCode("");
+      setNotice(tReg.resent);
+      setCooldown(RESEND_COOLDOWN_S);
+    } catch (err) {
+      setError(apiError(err, tAuth.errors.createAccount));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (value = code) => {
+    setError("");
+    setNotice("");
+    if (value.length !== CODE_LENGTH) return;
+
+    setLoading(true);
+    try {
+      setSignupPass(await verifySignupCode(email.trim(), value));
+      setStep(3);
+    } catch (err) {
+      setCode("");
+      setError(apiError(err, tAuth.errors.createAccount));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // só dígitos; completou os 6, confere sozinho (colar do email também cai aqui)
+  const handleCodeChange = (event) => {
+    const digits = event.target.value.replace(/\D/g, "").slice(0, CODE_LENGTH);
+    setCode(digits);
+    if (digits.length === CODE_LENGTH && !loading) handleVerify(digits);
+  };
+
+  const backToEmail = () => {
+    setError("");
+    setNotice("");
+    setCode("");
+    setSignupPass("");
+    setStep(1);
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -68,8 +149,15 @@ const RegisterPage = () => {
     window.location.href = getDiscordAuthUrl();
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
+    if (loading) return;
+    if (step === 1) handleSendCode();
+    else if (step === 2) handleVerify();
+    else handleCreate();
+  };
+
+  const handleCreate = async () => {
     setError("");
 
     if (!username.trim()) {
@@ -90,13 +178,11 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      // Conta nasce sem confirmar: só entra depois do clique no link do email.
-      await createUser({ username: username.trim(), email: email.trim(), password, language: lang });
-      setStep(3);
+      // email já confirmado na etapa 2: a conta nasce ativa e já entra
+      await register({ signupPass, username: username.trim(), password, language: lang });
+      navigate(takePostAuthPath());
     } catch (err) {
-      const message = err.response?.data?.message || tAuth.errors.createAccount;
-      setError(message);
-    } finally {
+      setError(apiError(err, tAuth.errors.createAccount));
       setLoading(false);
     }
   };
@@ -114,24 +200,59 @@ const RegisterPage = () => {
           <div className="auth-card-header">
             <h2>My<span>Rank</span></h2>
             <p className="auth-tagline">{tAuth.tagline}</p>
-            {step !== 3 && (
-              <p className="auth-step-label">{tAuth.register.stepLabel.replace("{step}", step)}</p>
-            )}
+            <p className="auth-step-label">{tReg.stepLabel.replace("{step}", step)}</p>
           </div>
 
-          {step === 3 ? (
+          {step === 2 ? (
             <div className="auth-step-panel">
               <div className="auth-step-copy">
-                <h3>{tAuth.verify.checkTitle}</h3>
-                <p>{tAuth.verify.checkCopy.replace("{email}", email.trim())}</p>
-                <p>{tAuth.verify.checkSpam}</p>
+                <h3>{tReg.codeTitle}</h3>
+                <p>{tReg.codeCopy.replace("{email}", email.trim())}</p>
+                <p>{tReg.codeSpam}</p>
               </div>
 
-              <ResendVerification email={email.trim()} />
+              <label className="auth-field" htmlFor="code">
+                <span>{tReg.codeLabel}</span>
+                <input
+                  id="code"
+                  name="code"
+                  className="auth-code-input"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="000000"
+                  maxLength={CODE_LENGTH}
+                  autoFocus
+                  value={code}
+                  onChange={handleCodeChange}
+                  disabled={loading}
+                />
+              </label>
 
-              <p className="auth-signup-note">
-                <Link to="/entrar">{tAuth.verify.backToLogin}</Link>
-              </p>
+              {error && <p className="auth-error">{error}</p>}
+              {notice && <p className="auth-resend-note">{notice}</p>}
+
+              <div className="auth-button-row">
+                <button className="auth-secondary-button" type="button" onClick={backToEmail}>
+                  {tReg.back}
+                </button>
+                <button
+                  className="mr-btn mr-btn-gold auth-submit auth-submit--inline"
+                  type="submit"
+                  disabled={loading || code.length !== CODE_LENGTH}
+                >
+                  {loading ? tReg.codeChecking : tReg.codeSubmit}
+                </button>
+              </div>
+
+              <button
+                className="auth-text-button"
+                type="button"
+                onClick={handleResend}
+                disabled={loading || cooldown > 0}
+              >
+                {cooldown > 0 ? tReg.resendIn.replace("{s}", cooldown) : tReg.resend}
+              </button>
             </div>
           ) : step === 1 ? (
             <div className="auth-step-panel">
@@ -160,11 +281,10 @@ const RegisterPage = () => {
 
                   <button
                     className="mr-btn mr-btn-gold auth-submit auth-submit--compact"
-                    type="button"
-                    onClick={handleContinue}
+                    type="submit"
                     disabled={loading}
                   >
-                    {tAuth.register.continue}
+                    {loading ? tReg.sending : tReg.continue}
                   </button>
                 </div>
 
@@ -232,8 +352,8 @@ const RegisterPage = () => {
           ) : (
             <div className="auth-step-panel">
               <div className="auth-step-copy">
-                <h3>{tAuth.register.step2Title}</h3>
-                <p>{tAuth.register.step2Copy}</p>
+                <h3>{tReg.step3Title}</h3>
+                <p>{tReg.step3Copy}</p>
               </div>
 
               <div className="auth-fields">
@@ -278,7 +398,7 @@ const RegisterPage = () => {
               {error && <p className="auth-error">{error}</p>}
 
               <div className="auth-button-row">
-                <button className="auth-secondary-button" type="button" onClick={() => setStep(1)}>
+                <button className="auth-secondary-button" type="button" onClick={backToEmail}>
                   {tAuth.register.back}
                 </button>
                 <button className="mr-btn mr-btn-gold auth-submit auth-submit--inline" type="submit" disabled={loading}>

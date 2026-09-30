@@ -423,6 +423,49 @@
   color: var(--mr-gold);
 }
 
+/* Cadastro, etapa 2: código de 6 dígitos em mono, espaçado como no email */
+.auth-field input.auth-code-input {
+  height: 58px;
+  text-align: center;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.45em;
+  padding-left: calc(16px + 0.45em); /* compensa o espaço depois do último dígito */
+}
+
+.auth-field input.auth-code-input::placeholder {
+  color: rgba(255, 255, 255, 0.14);
+}
+
+.auth-text-button {
+  justify-self: center;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: var(--mr-gold);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-text-button:hover:not(:disabled) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-text-button:focus-visible {
+  outline: 2px solid var(--mr-gold);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.auth-text-button:disabled {
+  color: var(--mr-text-muted);
+  cursor: default;
+}
+
 .auth-status {
   margin: 0;
   text-align: center;
