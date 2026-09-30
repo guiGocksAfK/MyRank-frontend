@@ -15,13 +15,6 @@ const TRANSLATIONS = {
     nav: { login: 'Entrar', signup: 'Cadastrar', subtitles: 'Legendas', switched: '— Agora a gente fala português.' },
     common: {
       loading: 'Carregando…',
-      serverWake: {
-        title: 'Acordando o servidor',
-        subtitle: 'A hospedagem gratuita hiberna quando fica um tempo sem uso. O primeiro acesso pode levar alguns minutos — esta página carrega sozinha assim que o servidor responder.',
-        elapsed: 'Aguardando há {s}s',
-        stillWorking: 'Ainda tentando… quase lá.',
-        retry: 'Recarregar agora',
-      },
       seeAll: 'Ver todas →',
       mediaTypes: { filme: 'Filmes', serie: 'Séries', jogo: 'Jogos', livro: 'Livros', anime: 'Animes', outro: 'Outros' },
       badgeBuckets: { jogo: 'Jogos', filme: 'Filmes', serie: 'Séries', livro: 'Livros', anime: 'Animes', geral: 'Gerais', site: 'Usar o site' },
@@ -527,6 +520,7 @@ const TRANSLATIONS = {
     },
     auth: {
       back: '← Voltar',
+      tagline: 'Seu gosto. Seu ranking. Sua identidade.',
       emailLabel: 'Email',
       emailPlaceholder: 'seu@email.com',
       passwordLabel: 'Senha',
@@ -536,7 +530,6 @@ const TRANSLATIONS = {
       orContinue: 'ou continue com',
       google: 'Continuar com Google',
       discord: 'Continuar com Discord',
-      highlights: ['🎬 Filmes', '🎮 Jogos', '📺 Séries', '📚 Livros'],
       errors: {
         login: 'Erro ao entrar. Tente novamente.',
         google: 'Erro ao entrar com Google.',
@@ -552,7 +545,6 @@ const TRANSLATIONS = {
       },
       login: {
         title: 'Entre no MyRank',
-        subtitle: 'Acompanhe suas notas, rankings e listas em um só lugar.',
         forgot: 'Esqueci minha senha',
         submit: 'Entrar',
         submitting: 'Entrando...',
@@ -561,10 +553,9 @@ const TRANSLATIONS = {
       },
       register: {
         title: 'Crie sua conta',
-        subtitle: 'Monte tabelas, organize seus favoritos e veja tudo em um só painel.',
         stepLabel: 'Etapa {step} de 2',
         step1Title: 'Comece com sua conta',
-        step1Copy: 'Use Google ou Discord, ou continue com email e siga para o próximo passo.',
+        step1Copy: 'Use Google, Discord ou seu email.',
         continue: 'Continuar',
         loginNote: 'Já possui uma conta?',
         loginLink: 'Entre aqui',
@@ -669,7 +660,7 @@ const TRANSLATIONS = {
           { q: 'O MyRank é gratuito?', a: 'Sim, 100% gratuito e sem anúncios. Tabelas, notas, ranking unificado e comparação com amigos não custam nada.', v: { kind: 'free', big: 'R$ 0', label: 'pra sempre' } },
           { q: 'Meu perfil precisa ser público?', a: 'Não. Seu perfil e cada tabela podem ser privados, visíveis só pra você. Abrir é opcional, pra quem quer comparar e comentar com amigos.', v: { kind: 'switch', label: 'Perfil privado', on: 'Só você vê suas tabelas', off: 'Amigos podem comparar e comentar' } },
           { q: 'Como funciona o ranking unificado?', a: 'Você escolhe quais tabelas juntar e o MyRank funde tudo numa lista só, ordenada pela nota. Dá pra cruzar filmes com jogos, séries com animes, o que quiser.', v: { kind: 'list', rows: [['The Last of Us', 'Jogo', 9.3], ['Frieren', 'Anime', 9.3], ['Interestelar', 'Filme', 8.7]] } },
-          { q: 'Como funciona a média ponderada por tempo?', a: 'Se você registrar o tempo dedicado, a nota ganha um bônus proporcional. Uma série de 30h com nota 8.0 sobe pra 8.3; um filme de 2h continua praticamente em 8.0.', v: { kind: 'weighted', chip: 'Série · 30h', from: '8.0', to: '8.3', sub: 'Filme de 2h: 8.0 → 8.0' } },
+          { q: 'Como funciona a média ponderada por tempo?', a: 'Vem desligada e só aparece quando você quiser: nos rankings tem o botão "Ponderação por tempo". Ligado, cada nota ganha um bônus pelo tempo que você dedicou (uma série de 30h com nota 8.0 vira 8.3). Desligado, o ranking usa só as suas notas.', v: { kind: 'weighted', chip: 'Ponderação por tempo · ligada', from: '8.0', to: '8.3', sub: 'Filme de 2h: 8.0 → 8.0' } },
           { q: 'Preciso cadastrar as informações das obras?', a: 'Não. Assim que você adiciona uma obra, o MyRank busca sozinho diretor, estúdio, autor, produtora e o resto dos dados.', v: { kind: 'auto', title: 'Interestelar', tag: 'preenchido sozinho', fields: [['Diretor', 'Christopher Nolan'], ['Ano', '2014'], ['Gênero', 'Ficção científica']] } },
           { q: 'Tem conquistas?', a: 'Tem. Os badges saem do seu consumo: passou de 500 horas em jogos, vira "Maratonista de Elite"; 50 obras de ficção científica, "Explorador do Futuro".', v: { kind: 'badge', name: 'Maratonista de Elite', meta: '500h em jogos' } },
         ],
@@ -698,13 +689,6 @@ const TRANSLATIONS = {
     nav: { login: 'Sign in', signup: 'Sign up', subtitles: 'Subtitles', switched: '— Now we speak English.' },
     common: {
       loading: 'Loading…',
-      serverWake: {
-        title: 'Waking the server',
-        subtitle: 'Free hosting goes to sleep after a while idle. The first request can take a few minutes — this page will load itself as soon as the server responds.',
-        elapsed: 'Waiting for {s}s',
-        stillWorking: 'Still trying… almost there.',
-        retry: 'Reload now',
-      },
       seeAll: 'See all →',
       mediaTypes: { filme: 'Movies', serie: 'Series', jogo: 'Games', livro: 'Books', anime: 'Anime', outro: 'Other' },
       badgeBuckets: { jogo: 'Games', filme: 'Movies', serie: 'Series', livro: 'Books', anime: 'Anime', geral: 'General', site: 'Using the site' },
@@ -1210,6 +1194,7 @@ const TRANSLATIONS = {
     },
     auth: {
       back: '← Back',
+      tagline: 'Your taste. Your ranking. Your identity.',
       emailLabel: 'Email',
       emailPlaceholder: 'you@email.com',
       passwordLabel: 'Password',
@@ -1219,7 +1204,6 @@ const TRANSLATIONS = {
       orContinue: 'or continue with',
       google: 'Continue with Google',
       discord: 'Continue with Discord',
-      highlights: ['🎬 Movies', '🎮 Games', '📺 Series', '📚 Books'],
       errors: {
         login: 'Error signing in. Please try again.',
         google: 'Error signing in with Google.',
@@ -1235,7 +1219,6 @@ const TRANSLATIONS = {
       },
       login: {
         title: 'Sign in to MyRank',
-        subtitle: 'Track your scores, rankings and lists all in one place.',
         forgot: 'Forgot my password',
         submit: 'Sign in',
         submitting: 'Signing in...',
@@ -1244,10 +1227,9 @@ const TRANSLATIONS = {
       },
       register: {
         title: 'Create your account',
-        subtitle: 'Build tables, organize your favorites and see everything in one dashboard.',
         stepLabel: 'Step {step} of 2',
         step1Title: 'Start with your account',
-        step1Copy: 'Use Google or Discord, or continue with email and move to the next step.',
+        step1Copy: 'Use Google, Discord or your email.',
         continue: 'Continue',
         loginNote: 'Already have an account?',
         loginLink: 'Sign in here',
@@ -1345,7 +1327,7 @@ const TRANSLATIONS = {
           { q: 'Is MyRank free?', a: 'Yes, 100% free and ad-free. Tables, scores, the unified ranking and comparing with friends cost nothing.', v: { kind: 'free', big: '$0', label: 'forever' } },
           { q: 'Does my profile have to be public?', a: 'No. Your profile and each table can be private, visible only to you. Opening up is optional, for when you want to compare and comment with friends.', v: { kind: 'switch', label: 'Private profile', on: 'Only you see your tables', off: 'Friends can compare and comment' } },
           { q: 'How does the unified ranking work?', a: 'You pick which tables to merge and MyRank fuses them into a single list, ordered by score. Mix movies with games, series with anime, whatever you like.', v: { kind: 'list', rows: [['The Last of Us', 'Game', 9.3], ['Frieren', 'Anime', 9.3], ['Interstellar', 'Movie', 8.7]] } },
-          { q: 'How does the time-weighted average work?', a: 'If you log the time you spent, the score gets a proportional bonus. A 30-hour series rated 8.0 rises to 8.3; a 2-hour movie stays at roughly 8.0.', v: { kind: 'weighted', chip: 'Series · 30h', from: '8.0', to: '8.3', sub: '2h movie: 8.0 → 8.0' } },
+          { q: 'How does the time-weighted average work?', a: 'It starts off and only shows up when you want it: the rankings have a "Time weighting" switch. When on, each score gets a bonus for the time you spent (a 30-hour series rated 8.0 becomes 8.3). When off, the ranking uses only your scores.', v: { kind: 'weighted', chip: 'Time weighting · on', from: '8.0', to: '8.3', sub: '2h movie: 8.0 → 8.0' } },
           { q: 'Do I have to fill in the title details?', a: "No. As soon as you add a title, MyRank fetches the director, studio, author, publisher and the rest on its own.", v: { kind: 'auto', title: 'Interstellar', tag: 'filled in automatically', fields: [['Director', 'Christopher Nolan'], ['Year', '2014'], ['Genre', 'Science fiction']] } },
           { q: 'Are there achievements?', a: 'Yes. Badges come from what you consume: pass 500 hours of games and you become an "Elite Marathoner"; 50 sci-fi titles, a "Future Explorer".', v: { kind: 'badge', name: 'Elite Marathoner', meta: '500h of games' } },
         ],
@@ -1373,13 +1355,6 @@ const TRANSLATIONS = {
     nav: { login: 'Iniciar sesión', signup: 'Registrarse', subtitles: 'Subtítulos', switched: '— Ahora hablamos español.' },
     common: {
       loading: 'Cargando…',
-      serverWake: {
-        title: 'Despertando el servidor',
-        subtitle: 'El hosting gratuito se suspende tras un rato sin uso. El primer acceso puede tardar unos minutos — esta página se cargará sola en cuanto el servidor responda.',
-        elapsed: 'Esperando {s}s',
-        stillWorking: 'Aún intentando… casi listo.',
-        retry: 'Recargar ahora',
-      },
       seeAll: 'Ver todas →',
       mediaTypes: { filme: 'Películas', serie: 'Series', jogo: 'Juegos', livro: 'Libros', anime: 'Animes', outro: 'Otros' },
       badgeBuckets: { jogo: 'Juegos', filme: 'Películas', serie: 'Series', livro: 'Libros', anime: 'Animes', geral: 'Generales', site: 'Usar el sitio' },
@@ -1885,6 +1860,7 @@ const TRANSLATIONS = {
     },
     auth: {
       back: '← Volver',
+      tagline: 'Tu gusto. Tu ranking. Tu identidad.',
       emailLabel: 'Email',
       emailPlaceholder: 'tu@email.com',
       passwordLabel: 'Contraseña',
@@ -1894,7 +1870,6 @@ const TRANSLATIONS = {
       orContinue: 'o continúa con',
       google: 'Continuar con Google',
       discord: 'Continuar con Discord',
-      highlights: ['🎬 Películas', '🎮 Juegos', '📺 Series', '📚 Libros'],
       errors: {
         login: 'Error al iniciar sesión. Inténtalo de nuevo.',
         google: 'Error al iniciar sesión con Google.',
@@ -1910,7 +1885,6 @@ const TRANSLATIONS = {
       },
       login: {
         title: 'Inicia sesión en MyRank',
-        subtitle: 'Sigue tus notas, rankings y listas en un solo lugar.',
         forgot: 'Olvidé mi contraseña',
         submit: 'Iniciar sesión',
         submitting: 'Entrando...',
@@ -1919,10 +1893,9 @@ const TRANSLATIONS = {
       },
       register: {
         title: 'Crea tu cuenta',
-        subtitle: 'Arma tablas, organiza tus favoritos y ve todo en un solo panel.',
         stepLabel: 'Paso {step} de 2',
         step1Title: 'Empieza con tu cuenta',
-        step1Copy: 'Usa Google o Discord, o continúa con email y pasa al siguiente paso.',
+        step1Copy: 'Usa Google, Discord o tu email.',
         continue: 'Continuar',
         loginNote: '¿Ya tienes una cuenta?',
         loginLink: 'Inicia sesión aquí',
@@ -2020,7 +1993,7 @@ const TRANSLATIONS = {
           { q: '¿MyRank es gratis?', a: 'Sí, 100% gratis y sin anuncios. Tablas, notas, ranking unificado y comparar con amigos no cuestan nada.', v: { kind: 'free', big: '$0', label: 'para siempre' } },
           { q: '¿Mi perfil tiene que ser público?', a: 'No. Tu perfil y cada tabla pueden ser privados, visibles solo para ti. Abrirlos es opcional, para quien quiere comparar y comentar con amigos.', v: { kind: 'switch', label: 'Perfil privado', on: 'Solo tú ves tus tablas', off: 'Tus amigos pueden comparar y comentar' } },
           { q: '¿Cómo funciona el ranking unificado?', a: 'Eliges qué tablas juntar y MyRank lo une todo en una sola lista, ordenada por nota. Puedes cruzar películas con juegos, series con animes, lo que quieras.', v: { kind: 'list', rows: [['The Last of Us', 'Juego', 9.3], ['Frieren', 'Anime', 9.3], ['Interestelar', 'Película', 8.7]] } },
-          { q: '¿Cómo funciona el promedio ponderado por tiempo?', a: 'Si registras el tiempo dedicado, la nota recibe un bono proporcional. Una serie de 30 h con nota 8.0 sube a 8.3; una película de 2 h se queda prácticamente en 8.0.', v: { kind: 'weighted', chip: 'Serie · 30 h', from: '8.0', to: '8.3', sub: 'Película de 2 h: 8.0 → 8.0' } },
+          { q: '¿Cómo funciona el promedio ponderado por tiempo?', a: 'Viene apagada y solo aparece cuando tú quieras: en los rankings está el botón "Ponderación por tiempo". Encendido, cada nota recibe un bono por el tiempo que le dedicaste (una serie de 30 h con nota 8.0 pasa a 8.3). Apagado, el ranking usa solo tus notas.', v: { kind: 'weighted', chip: 'Ponderación por tiempo · encendida', from: '8.0', to: '8.3', sub: 'Película de 2 h: 8.0 → 8.0' } },
           { q: '¿Tengo que cargar la información de las obras?', a: 'No. En cuanto agregas una obra, MyRank busca solo el director, estudio, autor, productora y el resto de los datos.', v: { kind: 'auto', title: 'Interestelar', tag: 'completado solo', fields: [['Director', 'Christopher Nolan'], ['Año', '2014'], ['Género', 'Ciencia ficción']] } },
           { q: '¿Hay logros?', a: 'Sí. Los badges salen de tu consumo: pasa las 500 horas de juegos y eres "Maratonista de Élite"; 50 obras de ciencia ficción, "Explorador del Futuro".', v: { kind: 'badge', name: 'Maratonista de Élite', meta: '500 h de juegos' } },
         ],

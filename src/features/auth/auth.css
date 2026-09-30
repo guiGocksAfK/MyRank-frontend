@@ -1,139 +1,129 @@
+/* ============ Entrar / Cadastrar ============
+   Cartão centralizado (.mr-panel) sobre o grid de pôsteres da home, escuro e
+   desfocado. Botões vêm do .mr-btn da base; aqui só o layout e os detalhes. */
 .auth-page {
+  position: relative;
   width: 100%;
   min-height: 100dvh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background:
-    linear-gradient(115deg, rgba(212, 175, 55, 0.16), rgba(0, 0, 0, 0) 34%),
-    radial-gradient(circle at 80% 18%, rgba(212, 175, 55, 0.13), transparent 28%),
-    #000;
-  color: #e5e5e5;
+  overflow-x: hidden;
+  background: var(--mr-bg);
+  color: var(--mr-text);
   font-family: var(--mr-font);
 }
 
-/* Sem scroll — Login */
-.auth-page--noscroll {
-  width: 100%;
-  height: 100dvh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* fundo: pôsteres da home */
+.auth-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  animation: auth-backdrop-in 900ms var(--mr-ease-out) both;
 }
 
-.auth-page--noscroll .auth-hero {
-  flex: 1;
-  min-height: unset;
-  height: 100%;
-}
-
-/* Hero base */
-.auth-hero {
-  width: 100%;
-  max-width: 1220px;
-  min-height: 100dvh;
-  margin: 0 auto;
-  padding: 40px 24px;
+.auth-backdrop-grid {
+  position: absolute;
+  inset: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 470px);
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6px;
+  padding: 6px;
+}
+
+.auth-backdrop-tile {
+  border-radius: 6px;
+  background-color: #141414;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.22;
+  filter: saturate(0.4) blur(2px);
+}
+
+.auth-backdrop-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 40% 55% at 50% 50%, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.75) 60%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+@keyframes auth-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* botão voltar (pílula com contorno da base) no canto */
+.auth-back {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 2;
+  /* fundo fosco pra ficar legível sobre os pôsteres */
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.auth-hero {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  display: flex;
   align-items: center;
-  gap: 36px;
+  justify-content: center;
+  padding: 88px 20px 40px;
   box-sizing: border-box;
 }
 
-.auth-page--noscroll .auth-hero {
-  min-height: 100dvh;
-  height: 100dvh;
-}
-
-/* Copy */
-.auth-copy {
-  max-width: 560px;
+/* telas curtas (retorno do Discord, confirmação de e-mail, convite do chat):
+   só o cartão, centralizado */
+.auth-page--noscroll {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-}
-
-.auth-kicker {
-  margin: 0 0 20px;
-  color: #d4af37;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.auth-copy h1 {
-  margin: 0;
-  color: #f5f5f5;
-  font-size: 52px;
-  font-weight: 800;
-  line-height: 1.08;
-}
-
-.auth-copy p {
-  margin: 14px 0 0;
-  max-width: 470px;
-  color: #a5a5a5;
-  font-size: 18px;
-  line-height: 1.55;
-}
-
-.auth-highlights {
-  margin-top: 18px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.auth-highlights span {
-  border: 1px solid #303030;
-  border-radius: 999px;
-  background: rgba(17, 17, 17, 0.82);
-  color: #a5a5a5;
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  transition: border-color 0.16s ease, color 0.16s ease, background-color 0.16s ease;
-}
-
-.auth-highlights span:hover {
-  color: #f1d98a;
-  border-color: rgba(212, 175, 55, 0.42);
-  background: rgba(24, 24, 24, 0.95);
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 /* Card */
 .auth-card {
   width: 100%;
-  max-width: 500px;
-  padding: 28px 26px;
-  background: rgba(9, 9, 9, 0.97);
-  border: 1px solid #303030;
-  border-radius: 14px;
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.5);
+  max-width: 440px;
+  padding: 32px 30px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  max-height: calc(100dvh - 64px);
-  transform: none;
-  transition: none;
 }
 
 .auth-card-header {
-  margin-bottom: 14px;
+  margin-bottom: 22px;
   text-align: center;
 }
 
+.auth-card h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: var(--mr-tracking-tight);
+  color: var(--mr-text);
+}
+
+.auth-card h2 span {
+  color: var(--mr-gold);
+}
+
+.auth-tagline {
+  margin: 6px 0 0;
+  font-size: var(--mr-text-sm);
+  color: var(--mr-text-muted);
+}
+
 .auth-step-label {
-  margin: 8px 0 0;
-  color: #b5b5b5;
-  font-size: 12px;
+  margin: 10px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  color: var(--mr-text-muted);
 }
 
 .auth-step-panel {
@@ -143,15 +133,129 @@
 
 .auth-step-copy h3 {
   margin: 0;
-  color: #f5f5f5;
   font-size: 18px;
+  color: var(--mr-text);
 }
 
 .auth-step-copy p {
   margin: 6px 0 0;
-  color: #a5a5a5;
   font-size: 14px;
-  line-height: 1.45;
+  line-height: 1.5;
+  color: var(--mr-text-secondary);
+}
+
+/* Fields */
+.auth-fields {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-field {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mr-text-secondary);
+}
+
+.auth-field input {
+  width: 100%;
+  height: 50px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  background: #0b0b0b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--mr-radius-sm);
+  color: var(--mr-text);
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+  transition:
+    border-color var(--mr-duration-fast) var(--mr-ease),
+    box-shadow var(--mr-duration-fast) var(--mr-ease);
+}
+
+.auth-field input::placeholder {
+  color: var(--mr-text-muted);
+}
+
+.auth-field input:focus {
+  border-color: var(--mr-gold);
+  box-shadow: 0 0 0 3px var(--mr-gold-10);
+}
+
+/* Trava o autofill do Chrome (fundo lavanda) no tema escuro */
+.auth-field input:-webkit-autofill,
+.auth-field input:-webkit-autofill:hover,
+.auth-field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--mr-text);
+  caret-color: var(--mr-text);
+  -webkit-box-shadow: 0 0 0 1000px #0b0b0b inset;
+  box-shadow: 0 0 0 1000px #0b0b0b inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.auth-field input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #0b0b0b inset, 0 0 0 3px var(--mr-gold-10);
+  box-shadow: 0 0 0 1000px #0b0b0b inset, 0 0 0 3px var(--mr-gold-10);
+}
+
+/* mensagens de erro (login, cadastro, telas curtas) */
+.auth-error {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--mr-red);
+}
+
+/* Divider */
+.auth-divider {
+  margin: 22px 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mr-text-muted);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Forgot */
+.auth-forgot {
+  display: block;
+  margin: 14px 0 24px;
+  font-size: 13px;
+  text-align: right;
+  text-decoration: none;
+  color: var(--mr-text-secondary);
+  transition: color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.auth-forgot:hover {
+  color: var(--mr-text);
+}
+
+/* Botões: visual do .mr-btn (pílula); aqui só tamanho */
+.auth-submit {
+  width: 100%;
+  height: 50px;
+}
+
+.auth-submit--compact {
+  height: 46px;
+}
+
+.auth-submit--inline {
+  flex: 2;
 }
 
 .auth-button-row {
@@ -160,27 +264,70 @@
   margin-top: 4px;
 }
 
+/* botões com contorno: Google, Discord, "voltar" do passo 2, reenviar e-mail */
+.auth-social-button,
+.auth-secondary-button {
+  width: 100%;
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mr-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color var(--mr-duration-fast) var(--mr-ease),
+    background-color var(--mr-duration-fast) var(--mr-ease);
+}
+
 .auth-secondary-button {
   flex: 1;
-  height: 52px;
-  border: 1px solid #303030;
-  border-radius: 7px;
-  background: transparent;
-  color: #e5e5e5;
-  font: inherit;
+  width: auto;
   font-size: 14px;
   font-weight: 700;
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
+.auth-social-button:hover,
 .auth-secondary-button:hover {
-  border-color: rgba(212, 175, 55, 0.3);
-  background: rgba(212, 175, 55, 0.1);
+  border-color: color-mix(in srgb, var(--mr-gold) 30%, transparent);
+  background: var(--mr-gold-10);
 }
 
-.auth-submit--inline {
-  flex: 2;
+.auth-social-button:focus-visible,
+.auth-secondary-button:focus-visible {
+  outline: 2px solid var(--mr-gold);
+  outline-offset: 2px;
+}
+
+.auth-social-button:disabled,
+.auth-secondary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-social-button--discord {
+  margin-top: 12px;
+}
+
+/* Icons */
+.google-mark,
+.discord-mark {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+}
+
+.google-mark svg,
+.discord-mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* Confirmação de email: botão de reenvio (cadastro e login) */
@@ -192,384 +339,42 @@
 
 .auth-resend .auth-secondary-button {
   width: 100%;
-  height: 46px;
+  min-height: 46px;
 }
 
 .auth-resend-note {
   margin: 0;
-  color: #d4af37;
   font-size: 13px;
   text-align: center;
+  color: var(--mr-gold);
 }
 
 .auth-status {
   margin: 0;
-  color: #a5a5a5;
   text-align: center;
+  color: var(--mr-text-secondary);
 }
 
-.auth-card h2 {
-  margin: 0;
-  color: #f5f5f5;
-  font-size: 31px;
-  font-weight: 800;
-}
-
-.auth-card h2 span {
-  color: #d4af37;
-}
-
-/* Fields */
-.auth-fields {
-  display: grid;
-  gap: 14px;
-}
-
-.auth-field {
-  display: grid;
-  gap: 9px;
-  color: #a5a5a5;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.auth-field input {
-  width: 100%;
-  height: 52px;
-  padding: 0 16px;
-  background: #121212;
-  border: 1px solid #303030;
-  border-radius: 10px;
-  color: #f5f5f5;
-  font: inherit;
-  font-size: 15px;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-}
-
-.auth-field input::placeholder {
-  color: #666;
-}
-
-.auth-field input:focus {
-  background: #151515;
-  border-color: #d4af37;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
-}
-
-/* Trava o autofill do Chrome (fundo lavanda) no tema escuro */
-.auth-field input:-webkit-autofill,
-.auth-field input:-webkit-autofill:hover,
-.auth-field input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #f5f5f5;
-  caret-color: #f5f5f5;
-  -webkit-box-shadow: 0 0 0 1000px #121212 inset;
-  box-shadow: 0 0 0 1000px #121212 inset;
-  transition: background-color 9999s ease-in-out 0s;
-}
-
-.auth-field input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #151515 inset, 0 0 0 3px rgba(212, 175, 55, 0.12);
-  box-shadow: 0 0 0 1000px #151515 inset, 0 0 0 3px rgba(212, 175, 55, 0.12);
-}
-
-/* Divider */
-.auth-divider {
-  margin: 22px 0;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: #666;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.auth-divider::before,
-.auth-divider::after {
-  content: "";
-  height: 1px;
-  background: #2a2a2a;
-  flex: 1;
-}
-
-/* Forgot */
-.auth-forgot {
-  display: block;
-  margin: 16px 0 28px;
-  color: #a5a5a5;
-  font-size: 14px;
-  text-align: right;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.auth-forgot:hover {
-  color: #d4af37;
-}
-
-/* Submit — mesmo estilo do botão "Cadastrar" do Navbar */
-.auth-submit {
-  width: 100%;
-  height: 52px;
-  border: 0;
-  border-radius: 7px;
-  background: #d4af37;
-  color: #0f0f0f;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: box-shadow 0.2s ease, opacity 0.2s ease;
-}
-
-.auth-submit--compact {
-  width: 100%;
-  min-height: 46px;
-  height: 46px;
-  align-self: stretch;
-}
-
-.auth-submit:hover {
-  opacity: 0.88;
-  box-shadow: 0 0 22px rgba(212, 175, 55, 0.32);
-}
-
-.auth-submit:disabled {
-  opacity: 0.55;
-  cursor: default;
-  box-shadow: none;
-}
-
-.auth-submit:active {
-  transform: none;
-}
-
-.auth-submit:hover,
-.auth-social-button:hover,
-.auth-secondary-button:hover {
-  transform: none;
-}
-
-/* Social buttons */
-.auth-google-wrapper {
-  display: flex;
-  justify-content: center;
-}
-
-.auth-social-button {
-  width: 100%;
-  min-height: 50px;
-  border: 1px solid #303030;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.03);
-  color: #e5e5e5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, opacity 0.16s ease;
-}
-
-.auth-social-button:hover {
-  border-color: rgba(212, 175, 55, 0.35);
-  background: rgba(212, 175, 55, 0.08);
-}
-
-.auth-social-button:active {
-  transform: none;
-}
-
-.auth-social-button--google:hover {
-  border-color: rgba(212, 175, 55, 0.35);
-}
-
-.auth-social-button--discord {
-  margin-top: 12px;
-}
-
-.auth-social-button--discord:hover {
-  border-color: rgba(88, 101, 242, 0.6);
-  background: rgba(88, 101, 242, 0.12);
-}
-
-/* Icons */
-.google-mark,
-.discord-mark {
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-}
-
-.google-mark svg,
-.discord-mark svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* Botão voltar */
-.auth-back {
-  position: fixed;
-  top: 28px;
-  left: 24px;
-  background: transparent;
-  border: 1px solid #303030;
-  border-radius: 999px;
-  color: #a5a5a5;
-  font-family: var(--mr-font);
-  font-size: 13px;
-  font-weight: 700;
-  padding: 8px 16px;
-  cursor: pointer;
-  z-index: 100;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
-}
-
-.auth-back:hover {
-  color: #f5f5f5;
-  border-color: rgba(212, 175, 55, 0.3);
-  background: rgba(212, 175, 55, 0.1);
-}
-
-/* Link signup/login */
+/* Link entrar/cadastrar */
 .auth-signup-note {
   margin: 20px 0 0;
-  text-align: center;
-  color: #777;
   font-size: 14px;
+  text-align: center;
+  color: var(--mr-text-muted);
 }
 
 .auth-signup-note a {
-  color: #4A90D9;
-  text-decoration: none;
   font-weight: 700;
-  transition: color 0.2s;
+  text-decoration: none;
+  color: var(--mr-gold);
 }
 
 .auth-signup-note a:hover {
-  color: #6AABFF;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-/* Responsivo */
-@media (max-width: 900px) {
-  .auth-hero {
-    grid-template-columns: 1fr;
-    height: auto;
-    min-height: 100dvh;
-    gap: 36px;
-    padding: 48px 22px;
-  }
-
-  .auth-copy {
-    max-width: 680px;
-    text-align: center;
-    margin: 0 auto;
-  }
-
-  .auth-copy h1 {
-    font-size: 38px;
-  }
-
-  .auth-copy p {
-    margin-inline: auto;
-    font-size: 16px;
-  }
-
-  .auth-highlights {
-    justify-content: center;
-  }
-
-  .auth-card {
-    max-width: 500px;
-    margin: 0 auto;
-    align-self: center;
-  }
-}
-
-/* Auth no mobile: só o card, tela estática (sem scroll) */
-@media (max-width: 640px) {
-  .auth-page--cardonly.auth-page--noscroll,
-  .auth-page--cardonly .auth-hero {
-    height: 100dvh;
-    min-height: 100dvh;
-    overflow: hidden;
-  }
-
-  .auth-page--cardonly .auth-copy {
-    display: none;
-  }
-
-  .auth-page--cardonly .auth-hero {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 0;
-    padding: 64px 16px 16px;
-  }
-
-  /* card dimensionado pelo conteúdo, tela travada — enxuga pra caber */
-  .auth-page--cardonly .auth-card {
-    max-height: none;
-    overflow: visible;
-    margin: 0 auto;
-    padding: 22px 18px;
-  }
-
-  .auth-page--cardonly .auth-card-header {
-    margin-bottom: 10px;
-  }
-
-  .auth-page--cardonly .auth-fields {
-    gap: 11px;
-  }
-
-  .auth-page--cardonly .auth-divider {
-    margin: 14px 0;
-  }
-
-  .auth-page--cardonly .auth-forgot {
-    margin: 12px 0 18px;
-  }
-
-  .auth-page--cardonly .auth-signup-note {
-    margin-top: 14px;
-  }
-
-  .auth-page--cardonly .auth-social-button--discord {
-    margin-top: 10px;
-  }
-}
-
-@media (max-width: 560px) {
-  .auth-hero {
-    padding: 32px 16px;
-  }
-
-  .auth-copy h1 {
-    font-size: 31px;
-  }
-
-  .auth-copy p {
-    font-size: 15px;
-  }
-
-  .auth-card {
-    padding: 30px 18px;
-    border-radius: 14px;
-  }
-
-  .auth-copy {
-    max-width: 100%;
-  }
-}
-
+/* Botão do Google: o botão real (iframe) fica invisível por cima do visual */
 .auth-google-wrapper {
   position: relative;
   /* Contem a camada transparente do Google sem cobrir os botoes vizinhos. */
@@ -578,7 +383,8 @@
   display: flex;
   justify-content: center;
   width: 100%;
-  min-height: 54px;
+  min-height: 50px;
+  border-radius: 999px;
 }
 
 .auth-google-trigger {
@@ -587,16 +393,16 @@
   pointer-events: none;
 }
 
-/* O botao real do Google fica invisivel por cima: repassa hover e foco (Tab)
-   pro botao visual (foco via useIframeFocus). Sombra interna porque o overflow do wrapper corta a externa. */
+/* repassa hover e foco (Tab) do iframe pro botão visual (foco via useIframeFocus).
+   Sombra interna porque o overflow do wrapper corta a externa. */
 .auth-google-wrapper:hover .auth-google-trigger {
-  border-color: rgba(212, 175, 55, 0.35);
-  background: rgba(212, 175, 55, 0.08);
+  border-color: color-mix(in srgb, var(--mr-gold) 30%, transparent);
+  background: var(--mr-gold-10);
 }
 
 .auth-google-wrapper.is-focused .auth-google-trigger {
-  border-color: #d4af37;
-  box-shadow: inset 0 0 0 2px rgba(212, 175, 55, 0.45);
+  border-color: var(--mr-gold);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--mr-gold) 45%, transparent);
 }
 
 .auth-google-provider {
@@ -626,4 +432,47 @@
   width: 100% !important;
   height: 100% !important;
   margin: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-backdrop {
+    animation: none;
+  }
+}
+
+/* celular: cartão ocupa a largura, tudo um pouco mais compacto */
+@media (max-width: 640px) {
+  .auth-back {
+    top: 16px;
+    left: 14px;
+  }
+
+  .auth-backdrop-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+  }
+
+  .auth-hero {
+    padding: 72px 14px 20px;
+  }
+
+  .auth-card {
+    padding: 24px 18px;
+  }
+
+  .auth-card-header {
+    margin-bottom: 16px;
+  }
+
+  .auth-fields {
+    gap: 11px;
+  }
+
+  .auth-divider {
+    margin: 16px 0;
+  }
+
+  .auth-forgot {
+    margin: 12px 0 18px;
+  }
 }
