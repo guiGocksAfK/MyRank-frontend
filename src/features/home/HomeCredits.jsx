@@ -3,14 +3,21 @@ import { Link } from "react-router-dom";
 import useRevealOnce, { prefersReducedMotion } from "./useRevealOnce";
 import "./homeCredits.css";
 
-const START_MS = 300;  // respiro antes do 1º cartão
-const PAIR_MS = 1100;  // cartão com 2 créditos: tempo pra ler os dois (padrão de legenda)
-const END_MS = 1300;   // cartão final: frase da planilha + logo
+const START_MS = 300; // respiro antes do 1º cartão
+
+// Tempo de leitura de cada cartão, calculado pelas palavras dele: ~4 palavras
+// por segundo (leitura silenciosa média, ~240/min) + 0,5s pra o olho achar o
+// texto depois do fade. Assim cada idioma ganha o tempo que o próprio texto pede.
+const REACTION_MS = 500;
+const MS_PER_WORD = 250;
+const countWords = (...texts) => texts.join(" ").split(/\s+/).filter(Boolean).length;
+const readingMs = (...texts) => REACTION_MS + countWords(...texts) * MS_PER_WORD;
 
 /**
  * Chamada final como fim de filme: os créditos aparecem e somem no mesmo
  * lugar, dois por cartão, e depois entra a "cena pós-créditos" com o botão.
- * Toca sozinho, uma vez, quando a seção aparece na tela (~4,9s até o botão).
+ * Toca sozinho, uma vez, quando a seção aparece na tela; cada cartão fica o
+ * tempo de leitura do próprio texto.
  */
 const HomeCredits = ({ credits }) => {
   const [sectionRef, visible] = useRevealOnce(0.5);
@@ -18,8 +25,8 @@ const HomeCredits = ({ credits }) => {
   const pairs = [];
   for (let i = 0; i < credits.roles.length; i += 2) pairs.push(credits.roles.slice(i, i + 2));
   const cards = [
-    ...pairs.map((pair) => ({ key: pair[0][0], pair, ms: PAIR_MS })),
-    { key: "end", end: true, ms: END_MS },
+    ...pairs.map((pair) => ({ key: pair[0][0], pair, ms: readingMs(...pair.flat()) })),
+    { key: "end", end: true, ms: readingMs("MyRank", credits.disclaimer) },
   ];
   const cardMs = cards.map((card) => card.ms);
 
