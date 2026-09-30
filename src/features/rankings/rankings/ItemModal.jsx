@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { formatTime, minutesToHHMM } from '../../../utils/formatters';
 import { searchByType, getDetailsByType } from '../../../services/ExternalSearchService';
 import { useLanguage } from '../../../shared/i18n';
+import { templateProvider } from '../../../shared/tableTemplates';
 
 const WORK_TYPE_VALUES = ['movie', 'tv', 'game', 'book', 'anime'];
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
@@ -10,7 +11,7 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
 const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3; // evita disparar busca com 1-2 caracteres
 
-export default function ItemModal({ item, subcategories = [], defaultSubcategoryId = null, onSave, onClose }) {
+export default function ItemModal({ item, template = 'custom', subcategories = [], defaultSubcategoryId = null, onSave, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.itemModal;
   const ts = t.rankings.subcategories;
@@ -18,7 +19,9 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
   const isEdit = !!item;
 
   const initialHHMM = minutesToHHMM(item?.timeMinutes);
-  const [workType, setWorkType] = useState(item?.workType ?? '');
+  const initialTemplate = item?.template ?? template;
+  const [workType, setWorkType] = useState(initialTemplate === 'custom' ? '' : initialTemplate);
+  const [details, setDetails] = useState(item?.details ?? {});
   const [title, setTitle]   = useState(item?.title       ?? '');
   const [sub,   setSub]     = useState(item?.sub         ?? '');
   const [note,  setNote]    = useState(item?.note        ?? '');
@@ -40,25 +43,27 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
   const skipNextSearchRef = useRef(false); // true logo após escolher uma sugestão, para não reabrir o painel
 
   useEffect(() => {
+    const thisRequestId = ++requestIdRef.current;
     if (skipNextSearchRef.current) {
       skipNextSearchRef.current = false;
       return;
     }
 
-    if (!workType || title.trim().length < MIN_QUERY_LENGTH) {
-      setSuggestions([]);
-      setSearchMsg('');
-      return;
-    }
-
     const currentQuery = title.trim();
+    const canSearch = workType && currentQuery.length >= MIN_QUERY_LENGTH;
+    let active = true;
     const timer = setTimeout(async () => {
-      const thisRequestId = ++requestIdRef.current;
+      if (!canSearch) {
+        setSuggestions([]);
+        setSearchMsg('');
+        setSearching(false);
+        return;
+      }
       setSearching(true);
       setSearchMsg(tm.searching);
       try {
         const results = await searchByType(workType, currentQuery);
-        if (thisRequestId !== requestIdRef.current) return; // resposta obsoleta, ignora
+        if (!active || thisRequestId !== requestIdRef.current) return; // resposta obsoleta, ignora
 
         if (!results || results.length === 0) {
           setSuggestions([]);
@@ -68,48 +73,61 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
           setSearchMsg('');
         }
       } catch (err) {
-        if (thisRequestId !== requestIdRef.current) return;
+        if (!active || thisRequestId !== requestIdRef.current) return;
         setSuggestions([]);
         setSearchMsg(`❌ ${workType === 'anime'
           ? tm.searchErrAnime
           : err.response?.data?.message || tm.searchErr}`);
       } finally {
-        if (thisRequestId === requestIdRef.current) setSearching(false);
+        if (active && thisRequestId === requestIdRef.current) setSearching(false);
       }
-    }, DEBOUNCE_MS);
+    }, canSearch ? DEBOUNCE_MS : 0);
 
-    return () => clearTimeout(timer);
-  }, [title, workType]);
+    return () => {
+      clearTimeout(timer);
+      active = false;
+    };
+  }, [title, workType, tm.searching, tm.noneFoundAnime, tm.noneFound, tm.searchErrAnime, tm.searchErr]);
 
   async function handlePickSuggestion(suggestion) {
+    const thisRequestId = ++requestIdRef.current;
     setSearching(true);
     setSearchMsg(tm.loadingDetails);
     try {
-      const details = await getDetailsByType(workType, suggestion.externalId);
-      if (details) {
-        skipNextSearchRef.current = true;
-        setTitle(details.title || title);
-        if (details.creator) setSub(details.creator);
-        if (details.timeMinutes) {
-          setHours(Math.floor(details.timeMinutes / 60) || '');
-          setMins(details.timeMinutes % 60 || '');
+      const fetchedDetails = await getDetailsByType(workType, suggestion.externalId);
+      if (thisRequestId !== requestIdRef.current) return;
+      if (fetchedDetails) {
+        setDetails(current => {
+          const next = { ...current, ...fetchedDetails.details, externalId: String(suggestion.externalId), provider: templateProvider(workType) };
+          delete next.legacyClassificationRequired;
+          return next;
+        });
+        skipNextSearchRef.current = Boolean(fetchedDetails.title && fetchedDetails.title !== title);
+        setTitle(fetchedDetails.title || title);
+        if (fetchedDetails.creator) setSub(fetchedDetails.creator);
+        if (fetchedDetails.timeMinutes) {
+          setHours(Math.floor(fetchedDetails.timeMinutes / 60) || '');
+          setMins(fetchedDetails.timeMinutes % 60 || '');
         }
-        if (details.imageUrl) setImage(details.imageUrl);
-        if (details.releaseDate) setReleaseDate(details.releaseDate);
+        if (fetchedDetails.imageUrl) setImage(fetchedDetails.imageUrl);
+        if (fetchedDetails.releaseDate) setReleaseDate(fetchedDetails.releaseDate);
         setAttentionFields({
-          creator: !details.creator,
-          time: !details.timeMinutes,
-          image: !details.imageUrl,
-          releaseDate: !details.releaseDate,
+          creator: !fetchedDetails.creator,
+          time: !fetchedDetails.timeMinutes,
+          image: !fetchedDetails.imageUrl,
+          releaseDate: !fetchedDetails.releaseDate,
           note: true,
         });
         setSearchMsg(tm.autofilled);
       }
     } catch (err) {
+      if (thisRequestId !== requestIdRef.current) return;
       setSearchMsg(`❌ ${err.response?.data?.message || tm.detailsErr}`);
     } finally {
-      setSuggestions([]);
-      setSearching(false);
+      if (thisRequestId === requestIdRef.current) {
+        setSuggestions([]);
+        setSearching(false);
+      }
     }
   }
 
@@ -137,6 +155,8 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
 
     const payload = {
       id: item?.id ?? null,
+      template: workType || 'custom',
+      details,
       title: title.trim(),
       sub: sub.trim(),
       note: n,
@@ -207,7 +227,17 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
           <label style={labelStyle}>{tm.workType}</label>
           <select
             value={workType}
-            onChange={e => setWorkType(e.target.value)}
+            onChange={e => {
+              requestIdRef.current++;
+              setWorkType(e.target.value);
+              setDetails(current => {
+                const next = { ...current };
+                delete next.externalId;
+                delete next.provider;
+                delete next.legacyClassificationRequired;
+                return next;
+              });
+            }}
             style={inputStyle}
           >
             <option value="">{tm.select}</option>
@@ -222,7 +252,7 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
           <div style={{ position: 'relative' }}>
             <input
               type="text" value={title} placeholder={tm.titlePlaceholder}
-              onChange={e => { setTitle(e.target.value); setValidationError(''); }}
+              onChange={e => { requestIdRef.current++; setTitle(e.target.value); setValidationError(''); }}
               style={inputStyle}
             />
             {searching && (
