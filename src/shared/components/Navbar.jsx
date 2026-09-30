@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { useLanguage, LANGUAGES } from "../i18n";
 import "./Navbar.css";
@@ -25,9 +24,6 @@ const Navbar = () => {
   const { lang, setLang, t } = useLanguage();
   const langRef = useRef(null);
   const langButtonRef = useRef(null);
-  // legenda de filme que aparece no pé da tela ao trocar o idioma;
-  // a key reinicia a animação se a pessoa trocar de novo antes dela sumir
-  const [captionKey, setCaptionKey] = useState(0);
 
   // Fecha o menu de idioma ao clicar fora ou apertar Esc
   useEffect(() => {
@@ -86,10 +82,7 @@ const Navbar = () => {
                   role="menuitemradio"
                   aria-checked={language === lang}
                   onClick={() => {
-                    if (language !== lang) {
-                      setLang(language);
-                      setCaptionKey((k) => k + 1);
-                    }
+                    if (language !== lang) setLang(language);
                     setLangOpen(false);
                   }}
                 >
@@ -109,19 +102,6 @@ const Navbar = () => {
           {t.nav.signup}
         </Link>
       </div>
-
-      {captionKey > 0 &&
-        createPortal(
-          <p
-            key={captionKey}
-            className="navbar-caption"
-            role="status"
-            onAnimationEnd={() => setCaptionKey(0)}
-          >
-            {t.nav.switched}
-          </p>,
-          document.body
-        )}
     </nav>
   );
 };

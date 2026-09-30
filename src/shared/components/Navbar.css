@@ -51,36 +51,6 @@
   transform: rotate(180deg);
 }
 
-/* Legenda de filme no pé da tela ao trocar o idioma */
-.navbar-caption {
-  position: fixed;
-  left: 50%;
-  bottom: 9vh;
-  z-index: 1000;
-  max-width: 90vw;
-  margin: 0;
-  transform: translateX(-50%);
-  color: #fff;
-  font-size: clamp(17px, 2vw, 24px);
-  font-weight: 500;
-  line-height: 1.4;
-  text-align: center;
-  /* contorno preto clássico de legenda: legível sobre qualquer imagem */
-  text-shadow:
-    0 0 3px #000,
-    0 0 3px #000,
-    0 2px 6px rgba(0, 0, 0, 0.9);
-  pointer-events: none;
-  animation: navbar-caption 2.8s var(--mr-ease) forwards;
-}
-
-@keyframes navbar-caption {
-  0% { opacity: 0; }
-  8% { opacity: 1; }
-  85% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
 .navbar-language {
   position: relative;
 }
