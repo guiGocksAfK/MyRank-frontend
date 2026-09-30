@@ -27,14 +27,14 @@ export default function VerifyEmailPage() {
 
   return (
     <main className="auth-page auth-page--noscroll">
-      <section className="auth-card" style={{ margin: "auto" }}>
+      <section className="auth-card mr-panel" style={{ margin: "auto" }}>
         <div className="auth-card-header">
           <h2>My<span>Rank</span></h2>
         </div>
         {failed ? (
           <>
             <p className="auth-error">{tVerify.invalid}</p>
-            <button className="auth-submit" type="button" onClick={() => navigate("/entrar")}>
+            <button className="mr-btn mr-btn-gold auth-submit" type="button" onClick={() => navigate("/entrar")}>
               {tVerify.backToLogin}
             </button>
           </>

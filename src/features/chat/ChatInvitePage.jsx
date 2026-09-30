@@ -35,11 +35,11 @@ export default function ChatInvitePage() {
 
   return (
     <main className="auth-page auth-page--noscroll">
-      <section className="auth-card" style={{ margin: 'auto', textAlign: 'center' }}>
+      <section className="auth-card mr-panel" style={{ margin: 'auto', textAlign: 'center' }}>
         {error ? (
           <>
             <p className="auth-error">{error}</p>
-            <button className="auth-submit" type="button" onClick={() => navigate('/dashboard')}>
+            <button className="mr-btn mr-btn-gold auth-submit" type="button" onClick={() => navigate('/dashboard')}>
               {ti.goToChat}
             </button>
           </>
