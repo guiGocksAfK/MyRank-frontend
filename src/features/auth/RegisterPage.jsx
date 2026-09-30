@@ -1,75 +1,127 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
-import { createUser } from "../../services/userService";
-import { getDiscordAuthUrl, loginWithGoogle } from "../../services/authService";
+import {
+  register,
+  sendSignupCode,
+  takePostAuthPath,
+  verifySignupCode,
+} from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
 import AuthBackdrop from "./AuthBackdrop";
+import CodeInput from "./CodeInput";
 import PasswordInput from "./PasswordInput";
-import ResendVerification from "./ResendVerification";
-import useIframeFocus from "./useIframeFocus";
+import SocialButtons from "./SocialButtons";
 import "./auth.css";
 
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
+const CODE_LENGTH = 6;
+const RESEND_COOLDOWN_S = 30; // igual ao intervalo mínimo do backend
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { t, lang } = useLanguage();
   const tAuth = t.auth;
-  const [step, setStep] = useState(1); // 1 email · 2 usuário/senha · 3 "confira seu email"
+  const tReg = tAuth.register;
+  // 1 email · 2 código do email · 3 usuário/senha. A conta só nasce na etapa 3.
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [signupPass, setSignupPass] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
-  const [googleWrapperRef, googleFocused] = useIframeFocus();
+  const [cooldown, setCooldown] = useState(0);
 
-  const handleContinue = () => {
+  // contagem do "Reenviar em Xs"; o estado só muda dentro do timer
+  useEffect(() => {
+    if (cooldown <= 0) return undefined;
+    const id = setTimeout(() => setCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [cooldown]);
+
+  const apiError = (err, fallback) => err.response?.data?.message || fallback;
+
+  const handleSendCode = async () => {
     setError("");
+    setNotice("");
 
     if (!email.trim()) {
       setError(tAuth.errors.emailRequired);
       return;
     }
 
-    setStep(2);
-  };
-
-  const handleGoogleSuccess = async (credentialResponse) => {
-    setError("");
     setLoading(true);
-
     try {
-      const credential = credentialResponse?.credential;
-      if (!credential) {
-        throw new Error(tAuth.errors.googleNoCredential);
-      }
-
-      await loginWithGoogle(credential);
-      navigate("/dashboard");
+      await sendSignupCode(email.trim(), lang);
+      setCode("");
+      setStep(2);
+      setCooldown(RESEND_COOLDOWN_S);
     } catch (err) {
-      const message = err.response?.data?.message || err.message || tAuth.errors.google;
-      setError(message);
+      setError(apiError(err, tAuth.errors.createAccount));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDiscordLogin = () => {
+  const handleResend = async () => {
     setError("");
-
-    const clientId = import.meta.env.VITE_DISCORD_CLIENT_ID;
-    if (!clientId) {
-      setError(tAuth.errors.discordNotConfigured);
-      return;
+    setNotice("");
+    setLoading(true);
+    try {
+      await sendSignupCode(email.trim(), lang);
+      setCode("");
+      setNotice(tReg.resent);
+      setCooldown(RESEND_COOLDOWN_S);
+    } catch (err) {
+      setError(apiError(err, tAuth.errors.createAccount));
+    } finally {
+      setLoading(false);
     }
-
-    window.location.href = getDiscordAuthUrl();
   };
 
-  const handleSubmit = async (event) => {
+  const handleVerify = async (value = code) => {
+    setError("");
+    setNotice("");
+    if (value.length !== CODE_LENGTH) return;
+
+    setLoading(true);
+    try {
+      setSignupPass(await verifySignupCode(email.trim(), value));
+      setStep(3);
+    } catch (err) {
+      setCode("");
+      setError(apiError(err, tAuth.errors.createAccount));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // completou os 6, confere sozinho (colar do email também cai aqui)
+  const handleCodeChange = (digits) => {
+    setCode(digits);
+    if (error) setError("");
+    if (digits.length === CODE_LENGTH && !loading) handleVerify(digits);
+  };
+
+  const backToEmail = () => {
+    setError("");
+    setNotice("");
+    setCode("");
+    setSignupPass("");
+    setStep(1);
+  };
+
+  const handleSubmit = (event) => {
     event.preventDefault();
+    if (loading) return;
+    if (step === 1) handleSendCode();
+    else if (step === 2) handleVerify();
+    else handleCreate();
+  };
+
+  const handleCreate = async () => {
     setError("");
 
     if (!username.trim()) {
@@ -90,13 +142,11 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      // Conta nasce sem confirmar: só entra depois do clique no link do email.
-      await createUser({ username: username.trim(), email: email.trim(), password, language: lang });
-      setStep(3);
+      // email já confirmado na etapa 2: a conta nasce ativa e já entra
+      await register({ signupPass, username: username.trim(), password, language: lang });
+      navigate(takePostAuthPath());
     } catch (err) {
-      const message = err.response?.data?.message || tAuth.errors.createAccount;
-      setError(message);
-    } finally {
+      setError(apiError(err, tAuth.errors.createAccount));
       setLoading(false);
     }
   };
@@ -114,24 +164,54 @@ const RegisterPage = () => {
           <div className="auth-card-header">
             <h2>My<span>Rank</span></h2>
             <p className="auth-tagline">{tAuth.tagline}</p>
-            {step !== 3 && (
-              <p className="auth-step-label">{tAuth.register.stepLabel.replace("{step}", step)}</p>
-            )}
+            <p className="auth-step-label">{tReg.stepLabel.replace("{step}", step)}</p>
           </div>
 
-          {step === 3 ? (
+          {step === 2 ? (
             <div className="auth-step-panel">
               <div className="auth-step-copy">
-                <h3>{tAuth.verify.checkTitle}</h3>
-                <p>{tAuth.verify.checkCopy.replace("{email}", email.trim())}</p>
-                <p>{tAuth.verify.checkSpam}</p>
+                <h3>{tReg.codeTitle}</h3>
+                <p>{tReg.codeCopy.replace("{email}", email.trim())}</p>
+                <p>{tReg.codeSpam}</p>
               </div>
 
-              <ResendVerification email={email.trim()} />
+              <label className="auth-field" htmlFor="code">
+                <span>{tReg.codeLabel}</span>
+                <CodeInput
+                  id="code"
+                  length={CODE_LENGTH}
+                  autoFocus
+                  value={code}
+                  onChange={handleCodeChange}
+                  disabled={loading}
+                  invalid={!!error}
+                />
+              </label>
 
-              <p className="auth-signup-note">
-                <Link to="/entrar">{tAuth.verify.backToLogin}</Link>
-              </p>
+              {error && <p className="auth-error">{error}</p>}
+              {notice && <p className="auth-resend-note">{notice}</p>}
+
+              <div className="auth-button-row">
+                <button className="auth-secondary-button" type="button" onClick={backToEmail}>
+                  {tReg.back}
+                </button>
+                <button
+                  className="mr-btn mr-btn-gold auth-submit auth-submit--inline"
+                  type="submit"
+                  disabled={loading || code.length !== CODE_LENGTH}
+                >
+                  {loading ? tReg.codeChecking : tReg.codeSubmit}
+                </button>
+              </div>
+
+              <button
+                className="auth-text-button"
+                type="button"
+                onClick={handleResend}
+                disabled={loading || cooldown > 0}
+              >
+                {cooldown > 0 ? tReg.resendIn.replace("{s}", cooldown) : tReg.resend}
+              </button>
             </div>
           ) : step === 1 ? (
             <div className="auth-step-panel">
@@ -160,11 +240,10 @@ const RegisterPage = () => {
 
                   <button
                     className="mr-btn mr-btn-gold auth-submit auth-submit--compact"
-                    type="button"
-                    onClick={handleContinue}
+                    type="submit"
                     disabled={loading}
                   >
-                    {tAuth.register.continue}
+                    {loading ? tReg.sending : tReg.continue}
                   </button>
                 </div>
 
@@ -172,57 +251,7 @@ const RegisterPage = () => {
                   <span>{tAuth.orContinue}</span>
                 </div>
 
-                {googleClientId ? (
-                  <div ref={googleWrapperRef} className={`auth-google-wrapper${googleFocused ? " is-focused" : ""}`}>
-                    <button
-                      className="auth-social-button auth-social-button--google auth-google-trigger"
-                      type="button"
-                      tabIndex="-1"
-                      aria-hidden="true"
-                    >
-                      <span className="google-mark" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/>
-                          <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.92l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.95H1.26v3.11C3.24 21.3 7.28 24 12 24z"/>
-                          <path fill="#FBBC05" d="M5.27 14.28A7.2 7.2 0 0 1 4.89 12c0-.79.14-1.56.38-2.28V6.61H1.26A11.98 11.98 0 0 0 0 12c0 1.94.46 3.77 1.26 5.39l4.01-3.11z"/>
-                          <path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.59 1.79l3.44-3.44C17.95 1.19 15.24 0 12 0 7.28 0 3.24 2.7 1.26 6.61l4.01 3.11C6.22 6.88 8.87 4.77 12 4.77z"/>
-                        </svg>
-                      </span>
-                      {tAuth.google}
-                    </button>
-                    <div className="auth-google-provider">
-                      <GoogleLogin
-                        onSuccess={handleGoogleSuccess}
-                        onError={(error) => {
-                          console.error("Erro no login do Google:", error);
-                          setError(tAuth.errors.googleConfig);
-                        }}
-                        theme="filled_black"
-                        shape="pill"
-                        size="large"
-                        text="continue_with"
-                        logo_alignment="left"
-                        width="446"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <p className="auth-error">{tAuth.errors.googleNotConfigured}</p>
-                )}
-
-                <button
-                  className="auth-social-button auth-social-button--discord"
-                  type="button"
-                  onClick={handleDiscordLogin}
-                  disabled={loading}
-                >
-                  <span className="discord-mark" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="#fff">
-                      <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
-                    </svg>
-                  </span>
-                  {tAuth.discord}
-                </button>
+                <SocialButtons disabled={loading} onError={setError} onBusy={setLoading} />
 
                 <p className="auth-signup-note">
                   {tAuth.register.loginNote} <Link to="/entrar">{tAuth.register.loginLink}</Link>
@@ -232,8 +261,8 @@ const RegisterPage = () => {
           ) : (
             <div className="auth-step-panel">
               <div className="auth-step-copy">
-                <h3>{tAuth.register.step2Title}</h3>
-                <p>{tAuth.register.step2Copy}</p>
+                <h3>{tReg.step3Title}</h3>
+                <p>{tReg.step3Copy}</p>
               </div>
 
               <div className="auth-fields">
@@ -278,7 +307,7 @@ const RegisterPage = () => {
               {error && <p className="auth-error">{error}</p>}
 
               <div className="auth-button-row">
-                <button className="auth-secondary-button" type="button" onClick={() => setStep(1)}>
+                <button className="auth-secondary-button" type="button" onClick={backToEmail}>
                   {tAuth.register.back}
                 </button>
                 <button className="mr-btn mr-btn-gold auth-submit auth-submit--inline" type="submit" disabled={loading}>

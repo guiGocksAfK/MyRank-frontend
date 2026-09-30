@@ -34,18 +34,44 @@ export const resendVerification = async (email) => {
   await api.post("/auth/resend-verification", { email });
 };
 
-/** Login com senha recusado só porque a conta ainda não confirmou o email. */
+/** Cadastro, etapa 1: manda o código de 6 dígitos pro email. */
+export const sendSignupCode = async (email, language) => {
+  await api.post("/auth/signup/code", { email, language });
+};
+
+/** Cadastro, etapa 2: confere o código e devolve o passe que libera a etapa 3. */
+export const verifySignupCode = async (email, code) => {
+  const response = await api.post("/auth/signup/verify", { email, code });
+  return response.data.pass;
+};
+
+/** Cadastro, etapa 3: cria a conta (email vem do passe) e já entra. */
+export const register = async ({ signupPass, username, password, language }) => {
+  const response = await api.post("/users", { signupPass, username, password, language });
+  saveAuthResponse(response.data);
+  return response.data;
+};
+
 /** "Esqueci minha senha": { status: "SENT" | "SOCIAL", provider: "GOOGLE" | "DISCORD" | null } */
 export const forgotPassword = async (email) => {
   const response = await api.post("/auth/forgot-password", { email });
   return response.data;
 };
 
-/** Link do email de redefinição + senha nova. */
-export const resetPassword = async (token, password) => {
-  await api.post("/auth/reset-password", { token, password });
+/** "Esqueci minha senha", etapa 2: confere o código e devolve o passe da troca. */
+export const verifyResetCode = async (email, code) => {
+  const response = await api.post("/auth/forgot-password/verify", { email, code });
+  return response.data.pass;
 };
 
+/** "Esqueci minha senha", etapa 3: senha nova, e a pessoa já entra na conta. */
+export const resetPassword = async (resetPass, password) => {
+  const response = await api.post("/auth/reset-password", { resetPass, password });
+  saveAuthResponse(response.data);
+  return response.data;
+};
+
+/** Login com senha recusado só porque a conta ainda não confirmou o email. */
 export const isEmailNotVerifiedError = (err) =>
   err?.response?.status === 403 && err.response.data?.code === "EMAIL_NOT_VERIFIED";
 
