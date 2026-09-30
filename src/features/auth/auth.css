@@ -423,19 +423,92 @@
   color: var(--mr-gold);
 }
 
-/* Cadastro, etapa 2: código de 6 dígitos em mono, espaçado como no email */
-.auth-field input.auth-code-input {
-  height: 58px;
-  text-align: center;
-  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: 0.45em;
-  padding-left: calc(16px + 0.45em); /* compensa o espaço depois do último dígito */
+/* Cadastro, etapa 2: um quadrado por dígito. O campo de verdade fica
+   invisível por cima deles (ver CodeInput.jsx). */
+.auth-code {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
 }
 
-.auth-field input.auth-code-input::placeholder {
-  color: rgba(255, 255, 255, 0.14);
+.auth-code-box {
+  height: 60px;
+  display: grid;
+  place-items: center;
+  background: #0b0b0b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--mr-radius-sm);
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mr-text);
+  transition:
+    border-color var(--mr-duration-fast) var(--mr-ease),
+    box-shadow var(--mr-duration-fast) var(--mr-ease);
+}
+
+.auth-code-box.is-filled {
+  border-color: rgba(255, 255, 255, 0.26);
+}
+
+.auth-code-box.is-active {
+  border-color: var(--mr-gold);
+  box-shadow: 0 0 0 3px var(--mr-gold-10);
+}
+
+.auth-code.is-invalid .auth-code-box {
+  border-color: color-mix(in srgb, var(--mr-red) 70%, transparent);
+}
+
+.auth-code.is-disabled .auth-code-box {
+  opacity: 0.6;
+}
+
+.auth-code-caret {
+  width: 2px;
+  height: 26px;
+  border-radius: 1px;
+  background: var(--mr-gold);
+  animation: auth-code-blink 1s steps(1) infinite;
+}
+
+@keyframes auth-code-blink {
+  50% { opacity: 0; }
+}
+
+/* invisível, mas recebe digitação, colar e o preenchimento do celular */
+.auth-field input.auth-code-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 16px; /* abaixo disso o iOS dá zoom ao focar */
+  opacity: 0;
+  cursor: text;
+  box-shadow: none;
+}
+
+@media (max-width: 420px) {
+  .auth-code {
+    gap: 6px;
+  }
+
+  .auth-code-box {
+    height: 52px;
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-code-caret {
+    animation: none;
+  }
 }
 
 .auth-text-button {

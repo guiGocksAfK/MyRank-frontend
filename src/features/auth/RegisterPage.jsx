@@ -11,6 +11,7 @@ import {
 } from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
 import AuthBackdrop from "./AuthBackdrop";
+import CodeInput from "./CodeInput";
 import PasswordInput from "./PasswordInput";
 import useIframeFocus from "./useIframeFocus";
 import "./auth.css";
@@ -102,10 +103,10 @@ const RegisterPage = () => {
     }
   };
 
-  // só dígitos; completou os 6, confere sozinho (colar do email também cai aqui)
-  const handleCodeChange = (event) => {
-    const digits = event.target.value.replace(/\D/g, "").slice(0, CODE_LENGTH);
+  // completou os 6, confere sozinho (colar do email também cai aqui)
+  const handleCodeChange = (digits) => {
     setCode(digits);
+    if (error) setError("");
     if (digits.length === CODE_LENGTH && !loading) handleVerify(digits);
   };
 
@@ -213,19 +214,14 @@ const RegisterPage = () => {
 
               <label className="auth-field" htmlFor="code">
                 <span>{tReg.codeLabel}</span>
-                <input
+                <CodeInput
                   id="code"
-                  name="code"
-                  className="auth-code-input"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  placeholder="000000"
-                  maxLength={CODE_LENGTH}
+                  length={CODE_LENGTH}
                   autoFocus
                   value={code}
                   onChange={handleCodeChange}
                   disabled={loading}
+                  invalid={!!error}
                 />
               </label>
 
