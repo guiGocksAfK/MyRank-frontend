@@ -90,7 +90,66 @@ export default function ItemModal({ item, templates = ['custom'], subcategories 
     };
   }, [title, workType, tm.searching, tm.noneFoundAnime, tm.noneFound, tm.searchErrAnime, tm.searchErr]);
 
+  // "Atualizar dados": só o que muda com o tempo (episódios, situação, gêneros...).
+  // Capa e data só se estiverem vazias; título, nota, tempo e criador nunca.
+  const [refreshPicking, setRefreshPicking] = useState(false);
+
+  function applyRefresh(fetched, externalId) {
+    setDetails(current => ({
+      ...current, ...fetched.details,
+      externalId: String(externalId), provider: templateProvider(workType),
+    }));
+    if (!image && fetched.imageUrl) setImage(fetched.imageUrl);
+    if (!releaseDate && fetched.releaseDate) setReleaseDate(fetched.releaseDate);
+    setSearchMsg(tm.refreshed);
+  }
+
+  async function handleRefresh() {
+    const thisRequestId = ++requestIdRef.current;
+    setSearching(true);
+    setSearchMsg(tm.refreshing);
+    try {
+      if (details.externalId) {
+        const fetched = await getDetailsByType(workType, details.externalId);
+        if (thisRequestId !== requestIdRef.current) return;
+        if (fetched) applyRefresh(fetched, details.externalId);
+      } else {
+        // Obra antiga, sem id da API: a pessoa confirma qual é, pra não ligar um remake.
+        const results = await searchByType(workType, title.trim());
+        if (thisRequestId !== requestIdRef.current) return;
+        setSuggestions(results ?? []);
+        setRefreshPicking(true);
+        setSearchMsg(results?.length ? tm.refreshPick : tm.noneFound);
+      }
+    } catch (err) {
+      if (thisRequestId !== requestIdRef.current) return;
+      setSearchMsg(`❌ ${err.response?.data?.message || tm.detailsErr}`);
+    } finally {
+      if (thisRequestId === requestIdRef.current) setSearching(false);
+    }
+  }
+
   async function handlePickSuggestion(suggestion) {
+    if (refreshPicking) {
+      const thisRequestId = ++requestIdRef.current;
+      setSearching(true);
+      setSearchMsg(tm.loadingDetails);
+      try {
+        const fetched = await getDetailsByType(workType, suggestion.externalId);
+        if (thisRequestId !== requestIdRef.current) return;
+        if (fetched) applyRefresh(fetched, suggestion.externalId);
+      } catch (err) {
+        if (thisRequestId !== requestIdRef.current) return;
+        setSearchMsg(`❌ ${err.response?.data?.message || tm.detailsErr}`);
+      } finally {
+        if (thisRequestId === requestIdRef.current) {
+          setSuggestions([]);
+          setRefreshPicking(false);
+          setSearching(false);
+        }
+      }
+      return;
+    }
     const thisRequestId = ++requestIdRef.current;
     setSearching(true);
     setSearchMsg(tm.loadingDetails);
@@ -268,6 +327,20 @@ export default function ItemModal({ item, templates = ['custom'], subcategories 
             <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
               {tm.pickTypeFirst}
             </div>
+          )}
+          {isEdit && workType && (
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={searching || !title.trim()}
+              style={{
+                marginTop: 6, padding: 0, border: 0, background: 'none',
+                color: 'var(--mr-gold)', fontSize: '0.75rem', fontWeight: 600,
+                cursor: searching ? 'default' : 'pointer',
+              }}
+            >
+              {tm.refresh}
+            </button>
           )}
           {searchMsg && (
             <div style={{

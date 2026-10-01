@@ -1,3 +1,5 @@
+import { formatTime } from '../utils/formatters';
+
 /** Os identificadores são os mesmos da API; nome e emoji não determinam o tipo. */
 export const TABLE_TEMPLATES = {
   movie: { emoji: '🎬', type: 'filme' },
@@ -32,21 +34,53 @@ export function hasSquareCover(template) {
   return !!TABLE_TEMPLATES[template]?.square;
 }
 
+const plural = (forms, n) => (n === 1 ? forms[0] : forms[1]).replace('{n}', n);
+
 /**
- * Linha de apoio do card: o criador e, quando o template tem, o detalhe próprio
- * (de qual álbum é a faixa; quantas faixas tem o álbum; volumes e situação do mangá).
- * `tr` = t.rankings.
+ * Linha de apoio do card nas tabelas e no ranking unificado: o criador e os
+ * detalhes que a API trouxe pro template. `tr` = t.rankings. Obras antigas, sem
+ * details, mostram só o criador. (No perfil e no social continua só o criador.)
  */
 export function itemSubline(item, tr) {
-  const details = item.details ?? {};
-  const extras = [];
-  if (item.template === 'music') extras.push(details.album);
-  if (item.template === 'album' && details.trackCount) extras.push(tr.tracks.replace('{n}', details.trackCount));
-  if (item.template === 'manga') {
-    if (details.volumes) extras.push(tr.volumes.replace('{n}', details.volumes));
-    extras.push(tr.mangaStatus[details.status]);
+  const d = item.details ?? {};
+  const year = item.releaseDate ? String(item.releaseDate).slice(0, 4) : null;
+  const status = tr.workStatus[d.status];
+  const u = tr.units;
+  let parts;
+  switch (item.template) {
+    case 'movie':
+      parts = [item.sub, year, item.timeMinutes > 0 && formatTime(item.timeMinutes)];
+      break;
+    case 'tv':
+      parts = [item.sub, d.seasons && plural(u.seasons, d.seasons), status];
+      break;
+    case 'anime': {
+      // Filme, OVA etc. dizem mais que o nº de episódios; série de TV mostra episódios.
+      const kind = d.mediaType && d.mediaType !== 'tv' && (tr.mediaTypes[d.mediaType] ?? d.mediaType.toUpperCase());
+      parts = kind
+        ? [kind, item.sub]
+        : [item.sub, d.episodes && plural(u.episodes, d.episodes), status];
+      break;
+    }
+    case 'game':
+      parts = [item.sub, year];
+      break;
+    case 'book':
+      parts = [item.sub, d.pages && plural(u.pages, d.pages)];
+      break;
+    case 'music':
+      parts = [item.sub, d.album];
+      break;
+    case 'album':
+      parts = [item.sub, d.trackCount && plural(u.tracks, d.trackCount)];
+      break;
+    case 'manga':
+      parts = [item.sub, d.volumes && plural(u.volumes, d.volumes), status];
+      break;
+    default:
+      parts = [item.sub];
   }
-  return [item.sub, ...extras].filter(Boolean).join(' · ');
+  return parts.filter(Boolean).join(' · ');
 }
 
 /** Emoji automático só quando há um tipo de API; misturado ou Personalizado, a pessoa escolhe. */
