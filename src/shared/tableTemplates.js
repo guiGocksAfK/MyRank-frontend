@@ -15,3 +15,8 @@ export function templateType(template) {
 export function templateProvider(template) {
   return { movie: 'tmdb', tv: 'tmdb', game: 'rawg', book: 'google-books', anime: 'myanimelist' }[template];
 }
+
+/** Emoji automático só quando há um tipo de API; misturado ou Personalizado, a pessoa escolhe. */
+export function needsCustomEmoji(templates) {
+  return templates.length !== 1 || templates[0] === 'custom';
+}

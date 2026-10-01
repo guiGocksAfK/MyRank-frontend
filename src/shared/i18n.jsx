@@ -348,7 +348,8 @@ const TRANSLATIONS = {
         deleteDefault: 'Excluir',
       },
       types: { filme: '🎬 Filmes', jogo: '🎮 Jogos', serie: '📺 Séries', livro: '📚 Livros', anime: '🎌 Animes', outro: '📦 Outro' },
-      itemTypes: { movie: '🎬 Filme', tv: '📺 Série', game: '🎮 Jogo', book: '📚 Livro', anime: '⛩️ Anime' },
+      itemTypes: { movie: '🎬 Filme', tv: '📺 Série', game: '🎮 Jogo', book: '📚 Livro', anime: '🎌 Anime', custom: '📦 Outro (sem busca)' },
+      templatePicker: { label: 'Tipos de conteúdo', hint: 'Marque um ou mais. Dá pra misturar, tipo Jogos + Séries.', locked: 'A tabela tem itens desse tipo' },
       newTableModal: {
         title: '📋 Nova tabela',
         name: 'Nome', namePlaceholder: 'Ex: Maratona Nolan',
@@ -1074,7 +1075,8 @@ const TRANSLATIONS = {
         deleteDefault: 'Delete',
       },
       types: { filme: '🎬 Movies', jogo: '🎮 Games', serie: '📺 Series', livro: '📚 Books', anime: '🎌 Anime', outro: '📦 Other' },
-      itemTypes: { movie: '🎬 Movie', tv: '📺 Series', game: '🎮 Game', book: '📚 Book', anime: '⛩️ Anime' },
+      itemTypes: { movie: '🎬 Movie', tv: '📺 Series', game: '🎮 Game', book: '📚 Book', anime: '🎌 Anime', custom: '📦 Other (no search)' },
+      templatePicker: { label: 'Content types', hint: 'Pick one or more. You can mix them, like Games + Series.', locked: 'This table has items of this type' },
       newTableModal: {
         title: '📋 New table',
         name: 'Name', namePlaceholder: 'e.g. Nolan Marathon',
@@ -1792,7 +1794,8 @@ const TRANSLATIONS = {
         deleteDefault: 'Eliminar',
       },
       types: { filme: '🎬 Películas', jogo: '🎮 Juegos', serie: '📺 Series', livro: '📚 Libros', anime: '🎌 Animes', outro: '📦 Otro' },
-      itemTypes: { movie: '🎬 Película', tv: '📺 Serie', game: '🎮 Juego', book: '📚 Libro', anime: '⛩️ Anime' },
+      itemTypes: { movie: '🎬 Película', tv: '📺 Serie', game: '🎮 Juego', book: '📚 Libro', anime: '🎌 Anime', custom: '📦 Otro (sin búsqueda)' },
+      templatePicker: { label: 'Tipos de contenido', hint: 'Marca uno o más. Puedes mezclarlos, como Juegos + Series.', locked: 'La tabla tiene ítems de este tipo' },
       newTableModal: {
         title: '📋 Nueva tabla',
         name: 'Nombre', namePlaceholder: 'Ej: Maratón Nolan',
