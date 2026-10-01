@@ -5,22 +5,23 @@ import { searchByType, getDetailsByType } from '../../../services/ExternalSearch
 import { useLanguage } from '../../../shared/i18n';
 import { templateProvider } from '../../../shared/tableTemplates';
 
-const WORK_TYPE_VALUES = ['movie', 'tv', 'game', 'book', 'anime'];
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3; // evita disparar busca com 1-2 caracteres
 
-export default function ItemModal({ item, template = 'custom', subcategories = [], defaultSubcategoryId = null, onSave, onClose }) {
+export default function ItemModal({ item, templates = ['custom'], subcategories = [], defaultSubcategoryId = null, onSave, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.itemModal;
   const ts = t.rankings.subcategories;
-  const WORK_TYPES = WORK_TYPE_VALUES.map((value) => ({ value, label: t.rankings.itemTypes[value], enabled: true }));
   const isEdit = !!item;
 
   const initialHHMM = minutesToHHMM(item?.timeMinutes);
-  const initialTemplate = item?.template ?? template;
-  const [workType, setWorkType] = useState(initialTemplate === 'custom' ? '' : initialTemplate);
+  // Tabela de um tipo só: o item já nasce com ele. Tabela mista: a pessoa escolhe
+  // entre os tipos da tabela. Personalizado não tem busca (preenchimento manual).
+  const [itemTemplate, setItemTemplate] = useState(item?.template ?? (templates.length === 1 ? templates[0] : ''));
+  const workType = itemTemplate === 'custom' ? '' : itemTemplate;
+  const isMixed = templates.length > 1;
   const [details, setDetails] = useState(item?.details ?? {});
   const [title, setTitle]   = useState(item?.title       ?? '');
   const [sub,   setSub]     = useState(item?.sub         ?? '');
@@ -140,6 +141,7 @@ export default function ItemModal({ item, template = 'custom', subcategories = [
     const missingFields = [];
     if (!title.trim()) missingFields.push(tm.fieldTitle);
     if (Number.isNaN(n)) missingFields.push(tm.fieldScore);
+    if (!itemTemplate) missingFields.push(tm.workType);
 
     if (missingFields.length > 0) {
       setValidationError(fmt(tm.fillFields, { fields: missingFields.join(tm.fieldAnd) }));
@@ -155,7 +157,7 @@ export default function ItemModal({ item, template = 'custom', subcategories = [
 
     const payload = {
       id: item?.id ?? null,
-      template: workType || 'custom',
+      template: itemTemplate,
       details,
       title: title.trim(),
       sub: sub.trim(),
@@ -223,13 +225,13 @@ export default function ItemModal({ item, template = 'custom', subcategories = [
           {isEdit ? tm.editTitle : tm.addTitle}
         </h3>
 
-        <div style={{ marginBottom: 12 }}>
+        {isMixed && <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>{tm.workType}</label>
           <select
-            value={workType}
+            value={itemTemplate}
             onChange={e => {
               requestIdRef.current++;
-              setWorkType(e.target.value);
+              setItemTemplate(e.target.value);
               setDetails(current => {
                 const next = { ...current };
                 delete next.externalId;
@@ -241,11 +243,11 @@ export default function ItemModal({ item, template = 'custom', subcategories = [
             style={inputStyle}
           >
             <option value="">{tm.select}</option>
-            {WORK_TYPES.map(wt => (
-              <option key={wt.value} value={wt.value} disabled={!wt.enabled}>{wt.label}</option>
+            {templates.map(value => (
+              <option key={value} value={value}>{t.rankings.itemTypes[value]}</option>
             ))}
           </select>
-        </div>
+        </div>}
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>{tm.titleLabel}</label>
@@ -262,7 +264,7 @@ export default function ItemModal({ item, template = 'custom', subcategories = [
               }}>⏳</span>
             )}
           </div>
-          {!workType && (
+          {isMixed && !itemTemplate && (
             <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
               {tm.pickTypeFirst}
             </div>

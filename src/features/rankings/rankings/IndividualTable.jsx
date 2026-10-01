@@ -166,7 +166,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
   const itemModal = modal && (
     <ItemModal
       item={modal === 'add' ? null : modal}
-      template={table.template}
+      templates={table.templates}
       subcategories={subcategories}
       defaultSubcategoryId={defaultSubcategoryId}
       onSave={handleSave}

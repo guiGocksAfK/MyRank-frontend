@@ -6,7 +6,6 @@ export function mapWorkToItem(work) {
     id: work.id,
     title: work.title,
     template: work.template ?? 'custom',
-    workType: work.template === 'custom' ? '' : work.template ?? '',
     type: templateType(work.template),
     details: work.details ?? {},
     sub: work.creator ?? '',
@@ -44,7 +43,7 @@ export function mapCategoryToTable(category, items = []) {
   return {
     id: category.id,
     label: category.name,
-    template: category.template ?? 'custom',
+    templates: category.templates?.length ? category.templates : ['custom'],
     subcategories: category.subcategories ?? [],
     items,
   };
