@@ -275,7 +275,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
               <div className="mr-min-w-0">
                 <div className="mr-truncate" style={{ fontWeight: 500 }}>{item.title}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
-                  {itemSubline(item, tr.tracks)}
+                  {itemSubline(item, tr)}
                   {/* Em "Todas", mostra de qual subcategoria a obra é */}
                   {subFilter === 'all' && item.subcategoryName && (
                     <span className="mr-subcategory-tag">{item.subcategoryName}</span>

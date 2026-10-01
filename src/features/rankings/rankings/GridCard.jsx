@@ -77,7 +77,7 @@ export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete,
           {item.title}
         </div>
         <div className="mr-truncate" style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginBottom: 6 }}>
-          {itemSubline(item, tr.tracks)}
+          {itemSubline(item, tr)}
         </div>
 
         <div className="mr-note-bar" style={{ height: 4 }}>

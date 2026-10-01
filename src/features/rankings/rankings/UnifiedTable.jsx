@@ -166,7 +166,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
 
                 <div className="mr-min-w-0">
                   <div className="mr-truncate" style={{ fontWeight: 500 }}>{item.title}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{itemSubline(item, tr.tracks)}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{itemSubline(item, tr)}</div>
                 </div>
                 <span className="mr-badge mr-badge-outline" style={badgeStyle}>{item._tableLabel}</span>
 
