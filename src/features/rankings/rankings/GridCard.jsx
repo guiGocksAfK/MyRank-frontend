@@ -1,5 +1,6 @@
 import { getNoteBarColor, formatTime } from '../../../utils/formatters';
 import { useLanguage } from '../../../shared/i18n';
+import { TABLE_TEMPLATES, hasSquareCover, itemSubline } from '../../../shared/tableTemplates';
 
 export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete, showActions, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragging }) {
   const { t } = useLanguage();
@@ -25,8 +26,18 @@ export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete,
     onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
     onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
     >
-      <div style={{ position: 'relative', aspectRatio: '2 / 3', background: 'var(--mr-bg)' }}>
-        {item.image ? (
+      <div style={{ position: 'relative', aspectRatio: '2 / 3', background: 'var(--mr-bg)', overflow: 'hidden' }}>
+        {item.image && hasSquareCover(item.template) ? (
+          // Capa de disco é quadrada: inteira no centro, com ela mesma desfocada de fundo,
+          // pra caber no mesmo formato dos pôsteres numa tabela mista.
+          <>
+            <img src={item.image} alt="" aria-hidden="true" loading="lazy"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(18px) brightness(0.55)', transform: 'scale(1.2)' }} />
+            <img src={item.image} alt={item.title} loading="lazy"
+              onError={(e) => { e.target.style.display = 'none'; }}
+              style={{ position: 'relative', width: '100%', height: '100%', objectFit: 'contain' }} />
+          </>
+        ) : item.image ? (
           <img
             src={item.image} alt={item.title} loading="lazy"
             onError={(e) => { e.target.style.display = 'none'; }}
@@ -37,7 +48,7 @@ export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete,
             width: '100%', height: '100%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '3rem', color: 'var(--mr-text-secondary)',
-          }}>🎬</div>
+          }}>{TABLE_TEMPLATES[item.template]?.emoji ?? '🎬'}</div>
         )}
 
         <div style={{
@@ -66,7 +77,7 @@ export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete,
           {item.title}
         </div>
         <div className="mr-truncate" style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginBottom: 6 }}>
-          {item.sub}
+          {itemSubline(item, tr.tracks)}
         </div>
 
         <div className="mr-note-bar" style={{ height: 4 }}>

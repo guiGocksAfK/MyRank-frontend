@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { formatTime, minutesToHHMM } from '../../../utils/formatters';
 import { searchByType, getDetailsByType } from '../../../services/ExternalSearchService';
 import { useLanguage } from '../../../shared/i18n';
-import { templateProvider } from '../../../shared/tableTemplates';
+import { templateProvider, isTimeWeighted, hasSquareCover } from '../../../shared/tableTemplates';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -308,7 +308,7 @@ export default function ItemModal({ item, templates = ['custom'], subcategories 
           <input type="number" step="0.1" min="0" max="10" value={note} placeholder={tm.scorePlaceholder} onChange={e => { setNote(e.target.value); clearAttention('note'); setValidationError(''); }} style={getFieldStyle('note')} />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
+        {isTimeWeighted(itemTemplate) && <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>{tm.timeLabel}</label>
           <div className="mr-flex mr-items-center mr-gap-2">
             <input type="number" min="0" value={hours} placeholder="0" onChange={e => { setHours(e.target.value); clearAttention('time'); }} style={{ ...getFieldStyle('time'), width: 80 }} />
@@ -321,7 +321,7 @@ export default function ItemModal({ item, templates = ['custom'], subcategories 
               {tm.total} {formatTime((parseInt(hours, 10) || 0) * 60 + (parseInt(mins, 10) || 0))}
             </div>
           )}
-        </div>
+        </div>}
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>{tm.releaseLabel}</label>
@@ -401,7 +401,8 @@ export default function ItemModal({ item, templates = ['custom'], subcategories 
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <div style={{
-                  width: 46, height: 68, borderRadius: 6, overflow: 'hidden',
+                  width: hasSquareCover(workType) ? 56 : 46, height: hasSquareCover(workType) ? 56 : 68,
+                  borderRadius: 6, overflow: 'hidden',
                   flexShrink: 0, background: 'var(--mr-bg)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   border: '1px solid var(--mr-border)',
@@ -414,6 +415,11 @@ export default function ItemModal({ item, templates = ['custom'], subcategories 
                 </div>
                 <div className="mr-min-w-0">
                   <div style={{ fontSize: '0.85rem', fontWeight: 600, lineHeight: 1.3 }}>{s.title}</div>
+                  {s.subtitle && (
+                    <div className="mr-truncate" style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginTop: 2 }}>
+                      {s.subtitle}
+                    </div>
+                  )}
                   {s.releaseDate && (
                     <div style={{ fontSize: '0.72rem', color: 'var(--mr-gold)', marginTop: 2 }}>
                       {s.releaseDate.slice(0, 4)}

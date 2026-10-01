@@ -7,6 +7,7 @@ import EditTableModal from './EditTableModal';
 import AnimatedNumber from './AnimatedNumber';
 import { getNoteBarColor, formatTime, sortItems, getMode, getDisplayedNote, applyFilters, getColumnConfig } from '../../../utils/formatters';
 import { useLanguage } from '../../../shared/i18n';
+import { itemSubline } from '../../../shared/tableTemplates';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -274,7 +275,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
               <div className="mr-min-w-0">
                 <div className="mr-truncate" style={{ fontWeight: 500 }}>{item.title}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
-                  {item.sub}
+                  {itemSubline(item, tr.tracks)}
                   {/* Em "Todas", mostra de qual subcategoria a obra é */}
                   {subFilter === 'all' && item.subcategoryName && (
                     <span className="mr-subcategory-tag">{item.subcategoryName}</span>
