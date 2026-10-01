@@ -110,6 +110,17 @@ export async function getAlbumDetails(externalId) {
   return data;
 }
 
+/** Mangás (MyAnimeList). Os detalhes trazem `details` com volumes e situação da publicação. */
+export async function searchManga(query) {
+  const { data } = await api.get('/external/search/manga', { params: { query } });
+  return data;
+}
+
+export async function getMangaDetails(externalId) {
+  const { data } = await api.get(`/external/manga/${encodeURIComponent(externalId)}`);
+  return data;
+}
+
 /**
  * Grid decorativo da home pública: lista de URLs de pôster de obras populares.
  * Endpoint aberto (sem auth). Pode vir vazio/parcial se as bases externas
@@ -132,6 +143,7 @@ export async function searchByType(type, query) {
   if (type === 'book') return searchBooks(query);
   if (type === 'music') return searchMusic(query);
   if (type === 'album') return searchAlbums(query);
+  if (type === 'manga') return searchManga(query);
   return [];
 }
 
@@ -147,5 +159,6 @@ export async function getDetailsByType(type, externalId) {
   if (type === 'book') return getBookDetails(externalId);
   if (type === 'music') return getMusicDetails(externalId);
   if (type === 'album') return getAlbumDetails(externalId);
+  if (type === 'manga') return getMangaDetails(externalId);
   return null;
 }

@@ -5,6 +5,7 @@ export const TABLE_TEMPLATES = {
   tv: { emoji: '📺', type: 'serie' },
   book: { emoji: '📚', type: 'livro' },
   anime: { emoji: '🎌', type: 'anime' },
+  manga: { emoji: '📖', type: 'manga', timeless: true },
   music: { emoji: '🎵', type: 'musica', square: true, timeless: true },
   album: { emoji: '💿', type: 'album', square: true, timeless: true },
   custom: { emoji: '📦', type: 'outro' },
@@ -17,7 +18,7 @@ export function templateType(template) {
 export function templateProvider(template) {
   return {
     movie: 'tmdb', tv: 'tmdb', game: 'rawg', book: 'google-books', anime: 'myanimelist',
-    music: 'deezer', album: 'deezer',
+    music: 'deezer', album: 'deezer', manga: 'myanimelist',
   }[template];
 }
 
@@ -33,14 +34,19 @@ export function hasSquareCover(template) {
 
 /**
  * Linha de apoio do card: o criador e, quando o template tem, o detalhe próprio
- * (de qual álbum é a faixa; quantas faixas tem o álbum).
+ * (de qual álbum é a faixa; quantas faixas tem o álbum; volumes e situação do mangá).
+ * `tr` = t.rankings.
  */
-export function itemSubline(item, tracksLabel) {
+export function itemSubline(item, tr) {
   const details = item.details ?? {};
-  let extra = null;
-  if (item.template === 'music') extra = details.album;
-  if (item.template === 'album' && details.trackCount) extra = tracksLabel.replace('{n}', details.trackCount);
-  return [item.sub, extra].filter(Boolean).join(' · ');
+  const extras = [];
+  if (item.template === 'music') extras.push(details.album);
+  if (item.template === 'album' && details.trackCount) extras.push(tr.tracks.replace('{n}', details.trackCount));
+  if (item.template === 'manga') {
+    if (details.volumes) extras.push(tr.volumes.replace('{n}', details.volumes));
+    extras.push(tr.mangaStatus[details.status]);
+  }
+  return [item.sub, ...extras].filter(Boolean).join(' · ');
 }
 
 /** Emoji automático só quando há um tipo de API; misturado ou Personalizado, a pessoa escolhe. */

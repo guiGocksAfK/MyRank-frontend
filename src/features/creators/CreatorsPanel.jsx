@@ -34,7 +34,7 @@ function getAuthorTypeInfo(type) {
 const TYPE_OPTIONS = ['Diretor', 'Escritor', 'Studio', 'Criador'];
 
 function creatorType(template) {
-  return { book: 'Escritor', game: 'Studio', anime: 'Studio', movie: 'Diretor', tv: 'Diretor' }[template] ?? 'Criador';
+  return { book: 'Escritor', manga: 'Escritor', game: 'Studio', anime: 'Studio', movie: 'Diretor', tv: 'Diretor' }[template] ?? 'Criador';
 }
 
 /** Tipo predominante entre as obras de um criador. */
