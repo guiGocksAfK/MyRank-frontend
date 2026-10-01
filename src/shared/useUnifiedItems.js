@@ -65,6 +65,8 @@ export const TYPE_META = {
   jogo:  { icon: '🎮', label: 'Jogos' },
   livro: { icon: '📚', label: 'Livros' },
   anime: { icon: '🌸', label: 'Animes' },
+  musica: { icon: '🎵', label: 'Músicas' },
+  album: { icon: '💿', label: 'Álbuns' },
   outro: { icon: '📦', label: 'Outros' },
 };
 

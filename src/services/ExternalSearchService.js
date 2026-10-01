@@ -86,6 +86,31 @@ export async function getBookDetails(externalId) {
 }
 
 /**
+ * Músicas e álbuns (Deezer, com o iTunes de reserva). As sugestões trazem
+ * `subtitle` (artista); os detalhes trazem `details` (álbum da faixa ou nº de faixas).
+ * O id pode vir como "itunes:123" quando a busca caiu na reserva — é só repassar.
+ */
+export async function searchMusic(query) {
+  const { data } = await api.get('/external/search/music', { params: { query } });
+  return data;
+}
+
+export async function searchAlbums(query) {
+  const { data } = await api.get('/external/search/albums', { params: { query } });
+  return data;
+}
+
+export async function getMusicDetails(externalId) {
+  const { data } = await api.get(`/external/music/${encodeURIComponent(externalId)}`);
+  return data;
+}
+
+export async function getAlbumDetails(externalId) {
+  const { data } = await api.get(`/external/albums/${encodeURIComponent(externalId)}`);
+  return data;
+}
+
+/**
  * Grid decorativo da home pública: lista de URLs de pôster de obras populares.
  * Endpoint aberto (sem auth). Pode vir vazio/parcial se as bases externas
  * estiverem instáveis — quem chama completa com o fallback estático.
@@ -105,6 +130,8 @@ export async function searchByType(type, query) {
   if (type === 'game') return searchGames(query);
   if (type === 'anime') return searchAnime(query);
   if (type === 'book') return searchBooks(query);
+  if (type === 'music') return searchMusic(query);
+  if (type === 'album') return searchAlbums(query);
   return [];
 }
 
@@ -118,5 +145,7 @@ export async function getDetailsByType(type, externalId) {
   if (type === 'game') return getGameDetails(externalId);
   if (type === 'anime') return getAnimeDetails(externalId);
   if (type === 'book') return getBookDetails(externalId);
+  if (type === 'music') return getMusicDetails(externalId);
+  if (type === 'album') return getAlbumDetails(externalId);
   return null;
 }
