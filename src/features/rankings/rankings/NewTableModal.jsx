@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../../shared/i18n';
-import { TABLE_TEMPLATES, needsCustomEmoji } from '../../../shared/tableTemplates';
+import { TABLE_TEMPLATES, needsCustomEmoji, cleanCustomFields } from '../../../shared/tableTemplates';
 import TemplatePicker from './TemplatePicker';
+import CustomFieldsEditor from './CustomFieldsEditor';
 
 export default function NewTableModal({ onSave, onClose }) {
   const { t } = useLanguage();
@@ -10,6 +11,7 @@ export default function NewTableModal({ onSave, onClose }) {
   const [name,        setName]        = useState('');
   const [templates,   setTemplates]   = useState(['movie']);
   const [customEmoji, setCustomEmoji] = useState('');
+  const [customFields, setCustomFields] = useState([]);
   const [saving,      setSaving]      = useState(false);
 
   const isOutro = needsCustomEmoji(templates);
@@ -21,7 +23,7 @@ export default function NewTableModal({ onSave, onClose }) {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await onSave({ name: finalLabel, templates });
+      await onSave({ name: finalLabel, templates, customFields: cleanCustomFields(customFields) });
       onClose();
     } catch (err) {
       alert(err?.response?.data?.message || err.message || tm.createError);
@@ -48,6 +50,9 @@ export default function NewTableModal({ onSave, onClose }) {
         </div>
 
         <TemplatePicker value={templates} onChange={setTemplates} disabled={saving} />
+        {templates.includes('custom') && (
+          <CustomFieldsEditor value={customFields} onChange={setCustomFields} disabled={saving} />
+        )}
 
         {isOutro && (
           <div style={{ marginBottom: 12 }}>

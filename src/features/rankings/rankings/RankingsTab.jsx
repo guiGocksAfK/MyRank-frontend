@@ -7,7 +7,7 @@ import NewTableModal from './NewTableModal';
 import { getGroups, createGroup, updateGroup, updateGroupOrder } from '../../../services/masterTableGroupService';
 import {
   getCategories, createCategory, updateCategory, deleteCategory,
-  createSubcategory, renameSubcategory, deleteSubcategory,
+  createSubcategory, renameSubcategory, deleteSubcategory, updateCustomFields,
 } from '../../../services/CategoryService.js';
 import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../../services/WorkService.js';
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../../utils/mapWork';
@@ -203,7 +203,11 @@ export default function RankingsTab({ onNavigateToCreators }) {
 
   // ── Criar tabela (categoria) ──
   async function handleCreateTable(table) {
-    const cat = await createCategory(table);
+    const { customFields, ...category } = table;
+    let cat = await createCategory(category);
+    if (customFields?.length && category.templates.includes('custom')) {
+      cat = await updateCustomFields(cat.id, customFields);
+    }
     bumpWorks();
     const newTable = mapCategoryToTable(cat);
     setTables(prev => {
@@ -251,7 +255,12 @@ export default function RankingsTab({ onNavigateToCreators }) {
   }
 
   async function handleRenameTable(id, changes) {
-    const updatedCategory = await updateCategory(id, changes);
+    const { customFields, ...category } = changes;
+    let updatedCategory = await updateCategory(id, category);
+    // Sem o Personalizado, o próprio backend já apaga os campos.
+    if (customFields && category.templates?.includes('custom')) {
+      updatedCategory = await updateCustomFields(id, customFields);
+    }
     setTables(prev => prev.map(table => table.id === id
       ? { ...table, ...mapCategoryToTable(updatedCategory, table.items) } : table));
     bumpWorks();

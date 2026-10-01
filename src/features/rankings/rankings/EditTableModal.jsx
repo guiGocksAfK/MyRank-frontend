@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useLanguage } from '../../../shared/i18n';
-import { TABLE_TEMPLATES, needsCustomEmoji } from '../../../shared/tableTemplates';
+import { TABLE_TEMPLATES, needsCustomEmoji, cleanCustomFields } from '../../../shared/tableTemplates';
 import TemplatePicker from './TemplatePicker';
+import CustomFieldsEditor from './CustomFieldsEditor';
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 /** Cria/renomeia/remove subcategorias na hora (independe do botão Salvar do nome). */
@@ -123,6 +124,7 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
   const [name, setName] = useState(hasEmoji ? labelParts[2] : table.label);
   const [templates, setTemplates] = useState(currentTemplates);
   const [customEmoji, setCustomEmoji] = useState(needsCustomEmoji(currentTemplates) ? currentEmoji : '');
+  const [customFields, setCustomFields] = useState(table.customFields ?? []);
   const [saving, setSaving] = useState(false);
   const isOutro = needsCustomEmoji(templates);
   const defaultEmoji = TABLE_TEMPLATES[templates[0]].emoji;
@@ -131,9 +133,12 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
     const nextName = name.trim();
     if (!nextName) return;
     const emoji = isOutro ? (customEmoji.trim() || defaultEmoji) : defaultEmoji;
+    const nextFields = cleanCustomFields(customFields);
+    const removed = (table.customFields ?? []).filter(field => !nextFields.some(next => next.id === field.id));
+    if (templates.includes('custom') && removed.length && !window.confirm(tm.removeFieldsConfirm)) return;
     setSaving(true);
     try {
-      await onSave({ name: `${emoji} ${nextName}`, templates });
+      await onSave({ name: `${emoji} ${nextName}`, templates, customFields: nextFields });
       onClose();
     } catch (err) {
       alert(err?.response?.data?.message || err.message || tm.renameError);
@@ -178,6 +183,9 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
         />
         <div style={{ marginTop: '1rem' }}>
           <TemplatePicker value={templates} onChange={setTemplates} locked={usedTemplates} disabled={saving} />
+          {templates.includes('custom') && (
+            <CustomFieldsEditor value={customFields} onChange={setCustomFields} disabled={saving} />
+          )}
         </div>
         {isOutro && (
           <>
