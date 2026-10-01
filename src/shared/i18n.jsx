@@ -349,6 +349,7 @@ const TRANSLATIONS = {
       },
       types: { filme: '🎬 Filmes', jogo: '🎮 Jogos', serie: '📺 Séries', livro: '📚 Livros', anime: '🎌 Animes', manga: '📖 Mangás', musica: '🎵 Músicas', album: '💿 Álbuns', outro: '📦 Outro' },
       itemTypes: { movie: '🎬 Filme', tv: '📺 Série', game: '🎮 Jogo', book: '📚 Livro', anime: '🎌 Anime', manga: '📖 Mangá', music: '🎵 Música', album: '💿 Álbum', custom: '📦 Outro (sem busca)' },
+      customFields: { label: 'Campos próprios (até 5)', namePlaceholder: 'Nome do campo', add: '+ Adicionar campo', remove: 'Remover campo', typeLocked: 'O tipo não muda depois de criado; remova e crie outro', types: { TEXT: 'Texto', NUMBER: 'Número', DATE: 'Data', BOOLEAN: 'Sim/não' } },
       templatePicker: { label: 'Tipos de conteúdo', hint: 'Marque um ou mais. Dá pra misturar, tipo Jogos + Séries.', locked: 'A tabela tem itens desse tipo' },
       newTableModal: {
         title: '📋 Nova tabela',
@@ -360,6 +361,7 @@ const TRANSLATIONS = {
       },
       editTableModal: {
         title: '✏️ Editar tabela',
+        removeFieldsConfirm: 'Os campos removidos vão apagar os valores deles em todos os itens desta tabela. Continuar?',
         name: 'Nome', mediaType: 'Tipo de mídia', tableEmoji: 'Emoji da tabela',
         cancel: 'Cancelar', saving: '⏳ Salvando...', save: 'Salvar',
         renameError: 'Erro ao renomear a tabela.',
@@ -1084,6 +1086,7 @@ const TRANSLATIONS = {
       },
       types: { filme: '🎬 Movies', jogo: '🎮 Games', serie: '📺 Series', livro: '📚 Books', anime: '🎌 Anime', manga: '📖 Manga', musica: '🎵 Music', album: '💿 Albums', outro: '📦 Other' },
       itemTypes: { movie: '🎬 Movie', tv: '📺 Series', game: '🎮 Game', book: '📚 Book', anime: '🎌 Anime', manga: '📖 Manga', music: '🎵 Song', album: '💿 Album', custom: '📦 Other (no search)' },
+      customFields: { label: 'Custom fields (up to 5)', namePlaceholder: 'Field name', add: '+ Add field', remove: 'Remove field', typeLocked: 'The type cannot change after creation; remove it and create another', types: { TEXT: 'Text', NUMBER: 'Number', DATE: 'Date', BOOLEAN: 'Yes/no' } },
       templatePicker: { label: 'Content types', hint: 'Pick one or more. You can mix them, like Games + Series.', locked: 'This table has items of this type' },
       newTableModal: {
         title: '📋 New table',
@@ -1095,6 +1098,7 @@ const TRANSLATIONS = {
       },
       editTableModal: {
         title: '✏️ Edit table',
+        removeFieldsConfirm: 'Removed fields will erase their values in every item of this table. Continue?',
         name: 'Name', mediaType: 'Media type', tableEmoji: 'Table emoji',
         cancel: 'Cancel', saving: '⏳ Saving...', save: 'Save',
         renameError: 'Error renaming the table.',
@@ -1811,6 +1815,7 @@ const TRANSLATIONS = {
       },
       types: { filme: '🎬 Películas', jogo: '🎮 Juegos', serie: '📺 Series', livro: '📚 Libros', anime: '🎌 Animes', manga: '📖 Mangas', musica: '🎵 Música', album: '💿 Álbumes', outro: '📦 Otro' },
       itemTypes: { movie: '🎬 Película', tv: '📺 Serie', game: '🎮 Juego', book: '📚 Libro', anime: '🎌 Anime', manga: '📖 Manga', music: '🎵 Canción', album: '💿 Álbum', custom: '📦 Otro (sin búsqueda)' },
+      customFields: { label: 'Campos propios (hasta 5)', namePlaceholder: 'Nombre del campo', add: '+ Agregar campo', remove: 'Quitar campo', typeLocked: 'El tipo no cambia después de creado; quítalo y crea otro', types: { TEXT: 'Texto', NUMBER: 'Número', DATE: 'Fecha', BOOLEAN: 'Sí/no' } },
       templatePicker: { label: 'Tipos de contenido', hint: 'Marca uno o más. Puedes mezclarlos, como Juegos + Series.', locked: 'La tabla tiene ítems de este tipo' },
       newTableModal: {
         title: '📋 Nueva tabla',
@@ -1822,6 +1827,7 @@ const TRANSLATIONS = {
       },
       editTableModal: {
         title: '✏️ Editar tabla',
+        removeFieldsConfirm: 'Los campos quitados borrarán sus valores en todos los ítems de esta tabla. ¿Continuar?',
         name: 'Nombre', mediaType: 'Tipo de medio', tableEmoji: 'Emoji de la tabla',
         cancel: 'Cancelar', saving: '⏳ Guardando...', save: 'Guardar',
         renameError: 'Error al renombrar la tabla.',
