@@ -45,6 +45,7 @@ export function mapCategoryToTable(category, items = []) {
     label: category.name,
     templates: category.templates?.length ? category.templates : ['custom'],
     subcategories: category.subcategories ?? [],
+    customFields: category.customFields ?? [],
     items,
   };
 }

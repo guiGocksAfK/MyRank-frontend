@@ -41,7 +41,7 @@ const plural = (forms, n) => (n === 1 ? forms[0] : forms[1]).replace('{n}', n);
  * detalhes que a API trouxe pro template. `tr` = t.rankings. Obras antigas, sem
  * details, mostram só o criador. (No perfil e no social continua só o criador.)
  */
-export function itemSubline(item, tr) {
+export function itemSubline(item, tr, customFields = []) {
   const d = item.details ?? {};
   const year = item.releaseDate ? String(item.releaseDate).slice(0, 4) : null;
   const status = tr.workStatus[d.status];
@@ -78,9 +78,28 @@ export function itemSubline(item, tr) {
       parts = [item.sub, d.volumes && plural(u.volumes, d.volumes), status];
       break;
     default:
-      parts = [item.sub];
+      // Personalizado: criador + os dois primeiros campos próprios preenchidos.
+      parts = [item.sub, ...customFieldParts(item, customFields).slice(0, 2)];
   }
   return parts.filter(Boolean).join(' · ');
+}
+
+function customFieldParts(item, customFields) {
+  const values = item.details?.fields ?? {};
+  return customFields.map(field => {
+    const value = values[field.id];
+    if (value === undefined || value === null || value === '' || value === false) return null;
+    if (field.type === 'BOOLEAN') return `✓ ${field.name}`;
+    if (field.type === 'DATE') return new Date(`${value}T00:00:00`).toLocaleDateString();
+    return String(value);
+  }).filter(Boolean);
+}
+
+/** Tira linhas sem nome e manda pro backend só { id?, name, type }. */
+export function cleanCustomFields(fields) {
+  return fields
+    .filter(field => field.name.trim())
+    .map(({ id, name, type }) => (id ? { id, name: name.trim(), type } : { name: name.trim(), type }));
 }
 
 /** Emoji automático só quando há um tipo de API; misturado ou Personalizado, a pessoa escolhe. */

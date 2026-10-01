@@ -168,6 +168,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
     <ItemModal
       item={modal === 'add' ? null : modal}
       templates={table.templates}
+      customFields={table.customFields}
       subcategories={subcategories}
       defaultSubcategoryId={defaultSubcategoryId}
       onSave={handleSave}
@@ -196,6 +197,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
           {sorted.map((item, i) => (
             <GridCard
               key={item.id} item={item} mode={mode} maxNote={maxNote} index={i}
+              customFields={table.customFields}
               showActions={true}
               onEdit={(it) => setModal(it)}
               onDelete={id => setConfirmAction({ type: 'item', id })}
@@ -275,7 +277,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
               <div className="mr-min-w-0">
                 <div className="mr-truncate" style={{ fontWeight: 500 }}>{item.title}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
-                  {itemSubline(item, tr)}
+                  {itemSubline(item, tr, table.customFields)}
                   {/* Em "Todas", mostra de qual subcategoria a obra é */}
                   {subFilter === 'all' && item.subcategoryName && (
                     <span className="mr-subcategory-tag">{item.subcategoryName}</span>

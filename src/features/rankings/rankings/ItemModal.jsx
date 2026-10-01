@@ -10,7 +10,7 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
 const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3; // evita disparar busca com 1-2 caracteres
 
-export default function ItemModal({ item, templates = ['custom'], subcategories = [], defaultSubcategoryId = null, onSave, onClose }) {
+export default function ItemModal({ item, templates = ['custom'], customFields = [], subcategories = [], defaultSubcategoryId = null, onSave, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.itemModal;
   const ts = t.rankings.subcategories;
@@ -23,6 +23,7 @@ export default function ItemModal({ item, templates = ['custom'], subcategories 
   const workType = itemTemplate === 'custom' ? '' : itemTemplate;
   const isMixed = templates.length > 1;
   const [details, setDetails] = useState(item?.details ?? {});
+  const [fieldValues, setFieldValues] = useState(item?.details?.fields ?? {});
   const [title, setTitle]   = useState(item?.title       ?? '');
   const [sub,   setSub]     = useState(item?.sub         ?? '');
   const [note,  setNote]    = useState(item?.note        ?? '');
@@ -214,10 +215,17 @@ export default function ItemModal({ item, templates = ['custom'], subcategories 
 
     setValidationError('');
 
+    // Campos próprios só existem em item Personalizado; trocar o tipo limpa (o backend exigiria).
+    const baseDetails = { ...details };
+    delete baseDetails.fields;
+    const nextDetails = itemTemplate === 'custom' && customFields.length
+      ? { ...baseDetails, fields: customFieldValues(customFields, fieldValues) }
+      : baseDetails;
+
     const payload = {
       id: item?.id ?? null,
       template: itemTemplate,
-      details,
+      details: nextDetails,
       title: title.trim(),
       sub: sub.trim(),
       note: n,
@@ -307,6 +315,27 @@ export default function ItemModal({ item, templates = ['custom'], subcategories 
             ))}
           </select>
         </div>}
+
+        {itemTemplate === 'custom' && customFields.map(field => (
+          <div key={field.id} style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>{field.name}</label>
+            {field.type === 'BOOLEAN' ? (
+              <input
+                type="checkbox"
+                checked={fieldValues[field.id] === true}
+                onChange={e => setFieldValues(v => ({ ...v, [field.id]: e.target.checked }))}
+              />
+            ) : (
+              <input
+                type={field.type === 'NUMBER' ? 'number' : field.type === 'DATE' ? 'date' : 'text'}
+                maxLength={field.type === 'TEXT' ? 200 : undefined}
+                value={fieldValues[field.id] ?? ''}
+                onChange={e => setFieldValues(v => ({ ...v, [field.id]: e.target.value }))}
+                style={inputStyle}
+              />
+            )}
+          </div>
+        ))}
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>{tm.titleLabel}</label>
@@ -507,4 +536,22 @@ export default function ItemModal({ item, templates = ['custom'], subcategories 
     </div>,
     document.body,
   );
+}
+
+/** Converte o que foi digitado pro tipo que o backend valida; vazio vira "sem valor". */
+function customFieldValues(customFields, raw) {
+  const out = {};
+  for (const field of customFields) {
+    const value = raw[field.id];
+    if (value === undefined || value === null || value === '') continue;
+    if (field.type === 'NUMBER') {
+      const n = Number(value);
+      if (Number.isFinite(n)) out[field.id] = n;
+    } else if (field.type === 'BOOLEAN') {
+      out[field.id] = value === true;
+    } else {
+      out[field.id] = String(value);
+    }
+  }
+  return out;
 }

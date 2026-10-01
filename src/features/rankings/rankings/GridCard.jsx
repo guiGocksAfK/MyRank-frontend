@@ -2,7 +2,7 @@ import { getNoteBarColor, formatTime } from '../../../utils/formatters';
 import { useLanguage } from '../../../shared/i18n';
 import { TABLE_TEMPLATES, hasSquareCover, itemSubline } from '../../../shared/tableTemplates';
 
-export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete, showActions, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragging }) {
+export default function GridCard({ item, customFields = [], mode, maxNote, index, onEdit, onDelete, showActions, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragging }) {
   const { t } = useLanguage();
   const tr = t.rankings;
   const displayNote = mode === 'weight' ? item.finalNote : item.note;
@@ -77,7 +77,7 @@ export default function GridCard({ item, mode, maxNote, index, onEdit, onDelete,
           {item.title}
         </div>
         <div className="mr-truncate" style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginBottom: 6 }}>
-          {itemSubline(item, tr)}
+          {itemSubline(item, tr, customFields)}
         </div>
 
         <div className="mr-note-bar" style={{ height: 4 }}>
