@@ -212,7 +212,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
         </div>}
         {!loading && sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-            {tr.noResults}
+            {table.items.length === 0 ? tr.emptyTable : tr.noResults}
           </div>
         )}
         {itemModal}
@@ -250,7 +250,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>{tr.loadingWorks}</div>
         ) :sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-            {tr.noResults}
+            {table.items.length === 0 ? tr.emptyTable : tr.noResults}
           </div>
         )}
         {sorted.map((item, i) => {

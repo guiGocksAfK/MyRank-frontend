@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import './insights.css';
 
+const MIN_WORKS_FOR_INSIGHTS = 5;
+
 const num = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -92,13 +94,15 @@ export default function InsightsPanel() {
     );
   }
 
-  if (works.length === 0) {
+  // Com poucas notas o perfil sai genérico; 5 é o mínimo pra dizer algo sobre o gosto.
+  if (works.length < MIN_WORKS_FOR_INSIGHTS) {
+    const missing = MIN_WORKS_FOR_INSIGHTS - works.length;
     return (
       <div className="insights-state-card">
         <div className="insights-state-emoji">🤖</div>
-        <div className="insights-state-title">Sem obras para analisar ainda</div>
+        <div className="insights-state-title">Quase lá</div>
         <div className="insights-state-text">
-          Avalie algumas obras nos seus rankings e a IA monta seu perfil de consumo aqui.
+          Avalie pelo menos {MIN_WORKS_FOR_INSIGHTS} obras pra IA traçar o seu perfil. Faltam {missing}.
         </div>
       </div>
     );

@@ -354,7 +354,7 @@ export default function CreatorsTab({ onBack }) {
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>{tc.loading}</div>
           ) : allCreators.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-              {tc.empty1} <strong>{tc.emptyWord}</strong> {tc.empty2}
+              {tc.emptyHint}
             </div>
           ) : viewMode === 'list' ? (
             <>

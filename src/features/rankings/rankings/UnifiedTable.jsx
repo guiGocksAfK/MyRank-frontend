@@ -114,7 +114,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
         </div>
         {sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)' }}>
-            {tr.noResults}
+            {selectedTables.length === 0 ? tr.selectTablesHint : tr.noResults}
           </div>
         )}
       </div>
@@ -214,7 +214,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
 
         {!loading && sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-            {tr.noResults}
+            {selectedTables.length === 0 ? tr.selectTablesHint : tr.noResults}
           </div>
         )}
       </div>
