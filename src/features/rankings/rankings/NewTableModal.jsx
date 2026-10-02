@@ -1,30 +1,29 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../../shared/i18n';
-
-const TYPE_EMOJI = { filme: '🎬', jogo: '🎮', serie: '📺', livro: '📚', anime: '🎌', outro: '📦' };
+import { TABLE_TEMPLATES, needsCustomEmoji, cleanCustomFields } from '../../../shared/tableTemplates';
+import TemplatePicker from './TemplatePicker';
+import CustomFieldsEditor from './CustomFieldsEditor';
 
 export default function NewTableModal({ onSave, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.newTableModal;
-  const TYPE_OPTIONS = Object.keys(TYPE_EMOJI).map((value) => ({
-    value, emoji: TYPE_EMOJI[value], label: t.rankings.types[value],
-  }));
   const [name,        setName]        = useState('');
-  const [type,        setType]        = useState('filme');
-  const [customEmoji, setCustomEmoji] = useState('📦');
+  const [templates,   setTemplates]   = useState(['movie']);
+  const [customEmoji, setCustomEmoji] = useState('');
+  const [customFields, setCustomFields] = useState([]);
   const [saving,      setSaving]      = useState(false);
 
-  const isOutro = type === 'outro';
-  const selectedType = TYPE_OPTIONS.find(o => o.value === type);
-  const finalEmoji = isOutro ? (customEmoji.trim() || '📦') : (selectedType?.emoji ?? '');
+  const isOutro = needsCustomEmoji(templates);
+  const defaultEmoji = TABLE_TEMPLATES[templates[0]].emoji;
+  const finalEmoji = isOutro ? (customEmoji.trim() || defaultEmoji) : defaultEmoji;
   const finalLabel = name.trim() ? `${finalEmoji} ${name.trim()}` : '';
 
   async function handleSave() {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await onSave(finalLabel);
+      await onSave({ name: finalLabel, templates, customFields: cleanCustomFields(customFields) });
       onClose();
     } catch (err) {
       alert(err?.response?.data?.message || err.message || tm.createError);
@@ -50,12 +49,10 @@ export default function NewTableModal({ onSave, onClose }) {
           <input type="text" value={name} placeholder={tm.namePlaceholder} onChange={e => setName(e.target.value)} style={inputStyle} />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', display: 'block', marginBottom: 4 }}>{tm.mediaType}</label>
-          <select value={type} onChange={e => setType(e.target.value)} style={inputStyle}>
-            {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-        </div>
+        <TemplatePicker value={templates} onChange={setTemplates} disabled={saving} />
+        {templates.includes('custom') && (
+          <CustomFieldsEditor value={customFields} onChange={setCustomFields} disabled={saving} />
+        )}
 
         {isOutro && (
           <div style={{ marginBottom: 12 }}>
@@ -64,7 +61,7 @@ export default function NewTableModal({ onSave, onClose }) {
             </label>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <input
-                type="text" value={customEmoji} placeholder="🎨 🎵 🎤 ⚽ 🍿..."
+                type="text" value={customEmoji} placeholder={defaultEmoji}
                 onChange={e => setCustomEmoji(e.target.value)} maxLength={4}
                 style={{ ...inputStyle, width: 90, textAlign: 'center', fontSize: '1.1rem' }}
               />

@@ -4,6 +4,7 @@ import GridCard from './GridCard';
 import AnimatedNumber from './AnimatedNumber';
 import { getNoteBarColor, formatTime, sortItems, getMode, applyFilters, getColumnConfig, badgeStyle } from '../../../utils/formatters';
 import { useLanguage } from '../../../shared/i18n';
+import { itemSubline } from '../../../shared/tableTemplates';
 
 function getItemKey(item) {
   return `${item._tableId}:${item.id}`;
@@ -113,7 +114,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
         </div>
         {sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)' }}>
-            {tr.noResults}
+            {selectedTables.length === 0 ? tr.selectTablesHint : tr.noResults}
           </div>
         )}
       </div>
@@ -165,7 +166,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
 
                 <div className="mr-min-w-0">
                   <div className="mr-truncate" style={{ fontWeight: 500 }}>{item.title}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{item.sub}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{itemSubline(item, tr)}</div>
                 </div>
                 <span className="mr-badge mr-badge-outline" style={badgeStyle}>{item._tableLabel}</span>
 
@@ -213,7 +214,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
 
         {!loading && sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-            {tr.noResults}
+            {selectedTables.length === 0 ? tr.selectTablesHint : tr.noResults}
           </div>
         )}
       </div>

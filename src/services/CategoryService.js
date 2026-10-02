@@ -5,13 +5,19 @@ export async function getCategories() {
   return res.data;
 }
 
-export async function createCategory(name) {
-  const res = await api.post('/categories', { name });
+export async function createCategory(table) {
+  const res = await api.post('/categories', table);
   return res.data;
 }
 
-export async function updateCategory(id, name) {
-  const res = await api.put(`/categories/${id}`, { name });
+export async function updateCategory(id, table) {
+  const res = await api.put(`/categories/${id}`, table);
+  return res.data;
+}
+
+/** Lista completa de campos próprios: sem id = novo; id que sumiu = removido (com os valores). */
+export async function updateCustomFields(id, fields) {
+  const res = await api.put(`/categories/${id}/custom-fields`, fields);
   return res.data;
 }
 

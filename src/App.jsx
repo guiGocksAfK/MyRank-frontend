@@ -11,6 +11,7 @@ import DiscordCallback from './features/auth/DiscordCallbackPage'
 import VerifyEmail from './features/auth/VerifyEmailPage'
 import ForgotPassword from './features/auth/ForgotPasswordPage'
 import ChatInvitePage from './features/chat/ChatInvitePage'
+import Onboarding from './features/onboarding/OnboardingPage'
 
 
 
@@ -27,6 +28,7 @@ function Layout() {
     '/entrar',
     '/cadastrar',
     '/esqueci-senha',
+    '/bem-vindo',
     '/dashboard',
     '/insights',
     '/auth/discord/callback',
@@ -44,6 +46,7 @@ function Layout() {
         <Route path="/auth/discord/callback" element={<DiscordCallback />} />
         <Route path="/confirmar-email" element={<VerifyEmail />} />
         <Route path="/esqueci-senha" element={<ForgotPassword />} />
+        <Route path="/bem-vindo" element={<Onboarding />} />
         <Route path="/chat/invite/:token" element={<ChatInvitePage />} />
       </Routes>
     </div>

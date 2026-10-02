@@ -1,24 +1,29 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { formatTime, minutesToHHMM } from '../../../utils/formatters';
 import { searchByType, getDetailsByType } from '../../../services/ExternalSearchService';
 import { useLanguage } from '../../../shared/i18n';
+import { templateProvider, isTimeWeighted, hasSquareCover } from '../../../shared/tableTemplates';
 
-const WORK_TYPE_VALUES = ['movie', 'tv', 'game', 'book', 'anime'];
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3; // evita disparar busca com 1-2 caracteres
 
-export default function ItemModal({ item, subcategories = [], defaultSubcategoryId = null, onSave, onClose }) {
+export default function ItemModal({ item, templates = ['custom'], customFields = [], subcategories = [], defaultSubcategoryId = null, onSave, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.itemModal;
   const ts = t.rankings.subcategories;
-  const WORK_TYPES = WORK_TYPE_VALUES.map((value) => ({ value, label: t.rankings.itemTypes[value], enabled: true }));
   const isEdit = !!item;
 
   const initialHHMM = minutesToHHMM(item?.timeMinutes);
-  const [workType, setWorkType] = useState(item?.workType ?? '');
+  // Tabela de um tipo só: o item já nasce com ele. Tabela mista: a pessoa escolhe
+  // entre os tipos da tabela. Personalizado não tem busca (preenchimento manual).
+  const [itemTemplate, setItemTemplate] = useState(item?.template ?? (templates.length === 1 ? templates[0] : ''));
+  const workType = itemTemplate === 'custom' ? '' : itemTemplate;
+  const isMixed = templates.length > 1;
+  const [details, setDetails] = useState(item?.details ?? {});
+  const [fieldValues, setFieldValues] = useState(item?.details?.fields ?? {});
   const [title, setTitle]   = useState(item?.title       ?? '');
   const [sub,   setSub]     = useState(item?.sub         ?? '');
   const [note,  setNote]    = useState(item?.note        ?? '');
@@ -40,25 +45,27 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
   const skipNextSearchRef = useRef(false); // true logo após escolher uma sugestão, para não reabrir o painel
 
   useEffect(() => {
+    const thisRequestId = ++requestIdRef.current;
     if (skipNextSearchRef.current) {
       skipNextSearchRef.current = false;
       return;
     }
 
-    if (!workType || title.trim().length < MIN_QUERY_LENGTH) {
-      setSuggestions([]);
-      setSearchMsg('');
-      return;
-    }
-
     const currentQuery = title.trim();
+    const canSearch = workType && currentQuery.length >= MIN_QUERY_LENGTH;
+    let active = true;
     const timer = setTimeout(async () => {
-      const thisRequestId = ++requestIdRef.current;
+      if (!canSearch) {
+        setSuggestions([]);
+        setSearchMsg('');
+        setSearching(false);
+        return;
+      }
       setSearching(true);
       setSearchMsg(tm.searching);
       try {
         const results = await searchByType(workType, currentQuery);
-        if (thisRequestId !== requestIdRef.current) return; // resposta obsoleta, ignora
+        if (!active || thisRequestId !== requestIdRef.current) return; // resposta obsoleta, ignora
 
         if (!results || results.length === 0) {
           setSuggestions([]);
@@ -68,48 +75,120 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
           setSearchMsg('');
         }
       } catch (err) {
-        if (thisRequestId !== requestIdRef.current) return;
+        if (!active || thisRequestId !== requestIdRef.current) return;
         setSuggestions([]);
         setSearchMsg(`❌ ${workType === 'anime'
           ? tm.searchErrAnime
           : err.response?.data?.message || tm.searchErr}`);
       } finally {
-        if (thisRequestId === requestIdRef.current) setSearching(false);
+        if (active && thisRequestId === requestIdRef.current) setSearching(false);
       }
-    }, DEBOUNCE_MS);
+    }, canSearch ? DEBOUNCE_MS : 0);
 
-    return () => clearTimeout(timer);
-  }, [title, workType]);
+    return () => {
+      clearTimeout(timer);
+      active = false;
+    };
+  }, [title, workType, tm.searching, tm.noneFoundAnime, tm.noneFound, tm.searchErrAnime, tm.searchErr]);
+
+  // "Atualizar dados": só o que muda com o tempo (episódios, situação, gêneros...).
+  // Capa e data só se estiverem vazias; título, nota, tempo e criador nunca.
+  const [refreshPicking, setRefreshPicking] = useState(false);
+
+  function applyRefresh(fetched, externalId) {
+    setDetails(current => ({
+      ...current, ...fetched.details,
+      externalId: String(externalId), provider: templateProvider(workType),
+    }));
+    if (!image && fetched.imageUrl) setImage(fetched.imageUrl);
+    if (!releaseDate && fetched.releaseDate) setReleaseDate(fetched.releaseDate);
+    setSearchMsg(tm.refreshed);
+  }
+
+  async function handleRefresh() {
+    const thisRequestId = ++requestIdRef.current;
+    setSearching(true);
+    setSearchMsg(tm.refreshing);
+    try {
+      if (details.externalId) {
+        const fetched = await getDetailsByType(workType, details.externalId);
+        if (thisRequestId !== requestIdRef.current) return;
+        if (fetched) applyRefresh(fetched, details.externalId);
+      } else {
+        // Obra antiga, sem id da API: a pessoa confirma qual é, pra não ligar um remake.
+        const results = await searchByType(workType, title.trim());
+        if (thisRequestId !== requestIdRef.current) return;
+        setSuggestions(results ?? []);
+        setRefreshPicking(true);
+        setSearchMsg(results?.length ? tm.refreshPick : tm.noneFound);
+      }
+    } catch (err) {
+      if (thisRequestId !== requestIdRef.current) return;
+      setSearchMsg(`❌ ${err.response?.data?.message || tm.detailsErr}`);
+    } finally {
+      if (thisRequestId === requestIdRef.current) setSearching(false);
+    }
+  }
 
   async function handlePickSuggestion(suggestion) {
+    if (refreshPicking) {
+      const thisRequestId = ++requestIdRef.current;
+      setSearching(true);
+      setSearchMsg(tm.loadingDetails);
+      try {
+        const fetched = await getDetailsByType(workType, suggestion.externalId);
+        if (thisRequestId !== requestIdRef.current) return;
+        if (fetched) applyRefresh(fetched, suggestion.externalId);
+      } catch (err) {
+        if (thisRequestId !== requestIdRef.current) return;
+        setSearchMsg(`❌ ${err.response?.data?.message || tm.detailsErr}`);
+      } finally {
+        if (thisRequestId === requestIdRef.current) {
+          setSuggestions([]);
+          setRefreshPicking(false);
+          setSearching(false);
+        }
+      }
+      return;
+    }
+    const thisRequestId = ++requestIdRef.current;
     setSearching(true);
     setSearchMsg(tm.loadingDetails);
     try {
-      const details = await getDetailsByType(workType, suggestion.externalId);
-      if (details) {
-        skipNextSearchRef.current = true;
-        setTitle(details.title || title);
-        if (details.creator) setSub(details.creator);
-        if (details.timeMinutes) {
-          setHours(Math.floor(details.timeMinutes / 60) || '');
-          setMins(details.timeMinutes % 60 || '');
+      const fetchedDetails = await getDetailsByType(workType, suggestion.externalId);
+      if (thisRequestId !== requestIdRef.current) return;
+      if (fetchedDetails) {
+        setDetails(current => {
+          const next = { ...current, ...fetchedDetails.details, externalId: String(suggestion.externalId), provider: templateProvider(workType) };
+          delete next.legacyClassificationRequired;
+          return next;
+        });
+        skipNextSearchRef.current = Boolean(fetchedDetails.title && fetchedDetails.title !== title);
+        setTitle(fetchedDetails.title || title);
+        if (fetchedDetails.creator) setSub(fetchedDetails.creator);
+        if (fetchedDetails.timeMinutes) {
+          setHours(Math.floor(fetchedDetails.timeMinutes / 60) || '');
+          setMins(fetchedDetails.timeMinutes % 60 || '');
         }
-        if (details.imageUrl) setImage(details.imageUrl);
-        if (details.releaseDate) setReleaseDate(details.releaseDate);
+        if (fetchedDetails.imageUrl) setImage(fetchedDetails.imageUrl);
+        if (fetchedDetails.releaseDate) setReleaseDate(fetchedDetails.releaseDate);
         setAttentionFields({
-          creator: !details.creator,
-          time: !details.timeMinutes,
-          image: !details.imageUrl,
-          releaseDate: !details.releaseDate,
+          creator: !fetchedDetails.creator,
+          time: !fetchedDetails.timeMinutes,
+          image: !fetchedDetails.imageUrl,
+          releaseDate: !fetchedDetails.releaseDate,
           note: true,
         });
         setSearchMsg(tm.autofilled);
       }
     } catch (err) {
+      if (thisRequestId !== requestIdRef.current) return;
       setSearchMsg(`❌ ${err.response?.data?.message || tm.detailsErr}`);
     } finally {
-      setSuggestions([]);
-      setSearching(false);
+      if (thisRequestId === requestIdRef.current) {
+        setSuggestions([]);
+        setSearching(false);
+      }
     }
   }
 
@@ -122,6 +201,7 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
     const missingFields = [];
     if (!title.trim()) missingFields.push(tm.fieldTitle);
     if (Number.isNaN(n)) missingFields.push(tm.fieldScore);
+    if (!itemTemplate) missingFields.push(tm.workType);
 
     if (missingFields.length > 0) {
       setValidationError(fmt(tm.fillFields, { fields: missingFields.join(tm.fieldAnd) }));
@@ -135,8 +215,17 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
 
     setValidationError('');
 
+    // Campos próprios só existem em item Personalizado; trocar o tipo limpa (o backend exigiria).
+    const baseDetails = { ...details };
+    delete baseDetails.fields;
+    const nextDetails = itemTemplate === 'custom' && customFields.length
+      ? { ...baseDetails, fields: customFieldValues(customFields, fieldValues) }
+      : baseDetails;
+
     const payload = {
       id: item?.id ?? null,
+      template: itemTemplate,
+      details: nextDetails,
       title: title.trim(),
       sub: sub.trim(),
       note: n,
@@ -203,26 +292,57 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
           {isEdit ? tm.editTitle : tm.addTitle}
         </h3>
 
-        <div style={{ marginBottom: 12 }}>
+        {isMixed && <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>{tm.workType}</label>
           <select
-            value={workType}
-            onChange={e => setWorkType(e.target.value)}
+            value={itemTemplate}
+            onChange={e => {
+              requestIdRef.current++;
+              setItemTemplate(e.target.value);
+              setDetails(current => {
+                const next = { ...current };
+                delete next.externalId;
+                delete next.provider;
+                delete next.legacyClassificationRequired;
+                return next;
+              });
+            }}
             style={inputStyle}
           >
             <option value="">{tm.select}</option>
-            {WORK_TYPES.map(wt => (
-              <option key={wt.value} value={wt.value} disabled={!wt.enabled}>{wt.label}</option>
+            {templates.map(value => (
+              <option key={value} value={value}>{t.rankings.itemTypes[value]}</option>
             ))}
           </select>
-        </div>
+        </div>}
+
+        {itemTemplate === 'custom' && customFields.map(field => (
+          <div key={field.id} style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>{field.name}</label>
+            {field.type === 'BOOLEAN' ? (
+              <input
+                type="checkbox"
+                checked={fieldValues[field.id] === true}
+                onChange={e => setFieldValues(v => ({ ...v, [field.id]: e.target.checked }))}
+              />
+            ) : (
+              <input
+                type={field.type === 'NUMBER' ? 'number' : field.type === 'DATE' ? 'date' : 'text'}
+                maxLength={field.type === 'TEXT' ? 200 : undefined}
+                value={fieldValues[field.id] ?? ''}
+                onChange={e => setFieldValues(v => ({ ...v, [field.id]: e.target.value }))}
+                style={inputStyle}
+              />
+            )}
+          </div>
+        ))}
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>{tm.titleLabel}</label>
           <div style={{ position: 'relative' }}>
             <input
               type="text" value={title} placeholder={tm.titlePlaceholder}
-              onChange={e => { setTitle(e.target.value); setValidationError(''); }}
+              onChange={e => { requestIdRef.current++; setTitle(e.target.value); setValidationError(''); }}
               style={inputStyle}
             />
             {searching && (
@@ -232,10 +352,24 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
               }}>⏳</span>
             )}
           </div>
-          {!workType && (
+          {isMixed && !itemTemplate && (
             <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', marginTop: 4 }}>
               {tm.pickTypeFirst}
             </div>
+          )}
+          {isEdit && workType && (
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={searching || !title.trim()}
+              style={{
+                marginTop: 6, padding: 0, border: 0, background: 'none',
+                color: 'var(--mr-gold)', fontSize: '0.75rem', fontWeight: 600,
+                cursor: searching ? 'default' : 'pointer',
+              }}
+            >
+              {tm.refresh}
+            </button>
           )}
           {searchMsg && (
             <div style={{
@@ -276,7 +410,7 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
           <input type="number" step="0.1" min="0" max="10" value={note} placeholder={tm.scorePlaceholder} onChange={e => { setNote(e.target.value); clearAttention('note'); setValidationError(''); }} style={getFieldStyle('note')} />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
+        {isTimeWeighted(itemTemplate) && <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>{tm.timeLabel}</label>
           <div className="mr-flex mr-items-center mr-gap-2">
             <input type="number" min="0" value={hours} placeholder="0" onChange={e => { setHours(e.target.value); clearAttention('time'); }} style={{ ...getFieldStyle('time'), width: 80 }} />
@@ -289,7 +423,7 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
               {tm.total} {formatTime((parseInt(hours, 10) || 0) * 60 + (parseInt(mins, 10) || 0))}
             </div>
           )}
-        </div>
+        </div>}
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>{tm.releaseLabel}</label>
@@ -369,7 +503,8 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <div style={{
-                  width: 46, height: 68, borderRadius: 6, overflow: 'hidden',
+                  width: hasSquareCover(workType) ? 56 : 46, height: hasSquareCover(workType) ? 56 : 68,
+                  borderRadius: 6, overflow: 'hidden',
                   flexShrink: 0, background: 'var(--mr-bg)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   border: '1px solid var(--mr-border)',
@@ -382,6 +517,11 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
                 </div>
                 <div className="mr-min-w-0">
                   <div style={{ fontSize: '0.85rem', fontWeight: 600, lineHeight: 1.3 }}>{s.title}</div>
+                  {s.subtitle && (
+                    <div className="mr-truncate" style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', marginTop: 2 }}>
+                      {s.subtitle}
+                    </div>
+                  )}
                   {s.releaseDate && (
                     <div style={{ fontSize: '0.72rem', color: 'var(--mr-gold)', marginTop: 2 }}>
                       {s.releaseDate.slice(0, 4)}
@@ -396,4 +536,22 @@ export default function ItemModal({ item, subcategories = [], defaultSubcategory
     </div>,
     document.body,
   );
+}
+
+/** Converte o que foi digitado pro tipo que o backend valida; vazio vira "sem valor". */
+function customFieldValues(customFields, raw) {
+  const out = {};
+  for (const field of customFields) {
+    const value = raw[field.id];
+    if (value === undefined || value === null || value === '') continue;
+    if (field.type === 'NUMBER') {
+      const n = Number(value);
+      if (Number.isFinite(n)) out[field.id] = n;
+    } else if (field.type === 'BOOLEAN') {
+      out[field.id] = value === true;
+    } else {
+      out[field.id] = String(value);
+    }
+  }
+  return out;
 }

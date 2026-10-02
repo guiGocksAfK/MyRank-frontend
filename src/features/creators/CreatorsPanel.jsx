@@ -33,21 +33,15 @@ function getAuthorTypeInfo(type) {
 
 const TYPE_OPTIONS = ['Diretor', 'Escritor', 'Studio', 'Criador'];
 
-/** Infere o "tipo" do criador a partir do nome da categoria da obra. */
-function categoryNameToType(categoryName) {
-  const s = (categoryName || '').toLowerCase();
-  if (/livro|book/.test(s)) return 'Escritor';
-  if (/jogo|game/.test(s)) return 'Studio';
-  if (/anime/.test(s) && !/s[ée]rie|filme/.test(s)) return 'Studio';
-  if (/filme|s[ée]rie|movie|show|\btv\b/.test(s)) return 'Diretor';
-  return 'Criador';
+function creatorType(template) {
+  return { book: 'Escritor', manga: 'Escritor', game: 'Studio', anime: 'Studio', movie: 'Diretor', tv: 'Diretor' }[template] ?? 'Criador';
 }
 
 /** Tipo predominante entre as obras de um criador. */
 function dominantType(works) {
   const counts = {};
   works.forEach(w => {
-    const t = categoryNameToType(w.categoryName);
+    const t = creatorType(w.template);
     counts[t] = (counts[t] || 0) + 1;
   });
   return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Criador';
@@ -360,7 +354,7 @@ export default function CreatorsTab({ onBack }) {
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>{tc.loading}</div>
           ) : allCreators.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-              {tc.empty1} <strong>{tc.emptyWord}</strong> {tc.empty2}
+              {tc.emptyHint}
             </div>
           ) : viewMode === 'list' ? (
             <>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import DashboardHeader from './DashboardHeader';
 import HomeOverview from '../home/HomeOverview';
 import RankingsTab from '../rankings/rankings/RankingsTab';
@@ -8,7 +8,7 @@ import SocialPanel from '../social/SocialPanel';
 import InsightsPanel from '../insights/InsightsPanel';
 import ProfilePanel from '../profile/ProfilePanel';
 import DashboardFooter from './DashboardFooter';
-import { UserProvider } from '../../shared/userContext';
+import { UserProvider, useUser } from '../../shared/userContext';
 import { WorksProvider } from '../../shared/worksContext';
 import { BadgeProvider } from '../../shared/badges';
 import { NotificationsProvider } from '../../shared/notifications';
@@ -16,6 +16,15 @@ import { ChatProvider } from '../../shared/chat';
 import './dashboard.css';
 
 const VALID_TABS = ['home', 'rankings', 'social', 'ai', 'profile'];
+
+/** Quem ainda não terminou o tutorial pós-cadastro volta pra ele, na etapa em que parou. */
+function OnboardingGate({ children }) {
+  const { user } = useUser();
+  if (user?.onboardingStep && user.onboardingStep !== 'DONE') {
+    return <Navigate to="/bem-vindo" replace />;
+  }
+  return children;
+}
 
 export default function DashboardPage() {
   const location = useLocation();
@@ -63,6 +72,7 @@ export default function DashboardPage() {
 
   return (
     <UserProvider>
+    <OnboardingGate>
     <WorksProvider>
     <BadgeProvider>
     <NotificationsProvider>
@@ -93,6 +103,7 @@ export default function DashboardPage() {
     </NotificationsProvider>
     </BadgeProvider>
     </WorksProvider>
+    </OnboardingGate>
     </UserProvider>
   );
 }

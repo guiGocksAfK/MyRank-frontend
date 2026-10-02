@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useLanguage } from '../../../shared/i18n';
-
-const TYPE_EMOJI = { filme: '🎬', jogo: '🎮', serie: '📺', livro: '📚', anime: '🎌', outro: '📦' };
+import { TABLE_TEMPLATES, needsCustomEmoji, cleanCustomFields } from '../../../shared/tableTemplates';
+import TemplatePicker from './TemplatePicker';
+import CustomFieldsEditor from './CustomFieldsEditor';
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 /** Cria/renomeia/remove subcategorias na hora (independe do botão Salvar do nome). */
@@ -114,25 +115,30 @@ function SubcategoryManager({ subcategories, onAdd, onRename, onDelete, inputSty
 export default function EditTableModal({ table, onSave, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.editTableModal;
-  const TYPE_OPTIONS = Object.keys(TYPE_EMOJI).map((value) => ({
-    value, emoji: TYPE_EMOJI[value], label: t.rankings.types[value],
-  }));
-  const labelParts = table.label.split(' ');
-  const currentEmoji = labelParts.shift() || '📦';
-  const currentType = TYPE_OPTIONS.find(option => option.emoji === currentEmoji)?.value || 'outro';
-  const [name, setName] = useState(labelParts.join(' '));
-  const [type, setType] = useState(currentType);
-  const [customEmoji, setCustomEmoji] = useState(currentType === 'outro' ? currentEmoji : '📦');
+  const currentTemplates = table.templates ?? ['custom'];
+  // Tipo que já tem item na tabela não pode sair (o backend também barra).
+  const usedTemplates = [...new Set((table.items ?? []).map(item => item.template))];
+  const labelParts = table.label.match(/^(\S+)\s+(.+)$/u);
+  const hasEmoji = labelParts && /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(labelParts[1]);
+  const currentEmoji = hasEmoji ? labelParts[1] : TABLE_TEMPLATES[currentTemplates[0]].emoji;
+  const [name, setName] = useState(hasEmoji ? labelParts[2] : table.label);
+  const [templates, setTemplates] = useState(currentTemplates);
+  const [customEmoji, setCustomEmoji] = useState(needsCustomEmoji(currentTemplates) ? currentEmoji : '');
+  const [customFields, setCustomFields] = useState(table.customFields ?? []);
   const [saving, setSaving] = useState(false);
+  const isOutro = needsCustomEmoji(templates);
+  const defaultEmoji = TABLE_TEMPLATES[templates[0]].emoji;
 
   async function handleSave() {
     const nextName = name.trim();
     if (!nextName) return;
-    const selectedType = TYPE_OPTIONS.find(option => option.value === type);
-    const emoji = type === 'outro' ? (customEmoji.trim() || '📦') : selectedType.emoji;
+    const emoji = isOutro ? (customEmoji.trim() || defaultEmoji) : defaultEmoji;
+    const nextFields = cleanCustomFields(customFields);
+    const removed = (table.customFields ?? []).filter(field => !nextFields.some(next => next.id === field.id));
+    if (templates.includes('custom') && removed.length && !window.confirm(tm.removeFieldsConfirm)) return;
     setSaving(true);
     try {
-      await onSave(`${emoji} ${nextName}`);
+      await onSave({ name: `${emoji} ${nextName}`, templates, customFields: nextFields });
       onClose();
     } catch (err) {
       alert(err?.response?.data?.message || err.message || tm.renameError);
@@ -175,18 +181,18 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
           style={inputStyle}
           disabled={saving}
         />
-        <label htmlFor="mr-edit-table-type" style={{ display: 'block', margin: '1rem 0 5px', color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>
-          {tm.mediaType}
-        </label>
-        <select id="mr-edit-table-type" value={type} onChange={event => setType(event.target.value)} style={inputStyle} disabled={saving}>
-          {TYPE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-        </select>
-        {type === 'outro' && (
+        <div style={{ marginTop: '1rem' }}>
+          <TemplatePicker value={templates} onChange={setTemplates} locked={usedTemplates} disabled={saving} />
+          {templates.includes('custom') && (
+            <CustomFieldsEditor value={customFields} onChange={setCustomFields} disabled={saving} />
+          )}
+        </div>
+        {isOutro && (
           <>
             <label htmlFor="mr-edit-table-emoji" style={{ display: 'block', margin: '1rem 0 5px', color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>
               {tm.tableEmoji}
             </label>
-            <input id="mr-edit-table-emoji" value={customEmoji} onChange={event => setCustomEmoji(event.target.value)} maxLength={4} style={{ ...inputStyle, width: 90, textAlign: 'center', fontSize: '1.1rem' }} disabled={saving} />
+            <input id="mr-edit-table-emoji" value={customEmoji} placeholder={defaultEmoji} onChange={event => setCustomEmoji(event.target.value)} maxLength={4} style={{ ...inputStyle, width: 90, textAlign: 'center', fontSize: '1.1rem' }} disabled={saving} />
           </>
         )}
         <SubcategoryManager

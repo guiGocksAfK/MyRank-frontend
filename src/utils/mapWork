@@ -1,8 +1,13 @@
 // Backend (WorkResponseDTO) → shape usado pelos componentes visuais
+import { templateType } from '../shared/tableTemplates';
+
 export function mapWorkToItem(work) {
   return {
     id: work.id,
     title: work.title,
+    template: work.template ?? 'custom',
+    type: templateType(work.template),
+    details: work.details ?? {},
     sub: work.creator ?? '',
     note: work.score,
     timeMinutes: work.timeMinutes,
@@ -20,6 +25,8 @@ export function mapWorkToItem(work) {
 export function mapItemToWorkDTO(item, categoryId) {
   return {
     categoryId,
+    template: item.template ?? 'custom',
+    details: item.details ?? {},
     title: item.title,
     imageUrl: item.image || null,
     creator: item.sub || null,
@@ -36,7 +43,9 @@ export function mapCategoryToTable(category, items = []) {
   return {
     id: category.id,
     label: category.name,
+    templates: category.templates?.length ? category.templates : ['custom'],
     subcategories: category.subcategories ?? [],
+    customFields: category.customFields ?? [],
     items,
   };
 }
