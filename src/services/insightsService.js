@@ -1,12 +1,15 @@
 import api from './api';
 
+// O back tenta o Gemini até 2 vezes (30s cada); o timeout padrão de 30s cortava antes.
+const AI_TIMEOUT_MS = 75000;
+
 /**
  * Gera (ou reaproveita do cache do backend) a análise de IA para as obras dadas.
  * @param {number[]} workIds  ids das obras selecionadas no painel
  * @param {boolean}  refresh   força nova geração mesmo com cache
  */
 export async function generateInsights(workIds, refresh = false) {
-  const { data } = await api.post('/insights/generate', { workIds, refresh });
+  const { data } = await api.post('/insights/generate', { workIds, refresh }, { timeout: AI_TIMEOUT_MS });
   return data;
 }
 
@@ -22,6 +25,6 @@ export async function getLatestInsights() {
  * Devolve o InsightResponseDTO atualizado, com `chat`, `dailyRemaining` e `dailyLimit`.
  */
 export async function sendInsightChat(insightId, question) {
-  const { data } = await api.post(`/insights/${insightId}/chat`, { question });
+  const { data } = await api.post(`/insights/${insightId}/chat`, { question }, { timeout: AI_TIMEOUT_MS });
   return data;
 }
