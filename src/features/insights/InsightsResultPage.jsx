@@ -102,7 +102,9 @@ export default function InsightsResult() {
 function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult }) {
   const { analysis, model, workCount, cached, generatedAt } = result;
   const traits = Array.isArray(analysis.traits) ? analysis.traits : [];
+  const contradictions = Array.isArray(analysis.contradictions) ? analysis.contradictions : [];
   const taste = Array.isArray(analysis.tasteProfile) ? analysis.tasteProfile : [];
+  // Análises novas trazem média real + nº de obras; as antigas, a % que a IA inventava.
   const maxPercent = Math.max(1, ...taste.map((s) => s.percent || 0));
   const reco = analysis.recommendation;
 
@@ -149,6 +151,20 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult
         </section>
       )}
 
+      {contradictions.length > 0 && (
+        <section className="insights-enter" style={{ '--d': '90ms' }}>
+          <h2 className="insights-section-title">⚡ Suas contradições</h2>
+          <div className="insights-traits-grid">
+            {contradictions.map((item, i) => (
+              <div key={i} className="insights-trait">
+                <div className="insights-trait-icon">{item.icon || '•'}</div>
+                <div className="insights-trait-desc">{item.text}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {(taste.length > 0 || reco) && (
         <div className="insights-bottom-grid">
           {taste.length > 0 && (
@@ -159,13 +175,19 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult
                   <div key={`${slice.name}-${i}`} className="insights-taste-row">
                     <div className="insights-taste-head">
                       <span>{slice.name}</span>
-                      <span className="pct">{slice.percent}%</span>
+                      <span className="pct">
+                        {typeof slice.average === 'number'
+                          ? `${slice.average.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} · ${slice.count} ${slice.count === 1 ? 'obra' : 'obras'}`
+                          : `${slice.percent}%`}
+                      </span>
                     </div>
                     <div className="mr-progress">
                       <div
                         className="mr-progress-bar"
                         style={{
-                          width: `${Math.round(((slice.percent || 0) / maxPercent) * 100)}%`,
+                          width: typeof slice.average === 'number'
+                            ? `${Math.round(slice.average * 10)}%`
+                            : `${Math.round(((slice.percent || 0) / maxPercent) * 100)}%`,
                           background: BAR_COLORS[i % BAR_COLORS.length],
                         }}
                       />
