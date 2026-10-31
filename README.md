@@ -1,8 +1,8 @@
 # MyRank — Web App
 
 Rate and rank anything you love. MyRank is built around pop culture (movies,
-series, games, books and anime), but a table can hold music, food, football
-teams or school subjects just as well. Scores become tables, tables merge into
+series, anime, manga, games, books and music), but a table can hold food or
+school subjects just as well. Scores become tables, tables merge into
 a single ranking, and your ranking becomes a profile of your taste.
 
 Live at **[myrank-oficial.vercel.app](https://myrank-oficial.vercel.app/)**.
@@ -11,13 +11,16 @@ in [MyRank-backend](https://github.com/guiGocksAfK/MyRank-backend).
 
 ## Features
 
-- **Tables your way.** One table per category, per genre or mixed, with
-  scores from 0 to 10 and drag-to-reorder.
+- **Tables built from templates.** Movies, series, anime, manga, games, books,
+  songs and albums, each with its own search and card. A table can mix
+  templates (e.g. Series + Anime), and the **Custom** template takes up to five
+  fields of its own. Scores go from 0 to 10, with subcategories inside a table.
 - **Unified ranking** that merges any selection of tables into a single list,
-  with an optional **time-weighted score** that rewards what you spent more
-  time on.
-- **Automatic metadata.** Directors, studios, authors and posters are fetched
-  when a title is added; nothing is filled in by hand.
+  with manual tie-breaking and an optional **time-weighted score** that rewards
+  what you spent more time on.
+- **Automatic metadata.** Creators, covers and the details each card needs
+  (seasons, episodes, volumes, pages, album, track count) are fetched when a
+  title is added, and a refresh action updates works that are still ongoing.
 - **Creators ranking** of directors, authors and studios, derived from your
   own scores.
 - **AI Insights**: a consumer profile generated from your scores, with a
@@ -28,8 +31,11 @@ in [MyRank-backend](https://github.com/guiGocksAfK/MyRank-backend).
 - **Chat** with direct messages, groups and invite links.
 - **Achievements**: badges unlocked from what you consume, with a toast when
   one is earned.
-- **Accounts** with e-mail and password (with e-mail confirmation), Google or
-  Discord, plus account deletion.
+- **Accounts** with e-mail and password, Google or Discord. Sign-up, password
+  recovery and account deletion are confirmed with a six-digit code sent by
+  e-mail, without leaving the page.
+- **Onboarding.** New users pick their tables and rank a first work; empty
+  screens carry short tips instead of a tour.
 
 ## User experience
 
@@ -133,19 +139,28 @@ CSP in `vercel.json`.
 src/
 ├── features/
 │   ├── home/        landing page sections
-│   ├── auth/        login, register, e-mail confirmation, Discord callback
+│   ├── auth/        login, sign-up and password recovery by code, Discord callback
+│   ├── onboarding/  post-sign-up tutorial
 │   ├── dashboard/   authenticated shell and tabs
-│   ├── rankings/    category tables and the unified ranking
+│   ├── rankings/    tables, templates, custom fields and the unified ranking
 │   ├── creators/    creators ranking
 │   ├── insights/    AI Insights
 │   ├── social/      feed, discover, compare, takes and profiles
 │   ├── chat/        direct messages, groups and invites
 │   └── profile/     profile, avatar and achievements
 ├── services/        Axios instance and one module per API resource
-├── shared/          contexts (user, works, chat, notifications), i18n, shared components
+├── shared/          contexts (user, works, chat, notifications), i18n, templates, shared components
 ├── styles/          base.css: tokens, scales and reusable pieces
 └── utils/           formatters and DTO to view-model mappers
 ```
+
+## Documentation
+
+- [`AGENTS.md`](AGENTS.md): rules for anyone (or any AI tool) working on this
+  repository, in Portuguese.
+- The feature rules, decisions and roadmap live in the backend's
+  [`docs/`](https://github.com/guiGocksAfK/MyRank-backend/tree/master/docs), in
+  Portuguese, since the API is where the rules are enforced.
 
 ## License
 
