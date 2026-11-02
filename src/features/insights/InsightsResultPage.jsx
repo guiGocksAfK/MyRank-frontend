@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { generateInsights, getLatestInsights, sendInsightChat } from '../../services/insightsService';
-import DashboardFooter from '../dashboard/DashboardFooter';
+import SiteFooter from '../../shared/components/SiteFooter';
 import { BAR_COLORS, relativeFromNow } from './aiInsightsHelpers';
 import '../dashboard/dashboard.css';
 import './insights.css';
@@ -94,7 +94,7 @@ export default function InsightsResult() {
         )}
       </div>
 
-      <DashboardFooter />
+      <SiteFooter />
     </div>
   );
 }
