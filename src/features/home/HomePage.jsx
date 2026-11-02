@@ -8,7 +8,7 @@ import HomeIdentity from './HomeIdentity';
 import HomeSocial from './HomeSocial';
 import HomeFaq from './HomeFaq';
 import HomeCredits from './HomeCredits';
-import HomeFooter from './HomeFooter';
+import SiteFooter from '../../shared/components/SiteFooter';
 
 const GRID_COLS = 5;
 const GRID_ROWS = POSTER_TILES / GRID_COLS;            // 4
@@ -120,7 +120,7 @@ const HomePage = () => {
   <HomeFaq faq={t.home.faq} />
   <HomeCredits credits={t.home.credits} />
 
-  <HomeFooter footer={t.home.footer} />
+  <SiteFooter />
 
     </main>
   )
