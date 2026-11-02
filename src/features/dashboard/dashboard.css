@@ -534,10 +534,16 @@
 }
 
 /* Top 6: número de posição vazado em dourado, com o pôster por cima da ponta dele */
-.dash-top {
+.mr-poster-grid.dash-top {
   margin: 0;
   padding: 0;
   list-style: none;
+  /* (o seletor com .mr-poster-grid vence a grade antiga, que vem depois no arquivo) */
+  grid-template-columns: repeat(5, 1fr); /* Top 5: pôsteres maiores ocupando a largura toda */
+}
+
+@media (max-width: 1024px) {
+  .mr-poster-grid.dash-top { grid-template-columns: repeat(3, 1fr); }
 }
 
 .dash-top-item {

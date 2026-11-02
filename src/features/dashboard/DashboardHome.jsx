@@ -117,12 +117,12 @@ export default function DashboardHome({ onNavigate }) {
   const totalBadges = badges.length;
   const getNote = (item) => weighted ? item.finalNote : item.note;
 
-  const { totalHours, avgNote, top6, recentItems } = useMemo(() => ({
+  const { totalHours, avgNote, top5, recentItems } = useMemo(() => ({
     totalHours: Math.round(mediaItems.reduce((sum, item) => sum + (item.timeMinutes || 0), 0) / 60),
     avgNote: mediaItems.length
       ? (mediaItems.reduce((sum, item) => sum + (item.note || 0), 0) / mediaItems.length).toFixed(1)
       : '0.0',
-    top6: sortItems(applyUnifiedOrder(mediaItems, unifiedOrder), 'nota', weighted).slice(0, 6),
+    top5: sortItems(applyUnifiedOrder(mediaItems, unifiedOrder), 'nota', weighted).slice(0, 5),
     recentItems: [...mediaItems]
       .sort((a, b) => new Date(b.addedDate || 0) - new Date(a.addedDate || 0))
       .slice(0, 5),
@@ -145,12 +145,13 @@ export default function DashboardHome({ onNavigate }) {
     { value: `${unlockedBadges}/${totalBadges}`, label: th.statBadges },
   ];
 
-  const plural = (n, one, many) => fmt(n === 1 ? one : many, { n });
-  // resumo de verdade no lugar da frase genérica; some enquanto carrega pra não piscar "0 obras"
-  const summary = loadingItems ? '' : mediaItems.length === 0 ? th.summaryEmpty
-    : fmt(th.summary, {
-      works: plural(mediaItems.length, th.workOne, th.workMany),
-      hours: plural(totalHours, th.hourOne, th.hourMany),
+  // a última nota dada: informação que os números logo abaixo não mostram.
+  // Some enquanto carrega pra não piscar a frase de conta vazia.
+  const lastRated = recentItems[0];
+  const summary = loadingItems ? '' : !lastRated ? th.summaryEmpty
+    : fmt(th.lastRated, {
+      title: lastRated.title,
+      note: Number(lastRated.note).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
     });
 
   return (
@@ -227,14 +228,14 @@ export default function DashboardHome({ onNavigate }) {
           </div>
         </div>
         <ol className="mr-poster-grid dash-top">
-          {loadingItems ? Array.from({ length: 6 }, (_, index) => (
+          {loadingItems ? Array.from({ length: 5 }, (_, index) => (
             <li className="dash-top-item" key={`skeleton-${index}`} aria-hidden="true">
               <span className="dash-top-rank">{index + 1}</span>
               <div className="mr-poster mr-skeleton-poster">
                 <div className="mr-poster-inner" />
               </div>
             </li>
-          )) : top6.map((item, index) => (
+          )) : top5.map((item, index) => (
             <li className="dash-top-item" key={getUnifiedItemKey(item)}>
               {/* número de posição vazado, como o Top 10 da Netflix: o site é sobre ranking */}
               <span className="dash-top-rank" aria-hidden="true">{index + 1}</span>
