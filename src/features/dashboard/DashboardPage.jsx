@@ -17,9 +17,13 @@ import './dashboard.css';
 
 const VALID_TABS = ['home', 'rankings', 'social', 'ai', 'profile'];
 
-/** Quem ainda não terminou o tutorial pós-cadastro volta pra ele, na etapa em que parou. */
+/**
+ * Quem ainda não terminou o tutorial pós-cadastro volta pra ele, na etapa em que parou.
+ * Até /users/me responder não mostra nada: senão o dashboard pisca antes do redirect.
+ */
 function OnboardingGate({ children }) {
-  const { user } = useUser();
+  const { user, loading } = useUser();
+  if (loading) return null;
   if (user?.onboardingStep && user.onboardingStep !== 'DONE') {
     return <Navigate to="/bem-vindo" replace />;
   }
