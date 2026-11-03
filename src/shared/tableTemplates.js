@@ -34,6 +34,15 @@ export function hasSquareCover(template) {
   return !!TABLE_TEMPLATES[template]?.square;
 }
 
+/**
+ * Nome da tabela sem o emoji da frente. O emoji continua salvo no nome (é o que o
+ * modal de editar mostra e devolve); só some onde a tela pede o visual sem emoji.
+ */
+export function tableName(label = '') {
+  const parts = label.match(/^(\S+)\s+(.+)$/u);
+  return parts && /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(parts[1]) ? parts[2] : label;
+}
+
 const plural = (forms, n) => (n === 1 ? forms[0] : forms[1]).replace('{n}', n);
 
 /**
