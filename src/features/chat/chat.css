@@ -243,6 +243,9 @@
 .chat-rail-work-score { color: var(--mr-gold); font-weight: 700; font-variant-numeric: tabular-nums; }
 .chat-rail-badges { display: flex; flex-wrap: wrap; gap: 6px; }
 .chat-rail-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.74rem;
   padding: 3px 8px;
   border-radius: 999px;

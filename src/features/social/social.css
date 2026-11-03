@@ -946,3 +946,9 @@
 
   .social-composer-collapsed { padding: 10px 13px; font-size: 0.82rem; }
 }
+
+.social-badge-icon {
+  display: inline-flex;
+  color: var(--mr-gold);
+  font-size: 1.15em;
+}
