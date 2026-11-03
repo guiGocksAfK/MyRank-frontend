@@ -330,10 +330,7 @@ export default function DashboardHome({ onNavigate }) {
         <section className="mr-panel dash-card">
           {recos.length > 0 ? (
             <>
-              <div className="dash-reco-head">
-                <h2 className="dash-card-title">{th.recoTitle}</h2>
-                <span className="dash-reco-source">{th.recoSource}</span>
-              </div>
+              <h2 className="dash-card-title">{th.recoTitle}</h2>
               <ul className="dash-reco">
                 {recos.map((reco) => (
                   <li className="dash-reco-item" key={reco.title}>
