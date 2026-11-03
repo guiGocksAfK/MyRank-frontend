@@ -1,19 +1,20 @@
-import { getNoteBarColor, formatTime } from '../../../utils/formatters';
+import { Pencil, Trash2 } from 'lucide-react';
+import { formatTime } from '../../../utils/formatters';
 import { useLanguage } from '../../../shared/i18n';
 import { TABLE_TEMPLATES, hasSquareCover, itemSubline } from '../../../shared/tableTemplates';
 
-export default function GridCard({ item, customFields = [], mode, maxNote, index, onEdit, onDelete, showActions, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragging }) {
-  const { t } = useLanguage();
+export default function GridCard({ item, customFields = [], mode, index, onEdit, onDelete, onClick, showActions, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragging }) {
+  const { t, locale } = useLanguage();
   const tr = t.rankings;
   const displayNote = mode === 'weight' ? item.finalNote : item.note;
   const bonus = mode === 'weight' ? item.bonusTime : 0;
-  const barWidth = Math.min((displayNote / maxNote) * 100, 100);
+  const formatNote = (n) => Number(n).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   return (
     <div className="mr-rankings-enter" style={{
       position: 'relative', borderRadius: 8, overflow: 'hidden',
       '--rank-delay': `${Math.min(index, 12) * 35}ms`,
-      border: index < 3 ? '2px solid var(--mr-gold)' : '1px solid var(--mr-border)',
+      border: index < 3 ? '1px solid rgba(212, 175, 55, 0.45)' : '1px solid var(--mr-border)',
       background: 'var(--mr-surface)', cursor: draggable ? 'grab' : (showActions ? 'pointer' : 'default'),
       opacity: isDragging ? 0.45 : 1,
       transition: 'transform 0.15s ease, opacity 0.15s ease',
@@ -23,6 +24,7 @@ export default function GridCard({ item, customFields = [], mode, maxNote, index
     onDragEnd={onDragEnd}
     onDragOver={onDragOver}
     onDrop={onDrop}
+    onClick={onClick}
     onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
     onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
     >
@@ -68,7 +70,7 @@ export default function GridCard({ item, customFields = [], mode, maxNote, index
           fontWeight: 700, fontSize: '0.9rem',
           padding: '3px 8px', borderRadius: 6,
         }}>
-          {displayNote.toFixed(1)}
+          {formatNote(displayNote)}
         </div>
       </div>
 
@@ -80,45 +82,27 @@ export default function GridCard({ item, customFields = [], mode, maxNote, index
           {itemSubline(item, tr, customFields)}
         </div>
 
-        <div className="mr-note-bar" style={{ height: 4 }}>
-          <div className={`mr-note-bar-fill ${getNoteBarColor(displayNote)}`} style={{ width: `${barWidth}%` }} />
-        </div>
-
         {mode === 'weight' && (
-          <div style={{ fontSize: '0.7rem', color: 'var(--mr-blue-light)', marginTop: 4 }}>
-            {tr.gridBonus.replace('{n}', bonus.toFixed(1))}
+          <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)' }}>
+            {tr.gridBonus.replace('{n}', formatNote(bonus))}
           </div>
         )}
         {mode === 'time' && (
-          <div style={{ fontSize: '0.7rem', color: 'var(--mr-blue-light)', marginTop: 4 }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)' }}>
             {formatTime(item.timeMinutes)}
           </div>
         )}
 
         {showActions && (
           <div className="mr-flex mr-gap-1 mr-mt-2" style={{ justifyContent: 'flex-end' }}>
-            <button
-              title={tr.edit}
-              onClick={(e) => { e.stopPropagation(); onEdit?.(item); }}
-              style={{
-                width: 24, height: 24, borderRadius: 4,
-                border: '1px solid var(--mr-border)', background: 'transparent',
-                cursor: 'pointer', fontSize: '0.7rem', display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                color: 'var(--mr-text-secondary)',
-              }}
-            >✏️</button>
-            <button
-              title={tr.delete}
-              onClick={(e) => { e.stopPropagation(); onDelete?.(item.id); }}
-              style={{
-                width: 24, height: 24, borderRadius: 4,
-                border: '1px solid var(--mr-border)', background: 'transparent',
-                cursor: 'pointer', fontSize: '0.7rem', display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                color: 'var(--mr-text-secondary)',
-              }}
-            >🗑️</button>
+            <button type="button" className="rk-icon-btn" title={tr.edit} aria-label={tr.edit}
+              onClick={(e) => { e.stopPropagation(); onEdit?.(item); }}>
+              <Pencil size={14} strokeWidth={1.7} aria-hidden="true" />
+            </button>
+            <button type="button" className="rk-icon-btn is-danger" title={tr.delete} aria-label={tr.delete}
+              onClick={(e) => { e.stopPropagation(); onDelete?.(item.id); }}>
+              <Trash2 size={14} strokeWidth={1.7} aria-hidden="true" />
+            </button>
           </div>
         )}
       </div>

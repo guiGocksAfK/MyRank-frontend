@@ -112,9 +112,10 @@ function SubcategoryManager({ subcategories, onAdd, onRename, onDelete, inputSty
   );
 }
 
-export default function EditTableModal({ table, onSave, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory, onClose }) {
+export default function EditTableModal({ table, onSave, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory, onDeleteTable, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.editTableModal;
+  const tr = t.rankings;
   const currentTemplates = table.templates ?? ['custom'];
   // Tipo que já tem item na tabela não pode sair (o backend também barra).
   const usedTemplates = [...new Set((table.items ?? []).map(item => item.template))];
@@ -203,7 +204,13 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
           inputStyle={inputStyle}
         />
         <div className="mr-flex mr-gap-2" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={saving}>{tm.cancel}</button>
+          {/* ação perigosa fica aqui dentro, longe do "Adicionar obra"; a confirmação vem depois */}
+          {onDeleteTable && (
+            <button type="button" className="mr-btn mr-btn-ghost mr-btn-sm rk-danger-link" onClick={onDeleteTable} disabled={saving}>
+              {tr.toolbar.deleteTable}
+            </button>
+          )}
+          <button className="mr-btn mr-btn-outline mr-btn-sm" style={{ marginLeft: 'auto' }} onClick={onClose} disabled={saving}>{tm.cancel}</button>
           <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving || !name.trim()}>
             {saving ? tm.saving : tm.save}
           </button>

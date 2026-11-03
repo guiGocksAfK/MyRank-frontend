@@ -1,42 +1,17 @@
 import { useState, useMemo } from 'react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import Poster from './Poster';
 import GridCard from './GridCard';
 import ItemModal from './ItemModal';
 import ConfirmModal from '../../../shared/components/ConfirmModal';
 import EditTableModal from './EditTableModal';
-import AnimatedNumber from './AnimatedNumber';
-import { getNoteBarColor, formatTime, sortItems, getMode, getDisplayedNote, applyFilters, getColumnConfig } from '../../../utils/formatters';
+import { RankHeader, ReorderButtons, ScoreCells } from './rankRow';
+import { rowColumns } from './rankColumns';
+import { sortItems, getMode, getDisplayedNote, applyFilters } from '../../../utils/formatters';
 import { useLanguage } from '../../../shared/i18n';
 import { itemSubline } from '../../../shared/tableTemplates';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
-
-function TableToolbar({ table, onDeleteTable, onEditTable, onAddWork }) {
-  const { t } = useLanguage();
-  const tr = t.rankings;
-  return (
-    <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-2" style={{ marginBottom: '1rem' }}>
-      <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)' }}>
-        {fmt(table.items.length === 1 ? tr.worksOne : tr.worksMany, { n: table.items.length })}
-      </span>
-      <div className="mr-flex mr-gap-2 mr-flex-wrap mr-toolbar-actions">
-        <button
-          className="mr-btn mr-btn-outline mr-btn-sm"
-          style={{ color: '#e24b4a', borderColor: 'rgba(226,75,74,0.35)' }}
-          onClick={onDeleteTable}
-        >
-          {tr.toolbar.deleteTable}
-        </button>
-        <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onEditTable}>
-          {tr.toolbar.editTable}
-        </button>
-        <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={onAddWork}>
-          {tr.toolbar.addWork}
-        </button>
-      </div>
-    </div>
-  );
-}
 
 /** Botões "Todas | <subcategorias> | Sem subcategoria" — só aparecem se a tabela tiver subcategorias. */
 function SubcategoryFilter({ subcategories, value, onChange }) {
@@ -48,12 +23,12 @@ function SubcategoryFilter({ subcategories, value, onChange }) {
     { id: 'none', label: ts.filterNone },
   ];
   return (
-    <div className="mr-flex mr-gap-2 mr-flex-wrap" style={{ marginBottom: '1rem' }} role="group" aria-label={ts.heading}>
+    <div className="rk-subfilter" role="group" aria-label={ts.heading}>
       {options.map(option => (
         <button
           key={option.id}
           type="button"
-          className={`mr-btn mr-btn-sm ${value === option.id ? 'mr-btn-gold' : 'mr-btn-outline'}`}
+          className={`mr-tab-trigger${value === option.id ? ' active' : ''}`}
           aria-pressed={value === option.id}
           onClick={() => onChange(option.id)}
         >
@@ -64,8 +39,8 @@ function SubcategoryFilter({ subcategories, value, onChange }) {
   );
 }
 
-export default function IndividualTable({ table, loading, sortBy, useTimeWeight, viewMode, filters, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem, onRenameTable, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory }) {
-  const { t } = useLanguage();
+export default function IndividualTable({ table, loading, sortBy, useTimeWeight, viewMode, filters, controls, panel, reordering, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem, onRenameTable, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory }) {
+  const { t, locale } = useLanguage();
   const tr = t.rankings;
   const [modal, setModal] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -75,7 +50,6 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
   const [subFilterChoice, setSubFilterChoice] = useState('all'); // 'all' | 'none' | id da subcategoria
   const mode    = getMode(sortBy, useTimeWeight);
   const maxNote = mode === 'weight' ? 12 : 10;
-  const cols    = getColumnConfig(mode, true, viewMode === 'list', tr.cols);
 
   const subcategories = table.subcategories;
   const hasSubcategories = subcategories.length > 0;
@@ -112,7 +86,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
     setDraggedItemId(null);
   }
 
-  /** No mobile (sem arrastar): sobe/desce a obra trocando com a vizinha de mesma nota. */
+  /** Modo "Reordenar" (celular, sem arrastar): troca com a vizinha de mesma nota. */
   const canMoveRow = (index, dir) => {
     const neighbor = sorted[index + (dir === 'up' ? -1 : 1)];
     return sortBy !== 'time' && !!neighbor
@@ -150,195 +124,125 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
     }
   }
 
-  const toolbar = (
-    <>
-      <TableToolbar
-        table={table}
-        onEditTable={() => setShowEditTable(true)}
-        onDeleteTable={() => setConfirmAction({ type: 'table' })}
-        onAddWork={() => setModal('add')}
-      />
-      {hasSubcategories && (
-        <SubcategoryFilter subcategories={subcategories} value={subFilter} onChange={setSubFilterChoice} />
-      )}
-    </>
+  const count = table.items.length;
+  const empty = !loading && sorted.length === 0 && (
+    <p className="rk-empty">{count === 0 ? tr.emptyTable : tr.noResults}</p>
   );
-
-  const itemModal = modal && (
-    <ItemModal
-      item={modal === 'add' ? null : modal}
-      templates={table.templates}
-      customFields={table.customFields}
-      subcategories={subcategories}
-      defaultSubcategoryId={defaultSubcategoryId}
-      onSave={handleSave}
-      onClose={() => setModal(null)}
-    />
-  );
-
-  const editTableModal = showEditTable && (
-    <EditTableModal
-      table={table}
-      onSave={name => onRenameTable(table.id, name)}
-      onAddSubcategory={name => onAddSubcategory(table.id, name)}
-      onRenameSubcategory={(subId, name) => onRenameSubcategory(table.id, subId, name)}
-      onDeleteSubcategory={subId => onDeleteSubcategory(table.id, subId)}
-      onClose={() => setShowEditTable(false)}
-    />
-  );
-
-  if (viewMode === 'grid') {
-    return (
-      <div>
-        {toolbar}
-        {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>{tr.loadingWorks}</div>
-        ) :<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
-          {sorted.map((item, i) => (
-            <GridCard
-              key={item.id} item={item} mode={mode} maxNote={maxNote} index={i}
-              customFields={table.customFields}
-              showActions={true}
-              onEdit={(it) => setModal(it)}
-              onDelete={id => setConfirmAction({ type: 'item', id })}
-              draggable={sortBy !== 'time'}
-              onDragStart={() => setDraggedItemId(item.id)}
-              onDragEnd={() => setDraggedItemId(null)}
-              onDragOver={event => handleDragOver(event, item)}
-              onDrop={event => handleDrop(event, item)}
-              isDragging={draggedItemId === item.id}
-            />
-          ))}
-        </div>}
-        {!loading && sorted.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-            {table.items.length === 0 ? tr.emptyTable : tr.noResults}
-          </div>
-        )}
-        {itemModal}
-        {confirmAction?.type === 'item' && (
-          <ConfirmModal
-            title={tr.confirm.removeWorkTitle}
-            message={tr.confirm.removeWorkMsg}
-            onConfirm={() => handleDelete(confirmAction.id)}
-            onClose={() => setConfirmAction(null)}
-          />
-        )}
-        {confirmAction?.type === 'table' && (
-          <ConfirmModal
-            title={tr.confirm.deleteTableTitle}
-            message={fmt(tr.confirm.deleteTableMsg, { label: table.label })}
-            onConfirm={handleDeleteTableClick}
-            onClose={() => setConfirmAction(null)}
-          />
-        )}
-        {editTableModal}
-      </div>
-    );
-  }
 
   return (
     <div>
-      {toolbar}
-
-      <div className="mr-table-header" style={{ gridTemplateColumns: cols.gridTemplate }}>
-        {cols.headers.map((h, i) => <span key={i}>{h}</span>)}
+      <div className="rk-controls">
+        {controls}
+        <div className="rk-controls-end">
+          <span className="rk-count">{fmt(count === 1 ? tr.worksOne : tr.worksMany, { n: count })}</span>
+          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setShowEditTable(true)}>
+            <Pencil size={14} strokeWidth={1.8} aria-hidden="true" />
+            {tr.toolbar.editTable}
+          </button>
+          <button type="button" className="mr-btn mr-btn-gold mr-btn-sm" onClick={() => setModal('add')}>
+            <Plus size={15} strokeWidth={2} aria-hidden="true" />
+            {tr.toolbar.addWork}
+          </button>
+        </div>
       </div>
 
-      <div className="mr-space-y-2">
-        {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--mr-text-secondary)' }}>{tr.loadingWorks}</div>
-        ) :sorted.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-            {table.items.length === 0 ? tr.emptyTable : tr.noResults}
+      {panel}
+
+      {hasSubcategories && (
+        <SubcategoryFilter subcategories={subcategories} value={subFilter} onChange={setSubFilterChoice} />
+      )}
+
+      {viewMode === 'grid' ? (
+        loading ? <p className="rk-empty">{tr.loadingWorks}</p> : (
+          <div className="rk-grid">
+            {sorted.map((item, i) => (
+              <GridCard
+                key={item.id} item={item} mode={mode} maxNote={maxNote} index={i}
+                customFields={table.customFields}
+                showActions={true}
+                onEdit={(it) => setModal(it)}
+                onDelete={id => setConfirmAction({ type: 'item', id })}
+                draggable={sortBy !== 'time'}
+                onDragStart={() => setDraggedItemId(item.id)}
+                onDragEnd={() => setDraggedItemId(null)}
+                onDragOver={event => handleDragOver(event, item)}
+                onDrop={event => handleDrop(event, item)}
+                isDragging={draggedItemId === item.id}
+              />
+            ))}
           </div>
-        )}
-        {sorted.map((item, i) => {
-          const displayNote = mode === 'weight' ? item.finalNote : item.note;
-          const bonus       = mode === 'weight' ? item.bonusTime : 0;
-          const barWidth    = Math.min((displayNote / maxNote) * 100, 100);
-          const isDeleting  = deletingId === item.id;
-
-          return (
-            <div
-              className="mr-table-row mr-rankings-enter"
-              key={item.id}
-              draggable={sortBy !== 'time'}
-              onDragStart={() => setDraggedItemId(item.id)}
-              onDragEnd={() => setDraggedItemId(null)}
-              onDragOver={event => handleDragOver(event, item)}
-              onDrop={event => handleDrop(event, item)}
-              style={{ gridTemplateColumns: cols.gridTemplate, '--rank-delay': `${Math.min(i, 12) * 35}ms`, borderLeft: i < 3 ? '3px solid var(--mr-gold)' : undefined, opacity: isDeleting ? 0.5 : (draggedItemId === item.id ? 0.45 : 1), cursor: sortBy !== 'time' ? 'grab' : undefined }}
-            >
-              <span style={{ fontWeight: 700, color: i < 3 ? 'var(--mr-gold)' : 'var(--mr-text-secondary)' }}>{i + 1}</span>
-
-              {viewMode === 'list' && <Poster src={item.image} title={item.title} size="thumb" />}
-
-              <div className="mr-min-w-0">
-                <div className="mr-truncate" style={{ fontWeight: 500 }}>{item.title}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
-                  {itemSubline(item, tr, table.customFields)}
-                  {/* Em "Todas", mostra de qual subcategoria a obra é */}
-                  {subFilter === 'all' && item.subcategoryName && (
-                    <span className="mr-subcategory-tag">{item.subcategoryName}</span>
-                  )}
-                </div>
-              </div>
-
-              {mode === 'weight' && (
-                <>
-                  <span style={{ fontWeight: 600 }}><AnimatedNumber value={item.note} /></span>
-                  <span className="mr-cell-bonus" style={{ color: 'var(--mr-blue-light)', fontWeight: 500, fontSize: '0.875rem' }}>
-                    {bonus > 0 ? <AnimatedNumber value={bonus} prefix="+" /> : '—'}
-                  </span>
-                  <div className="mr-flex mr-items-center mr-gap-3">
-                    <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36 }}><AnimatedNumber value={displayNote} /></span>
-                    <div className="mr-note-bar">
-                      <div className={`mr-note-bar-fill ${getNoteBarColor(displayNote)}`} style={{ width: `${barWidth}%` }} />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {mode === 'simple' && (
-                <div className="mr-flex mr-items-center mr-gap-3">
-                  <span style={{ fontWeight: 700, color: 'var(--mr-gold)', minWidth: 36 }}><AnimatedNumber value={item.note} /></span>
-                  <div className="mr-note-bar">
-                    <div className={`mr-note-bar-fill ${getNoteBarColor(item.note)}`} style={{ width: `${barWidth}%` }} />
+        )
+      ) : (
+        <>
+          <RankHeader mode={mode} labels={tr.cols} actions reordering={reordering} />
+          {loading ? (
+            <p className="rk-empty">{tr.loadingWorks}</p>
+          ) : sorted.map((item, i) => {
+            const isDeleting = deletingId === item.id;
+            return (
+              <div
+                className={`rk-row mr-rankings-enter${i < 3 ? ' is-top' : ''}`}
+                key={item.id}
+                draggable={sortBy !== 'time'}
+                onDragStart={() => setDraggedItemId(item.id)}
+                onDragEnd={() => setDraggedItemId(null)}
+                onDragOver={event => handleDragOver(event, item)}
+                onDrop={event => handleDrop(event, item)}
+                style={{
+                  '--rk-cols': rowColumns(mode, { actions: true, reordering }),
+                  '--rank-delay': `${Math.min(i, 12) * 35}ms`,
+                  opacity: isDeleting ? 0.5 : (draggedItemId === item.id ? 0.45 : 1),
+                }}
+              >
+                <span className="rk-rank">{i + 1}</span>
+                <Poster src={item.image} title={item.title} size="thumb" />
+                <div className="rk-main">
+                  <div className="rk-title">{item.title}</div>
+                  <div className="rk-sub">
+                    {itemSubline(item, tr, table.customFields)}
+                    {/* Em "Todas", mostra de qual subcategoria a obra é */}
+                    {subFilter === 'all' && item.subcategoryName && (
+                      <span className="mr-subcategory-tag">{item.subcategoryName}</span>
+                    )}
                   </div>
                 </div>
-              )}
-
-              {mode === 'time' && (
-                <>
-                  <span style={{ fontWeight: 600 }}><AnimatedNumber value={item.note} /></span>
-                  <span style={{ fontWeight: 600, color: 'var(--mr-blue-light)' }}>{formatTime(item.timeMinutes)}</span>
-                </>
-              )}
-
-              {(canMoveRow(i, 'up') || canMoveRow(i, 'down')) && (
-                <div className="mr-reorder-mobile">
-                  <button type="button" aria-label={tr.moveUp} onClick={() => moveRow(i, 'up')} disabled={!canMoveRow(i, 'up')}>▲</button>
-                  <button type="button" aria-label={tr.moveDown} onClick={() => moveRow(i, 'down')} disabled={!canMoveRow(i, 'down')}>▼</button>
+                <ScoreCells item={item} mode={mode} locale={locale} />
+                {reordering && (
+                  <ReorderButtons
+                    canUp={canMoveRow(i, 'up')} canDown={canMoveRow(i, 'down')}
+                    onUp={() => moveRow(i, 'up')} onDown={() => moveRow(i, 'down')}
+                    labels={tr}
+                  />
+                )}
+                <div className="rk-actions">
+                  <button type="button" className="rk-icon-btn" title={tr.edit} aria-label={tr.edit}
+                    onClick={() => setModal(item)} disabled={isDeleting}>
+                    <Pencil size={15} strokeWidth={1.7} aria-hidden="true" />
+                  </button>
+                  <button type="button" className="rk-icon-btn is-danger" title={tr.delete} aria-label={tr.delete}
+                    onClick={() => setConfirmAction({ type: 'item', id: item.id })} disabled={isDeleting}>
+                    <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
+                  </button>
                 </div>
-              )}
-
-              <div className="mr-flex mr-gap-1" style={{ justifyContent: 'flex-end' }}>
-                <button
-                  title={tr.edit} onClick={() => setModal(item)} disabled={isDeleting}
-                  style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mr-text-secondary)' }}
-                >✏️</button>
-                <button
-                  title={tr.delete} onClick={() => setConfirmAction({ type: 'item', id: item.id })} disabled={isDeleting}
-                  style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--mr-border)', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mr-text-secondary)' }}
-                >{isDeleting ? '⏳' : '🗑️'}</button>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </>
+      )}
 
-      {itemModal}
+      {empty}
+
+      {modal && (
+        <ItemModal
+          item={modal === 'add' ? null : modal}
+          templates={table.templates}
+          customFields={table.customFields}
+          subcategories={subcategories}
+          defaultSubcategoryId={defaultSubcategoryId}
+          onSave={handleSave}
+          onClose={() => setModal(null)}
+        />
+      )}
       {confirmAction?.type === 'item' && (
         <ConfirmModal
           title={tr.confirm.removeWorkTitle}
@@ -355,7 +259,17 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
           onClose={() => setConfirmAction(null)}
         />
       )}
-      {editTableModal}
+      {showEditTable && (
+        <EditTableModal
+          table={table}
+          onSave={name => onRenameTable(table.id, name)}
+          onAddSubcategory={name => onAddSubcategory(table.id, name)}
+          onRenameSubcategory={(subId, name) => onRenameSubcategory(table.id, subId, name)}
+          onDeleteSubcategory={subId => onDeleteSubcategory(table.id, subId)}
+          onDeleteTable={() => { setShowEditTable(false); setConfirmAction({ type: 'table' }); }}
+          onClose={() => setShowEditTable(false)}
+        />
+      )}
     </div>
   );
 }
