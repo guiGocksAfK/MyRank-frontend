@@ -22,13 +22,6 @@ const typeIcons = {
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
-function formatTime(minutes) {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (m > 0) return `${h}h ${m}min`;
-  return `${h}h`;
-}
-
 function getTableOrderKey() {
   const userKey = localStorage.getItem('myrank_username') || 'anonymous';
   return `myrank_table_order_${userKey}`;
@@ -59,6 +52,18 @@ function applyUnifiedOrder(items, savedOrder = []) {
   const ordered = savedOrder.map(key => itemByKey.get(key)).filter(Boolean);
   const orderedKeys = new Set(ordered.map(getUnifiedItemKey));
   return [...ordered, ...items.filter(item => !orderedKeys.has(getUnifiedItemKey(item)))];
+}
+
+/** Capa da obra, ou o título sobre fundo escuro quando não tem imagem. */
+function PosterCover({ item }) {
+  return item.image ? (
+    <img src={item.image} alt={item.title} loading="lazy" className="dash-cover-img" />
+  ) : (
+    <div className="mr-poster-placeholder">
+      <span className="mr-poster-placeholder-icon">{typeIcons[item.type] || '📦'}</span>
+      <span className="mr-poster-placeholder-title">{item.title}</span>
+    </div>
+  );
 }
 
 export default function DashboardHome({ onNavigate }) {
@@ -117,12 +122,12 @@ export default function DashboardHome({ onNavigate }) {
   const totalBadges = badges.length;
   const getNote = (item) => weighted ? item.finalNote : item.note;
 
-  const { totalHours, avgNote, top5, recentItems } = useMemo(() => ({
+  const { totalHours, avgNote, top, recentItems } = useMemo(() => ({
     totalHours: Math.round(mediaItems.reduce((sum, item) => sum + (item.timeMinutes || 0), 0) / 60),
     avgNote: mediaItems.length
       ? (mediaItems.reduce((sum, item) => sum + (item.note || 0), 0) / mediaItems.length).toFixed(1)
       : '0.0',
-    top5: sortItems(applyUnifiedOrder(mediaItems, unifiedOrder), 'nota', weighted).slice(0, 5),
+    top: sortItems(applyUnifiedOrder(mediaItems, unifiedOrder), 'nota', weighted).slice(0, 6),
     recentItems: [...mediaItems]
       .sort((a, b) => new Date(b.addedDate || 0) - new Date(a.addedDate || 0))
       .slice(0, 5),
@@ -145,15 +150,6 @@ export default function DashboardHome({ onNavigate }) {
     { value: `${unlockedBadges}/${totalBadges}`, label: th.statBadges },
   ];
 
-  // a última nota dada: informação que os números logo abaixo não mostram.
-  // Some enquanto carrega pra não piscar a frase de conta vazia.
-  const lastRated = recentItems[0];
-  const summary = loadingItems ? '' : !lastRated ? th.summaryEmpty
-    : fmt(th.lastRated, {
-      title: lastRated.title,
-      note: Number(lastRated.note).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
-    });
-
   return (
     <div className="mr-space-y-6">
       <header className="dash-hello">
@@ -163,10 +159,9 @@ export default function DashboardHome({ onNavigate }) {
           <span className="dash-hello-name">{userName}</span>
           {th.greeting.split('{name}')[1]}
         </h1>
-        <p className="dash-hello-sub">{summary}</p>
       </header>
 
-      {/* Números numa faixa só: brancos, sem enfeite; o dourado fica pro Top 6 */}
+      {/* Números numa faixa só: brancos, sem enfeite; o dourado fica pro Hall da fama */}
       <div className="mr-panel dash-stats">
         {stats.map((stat, i) => (
           <div className="dash-stat" key={stat.label}>
@@ -182,7 +177,6 @@ export default function DashboardHome({ onNavigate }) {
         ))}
       </div>
 
-      {/* Poster Grid */}
       <div>
         <div className="mr-section-header">
           <h2 className="mr-section-title">{th.favorites}</h2>
@@ -227,44 +221,30 @@ export default function DashboardHome({ onNavigate }) {
             </button>
           </div>
         </div>
-        <ol className="mr-poster-grid dash-top">
-          {loadingItems ? Array.from({ length: 5 }, (_, index) => (
+        {/* 6 capas iguais; posição, título e nota embaixo, fora da arte */}
+        <ol className="dash-top">
+          {loadingItems ? Array.from({ length: 6 }, (_, index) => (
             <li className="dash-top-item" key={`skeleton-${index}`} aria-hidden="true">
-              <span className="dash-top-rank">{index + 1}</span>
-              <div className="mr-poster mr-skeleton-poster">
-                <div className="mr-poster-inner" />
-              </div>
+              <div className="mr-poster mr-skeleton-poster"><div className="mr-poster-inner" /></div>
             </li>
-          )) : top5.map((item, index) => (
-            <li className="dash-top-item" key={getUnifiedItemKey(item)}>
-              {/* número de posição vazado, como o Top 10 da Netflix: o site é sobre ranking */}
-              <span className="dash-top-rank" aria-hidden="true">{index + 1}</span>
-              <div className="mr-poster mr-rankings-enter" style={{ '--rank-delay': `${index * 35}ms` }}>
-                <div className="mr-poster-rating"><AnimatedNumber value={getNote(item)} /></div>
-                <div className="mr-poster-inner">
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      loading="lazy"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                    />
-                  ) : (
-                    <div className="mr-poster-placeholder">
-                      <span className="mr-poster-placeholder-icon">{typeIcons[item.type] || '📦'}</span>
-                      <span className="mr-poster-placeholder-title">{item.title}</span>
-                    </div>
-                  )}
-                  <div className="mr-poster-overlay">
-                    <span className="mr-poster-overlay-type">{typeLabels[item.type]}</span>
-                    <span className="mr-poster-overlay-title">{item.title}</span>
-                    <div className="mr-poster-overlay-badges">
-                      <span className="mr-poster-overlay-note">
-                        <AnimatedNumber value={getNote(item)} />
-                      </span>
-                    </div>
-                    <span className="mr-poster-overlay-time">
-                      {formatTime(item.timeMinutes)}
+          )) : top.map((item, index) => (
+            <li
+              className={`dash-top-item mr-rankings-enter${index === 0 ? ' is-first' : ''}`}
+              style={{ '--rank-delay': `${index * 35}ms` }}
+              key={getUnifiedItemKey(item)}
+            >
+              <div className="mr-poster">
+                <div className={`mr-poster-inner${hasSquareCover(item.template) ? ' is-square' : ''}`}>
+                  <PosterCover item={item} />
+                </div>
+              </div>
+              <div className="dash-top-info">
+                <span className="dash-top-rank" aria-hidden="true">{index + 1}</span>
+                <div className="dash-row-text">
+                  <div className="dash-top-title">{item.title}</div>
+                  <div className="dash-row-sub">
+                    {typeLabels[item.type] ?? typeLabels.outro} · <span className="dash-top-note">
+                      <AnimatedNumber value={getNote(item)} locale={locale} />
                     </span>
                   </div>
                 </div>

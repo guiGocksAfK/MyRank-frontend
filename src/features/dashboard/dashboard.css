@@ -466,7 +466,7 @@
 .dash-hello {
   display: flex;
   flex-direction: column;
-  gap: var(--mr-space-2);
+  gap: var(--mr-space-1);
 }
 
 .dash-eyebrow {
@@ -487,12 +487,6 @@
 
 .dash-hello-name {
   color: var(--mr-gold);
-}
-
-.dash-hello-sub {
-  min-height: 1.5em; /* não pula quando o resumo chega */
-  margin: 0;
-  color: var(--mr-text-secondary);
 }
 
 /* Faixa única de números: um painel dividido por fios, números brancos */
@@ -533,44 +527,83 @@
   .dash-stat:nth-child(n + 3) { border-top: 1px solid rgba(255, 255, 255, 0.08); }
 }
 
-/* Top 6: número de posição vazado em dourado, com o pôster por cima da ponta dele */
-.mr-poster-grid.dash-top {
+/* Top 6: seis capas do mesmo tamanho e, embaixo de cada uma, posição, título
+   e nota. Nada por cima da arte, então as colunas ficam simétricas. */
+.dash-top {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--mr-space-4);
   margin: 0;
   padding: 0;
   list-style: none;
-  /* (o seletor com .mr-poster-grid vence a grade antiga, que vem depois no arquivo) */
-  grid-template-columns: repeat(5, 1fr); /* Top 5: pôsteres maiores ocupando a largura toda */
-}
-
-@media (max-width: 1024px) {
-  .mr-poster-grid.dash-top { grid-template-columns: repeat(3, 1fr); }
 }
 
 .dash-top-item {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: var(--mr-space-2);
   min-width: 0;
 }
 
+.dash-top-item .mr-poster-inner { background: var(--mr-surface); }
+.dash-top-item .mr-poster-inner.is-square { aspect-ratio: 1; }
+
+.dash-cover-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dash-top-info {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mr-space-3);
+  min-width: 0;
+}
+
+/* o nº 1 em dourado cheio; os outros num dourado apagado */
 .dash-top-rank {
   flex: none;
-  width: 0.62em; /* largura fixa: senão o "1" estreito deixa o pôster dele mais largo que os outros */
-  text-align: right;
-  margin-right: -0.14em;
-  color: transparent;
-  -webkit-text-stroke: 2px var(--mr-gold);
-  font-size: clamp(3rem, 6vw, 7rem);
+  color: var(--mr-gold);
+  opacity: 0.45;
+  font-size: var(--mr-text-2xl);
   font-weight: 900;
-  letter-spacing: -0.06em;
-  line-height: 0.78;
-  user-select: none;
+  letter-spacing: var(--mr-tracking-tight);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
-.dash-top-item .mr-poster {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  min-width: 0;
+.dash-top-item.is-first .dash-top-rank { opacity: 1; }
+
+.dash-top-title {
+  overflow: hidden;
+  color: var(--mr-text);
+  font-weight: 700;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dash-top-note {
+  color: var(--mr-gold);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  /* celular: fileira que desliza de lado em vez de 5 capas minúsculas */
+  .dash-top {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 40%;
+    gap: var(--mr-space-3);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .dash-top::-webkit-scrollbar { display: none; }
+  .dash-top-item { scroll-snap-align: start; }
+  .dash-top-rank { font-size: var(--mr-text-xl); }
 }
 
 /* Parte de baixo: avaliadas recentemente, conquistas recentes e próximas */
