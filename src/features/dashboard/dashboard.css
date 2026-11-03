@@ -651,6 +651,7 @@
   display: flex;
   align-items: center;
   gap: var(--mr-space-3);
+  min-height: 82px; /* altura da capa + respiro: as duas listas fecham na mesma linha */
   padding: 10px 0;
 }
 
@@ -707,11 +708,18 @@
   font-variant-numeric: tabular-nums;
 }
 
-.dash-row-time {
-  flex: none;
-  font-size: 0.7rem;
-  color: var(--mr-text-muted);
-  white-space: nowrap;
+.dash-new-tag {
+  margin-left: var(--mr-space-2);
+  padding: 1px 7px;
+  border: 1px solid var(--mr-gold-20);
+  border-radius: 999px;
+  background: var(--mr-gold-10);
+  color: var(--mr-gold);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  vertical-align: 2px;
 }
 
 /* Medalhão da conquista: ícone de traço dourado, a borda dourada é a moldura */
@@ -727,6 +735,17 @@
   background: var(--mr-gold-10);
   color: var(--mr-gold);
   font-size: 1.1rem;
+}
+
+.dash-row .dash-medal {
+  width: 48px;
+  height: 48px;
+  font-size: 1.3rem;
+}
+
+.dash-medal.is-new {
+  border-color: var(--mr-gold);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.28);
 }
 
 .dash-medal.is-locked {

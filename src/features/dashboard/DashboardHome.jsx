@@ -73,6 +73,8 @@ export default function DashboardHome({ onNavigate }) {
   const [mediaItems, setMediaItems] = useState([]);
   const [unifiedOrder, setUnifiedOrder] = useState([]);
   const [loadingItems, setLoadingItems] = useState(true);
+  // "agora" fixo na montagem: decide quais conquistas ganham a etiqueta de nova
+  const [now] = useState(() => Date.now());
   const { user } = useUser();
   const { worksVersion } = useWorks();
   const { lang, locale, t } = useLanguage();
@@ -283,25 +285,31 @@ export default function DashboardHome({ onNavigate }) {
           )}
         </section>
 
-        {/* Conquistas recentes: o emoji é a "arte" da conquista, num medalhão dourado */}
+        {/* Conquistas recentes: ícone num medalhão dourado; as dos últimos 7 dias brilham */}
         <section className="mr-panel dash-card">
           <h2 className="dash-card-title">{th.recentBadges}</h2>
           {recentBadges.length === 0 ? (
             <p className="dash-empty">{th.noBadgesYet}</p>
           ) : (
             <ul className="dash-list">
-              {recentBadges.map((badge) => (
-                <li className="dash-row" key={badge.id}>
-                  <span className="dash-medal" aria-hidden="true"><BadgeIcon code={badge.id} /></span>
-                  <div className="dash-row-text">
-                    <div className="dash-row-title">{badge.name}</div>
-                    <div className="dash-row-sub">{badge.description}</div>
-                  </div>
-                  {badge.unlockedAt && (
-                    <span className="dash-row-time">{relativeTime(badge.unlockedAt, lang)}</span>
-                  )}
-                </li>
-              ))}
+              {recentBadges.map((badge) => {
+                const isNew = badge.unlockedAt && now - new Date(badge.unlockedAt) < 7 * 24 * 60 * 60 * 1000;
+                return (
+                  <li className="dash-row" key={badge.id}>
+                    <span className={`dash-medal${isNew ? ' is-new' : ''}`} aria-hidden="true"><BadgeIcon code={badge.id} /></span>
+                    <div className="dash-row-text">
+                      <div className="dash-row-title">
+                        {badge.name}
+                        {isNew && <span className="dash-new-tag">{th.newBadge}</span>}
+                      </div>
+                      <div className="dash-row-sub">
+                        {badge.description}
+                        {badge.unlockedAt && ` · ${relativeTime(badge.unlockedAt, lang)}`}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
