@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { ArrowUpDown, LayoutGrid, List, Plus, SlidersHorizontal, Users } from 'lucide-react';
 import UnifiedTable from './UnifiedTable';
 import IndividualTable from './IndividualTable';
 import TableSelector from './TableSelector';
@@ -15,6 +16,8 @@ import { applyFilters } from '../../../utils/formatters';
 import { useBadges } from '../../../shared/badges';
 import { useWorks } from '../../../shared/worksContext';
 import { useLanguage } from '../../../shared/i18n';
+import { tableName } from '../../../shared/tableTemplates';
+import './rankings.css';
 
 function getTableOrderKey() {
   const userKey = localStorage.getItem('myrank_username') || 'anonymous';
@@ -85,6 +88,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
   const [unifiedGroupId,   setUnifiedGroupId]   = useState(null);
   const [unifiedOrder,     setUnifiedOrder]     = useState([]);
   const [draggedTableId,   setDraggedTableId]   = useState(null);
+  const [reordering,       setReordering]       = useState(false);
 
   // ── Carrega categorias + obras + grupo "Unificado" do backend ao montar ──
   useEffect(() => {
@@ -321,96 +325,119 @@ export default function RankingsTab({ onNavigateToCreators }) {
 
   if (loadError) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#e24b4a' }}>
-        ❌ {loadError}
-      </div>
+      <p className="rk-empty rk-error" role="alert">{loadError}</p>
     );
   }
 
-  return (
-    <div className="mr-space-y-6 mr-rankings-tab">
-      <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
-        <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{tr.title}</h1>
-          <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', marginTop: 4 }}>
-            {tr.subtitle}
-          </p>
-        </div>
-        <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
-          {onNavigateToCreators && (
-            <button className="mr-btn mr-btn-outline" onClick={onNavigateToCreators} title={tr.seeCreatorsTitle}>
-              {tr.seeCreators}
-            </button>
-          )}
-          <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
-          <div className="mr-flex mr-items-center mr-gap-3" style={{ flexShrink: 0 }}>
-            <span style={{ fontSize: '0.875rem', color: 'var(--mr-text-secondary)', whiteSpace: 'nowrap' }}>{tr.timeWeight}</span>
-            <button className={`mr-switch ${useTimeWeight ? 'checked' : ''}`} onClick={() => setUseTimeWeight(v => !v)}>
-              <span className="mr-switch-thumb" />
-            </button>
-          </div>
-        </div>
-      </div>
+  const hasFilters = Object.values(filters).some(v => v != null && v !== '');
+  // setinhas só fazem sentido na lista ordenada por nota (trocam obras empatadas)
+  const canReorder = viewMode === 'list' && sortBy !== 'time';
+  const isReordering = reordering && canReorder;
 
-      <div className="mr-flex mr-items-center mr-gap-1 mr-flex-wrap" style={{ borderBottom: '1px solid var(--mr-border)', paddingBottom: 0 }}>
-        <button className={`mr-tab-trigger ${activeTab === 'unified' ? 'active' : ''}`} onClick={() => setActiveTab('unified')} style={{ borderRadius: '8px 8px 0 0' }}>
-          {tr.unifiedTab}
+  function openTab(id) {
+    setActiveTab(id);
+    setReordering(false);
+  }
+
+  const controls = (
+    <>
+      <div className="rk-seg" role="group" aria-label={tr.sortLabel}>
+        <button type="button" className={sortBy === 'nota' ? 'is-active' : ''} aria-pressed={sortBy === 'nota'} onClick={() => setSortBy('nota')}>
+          {tr.sortScores}
         </button>
-        {tables.map((t, index) => (
-          <button
-            key={t.id}
-            className={`mr-tab-trigger ${activeTab === t.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(t.id)}
-            draggable
-            onDragStart={() => setDraggedTableId(t.id)}
-            onDragEnd={() => setDraggedTableId(null)}
-            onDragOver={event => event.preventDefault()}
-            onDrop={() => {
-              moveTable(draggedTableId, t.id);
-              setDraggedTableId(null);
-            }}
-            onKeyDown={event => {
-              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-              event.preventDefault();
-              const targetIndex = event.key === 'ArrowLeft' ? index - 1 : index + 1;
-              if (targetIndex >= 0 && targetIndex < tables.length) {
-                moveTable(t.id, tables[targetIndex].id);
-              }
-            }}
-            title={tr.reorderHint}
-            style={{ borderRadius: '8px 8px 0 0', opacity: draggedTableId === t.id ? 0.45 : 1, cursor: 'grab' }}
-          >
-            {t.label}
-          </button>
-        ))}
-        <button className="mr-btn mr-btn-outline mr-btn-sm" style={{ marginLeft: 'auto', marginBottom: 2 }} onClick={() => setShowNewTable(true)}>
-          {tr.newTable}
+        <button type="button" className={sortBy === 'time' ? 'is-active' : ''} aria-pressed={sortBy === 'time'} onClick={() => setSortBy('time')}>
+          {tr.sortTime}
         </button>
       </div>
-
-      <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap">
-        <div className="mr-flex mr-gap-2">
-          <button className={`mr-btn mr-btn-sm ${sortBy === 'nota' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('nota')}>{tr.sortScores}</button>
-          <button className={`mr-btn mr-btn-sm ${sortBy === 'time' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setSortBy('time')}>{tr.sortTime}</button>
-        </div>
-        <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
-        <div className="mr-flex mr-gap-1">
-          <button className={`mr-btn mr-btn-sm ${viewMode === 'list' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('list')} title={tr.viewList}>📋</button>
-          <button className={`mr-btn mr-btn-sm ${viewMode === 'grid' ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setViewMode('grid')} title={tr.viewGrid}>🎞️</button>
-        </div>
-        <div style={{ width: 1, height: 24, background: 'var(--mr-border)' }} />
-        <button className={`mr-btn mr-btn-sm ${showFilters ? 'mr-btn-gold' : 'mr-btn-outline'}`} onClick={() => setShowFilters(v => !v)}>
-          {tr.filters} {Object.keys(filters).length > 0 && '•'}
+      <div className="rk-seg" role="group" aria-label={tr.viewLabel}>
+        <button type="button" className={viewMode === 'list' ? 'is-active' : ''} aria-pressed={viewMode === 'list'} onClick={() => setViewMode('list')} title={tr.viewList} aria-label={tr.viewList}>
+          <List size={16} strokeWidth={1.8} aria-hidden="true" />
+        </button>
+        <button type="button" className={viewMode === 'grid' ? 'is-active' : ''} aria-pressed={viewMode === 'grid'} onClick={() => setViewMode('grid')} title={tr.viewGrid} aria-label={tr.viewGrid}>
+          <LayoutGrid size={16} strokeWidth={1.8} aria-hidden="true" />
         </button>
       </div>
-
       {activeTab === 'unified' && (
         <TableSelector tables={tables} selectedIds={selectedTableIds} onChange={handleChangeSelectedTables} />
       )}
-
-      {showFilters && (
-        <FilterPanel filters={filters} onChange={setFilters} onClear={() => setFilters({})} resultCount={filteredCount} />
+      <button type="button" className={`mr-btn mr-btn-sm ${showFilters ? 'mr-btn-gold' : 'mr-btn-outline'}`} aria-expanded={showFilters} onClick={() => setShowFilters(v => !v)}>
+        <SlidersHorizontal size={14} strokeWidth={1.8} aria-hidden="true" />
+        {tr.filters}
+        {hasFilters && <span className="rk-dot" aria-hidden="true" />}
+      </button>
+      {onNavigateToCreators && (
+        <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={onNavigateToCreators} title={tr.seeCreatorsTitle}>
+          <Users size={14} strokeWidth={1.8} aria-hidden="true" />
+          {tr.seeCreators}
+        </button>
       )}
+      {canReorder && (
+        <button type="button" className={`mr-btn mr-btn-sm rk-only-mobile ${isReordering ? 'mr-btn-gold' : 'mr-btn-outline'}`} aria-pressed={isReordering} onClick={() => setReordering(v => !v)}>
+          <ArrowUpDown size={14} strokeWidth={1.8} aria-hidden="true" />
+          {isReordering ? tr.reorderDone : tr.reorder}
+        </button>
+      )}
+    </>
+  );
+
+  const filterPanel = showFilters && (
+    <FilterPanel filters={filters} onChange={setFilters} onClear={() => setFilters({})} resultCount={filteredCount} />
+  );
+
+  return (
+    <div className="rk-page">
+      <div className="rk-head">
+        <h1 className="rk-page-title">{tr.title}</h1>
+        <div className="rk-weight">
+          <span id="rk-weight-label">{tr.timeWeight}</span>
+          <button type="button" role="switch" aria-checked={useTimeWeight} aria-labelledby="rk-weight-label"
+            className={`mr-switch ${useTimeWeight ? 'checked' : ''}`} onClick={() => setUseTimeWeight(v => !v)}>
+            <span className="mr-switch-thumb" />
+          </button>
+        </div>
+      </div>
+
+      <div className="rk-tabs">
+        <div className="rk-tabs-scroll" role="tablist">
+          <button type="button" role="tab" aria-selected={activeTab === 'unified'} className={`rk-tab${activeTab === 'unified' ? ' is-active' : ''}`} onClick={() => openTab('unified')}>
+            {tr.unifiedTab}
+          </button>
+          {tables.map((t, index) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === t.id}
+              className={`rk-tab${activeTab === t.id ? ' is-active' : ''}`}
+              onClick={() => openTab(t.id)}
+              draggable
+              onDragStart={() => setDraggedTableId(t.id)}
+              onDragEnd={() => setDraggedTableId(null)}
+              onDragOver={event => event.preventDefault()}
+              onDrop={() => {
+                moveTable(draggedTableId, t.id);
+                setDraggedTableId(null);
+              }}
+              onKeyDown={event => {
+                if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+                event.preventDefault();
+                const targetIndex = event.key === 'ArrowLeft' ? index - 1 : index + 1;
+                if (targetIndex >= 0 && targetIndex < tables.length) {
+                  moveTable(t.id, tables[targetIndex].id);
+                }
+              }}
+              title={tr.reorderHint}
+              style={{ opacity: draggedTableId === t.id ? 0.45 : 1 }}
+            >
+              {tableName(t.label)}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setShowNewTable(true)} aria-label={tr.newTable}>
+          <Plus size={15} strokeWidth={2} aria-hidden="true" />
+          <span className="rk-hide-mobile">{tr.newTable}</span>
+        </button>
+      </div>
 
       {showNewTable && (
         <NewTableModal onSave={handleCreateTable} onClose={() => setShowNewTable(false)} />
@@ -427,6 +454,10 @@ export default function RankingsTab({ onNavigateToCreators }) {
           filters={filters}
           manualOrder={unifiedOrder}
           onReorder={handleUnifiedReorder}
+          controls={controls}
+          panel={filterPanel}
+          reordering={isReordering}
+          onOpenTable={openTab}
         />
       ) : (
         (() => {
@@ -441,6 +472,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
               useTimeWeight={useTimeWeight}
               viewMode={viewMode}
               filters={filters}
+              controls={controls}
+              panel={filterPanel}
+              reordering={isReordering}
               onSaveWork={handleSaveWork}
               onDeleteWork={handleDeleteWork}
               onDeleteTable={handleDeleteTable}

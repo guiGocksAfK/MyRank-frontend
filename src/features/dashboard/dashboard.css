@@ -1297,9 +1297,6 @@
 .mr-note-bar-fill.yellow { background: #facc15; }
 .mr-note-bar-fill.red    { background: var(--mr-red); }
 
-/* Setinhas de reordenar obra empatada — só no mobile (no desktop é arrastar). */
-.mr-reorder-mobile { display: none; }
-
 /* Etiqueta da subcategoria na linha da obra (tabela individual, filtro "Todas") */
 .mr-subcategory-tag {
   display: inline-block;
@@ -1367,31 +1364,6 @@
   .mr-table-row .mr-note-bar { display: none !important; }
   .mr-table-row .mr-cell-bonus { display: none !important; }
 
-  /* setinhas de reordenar obra empatada (substituem o arrastar no touch) */
-  .mr-reorder-mobile {
-    display: flex;
-    flex-direction: column;
-    flex: 0 0 auto;
-    gap: 2px;
-  }
-  .mr-reorder-mobile button {
-    width: 24px;
-    height: 19px;
-    padding: 0;
-    border: 1px solid var(--mr-border);
-    border-radius: 5px;
-    background: transparent;
-    color: var(--mr-text-secondary);
-    font-size: 0.58rem;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .mr-reorder-mobile button:not(:disabled):active { background: var(--mr-gold-10); }
-  .mr-reorder-mobile button:disabled { opacity: 0.25; cursor: default; }
-
   /* obra em si um pouco maior — era o que ficava pequeno demais */
   .mr-table-row { padding: 11px 12px !important; font-size: 0.9rem; }
   .mr-table-row .mr-truncate { font-size: 0.9rem; }
@@ -1404,26 +1376,6 @@
   .mr-section-title { font-size: 1rem; }
   .mr-tab-trigger { padding: 7px 10px; font-size: 0.8125rem; }
 
-  /* botões da toolbar da tabela: quebram em grade, sem texto em 2 linhas */
-  .mr-toolbar-actions { width: 100%; }
-  .mr-toolbar-actions .mr-btn-sm { flex: 1 1 auto; justify-content: center; }
-
-  /* ---- Rankings: enxuga os controles (estavam grandes demais p/ o conteúdo) ---- */
-  .mr-rankings-tab.mr-space-y-6 > * + * { margin-top: 0.8rem; }
-
-  .mr-rankings-tab h1 { font-size: 1.15rem !important; }
-  .mr-rankings-tab > .mr-flex:first-child p { font-size: 0.75rem !important; margin-top: 2px !important; }
-
-  .mr-rankings-tab .mr-tab-trigger { padding: 5px 9px; font-size: 0.72rem; }
-  .mr-rankings-tab .mr-btn,
-  .mr-rankings-tab .mr-btn-sm { padding: 0.3rem 0.55rem; font-size: 0.72rem; }
-
-  /* painel "Selecione quais tabelas incluir" */
-  .mr-table-selector { padding: 9px 11px !important; margin-bottom: 0 !important; }
-  .mr-table-selector > div:first-child { font-size: 0.7rem !important; margin-bottom: 6px !important; }
-
-  /* nota "Este ranking é gerado automaticamente..." */
-  .mr-unified-note { padding: 7px 10px !important; font-size: 0.72rem !important; }
 }
 
 /* ============ AI INSIGHTS ============ */
