@@ -13,6 +13,7 @@ import {
   relativeTime,
 } from '../../shared/useUnifiedItems';
 import { useBadges, groupByBucket } from '../../shared/badges';
+import BadgeIcon from '../../shared/badgeIcons';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 /** Interpola {chaves} de uma string de tradução. */
@@ -100,7 +101,7 @@ function BadgeCard({ badge }) {
 
   return (
     <div className={`mr-badge-card ${badge.unlocked ? 'unlocked' : 'locked'}`}>
-      <span className="mr-badge-icon">{badge.icon}</span>
+      <span className="mr-badge-icon"><BadgeIcon code={badge.id} /></span>
 
       <div style={{ fontWeight: 600, fontSize: '0.8125rem', marginBottom: 4 }}>
         {badge.name}
@@ -420,7 +421,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                       title={badge.name}
                       className="mr-profile-quickbadge-chip"
                     >
-                      {badge.icon}
+                      <BadgeIcon code={badge.id} />
                     </span>
                   ))
                 )}

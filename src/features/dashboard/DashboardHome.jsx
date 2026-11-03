@@ -12,6 +12,7 @@ import { mapWorkToItem } from '../../utils/mapWork';
 import { sortItems } from '../../utils/formatters';
 import { hasSquareCover } from '../../shared/tableTemplates';
 import AnimatedNumber from '../rankings/rankings/AnimatedNumber';
+import BadgeIcon from '../../shared/badgeIcons';
 
 const typeIcons = {
   filme: '🎬',
@@ -291,7 +292,7 @@ export default function DashboardHome({ onNavigate }) {
             <ul className="dash-list">
               {recentBadges.map((badge) => (
                 <li className="dash-row" key={badge.id}>
-                  <span className="dash-medal" aria-hidden="true">{badge.icon}</span>
+                  <span className="dash-medal" aria-hidden="true"><BadgeIcon code={badge.id} /></span>
                   <div className="dash-row-text">
                     <div className="dash-row-title">{badge.name}</div>
                     <div className="dash-row-sub">{badge.description}</div>
@@ -334,7 +335,7 @@ export default function DashboardHome({ onNavigate }) {
               return (
                 <li className="dash-upcoming-item" key={badge.id}>
                   <div className="dash-upcoming-top">
-                    <span className="dash-medal is-locked" aria-hidden="true">{badge.icon}</span>
+                    <span className="dash-medal is-locked" aria-hidden="true"><BadgeIcon code={badge.id} /></span>
                     <div className="dash-row-text">
                       <div className="dash-row-title">{badge.name}</div>
                       <div className="dash-row-sub">{badge.description}</div>

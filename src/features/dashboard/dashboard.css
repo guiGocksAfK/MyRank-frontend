@@ -714,7 +714,7 @@
   white-space: nowrap;
 }
 
-/* Medalhão da conquista: o emoji é a arte dela, a borda dourada é a moldura */
+/* Medalhão da conquista: ícone de traço dourado, a borda dourada é a moldura */
 .dash-medal {
   flex: none;
   display: flex;
@@ -725,14 +725,14 @@
   border: 1px solid rgba(212, 175, 55, 0.45);
   border-radius: 50%;
   background: var(--mr-gold-10);
+  color: var(--mr-gold);
   font-size: 1.1rem;
 }
 
 .dash-medal.is-locked {
   border-color: var(--mr-border);
   background: transparent;
-  filter: grayscale(1);
-  opacity: 0.55;
+  color: var(--mr-text-muted);
 }
 
 .dash-upcoming {
@@ -1450,10 +1450,13 @@
 .mr-badge-card.locked { opacity: 0.5; }
 
 .mr-badge-icon {
-  font-size: 2.5rem;
+  font-size: 2.25rem;
   display: block;
   margin-bottom: 8px;
+  color: var(--mr-gold);
 }
+
+.mr-badge-card.locked .mr-badge-icon { color: var(--mr-text-muted); }
 
 /* ============ APIs ============ */
 .mr-api-list {
@@ -1605,6 +1608,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--mr-gold);
   font-size: 1.1rem;
   cursor: default;
 }
