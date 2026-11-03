@@ -8,6 +8,7 @@ import { relativeTime } from '../../shared/useUnifiedItems';
 import { getCategories } from '../../services/CategoryService';
 import { getWorksByCategory } from '../../services/WorkService';
 import { getGroups } from '../../services/masterTableGroupService';
+import { getLatestInsights } from '../../services/insightsService';
 import { mapWorkToItem } from '../../utils/mapWork';
 import { sortItems } from '../../utils/formatters';
 import { hasSquareCover } from '../../shared/tableTemplates';
@@ -20,8 +21,6 @@ const typeIcons = {
   serie: '📺',
   livro: '📚',
 };
-
-const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 function getTableOrderKey() {
   const userKey = localStorage.getItem('myrank_username') || 'anonymous';
@@ -75,6 +74,8 @@ export default function DashboardHome({ onNavigate }) {
   const [loadingItems, setLoadingItems] = useState(true);
   // "agora" fixo na montagem: decide quais conquistas ganham a etiqueta de nova
   const [now] = useState(() => Date.now());
+  // null = ainda carregando (ou falhou): a seção nem aparece
+  const [recos, setRecos] = useState(null);
   const { user } = useUser();
   const { worksVersion } = useWorks();
   const { lang, locale, t } = useLanguage();
@@ -119,6 +120,19 @@ export default function DashboardHome({ onNavigate }) {
     return () => { cancelled = true; };
   }, [worksVersion]);
 
+  useEffect(() => {
+    let cancelled = false;
+    getLatestInsights()
+      .then((latest) => {
+        // até 3 na lista; o back antigo (antes do deploy) ainda manda uma só em `recommendation`
+        const analysis = latest?.analysis;
+        const list = analysis?.recommendations ?? (analysis?.recommendation ? [analysis.recommendation] : []);
+        if (!cancelled) setRecos(list.filter((reco) => reco?.title));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   const { badges: badgeData } = useBadges();
   const badges = badgeData || [];
   const unlockedBadges = badges.filter((b) => b.unlocked).length;
@@ -140,11 +154,6 @@ export default function DashboardHome({ onNavigate }) {
     .filter((b) => b.unlocked)
     .sort((a, b) => new Date(b.unlockedAt || 0) - new Date(a.unlockedAt || 0))
     .slice(0, 5);
-
-  const upcomingBadges = badges
-    .filter((b) => !b.unlocked && b.hasProgress && b.progress > 0)
-    .sort((a, b) => (b.progress / b.maxProgress) - (a.progress / a.maxProgress))
-    .slice(0, 6);
 
   const stats = [
     { value: mediaItems.length, label: th.statRated },
@@ -315,55 +324,44 @@ export default function DashboardHome({ onNavigate }) {
         </section>
       </div>
 
-      <section className="mr-panel dash-card">
-        <div className="dash-card-head">
-          <h2 className="dash-card-title">{th.nextBadges}</h2>
-          <button
-            type="button"
-            className="mr-btn mr-btn-ghost mr-btn-sm"
-            onClick={() => {
-              onNavigate?.('profile');
-              setTimeout(
-                () => document.getElementById('mr-badges')
-                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-                140,
-              );
-            }}
-          >
-            {th.seeAll}
-          </button>
-        </div>
-        {upcomingBadges.length === 0 ? (
-          <p className="dash-empty">{th.noProgress}</p>
-        ) : (
-          <ul className="dash-upcoming">
-            {upcomingBadges.map((badge) => {
-              const pct = Math.min((badge.progress / badge.maxProgress) * 100, 100);
-              const close = pct >= 80;
-              return (
-                <li className="dash-upcoming-item" key={badge.id}>
-                  <div className="dash-upcoming-top">
-                    <span className="dash-medal is-locked" aria-hidden="true"><BadgeIcon code={badge.id} /></span>
-                    <div className="dash-row-text">
-                      <div className="dash-row-title">{badge.name}</div>
-                      <div className="dash-row-sub">{badge.description}</div>
-                    </div>
-                  </div>
-                  <div className="mr-progress mr-progress-sm">
-                    <div className="mr-progress-bar dash-upcoming-bar" style={{ width: `${pct}%` }} />
-                  </div>
-                  <div className="dash-upcoming-meta">
-                    <span>{badge.progress} / {badge.maxProgress}</span>
-                    <span className={close ? 'is-close' : undefined}>
-                      {close ? fmt(th.almostThere, { n: badge.maxProgress - badge.progress }) : `${Math.round(pct)}%`}
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+      {/* Recomendado pra você: sai da última análise de IA, sem gastar a cota do dia.
+          Quem nunca gerou vê o convite pra aba IA. Antes de responder não mostra nada. */}
+      {recos && (
+        <section className="mr-panel dash-card">
+          {recos.length > 0 ? (
+            <>
+              <div className="dash-reco-head">
+                <h2 className="dash-card-title">{th.recoTitle}</h2>
+                <span className="dash-reco-source">{th.recoSource}</span>
+              </div>
+              <ul className="dash-reco">
+                {recos.map((reco) => (
+                  <li className="dash-reco-item" key={reco.title}>
+                    {typeof reco.compatPercent === 'number' && (
+                      <div className="dash-reco-compat">
+                        {reco.compatPercent}%<span>{th.recoCompat}</span>
+                      </div>
+                    )}
+                    <div className="dash-reco-title">{reco.title}</div>
+                    <div className="dash-row-sub">{[reco.category, reco.year].filter(Boolean).join(' · ')}</div>
+                    {reco.reason && <p className="dash-reco-reason">{reco.reason}</p>}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <div className="dash-reco-empty">
+              <div>
+                <h2 className="dash-card-title">{th.recoEmptyTitle}</h2>
+                <p className="dash-empty">{th.recoEmptyText}</p>
+              </div>
+              <button type="button" className="mr-btn mr-btn-gold" onClick={() => onNavigate?.('ai')}>
+                {th.recoEmptyCta}
+              </button>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
