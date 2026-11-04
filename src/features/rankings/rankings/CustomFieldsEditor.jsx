@@ -1,8 +1,86 @@
-import { Plus, X } from 'lucide-react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Calendar, ChevronDown, Hash, Lock, Plus, SquareCheck, Type, X } from 'lucide-react';
 import { useLanguage } from '../../../shared/i18n';
 
-const TYPES = ['TEXT', 'NUMBER', 'DATE', 'BOOLEAN'];
 const MAX_CUSTOM_FIELDS = 5;
+const TYPES = [
+  { id: 'TEXT', Icon: Type },
+  { id: 'NUMBER', Icon: Hash },
+  { id: 'DATE', Icon: Calendar },
+  { id: 'BOOLEAN', Icon: SquareCheck },
+];
+const TYPE_ICONS = Object.fromEntries(TYPES.map(({ id, Icon }) => [id, Icon]));
+
+/**
+ * Botão de ícone que escolhe o tipo do campo. O menu vai pro <body> com
+ * position: fixed, senão a rolagem do modal cortava ele.
+ */
+function TypeMenu({ value, onChange, locked, labels }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState(null);
+  const button = useRef(null);
+  const menu = useRef(null);
+  const Icon = TYPE_ICONS[value] ?? Type;
+
+  useLayoutEffect(() => {
+    if (!open || !button.current || !menu.current) return;
+    const anchor = button.current.getBoundingClientRect();
+    const height = menu.current.offsetHeight;
+    const below = anchor.bottom + 6;
+    setPos({ left: anchor.left, top: below + height > window.innerHeight - 8 ? anchor.top - 6 - height : below });
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onPointerDown = (event) => {
+      if (!button.current?.contains(event.target) && !menu.current?.contains(event.target)) setOpen(false);
+    };
+    const onKeyDown = (event) => { if (event.key === 'Escape') { event.stopPropagation(); setOpen(false); button.current?.focus(); } };
+    // o menu fica fixo na tela: se o modal rolar, fecha em vez de ficar solto
+    const onScroll = (event) => { if (!menu.current?.contains(event.target)) setOpen(false); };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('scroll', onScroll, true);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('scroll', onScroll, true);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={button}
+        type="button"
+        className="rk-ftype"
+        title={locked ? labels.typeLocked : `${labels.typeLabel}: ${labels.types[value]}`}
+        aria-label={`${labels.typeLabel}: ${labels.types[value]}`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        disabled={locked}
+        onClick={() => { setPos(null); setOpen(v => !v); }}
+      >
+        <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
+        {locked ? <Lock size={11} strokeWidth={2} aria-hidden="true" /> : <ChevronDown size={12} strokeWidth={2} aria-hidden="true" />}
+      </button>
+      {open && createPortal(
+        <div ref={menu} className="mr-menu rk-ftype-menu" role="menu" aria-label={labels.typeLabel}
+          style={pos ? { left: pos.left, top: pos.top } : { visibility: 'hidden' }}>
+          {TYPES.map(({ id, Icon: OptionIcon }) => (
+            <button key={id} type="button" role="menuitemradio" aria-checked={id === value} className="mr-menu-item"
+              onClick={() => { onChange(id); setOpen(false); button.current?.focus(); }}>
+              <OptionIcon size={15} strokeWidth={1.8} aria-hidden="true" />
+              {labels.types[id]}
+            </button>
+          ))}
+        </div>,
+        document.body,
+      )}
+    </>
+  );
+}
 
 /**
  * Campos próprios do Personalizado (até 5). Campo que já existe tem `id` e não
@@ -11,46 +89,62 @@ const MAX_CUSTOM_FIELDS = 5;
 export default function CustomFieldsEditor({ value, onChange, disabled = false }) {
   const { t } = useLanguage();
   const tc = t.rankings.customFields;
+  // campo recém-adicionado já recebe o cursor
+  const [focusIndex, setFocusIndex] = useState(null);
 
   const update = (index, patch) => onChange(value.map((field, i) => (i === index ? { ...field, ...patch } : field)));
+  const add = () => {
+    setFocusIndex(value.length);
+    onChange([...value, { name: '', type: 'TEXT' }]);
+  };
+  const canAdd = value.length < MAX_CUSTOM_FIELDS;
 
   return (
-    <div className="rk-subs">
-      <span className="mr-field-label">{tc.label}</span>
-      {value.length > 0 && (
-        <ul className="rk-subs-list">
-          {value.map((field, index) => (
-            <li key={field.id ?? `new-${index}`}>
-              <input
-                className="mr-input"
-                value={field.name}
-                placeholder={tc.namePlaceholder}
-                maxLength={40}
-                onChange={event => update(index, { name: event.target.value })}
-                disabled={disabled}
-              />
-              <select
-                className="mr-input rk-field-type"
-                value={field.type}
-                onChange={event => update(index, { type: event.target.value })}
-                disabled={disabled || !!field.id}
-                title={field.id ? tc.typeLocked : undefined}
-              >
-                {TYPES.map(type => <option key={type} value={type}>{tc.types[type]}</option>)}
-              </select>
-              <button type="button" className="rk-icon-btn is-danger" aria-label={tc.remove} title={tc.remove}
-                onClick={() => onChange(value.filter((_, i) => i !== index))} disabled={disabled}>
-                <X size={16} strokeWidth={1.8} aria-hidden="true" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {value.length < MAX_CUSTOM_FIELDS && (
-        <button type="button" className="mr-btn mr-btn-ghost mr-btn-sm rk-add-link" onClick={() => onChange([...value, { name: '', type: 'TEXT' }])} disabled={disabled}>
-          <Plus size={14} strokeWidth={2} aria-hidden="true" />
-          {tc.add}
-        </button>
+    <div>
+      <div className="rk-label-row">
+        <span className="mr-field-label">{tc.label}</span>
+        {value.length > 0 && (
+          <span className="rk-fields-count">{tc.count.replace('{n}', value.length).replace('{max}', MAX_CUSTOM_FIELDS)}</span>
+        )}
+      </div>
+
+      {value.length === 0 ? (
+        <div className="rk-fields-empty">
+          <p>{tc.emptyHint}</p>
+          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={add} disabled={disabled}>
+            <Plus size={14} strokeWidth={2} aria-hidden="true" />
+            {tc.add}
+          </button>
+        </div>
+      ) : (
+        <>
+          <ul className="rk-fields">
+            {value.map((field, index) => (
+              <li key={field.id ?? `new-${index}`}>
+                <TypeMenu value={field.type} onChange={type => update(index, { type })} locked={disabled || !!field.id} labels={tc} />
+                <input
+                  className="rk-fields-name"
+                  value={field.name}
+                  placeholder={tc.namePlaceholder}
+                  maxLength={40}
+                  autoFocus={index === focusIndex}
+                  onChange={event => update(index, { name: event.target.value })}
+                  disabled={disabled}
+                />
+                <button type="button" className="rk-icon-btn is-danger" aria-label={tc.remove} title={tc.remove}
+                  onClick={() => onChange(value.filter((_, i) => i !== index))} disabled={disabled}>
+                  <X size={16} strokeWidth={1.8} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+          {canAdd && (
+            <button type="button" className="mr-btn mr-btn-ghost mr-btn-sm rk-add-link" onClick={add} disabled={disabled}>
+              <Plus size={14} strokeWidth={2} aria-hidden="true" />
+              {tc.add}
+            </button>
+          )}
+        </>
       )}
     </div>
   );

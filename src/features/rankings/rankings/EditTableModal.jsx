@@ -148,12 +148,12 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
         <>
           {/* ação perigosa fica aqui dentro, longe do "Adicionar obra"; a confirmação vem depois */}
           {onDeleteTable && (
-            <button type="button" className="mr-btn mr-btn-ghost mr-btn-sm rk-danger-link" onClick={onDeleteTable} disabled={saving}>
+            <button type="button" className="mr-btn mr-btn-danger-text" onClick={onDeleteTable} disabled={saving}>
               {tr.toolbar.deleteTable}
             </button>
           )}
-          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" style={{ marginLeft: 'auto' }} onClick={onClose} disabled={saving}>{tm.cancel}</button>
-          <button type="button" className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving || !name.trim()}>
+          <button type="button" className="mr-btn mr-btn-ghost" onClick={onClose} disabled={saving}>{tm.cancel}</button>
+          <button type="button" className="mr-btn mr-btn-gold" onClick={handleSave} disabled={saving || !name.trim()}>
             {saving ? tm.saving : tm.save}
           </button>
         </>

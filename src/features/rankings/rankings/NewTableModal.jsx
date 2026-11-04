@@ -16,7 +16,8 @@ export default function NewTableModal({ onSave, onClose }) {
 
   // "Séries", "Séries & Animes", "Filmes, Séries & Animes" (na ordem da grade)
   const typeNames = Object.keys(TABLE_TEMPLATES)
-    .filter(template => templates.includes(template))
+    // "Outro" não é nome de tabela: só "Outro" marcado deixa o nome vazio (vale o exemplo)
+    .filter(template => template !== 'custom' && templates.includes(template))
     .map(template => tableName(t.rankings.types[TABLE_TEMPLATES[template].type]));
   const autoName = typeNames.length > 1
     ? `${typeNames.slice(0, -1).join(', ')} & ${typeNames[typeNames.length - 1]}`
@@ -44,8 +45,8 @@ export default function NewTableModal({ onSave, onClose }) {
       busy={saving}
       footer={(
         <>
-          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={saving}>{tm.cancel}</button>
-          <button type="button" className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving || !name.trim()}>
+          <button type="button" className="mr-btn mr-btn-ghost" onClick={onClose} disabled={saving}>{tm.cancel}</button>
+          <button type="button" className="mr-btn mr-btn-gold" onClick={handleSave} disabled={saving || !name.trim()}>
             {saving ? tm.creating : tm.create}
           </button>
         </>
