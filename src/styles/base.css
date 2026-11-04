@@ -123,8 +123,8 @@
 }
 
 .mr-btn-outline:hover {
-  border-color: color-mix(in srgb, var(--mr-gold) 35%, transparent);
-  background: var(--mr-gold-10);
+  border-color: color-mix(in srgb, var(--mr-text) 30%, transparent);
+  background: color-mix(in srgb, var(--mr-text) 7%, transparent);
   color: var(--mr-text);
 }
 

@@ -101,11 +101,6 @@ export default function CustomFieldsEditor({ value, onChange, disabled = false }
   };
   const canAdd = value.length < MAX_CUSTOM_FIELDS;
 
-  function toggle() {
-    // abrir sem nenhum já cria o primeiro, com o cursor nele
-    if (!open && value.length === 0) add();
-    setOpen(v => !v);
-  }
 
   const names = value.map(field => field.name.trim()).filter(Boolean);
   const summary = open
@@ -115,7 +110,7 @@ export default function CustomFieldsEditor({ value, onChange, disabled = false }
       : names.slice(0, 2).join(', ') + (names.length > 2 ? ` +${names.length - 2}` : '');
 
   return (
-    <CollapsibleField icon={ListPlus} title={tc.label} summary={summary} open={open} onToggle={toggle}>
+    <CollapsibleField icon={ListPlus} title={tc.label} summary={summary} open={open} onToggle={() => setOpen(v => !v)}>
       {value.length > 0 && (
         <ul className="rk-fields">
           {value.map((field, index) => (
