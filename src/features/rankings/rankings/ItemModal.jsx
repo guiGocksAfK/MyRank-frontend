@@ -14,6 +14,20 @@ const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3; // evita disparar busca com 1-2 caracteres
 const NO_MSG = { text: '', tone: '' };
 
+// Tabela mista: o tipo já vem escolhido (o último usado nela, senão o primeiro que
+// busca), porque o seletor fica embaixo da busca. "Outro" nunca, ele desliga a busca.
+const lastTypeKey = templates => `myrank_lastItemType:${[...templates].sort().join(',')}`;
+
+function initialTemplate(item, templates) {
+  if (item?.template) return item.template;
+  if (templates.length === 1) return templates[0];
+  try {
+    const last = localStorage.getItem(lastTypeKey(templates));
+    if (last && last !== 'custom' && templates.includes(last)) return last;
+  } catch { /* sem localStorage, vale o primeiro */ }
+  return templates.find(template => template !== 'custom') ?? templates[0];
+}
+
 export default function ItemModal({ item, templates = ['custom'], customFields = [], subcategories = [], defaultSubcategoryId = null, onSave, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.itemModal;
@@ -23,7 +37,7 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
   const initialHHMM = minutesToHHMM(item?.timeMinutes);
   // Tabela de um tipo só: o item já nasce com ele. Tabela mista: a pessoa escolhe
   // entre os tipos da tabela. Personalizado não tem busca (preenchimento manual).
-  const [itemTemplate, setItemTemplate] = useState(item?.template ?? (templates.length === 1 ? templates[0] : ''));
+  const [itemTemplate, setItemTemplate] = useState(() => initialTemplate(item, templates));
   const workType = itemTemplate === 'custom' ? '' : itemTemplate;
   const isMixed = templates.length > 1;
   const [details, setDetails] = useState(item?.details ?? {});
@@ -264,6 +278,9 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
     setSaving(true);
     try {
       await onSave(payload);
+      if (isMixed) {
+        try { localStorage.setItem(lastTypeKey(templates), itemTemplate); } catch { /* só conveniência */ }
+      }
       onClose();
     } catch (err) {
       alert(err?.response?.data?.message || err.message || tm.saveError);
@@ -282,7 +299,8 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
   const coverUrl = image.trim();
   const showCover = coverUrl && brokenCover !== coverUrl;
   const year = releaseDate ? releaseDate.slice(0, 4) : '';
-  const placeholder = workType ? tm.searchPlaceholder : isMixed && !itemTemplate ? tm.pickTypeFirst : tm.manualPlaceholder;
+  const placeholder = workType ? tm.searchPlaceholder : tm.manualPlaceholder;
+  const typeLabel = value => t.rankings.itemTypes[value];
 
   const footer = (
     <>
@@ -301,24 +319,6 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
 
   return (
     <Modal title={isEdit ? tm.editTitle : tm.addTitle} onClose={onClose} footer={footer} width={520} busy={saving} closeOnBackdrop={false}>
-      {isMixed && (
-        <div>
-          <span className="mr-field-label" id="ik-type-label">{tm.workType}</span>
-          <div className="ik-chips" role="radiogroup" aria-labelledby="ik-type-label">
-            {templates.map(value => {
-              const Icon = TEMPLATE_ICONS[value];
-              return (
-                <button key={value} type="button" role="radio" aria-checked={value === itemTemplate}
-                  className={`ik-chip${value === itemTemplate ? ' is-active' : ''}`} onClick={() => pickType(value)}>
-                  {Icon && <Icon size={15} strokeWidth={1.8} aria-hidden="true" />}
-                  {t.rankings.itemTypes[value]}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       <div>
         <div className="ik-label-row">
           <label className="mr-field-label" htmlFor="ik-title">{tm.titleLabel}</label>
@@ -427,6 +427,28 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
                 onChange={e => { setMins(e.target.value); clearAttention('time'); }} />
               <span aria-hidden="true">min</span>
             </div>
+          </div>
+        )}
+        {isMixed && (
+          <div>
+            <span className="mr-field-label" id="ik-type-label">{tm.workType}</span>
+            {templates.length === 2 ? (
+              <div className="ik-seg" role="radiogroup" aria-labelledby="ik-type-label">
+                {templates.map(value => {
+                  const Icon = TEMPLATE_ICONS[value];
+                  return (
+                    <button key={value} type="button" role="radio" aria-checked={value === itemTemplate}
+                      className={value === itemTemplate ? 'is-active' : ''} onClick={() => pickType(value)}>
+                      {Icon && <Icon size={14} strokeWidth={1.8} aria-hidden="true" />}
+                      {typeLabel(value)}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <SelectMenu label={tm.workType} value={itemTemplate} onChange={pickType}
+                options={templates.map(value => ({ value, label: typeLabel(value) }))} />
+            )}
           </div>
         )}
         {subcategories.length > 0 && (

@@ -26,41 +26,6 @@
 .ik-link:hover:not(:disabled) { color: color-mix(in srgb, var(--mr-gold) 80%, white); }
 .ik-link:disabled { opacity: 0.5; cursor: default; }
 
-/* ---- tipo da obra: chips com ícone ---- */
-.ik-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--mr-space-2);
-}
-
-.ik-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 14px 0 11px;
-  border: 1px solid var(--mr-border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--mr-text-secondary);
-  font: inherit;
-  font-size: var(--mr-text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color var(--mr-duration-fast) var(--mr-ease), background var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
-}
-
-.ik-chip:hover { border-color: var(--mr-gold-20); color: var(--mr-text); }
-.ik-chip > svg { color: var(--mr-text-muted); }
-
-.ik-chip.is-active {
-  border-color: rgba(212, 175, 55, 0.55);
-  background: var(--mr-gold-10);
-  color: var(--mr-text);
-}
-
-.ik-chip.is-active > svg { color: var(--mr-gold); }
-
 /* ---- busca ---- */
 .ik-search { position: relative; }
 .ik-search.has-icon .mr-input { padding-left: 40px; }
@@ -305,6 +270,42 @@
 .ik-date::-webkit-calendar-picker-indicator { opacity: 0.55; cursor: pointer; }
 .ik-date::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 
+/* tipo (tabela mista): segmentado da altura do campo, já com um escolhido */
+.ik-seg {
+  display: flex;
+  gap: 2px;
+  height: 44px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--mr-radius-sm);
+  background: #0b0b0b;
+}
+
+.ik-seg button {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  border: 0;
+  border-radius: var(--mr-radius-xs);
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.ik-seg button:hover { color: var(--mr-text); }
+
+.ik-seg button.is-active {
+  background: var(--mr-gold-20);
+  color: var(--mr-gold);
+}
+
 /* tempo: uma caixa só com h e min dentro */
 .ik-time {
   display: flex;
@@ -415,5 +416,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ik-spinner { animation-duration: 2.4s; }
-  .ik-chip, .ik-result, .ik-switch, .ik-switch > span, .ik-disclosure > svg { transition: none; }
+  .ik-seg button, .ik-result, .ik-switch, .ik-switch > span, .ik-disclosure > svg { transition: none; }
 }
