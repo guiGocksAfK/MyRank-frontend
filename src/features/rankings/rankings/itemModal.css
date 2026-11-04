@@ -1,14 +1,7 @@
 /* Modal de adicionar/editar obra. Arquivo próprio porque o modal também abre
    no tutorial, fora da aba Rankings (que é quem carrega o rankings.css). */
 
-.ik-label-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--mr-space-2);
-}
-
-/* link dourado pequeno: "Atualizar dados", "Trocar capa" */
+/* link dourado pequeno: "Trocar capa" */
 .ik-link {
   display: inline-flex;
   align-items: center;
@@ -50,6 +43,28 @@
 }
 
 @keyframes ik-spin { to { transform: rotate(360deg); } }
+
+.ik-refresh {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-top: -15px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mr-text-muted);
+  cursor: pointer;
+  transition: color var(--mr-duration-fast) var(--mr-ease), background var(--mr-duration-fast) var(--mr-ease);
+}
+
+.ik-refresh:hover:not(:disabled) { background: var(--mr-track); color: var(--mr-text); }
+.ik-refresh:disabled { cursor: default; }
+.ik-refresh.is-busy > svg { color: var(--mr-gold); animation: ik-spin 0.9s linear infinite; }
 
 .ik-msg.is-ok { color: var(--mr-gold); }
 .ik-msg.is-error { color: var(--mr-red); }
@@ -415,6 +430,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ik-spinner { animation-duration: 2.4s; }
+  .ik-spinner, .ik-refresh.is-busy > svg { animation-duration: 2.4s; }
   .ik-seg button, .ik-result, .ik-switch, .ik-switch > span, .ik-disclosure > svg { transition: none; }
 }

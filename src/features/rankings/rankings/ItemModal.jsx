@@ -64,6 +64,10 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
   // ── Busca automática (debounced) sempre que title ou workType mudam ──
   const requestIdRef = useRef(0); // evita que uma resposta antiga sobrescreva uma mais nova
   const skipNextSearchRef = useRef(false); // true logo após escolher uma sugestão, para não reabrir a lista
+  // Editando, a obra já está escolhida: não busca o título que veio salvo, só depois
+  // que a pessoa mexer nele. Compara o texto (e não um "pula uma vez") porque o
+  // StrictMode roda o efeito duas vezes ao montar.
+  const savedTitleRef = useRef(isEdit ? (item?.title ?? '').trim() : null);
 
   useEffect(() => {
     const thisRequestId = ++requestIdRef.current;
@@ -73,6 +77,10 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
     }
 
     const currentQuery = title.trim();
+    if (savedTitleRef.current !== null) {
+      if (currentQuery === savedTitleRef.current) return;
+      savedTitleRef.current = null;
+    }
     const canSearch = workType && currentQuery.length >= MIN_QUERY_LENGTH;
     let active = true;
     const timer = setTimeout(async () => {
@@ -220,6 +228,7 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
   function pickType(next) {
     if (next === itemTemplate) return;
     requestIdRef.current++;
+    savedTitleRef.current = null; // trocou o tipo: aí sim busca no catálogo novo
     setItemTemplate(next);
     setDetails(current => {
       const cleaned = { ...current };
@@ -320,15 +329,7 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
   return (
     <Modal title={isEdit ? tm.editTitle : tm.addTitle} onClose={onClose} footer={footer} width={520} busy={saving} closeOnBackdrop={false}>
       <div>
-        <div className="ik-label-row">
-          <label className="mr-field-label" htmlFor="ik-title">{tm.titleLabel}</label>
-          {isEdit && workType && (
-            <button type="button" className="ik-link" onClick={handleRefresh} disabled={searching || !title.trim()}>
-              <RefreshCw size={13} strokeWidth={2} aria-hidden="true" />
-              {tm.refresh}
-            </button>
-          )}
-        </div>
+        <label className="mr-field-label" htmlFor="ik-title">{tm.titleLabel}</label>
         <div className={`ik-search${workType ? ' has-icon' : ''}`}>
           {workType && <Search className="ik-search-icon" size={16} strokeWidth={1.8} aria-hidden="true" />}
           <input
@@ -340,7 +341,14 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
             autoComplete="off"
             onChange={e => { requestIdRef.current++; setTitle(e.target.value); setValidationError(''); }}
           />
-          {searching && <Loader2 className="ik-spinner" size={16} strokeWidth={2} aria-label={tm.searching} />}
+          {/* "Atualizar dados" quase nunca é usado: ícone discreto no canto do campo,
+              que gira enquanto atualiza (e aí faz o papel do spinner) */}
+          {isEdit && workType ? (
+            <button type="button" className={`ik-refresh${searching ? ' is-busy' : ''}`} onClick={handleRefresh}
+              disabled={searching || !title.trim()} aria-label={tm.refresh} title={tm.refresh}>
+              <RefreshCw size={15} strokeWidth={1.8} aria-hidden="true" />
+            </button>
+          ) : searching && <Loader2 className="ik-spinner" size={16} strokeWidth={2} aria-label={tm.searching} />}
         </div>
 
         {suggestions.length > 0 && (
