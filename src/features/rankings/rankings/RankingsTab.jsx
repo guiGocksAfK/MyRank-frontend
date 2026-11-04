@@ -212,11 +212,15 @@ export default function RankingsTab({ onNavigateToCreators }) {
 
   // ── Criar tabela (categoria) ──
   async function handleCreateTable(table) {
-    const { customFields, ...category } = table;
+    const { customFields, subcategories, ...category } = table;
     let cat = await createCategory(category);
     if (customFields?.length && category.templates.includes('custom')) {
       cat = await updateCustomFields(cat.id, customFields);
     }
+    // subcategorias da criação entram logo depois da tabela, no mesmo "Criar"
+    const createdSubs = [];
+    for (const name of subcategories ?? []) createdSubs.push(await createSubcategory(cat.id, name));
+    if (createdSubs.length) cat = { ...cat, subcategories: [...(cat.subcategories ?? []), ...createdSubs] };
     bumpWorks();
     const newTable = mapCategoryToTable(cat);
     setTables(prev => {
@@ -275,7 +279,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
     bumpWorks();
   }
 
-  // ── Subcategorias (salvam na hora, direto do modal de editar tabela) ──
+  // ── Subcategorias (o modal de editar tabela aplica tudo no Salvar) ──
   async function handleAddSubcategory(tableId, name) {
     const created = await createSubcategory(tableId, name);
     setTables(prev => prev.map(table => table.id === tableId
@@ -429,13 +433,13 @@ export default function RankingsTab({ onNavigateToCreators }) {
               {tableName(t.label)}
             </button>
           ))}
+          {/* nova tabela = "aba nova", logo depois da última: sempre no mesmo lugar */}
+          <button type="button" className="rk-tab-add" onClick={() => setShowNewTable(true)} aria-label={tr.newTable} title={tr.newTable}>
+            <Plus size={16} strokeWidth={2} aria-hidden="true" />
+          </button>
         </div>
-        <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setShowNewTable(true)} aria-label={tr.newTable}>
-          <Plus size={15} strokeWidth={2} aria-hidden="true" />
-          <span className="rk-hide-mobile">{tr.newTable}</span>
-        </button>
-        {/* outra tela: a seta diz que o botão leva pra fora daqui */}
-        {onNavigateToCreators && (
+        {/* outra tela (a seta diz que leva pra fora daqui); olha todas as obras, então só no Unificado */}
+        {onNavigateToCreators && activeTab === 'unified' && (
           <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={onNavigateToCreators} title={tr.seeCreatorsTitle} aria-label={tr.seeCreators}>
             <Users size={14} strokeWidth={1.8} aria-hidden="true" />
             <span className="rk-hide-mobile">{tr.seeCreators}</span>

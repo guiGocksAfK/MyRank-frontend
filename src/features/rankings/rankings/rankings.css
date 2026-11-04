@@ -58,6 +58,30 @@
 
 .rk-tab:hover { color: var(--mr-text); }
 
+.rk-tab-add {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin: auto 0 auto 2px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mr-text-muted);
+  cursor: pointer;
+  transition: color var(--mr-duration-fast) var(--mr-ease), background var(--mr-duration-fast) var(--mr-ease), border-color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.rk-tab-add:hover,
+.rk-tab-add:focus-visible {
+  outline: none;
+  border-color: var(--mr-gold-20);
+  background: var(--mr-gold-10);
+  color: var(--mr-gold);
+}
+
 .rk-tab.is-active { color: var(--mr-text); }
 
 .rk-tab.is-active::after {
@@ -103,6 +127,8 @@
 .rk-seg {
   display: inline-flex;
   flex: none;
+  box-sizing: border-box;
+  height: 34px; /* a mesma altura do .mr-btn-sm ao lado */
   padding: 2px;
   border: 1px solid var(--mr-border);
   border-radius: 999px;
@@ -113,7 +139,7 @@
   align-items: center;
   justify-content: center;
   min-width: 34px;
-  padding: 5px 12px;
+  padding: 0 12px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -690,62 +716,88 @@
   color: #000;
 }
 
-/* subcategorias e campos próprios: uma linha por item, × ao lado */
-.rk-subs-hint { margin: 0 0 var(--mr-space-3); }
-
-.rk-subs-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--mr-space-2);
-  margin: 0 0 var(--mr-space-2);
-  padding: 0;
-  list-style: none;
+/* Seção opcional (subcategorias, campos próprios): fechada é uma linha com o
+   resumo à direita; aberta, a lista aparece dentro da mesma caixa */
+.rk-coll {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--mr-radius-sm);
+  background: #0b0b0b;
+  transition: border-color var(--mr-duration-fast) var(--mr-ease);
 }
 
-.rk-subs-list li,
-.rk-subs-add {
+.rk-coll:not(.is-open):hover { border-color: var(--mr-gold-20); }
+
+.rk-coll-head {
   display: flex;
   align-items: center;
-  gap: var(--mr-space-2);
-}
-
-.rk-subs-list .mr-input,
-.rk-subs-add .mr-input { height: 38px; }
-
-.rk-subs-list .rk-icon-btn { opacity: 1; flex: none; }
-
-.rk-subs-add .mr-btn { flex: none; gap: 6px; }
-
-/* nome estica (o .mr-input da base é 100%) */
-.rk-subs-list li > input.mr-input,
-.rk-subs-add > input.mr-input { flex: 1; width: auto; min-width: 0; }
-
-/* campos próprios: uma caixa com uma linha por campo — [tipo ▾] nome × */
-.rk-fields-count {
-  color: var(--mr-text-muted);
-  font-size: var(--mr-text-xs);
-  font-variant-numeric: tabular-nums;
-}
-
-.rk-fields-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   gap: var(--mr-space-3);
-  padding: var(--mr-space-4);
-  border: 1px dashed rgba(255, 255, 255, 0.14);
-  border-radius: var(--mr-radius-sm);
+  width: 100%;
+  height: 50px;
+  padding: 0 var(--mr-space-3) 0 var(--mr-space-4);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--mr-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.rk-fields-empty p {
-  margin: 0;
-  color: var(--mr-text-secondary);
+.rk-coll-head:focus-visible { outline: 2px solid var(--mr-gold); outline-offset: 2px; }
+
+.rk-coll-icon { flex: none; color: var(--mr-gold); }
+
+.rk-coll-title {
+  flex: none;
   font-size: var(--mr-text-sm);
-  line-height: 1.5;
+  font-weight: 600;
 }
 
-.rk-fields-empty .mr-btn { gap: 6px; }
+.rk-coll-summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
+.rk-coll-chevron {
+  flex: none;
+  color: var(--mr-text-muted);
+  transition: transform var(--mr-duration-fast) var(--mr-ease);
+}
+
+.rk-coll.is-open .rk-coll-chevron { transform: rotate(90deg); }
+
+.rk-coll-body { border-top: 1px solid rgba(255, 255, 255, 0.06); }
+
+/* dentro da seção a lista não tem caixa própria: as linhas dividem a borda dela */
+.rk-coll .rk-fields {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rk-coll .rk-fields li { padding-left: var(--mr-space-4); }
+
+.rk-coll .rk-fields li:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+
+.rk-coll-foot { padding: var(--mr-space-2) var(--mr-space-4) var(--mr-space-3); }
+
+.rk-coll-foot .rk-add-link { margin-bottom: 2px; }
+
+.rk-coll-foot .mr-field-hint { margin-top: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-coll, .rk-coll-chevron { transition: none; }
+}
+
+/* linhas de item: [tipo ▾] nome × */
 .rk-fields {
   margin: 0 0 var(--mr-space-2);
   padding: 0;
@@ -812,11 +864,26 @@
 
 .rk-add-link { gap: 6px; padding-left: 0; color: var(--mr-gold); }
 
-.rk-form-error {
-  margin: var(--mr-space-2) 0 0;
-  color: var(--mr-red);
+/* subcategoria: quantas obras ela tem, e a removida riscada até salvar */
+.rk-sub-count {
+  flex: none;
+  color: var(--mr-text-muted);
   font-size: var(--mr-text-xs);
+  font-variant-numeric: tabular-nums;
 }
+
+.rk-fields li.is-removed { padding-left: 12px; }
+
+.rk-sub-removed {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  color: var(--mr-text-muted);
+  white-space: nowrap;
+}
+
+.rk-sub-removed s { overflow: hidden; text-overflow: ellipsis; }
+.rk-sub-removed em { margin-left: 6px; font-style: normal; }
 
 
 .rk-only-mobile { display: none !important; }

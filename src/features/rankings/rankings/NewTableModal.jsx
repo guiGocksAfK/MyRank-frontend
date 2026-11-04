@@ -4,6 +4,7 @@ import { useLanguage } from '../../../shared/i18n';
 import { TABLE_TEMPLATES, cleanCustomFields, tableName } from '../../../shared/tableTemplates';
 import TemplatePicker from './TemplatePicker';
 import CustomFieldsEditor from './CustomFieldsEditor';
+import SubcategoryEditor from './SubcategoryEditor';
 
 export default function NewTableModal({ onSave, onClose }) {
   const { t } = useLanguage();
@@ -12,6 +13,7 @@ export default function NewTableModal({ onSave, onClose }) {
   const [typedName,    setTypedName]    = useState('');
   const [templates,    setTemplates]    = useState(['movie']);
   const [customFields, setCustomFields] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
   const [saving,       setSaving]       = useState(false);
 
   // "Séries", "Séries & Animes", "Filmes, Séries & Animes" (na ordem da grade)
@@ -29,7 +31,8 @@ export default function NewTableModal({ onSave, onClose }) {
     setSaving(true);
     try {
       // o emoji do tipo continua no nome (o resto do site espera); a aba Rankings só não mostra
-      await onSave({ name: `${TABLE_TEMPLATES[templates[0]].emoji} ${name.trim()}`, templates, customFields: cleanCustomFields(customFields) });
+      await onSave({ name: `${TABLE_TEMPLATES[templates[0]].emoji} ${name.trim()}`, templates, customFields: cleanCustomFields(customFields),
+        subcategories: subcategories.map(sub => sub.name.trim()).filter(Boolean) });
       onClose();
     } catch (err) {
       alert(err?.response?.data?.message || err.message || tm.createError);
@@ -71,6 +74,7 @@ export default function NewTableModal({ onSave, onClose }) {
       {templates.includes('custom') && (
         <CustomFieldsEditor value={customFields} onChange={setCustomFields} disabled={saving} />
       )}
+      <SubcategoryEditor value={subcategories} onChange={setSubcategories} disabled={saving} />
     </Modal>
   );
 }
