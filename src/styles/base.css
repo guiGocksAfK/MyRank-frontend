@@ -274,3 +274,203 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 12px 32px rgba(0, 0, 0, 0.4);
 }
+
+/* ============ CAMPO E MODAL PADRÃO ============
+   .mr-input: o campo do login/cadastro levado pra base. .mr-dialog: moldura de
+   todo modal (título + ×, corpo, rodapé com os botões). */
+.mr-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  background: #0b0b0b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--mr-radius-sm);
+  color: var(--mr-text);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  outline: none;
+  transition: border-color var(--mr-duration-fast) var(--mr-ease), box-shadow var(--mr-duration-fast) var(--mr-ease);
+}
+
+.mr-input::placeholder { color: var(--mr-text-muted); }
+
+.mr-input:focus {
+  border-color: var(--mr-gold);
+  box-shadow: 0 0 0 3px var(--mr-gold-10);
+}
+
+.mr-input:disabled { opacity: 0.6; }
+
+/* rótulo pequeno em maiúsculas, acima do campo */
+.mr-field-label {
+  display: block;
+  margin-bottom: var(--mr-space-2);
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mr-field-hint {
+  margin: var(--mr-space-2) 0 0;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+}
+
+.mr-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mr-space-4);
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: mr-dialog-fade var(--mr-duration) var(--mr-ease-out);
+}
+
+.mr-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(var(--mr-dialog-width, 440px), 100%);
+  max-height: min(88vh, 760px);
+  background: #0d0d0d;
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 24px 60px rgba(0, 0, 0, 0.55);
+  color: var(--mr-text);
+  animation: mr-dialog-in var(--mr-duration) var(--mr-ease-out);
+}
+
+.mr-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mr-space-3);
+  padding: var(--mr-space-4) var(--mr-space-5);
+  border-bottom: 1px solid var(--mr-border);
+}
+
+.mr-dialog-title {
+  margin: 0;
+  font-size: var(--mr-text-lg);
+  font-weight: 800;
+  letter-spacing: var(--mr-tracking-tight);
+}
+
+.mr-dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: -6px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mr-text-muted);
+  cursor: pointer;
+  transition: background var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.mr-dialog-close:hover { background: var(--mr-track); color: var(--mr-text); }
+
+.mr-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-5);
+  padding: var(--mr-space-5);
+  overflow-y: auto;
+}
+
+.mr-dialog-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--mr-space-2);
+  padding: var(--mr-space-3) var(--mr-space-5);
+  border-top: 1px solid var(--mr-border);
+}
+
+@keyframes mr-dialog-fade {
+  from { opacity: 0; }
+}
+
+@keyframes mr-dialog-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr-dialog-backdrop,
+  .mr-dialog { animation: none; }
+}
+
+@media (max-width: 640px) {
+  .mr-dialog-head,
+  .mr-dialog-body,
+  .mr-dialog-foot { padding-inline: var(--mr-space-4); }
+}
+
+/* ============ "?" DE AJUDA ============ */
+.mr-infotip {
+  position: relative;
+  display: inline-flex;
+}
+
+.mr-infotip-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--mr-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mr-text-muted);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.mr-infotip-btn:hover,
+.mr-infotip-btn[aria-expanded="true"] { border-color: var(--mr-gold-20); color: var(--mr-text); }
+
+.mr-infotip-pop {
+  position: fixed; /* posição vem do componente: assim modal com rolagem não corta */
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 290px;
+  padding: 12px 14px;
+  border: 1px solid #303030;
+  border-radius: var(--mr-radius-sm);
+  background: #161616;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  color: var(--mr-text-secondary);
+  font-size: var(--mr-text-xs);
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.5;
+  text-transform: none;
+  text-align: left;
+  animation: mr-menu-in var(--mr-duration-fast) var(--mr-ease);
+}
+
+.mr-infotip-title {
+  color: var(--mr-gold);
+  font-size: var(--mr-text-sm);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr-infotip-pop { animation: none; }
+}

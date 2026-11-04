@@ -1,16 +1,25 @@
+import { BookMarked, BookOpen, Disc3, Film, Gamepad2, Music, Package, Sparkles, Tv } from 'lucide-react';
 import { formatTime } from '../utils/formatters';
 
 /** Os identificadores são os mesmos da API; nome e emoji não determinam o tipo. */
+// A ordem importa: é a da grade de tipos, dos filtros e do nome automático,
+// com os parentes lado a lado (série perto de anime, livro perto de mangá).
 export const TABLE_TEMPLATES = {
   movie: { emoji: '🎬', type: 'filme' },
-  game: { emoji: '🎮', type: 'jogo' },
   tv: { emoji: '📺', type: 'serie' },
-  book: { emoji: '📚', type: 'livro' },
   anime: { emoji: '🎌', type: 'anime' },
+  game: { emoji: '🎮', type: 'jogo' },
+  book: { emoji: '📚', type: 'livro' },
   manga: { emoji: '📖', type: 'manga', timeless: true },
   music: { emoji: '🎵', type: 'musica', square: true, timeless: true },
   album: { emoji: '💿', type: 'album', square: true, timeless: true },
   custom: { emoji: '📦', type: 'outro' },
+};
+
+/** Ícone de traço de cada tipo (no lugar do emoji, onde o visual pede). */
+export const TEMPLATE_ICONS = {
+  movie: Film, game: Gamepad2, tv: Tv, book: BookOpen, anime: Sparkles,
+  manga: BookMarked, music: Music, album: Disc3, custom: Package,
 };
 
 export function templateType(template) {
