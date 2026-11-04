@@ -22,20 +22,11 @@
   letter-spacing: var(--mr-tracking-tight);
 }
 
-.rk-weight {
-  display: flex;
-  align-items: center;
-  gap: var(--mr-space-3);
-  color: var(--mr-text-secondary);
-  font-size: var(--mr-text-sm);
-  white-space: nowrap;
-}
-
 /* Abas das tabelas: só o nome, sublinhado dourado na ativa (igual à navbar) */
 .rk-tabs {
   display: flex;
   align-items: center;
-  gap: var(--mr-space-3);
+  gap: var(--mr-space-2);
   border-bottom: 1px solid var(--mr-border);
 }
 
@@ -141,24 +132,303 @@
   color: var(--mr-gold);
 }
 
-.rk-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
+/* Barra de filtros: uma linha, cada filtro num menu. Dourado = filtro ligado */
+.rk-filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mr-space-2);
+  margin-bottom: var(--mr-space-4);
 }
 
-.rk-menu-box { position: relative; flex: none; }
+.rk-search {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-2);
+  width: 260px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: #0b0b0b;
+  color: var(--mr-text-muted);
+  transition: border-color var(--mr-duration-fast) var(--mr-ease), box-shadow var(--mr-duration-fast) var(--mr-ease);
+}
 
-.rk-menu {
+.rk-search:focus-within {
+  border-color: var(--mr-gold);
+  box-shadow: 0 0 0 3px var(--mr-gold-10);
+}
+
+.rk-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--mr-text);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+}
+
+.rk-fmenu {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 32px;
+  border: 1px solid var(--mr-border);
+  border-radius: 999px;
+  transition: border-color var(--mr-duration-fast) var(--mr-ease), background var(--mr-duration-fast) var(--mr-ease);
+}
+
+.rk-fmenu:hover { border-color: var(--mr-gold-20); }
+
+.rk-fmenu.is-active {
+  border-color: rgba(212, 175, 55, 0.45);
+  background: var(--mr-gold-20);
+}
+
+.rk-fmenu-btn,
+.rk-fmenu-clear {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.rk-fmenu-btn {
+  gap: 6px;
+  padding: 0 12px;
+  font-size: var(--mr-text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rk-fmenu:hover .rk-fmenu-btn { color: var(--mr-text); }
+
+.rk-fmenu.is-active .rk-fmenu-btn,
+.rk-fmenu.is-active .rk-fmenu-clear { color: var(--mr-gold); }
+
+.rk-fmenu.is-active .rk-fmenu-btn { padding-right: 4px; }
+.rk-fmenu-clear { padding: 0 10px 0 4px; }
+
+.rk-fmenu-list {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
   z-index: 40;
-  min-width: 220px;
+  min-width: 200px;
+  max-height: 320px;
+  overflow-y: auto;
 }
 
-.rk-menu .mr-menu-item[aria-disabled="true"] { opacity: 0.6; cursor: not-allowed; }
+.rk-fmenu-list .mr-menu-item[aria-disabled="true"] { opacity: 0.6; cursor: not-allowed; }
+
+.rk-fmenu-list.is-right { left: auto; right: 0; }
+
+/* fundo sólido: o menu fica em cima da tabela e o texto dela vazava pelo fosco */
+.rk-fmenu-list { background: #0f0f0f; }
+
+.rk-fmenu-list.is-wide {
+  width: 340px;
+  padding: var(--mr-space-3);
+}
+
+/* faixa "de / até": dois campos e o trilho com duas bolinhas */
+.rk-range {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-3);
+}
+
+.rk-range-fields {
+  display: grid;
+  /* minmax(0, …): sem isso a coluna não encolhe abaixo do campo e o "Até" vazava */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--mr-space-2);
+}
+
+.rk-range-fields label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--mr-radius-sm);
+  background: #0b0b0b;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+}
+
+.rk-range-fields label:focus-within { border-color: var(--mr-gold); }
+
+.rk-range-fields input {
+  flex: 1;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+  padding: 8px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--mr-text);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  color-scheme: dark;
+}
+
+.rk-date-fields { grid-template-columns: 1fr; margin: 0 0 var(--mr-space-2); }
+
+/* histograma + trilho + limites: um bloco só, o trilho encostado nas barras */
+.rk-range-graph { padding: 0 8px; }
+
+.rk-histo {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 44px;
+  /* meia coluna pra fora de cada lado: o centro da 1ª e da última cai nas pontas do trilho */
+  margin: 0 calc(-50% / var(--gaps)) 4px;
+}
+
+.rk-histo span {
+  flex: 1;
+  border-radius: 3px 3px 1px 1px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: background var(--mr-duration-fast) var(--mr-ease);
+}
+
+/* coluna vazia vira um tracinho na base: o gráfico fica contínuo */
+.rk-histo span.is-empty { height: 2px; border-radius: 1px; background: rgba(255, 255, 255, 0.06); }
+
+.rk-histo span.is-in { background: linear-gradient(to top, rgba(212, 175, 55, 0.55), var(--mr-gold)); }
+.rk-histo span.is-empty.is-in { background: rgba(212, 175, 55, 0.3); }
+.rk-histo span:not(.is-empty):hover { filter: brightness(1.25); }
+
+.rk-range-limits {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  color: var(--mr-text-muted);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rk-range-slider {
+  position: relative;
+  height: 20px;
+  margin: 0 -8px;
+}
+
+.rk-range-slider::before,
+.rk-range-slider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  height: 4px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+}
+
+/* trilho com 8px de folga em cada ponta: é onde fica o centro da bolinha */
+.rk-range-slider::before { left: 8px; right: 8px; background: var(--mr-track); }
+.rk-range-slider::after {
+  left: calc(8px + (100% - 16px) * var(--a));
+  right: calc(8px + (100% - 16px) * (1 - var(--b)));
+  background: var(--mr-gold);
+}
+
+.rk-range-slider input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.rk-range-slider input::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #000;
+  border-radius: 50%;
+  background: var(--mr-gold);
+  cursor: grab;
+  pointer-events: auto;
+  transition: transform var(--mr-duration-fast) var(--mr-ease), box-shadow var(--mr-duration-fast) var(--mr-ease);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.rk-range-slider input:hover::-webkit-slider-thumb { transform: scale(1.15); }
+.rk-range-slider input:active::-webkit-slider-thumb { cursor: grabbing; box-shadow: 0 0 0 6px var(--mr-gold-20); }
+.rk-range-slider input:hover::-moz-range-thumb { transform: scale(1.15); }
+.rk-range-slider input:active::-moz-range-thumb { box-shadow: 0 0 0 6px var(--mr-gold-20); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-range-slider input::-webkit-slider-thumb { transition: none; }
+  .rk-histo span { transition: none; }
+}
+
+.rk-range-slider input::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #000;
+  border-radius: 50%;
+  background: var(--mr-gold);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.rk-range-slider input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--mr-gold-20); }
+
+/* atalhos: preenchem os campos, que dá pra ajustar depois */
+.rk-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.rk-presets button {
+  padding: 3px 9px;
+  border: 1px solid var(--mr-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font: inherit;
+  font-size: var(--mr-text-xs);
+  cursor: pointer;
+}
+
+.rk-presets button:hover { border-color: var(--mr-gold-20); color: var(--mr-text); }
+
+.rk-presets button.is-active {
+  border-color: rgba(212, 175, 55, 0.45);
+  background: var(--mr-gold-20);
+  color: var(--mr-gold);
+}
+
+/* "Limpar" do filtro: texto, encostado à direita */
+.rk-presets .rk-range-clear {
+  margin-left: auto;
+  border: 0;
+  color: var(--mr-text-muted);
+}
+
+.rk-presets .rk-range-clear:hover { color: var(--mr-text); }
+
+/* título do menu: só no celular, onde ele abre longe do botão */
+.rk-fmenu-title { display: none; }
 
 /* dica que aparece ao clicar numa obra do Unificado */
 .rk-hint {
@@ -343,7 +613,6 @@
 /* ---- Celular ---- */
 @media (max-width: 640px) {
   .rk-page-title { font-size: var(--mr-text-xl); }
-  .rk-weight { font-size: var(--mr-text-xs); gap: var(--mr-space-2); }
 
   .rk-controls {
     flex-wrap: nowrap;
@@ -373,4 +642,25 @@
   .rk-icon-btn { opacity: 1; width: 28px; height: 28px; }
 
   .rk-hint { flex-direction: column; align-items: stretch; }
+  /* barra de filtros desliza; o menu abre como folha no pé da tela (a barra corta o que sai dela) */
+  .rk-filterbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(var(--mr-space-3) * -1);
+    padding-inline: var(--mr-space-3);
+  }
+  .rk-filterbar::-webkit-scrollbar { display: none; }
+  .rk-search { width: 200px; flex: none; }
+  .rk-fmenu-title { display: block; color: var(--mr-text); }
+  .rk-fmenu-list.is-wide { width: auto; }
+  .rk-fmenu-list.is-right { left: var(--mr-space-3); right: var(--mr-space-3); }
+  .rk-fmenu-list {
+    position: fixed;
+    top: auto;
+    left: var(--mr-space-3);
+    right: var(--mr-space-3);
+    bottom: var(--mr-space-3);
+    max-height: 55vh;
+  }
 }
