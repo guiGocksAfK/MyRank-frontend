@@ -356,13 +356,18 @@ export default function FilterPanel({ filters, onChange, onClear, items = [], ta
         onClear={() => setMany({ status: null, addedFrom: null, addedTo: null })}>
         {options.statuses.length > 0 && (
           <>
-            <div className="mr-menu-label" aria-hidden="true">{tf.status}</div>
-            {options.statuses.map(group => (
-              <Option key={group} checked={filters.status === group} onClick={() => single('status', group)}>{tf[group]}</Option>
-            ))}
+            <div className="mr-menu-label rk-more-label" aria-hidden="true">{tf.status}</div>
+            <div className="rk-presets">
+              {options.statuses.map(group => (
+                <button key={group} type="button" className={filters.status === group ? 'is-active' : ''} aria-pressed={filters.status === group}
+                  onClick={() => single('status', group)}>
+                  {tf[group]}
+                </button>
+              ))}
+            </div>
           </>
         )}
-        <div className="mr-menu-label" aria-hidden="true">{tf.added}</div>
+        <div className="mr-menu-label rk-more-label" aria-hidden="true">{tf.added}</div>
         <div className="rk-range-fields rk-date-fields">
           <label>
             <span>{tf.from}</span>
