@@ -133,8 +133,24 @@
   background: var(--mr-gold-10);
 }
 
+/* confirmar exclusão: o único botão vermelho cheio */
+.mr-btn-danger {
+  background: var(--mr-red);
+  color: #fff;
+}
+
+.mr-btn-danger:hover { background: color-mix(in srgb, var(--mr-red) 85%, white); }
+
+/* ação perigosa que não é a principal (excluir tabela, remover foto) */
+.mr-btn-danger-text { color: var(--mr-red); }
+
+.mr-btn-danger-text:hover {
+  color: #ff8d8b;
+  background: rgba(226, 75, 74, 0.1);
+}
+
 .mr-btn-sm {
-  padding: 0.35rem 0.6rem;
+  padding: 0.35rem 0.875rem; /* 14px dos lados: com menos o texto encostava na borda */
   font-size: 0.8rem;
 }
 
@@ -280,8 +296,7 @@
    todo modal (título + ×, corpo, rodapé com os botões). */
 .mr-input {
   width: 100%;
-  height: 44px;
-  padding: 0 14px;
+  padding: 11px 14px;
   box-sizing: border-box;
   background: #0b0b0b;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -301,6 +316,36 @@
 }
 
 .mr-input:disabled { opacity: 0.6; }
+
+/* campo de uma linha tem altura fixa; caixa de texto (bio, take) cresce */
+input.mr-input,
+select.mr-input { height: 44px; padding-block: 0; }
+
+textarea.mr-input { line-height: 1.5; resize: vertical; }
+
+/* SelectMenu: botão com a cara do campo, no lugar do <select> nativo */
+.mr-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mr-space-2);
+  height: 44px;
+  padding-block: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mr-select > svg { flex: none; color: var(--mr-text-muted); }
+.mr-select[aria-expanded="true"] { border-color: var(--mr-gold); }
+.mr-select-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.mr-select-menu {
+  position: fixed;
+  z-index: 500;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #0f0f0f;
+}
 
 /* rótulo pequeno em maiúsculas, acima do campo */
 .mr-field-label {
@@ -392,9 +437,39 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--mr-space-2);
-  padding: var(--mr-space-3) var(--mr-space-5);
+  padding: var(--mr-space-4) var(--mr-space-5);
   border-top: 1px solid var(--mr-border);
 }
+
+/* Linha de ações (rodapé do .mr-dialog ou .mr-actions em qualquer modal):
+   tamanho normal, a ação principal com largura mínima e a saída (Cancelar) como
+   texto, pra o dourado (ou o vermelho, se for excluir) ficar sozinho */
+.mr-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--mr-space-2);
+}
+
+.mr-dialog-foot .mr-btn,
+.mr-actions .mr-btn {
+  height: 40px;
+  padding: 0 20px;
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+}
+
+.mr-dialog-foot .mr-btn-gold,
+.mr-dialog-foot .mr-btn-danger,
+.mr-actions .mr-btn-gold,
+.mr-actions .mr-btn-danger { min-width: 104px; }
+
+.mr-dialog-foot .mr-btn-ghost,
+.mr-actions .mr-btn-ghost { padding: 0 16px; }
+
+/* ação perigosa secundária fica à esquerda, com o texto alinhado ao conteúdo */
+.mr-dialog-foot .mr-btn-danger-text:first-child,
+.mr-actions .mr-btn-danger-text:first-child { margin-left: -16px; margin-right: auto; }
 
 @keyframes mr-dialog-fade {
   from { opacity: 0; }

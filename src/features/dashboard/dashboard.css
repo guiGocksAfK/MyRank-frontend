@@ -1061,25 +1061,11 @@
 .mr-progress-sm { height: 5px; }
 
 /* ============ INPUT ============ */
-.mr-input {
-  width: 100%;
-  padding: 10px 16px;
+/* o .mr-input mora na base (styles/base.css); aqui só o tema claro */
+.myrank-light .mr-input {
   background: var(--mr-input-bg);
-  border: 1px solid var(--mr-border);
-  border-radius: var(--mr-radius-sm);
-  color: var(--mr-text);
-  font-size: 0.875rem;
-  font-family: var(--mr-font);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  border-color: var(--mr-border);
 }
-
-.mr-input:focus {
-  border-color: var(--mr-gold);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
-}
-
-.mr-input::placeholder { color: var(--mr-text-muted); }
 
 /* ============ SETTINGS ============ */
 .mr-setting-row {

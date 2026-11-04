@@ -62,17 +62,12 @@ export default function ConfirmModal({ title, message, confirmLabel, onConfirm, 
           </div>
         </div>
 
-        <div className="mr-flex mr-gap-2" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={confirming}>
+        <div className="mr-actions" style={{ marginTop: '1.5rem' }}>
+          <button type="button" className="mr-btn mr-btn-ghost" onClick={onClose} disabled={confirming}>
             {tc.cancel}
           </button>
-          <button
-            className="mr-btn mr-btn-sm"
-            onClick={handleConfirm}
-            disabled={confirming}
-            style={{ color: '#ff8d8b', border: '1px solid rgba(226,75,74,0.45)', background: 'rgba(226,75,74,0.12)' }}
-          >
-            {confirming ? tc.deleting : `🗑️ ${label}`}
+          <button type="button" className="mr-btn mr-btn-danger" onClick={handleConfirm} disabled={confirming}>
+            {confirming ? tc.deleting : label}
           </button>
         </div>
       </div>

@@ -160,11 +160,11 @@ export default function NewGroupModal({ onClose, onCreated }) {
 
         {error && <div className="chat-error">{error}</div>}
 
-        <div className="chat-modal-actions">
-          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={busy}>
+        <div className="chat-modal-actions mr-actions">
+          <button type="button" className="mr-btn mr-btn-ghost" onClick={onClose} disabled={busy}>
             {tc.cancel}
           </button>
-          <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleCreate} disabled={!canCreate}>
+          <button type="button" className="mr-btn mr-btn-gold" onClick={handleCreate} disabled={!canCreate}>
             {busy ? tc.creating : tc.create}
           </button>
         </div>
