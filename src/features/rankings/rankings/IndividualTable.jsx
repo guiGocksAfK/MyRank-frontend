@@ -13,32 +13,6 @@ import { itemSubline } from '../../../shared/tableTemplates';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
-/** Botões "Todas | <subcategorias> | Sem subcategoria" — só aparecem se a tabela tiver subcategorias. */
-function SubcategoryFilter({ subcategories, value, onChange }) {
-  const { t } = useLanguage();
-  const ts = t.rankings.subcategories;
-  const options = [
-    { id: 'all', label: ts.filterAll },
-    ...subcategories.map(sub => ({ id: sub.id, label: sub.name })),
-    { id: 'none', label: ts.filterNone },
-  ];
-  return (
-    <div className="rk-subfilter" role="group" aria-label={ts.heading}>
-      {options.map(option => (
-        <button
-          key={option.id}
-          type="button"
-          className={`mr-tab-trigger${value === option.id ? ' active' : ''}`}
-          aria-pressed={value === option.id}
-          onClick={() => onChange(option.id)}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export default function IndividualTable({ table, loading, sortBy, useTimeWeight, viewMode, filters, controls, panel, reordering, onSaveWork, onDeleteWork, onDeleteTable, onMoveItem, onRenameTable, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory }) {
   const { t, locale } = useLanguage();
   const tr = t.rankings;
@@ -47,22 +21,14 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
   const [confirmAction, setConfirmAction] = useState(null);
   const [draggedItemId, setDraggedItemId] = useState(null);
   const [showEditTable, setShowEditTable] = useState(false);
-  const [subFilterChoice, setSubFilterChoice] = useState('all'); // 'all' | 'none' | id da subcategoria
   const mode    = getMode(sortBy, useTimeWeight);
   const maxNote = mode === 'weight' ? 12 : 10;
 
   const subcategories = table.subcategories;
-  const hasSubcategories = subcategories.length > 0;
-  // Subcategoria filtrada que foi apagada → volta pra "Todas".
-  const subFilter = subFilterChoice === 'all' || subFilterChoice === 'none'
-    || subcategories.some(sub => sub.id === subFilterChoice) ? subFilterChoice : 'all';
+  // o filtro de subcategoria mora na barra de filtros (filters.subcategory)
+  const subFilter = filters.subcategory ?? 'all';
 
-  const filteredItems = useMemo(() => {
-    const bySub = subFilter === 'all' ? table.items
-      : subFilter === 'none' ? table.items.filter(item => !item.subcategoryId)
-      : table.items.filter(item => item.subcategoryId === subFilter);
-    return applyFilters(bySub, filters);
-  }, [table.items, filters, subFilter]);
+  const filteredItems = useMemo(() => applyFilters(table.items, filters), [table.items, filters]);
   const sorted = sortItems(filteredItems, sortBy, useTimeWeight);
 
   // Adicionar obra com uma subcategoria filtrada já deixa ela selecionada.
@@ -134,7 +100,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
       <div className="rk-controls">
         {controls}
         <div className="rk-controls-end">
-          <span className="rk-count">{fmt(count === 1 ? tr.worksOne : tr.worksMany, { n: count })}</span>
+          <span className="rk-count">{fmt(sorted.length === 1 ? tr.worksOne : tr.worksMany, { n: sorted.length })}</span>
           <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setShowEditTable(true)}>
             <Pencil size={14} strokeWidth={1.8} aria-hidden="true" />
             {tr.toolbar.editTable}
@@ -147,10 +113,6 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
       </div>
 
       {panel}
-
-      {hasSubcategories && (
-        <SubcategoryFilter subcategories={subcategories} value={subFilter} onChange={setSubFilterChoice} />
-      )}
 
       {viewMode === 'grid' ? (
         loading ? <p className="rk-empty">{tr.loadingWorks}</p> : (

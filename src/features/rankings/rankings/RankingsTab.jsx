@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
-import { ArrowUpDown, LayoutGrid, List, Plus, SlidersHorizontal, Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowRight, ArrowUpDown, LayoutGrid, List, Plus, SlidersHorizontal, Users } from 'lucide-react';
 import UnifiedTable from './UnifiedTable';
 import IndividualTable from './IndividualTable';
-import TableSelector from './TableSelector';
 import FilterPanel from './FilterPanel';
 import NewTableModal from './NewTableModal';
 import { getGroups, createGroup, updateGroup, updateGroupOrder } from '../../../services/masterTableGroupService';
@@ -12,12 +11,18 @@ import {
 } from '../../../services/CategoryService.js';
 import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../../services/WorkService.js';
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../../utils/mapWork';
-import { applyFilters } from '../../../utils/formatters';
+import { activeFilterCount, getMode } from '../../../utils/formatters';
 import { useBadges } from '../../../shared/badges';
 import { useWorks } from '../../../shared/worksContext';
 import { useLanguage } from '../../../shared/i18n';
 import { tableName } from '../../../shared/tableTemplates';
 import './rankings.css';
+
+const ORDERS = [
+  { mode: 'simple', label: 'sortScores', sortBy: 'nota', weight: false },
+  { mode: 'weight', label: 'sortWeighted', sortBy: 'nota', weight: true },
+  { mode: 'time', label: 'sortTime', sortBy: 'time', weight: false },
+];
 
 function getTableOrderKey() {
   const userKey = localStorage.getItem('myrank_username') || 'anonymous';
@@ -292,6 +297,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
   /** As obras ficam na tabela, só perdem a subcategoria (igual ao ON DELETE SET NULL do banco). */
   async function handleDeleteSubcategory(tableId, subcategoryId) {
     await deleteSubcategory(tableId, subcategoryId);
+    setFilters(current => (current.subcategory === subcategoryId ? { ...current, subcategory: null } : current));
     setTables(prev => prev.map(table => table.id !== tableId ? table : {
       ...table,
       subcategories: table.subcategories.filter(sub => sub.id !== subcategoryId),
@@ -312,24 +318,15 @@ export default function RankingsTab({ onNavigateToCreators }) {
     }
   }
 
-  const filteredCount = useMemo(() => {
-    if (activeTab === 'unified') {
-      const selectedTables = tables.filter(t => selectedTableIds.includes(t.id));
-      const allItems = selectedTables.flatMap(t => t.items);
-      return applyFilters(allItems, filters).length;
-    }
-    const table = tables.find(t => t.id === activeTab);
-    if (!table) return 0;
-    return applyFilters(table.items, filters).length;
-  }, [activeTab, tables, selectedTableIds, filters]);
-
   if (loadError) {
     return (
       <p className="rk-empty rk-error" role="alert">{loadError}</p>
     );
   }
 
-  const hasFilters = Object.values(filters).some(v => v != null && v !== '');
+  const filterCount = activeFilterCount(filters);
+  const mode = getMode(sortBy, useTimeWeight);
+
   // setinhas só fazem sentido na lista ordenada por nota (trocam obras empatadas)
   const canReorder = viewMode === 'list' && sortBy !== 'time';
   const isReordering = reordering && canReorder;
@@ -337,17 +334,20 @@ export default function RankingsTab({ onNavigateToCreators }) {
   function openTab(id) {
     setActiveTab(id);
     setReordering(false);
+    // subcategoria é de uma tabela só: não vale na próxima
+    setFilters(current => ({ ...current, subcategory: null }));
   }
 
   const controls = (
     <>
+      {/* ponderação só vale ordenando por nota, então é uma das três ordens */}
       <div className="rk-seg" role="group" aria-label={tr.sortLabel}>
-        <button type="button" className={sortBy === 'nota' ? 'is-active' : ''} aria-pressed={sortBy === 'nota'} onClick={() => setSortBy('nota')}>
-          {tr.sortScores}
-        </button>
-        <button type="button" className={sortBy === 'time' ? 'is-active' : ''} aria-pressed={sortBy === 'time'} onClick={() => setSortBy('time')}>
-          {tr.sortTime}
-        </button>
+        {ORDERS.map(order => (
+          <button key={order.mode} type="button" className={mode === order.mode ? 'is-active' : ''} aria-pressed={mode === order.mode}
+            onClick={() => { setSortBy(order.sortBy); setUseTimeWeight(order.weight); }}>
+            {tr[order.label]}
+          </button>
+        ))}
       </div>
       <div className="rk-seg" role="group" aria-label={tr.viewLabel}>
         <button type="button" className={viewMode === 'list' ? 'is-active' : ''} aria-pressed={viewMode === 'list'} onClick={() => setViewMode('list')} title={tr.viewList} aria-label={tr.viewList}>
@@ -357,20 +357,10 @@ export default function RankingsTab({ onNavigateToCreators }) {
           <LayoutGrid size={16} strokeWidth={1.8} aria-hidden="true" />
         </button>
       </div>
-      {activeTab === 'unified' && (
-        <TableSelector tables={tables} selectedIds={selectedTableIds} onChange={handleChangeSelectedTables} />
-      )}
       <button type="button" className={`mr-btn mr-btn-sm ${showFilters ? 'mr-btn-gold' : 'mr-btn-outline'}`} aria-expanded={showFilters} onClick={() => setShowFilters(v => !v)}>
         <SlidersHorizontal size={14} strokeWidth={1.8} aria-hidden="true" />
-        {tr.filters}
-        {hasFilters && <span className="rk-dot" aria-hidden="true" />}
+        {tr.filters}{filterCount > 0 && ` · ${filterCount}`}
       </button>
-      {onNavigateToCreators && (
-        <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={onNavigateToCreators} title={tr.seeCreatorsTitle}>
-          <Users size={14} strokeWidth={1.8} aria-hidden="true" />
-          {tr.seeCreators}
-        </button>
-      )}
       {canReorder && (
         <button type="button" className={`mr-btn mr-btn-sm rk-only-mobile ${isReordering ? 'mr-btn-gold' : 'mr-btn-outline'}`} aria-pressed={isReordering} onClick={() => setReordering(v => !v)}>
           <ArrowUpDown size={14} strokeWidth={1.8} aria-hidden="true" />
@@ -380,21 +370,28 @@ export default function RankingsTab({ onNavigateToCreators }) {
     </>
   );
 
+  // opções do painel saem das obras da aba (no Unificado, de todas as tabelas)
+  const isUnified = activeTab === 'unified';
+  const filterItems = isUnified ? tables.flatMap(table => table.items)
+    : tables.find(table => table.id === activeTab)?.items ?? [];
+
   const filterPanel = showFilters && (
-    <FilterPanel filters={filters} onChange={setFilters} onClear={() => setFilters({})} resultCount={filteredCount} />
+    <FilterPanel
+      filters={filters}
+      onChange={setFilters}
+      onClear={() => setFilters({})}
+      items={filterItems}
+      tables={isUnified ? tables : undefined}
+      selectedTableIds={selectedTableIds}
+      onChangeTables={isUnified ? handleChangeSelectedTables : undefined}
+      subcategories={isUnified ? [] : tables.find(table => table.id === activeTab)?.subcategories ?? []}
+    />
   );
 
   return (
     <div className="rk-page">
       <div className="rk-head">
         <h1 className="rk-page-title">{tr.title}</h1>
-        <div className="rk-weight">
-          <span id="rk-weight-label">{tr.timeWeight}</span>
-          <button type="button" role="switch" aria-checked={useTimeWeight} aria-labelledby="rk-weight-label"
-            className={`mr-switch ${useTimeWeight ? 'checked' : ''}`} onClick={() => setUseTimeWeight(v => !v)}>
-            <span className="mr-switch-thumb" />
-          </button>
-        </div>
       </div>
 
       <div className="rk-tabs">
@@ -437,6 +434,14 @@ export default function RankingsTab({ onNavigateToCreators }) {
           <Plus size={15} strokeWidth={2} aria-hidden="true" />
           <span className="rk-hide-mobile">{tr.newTable}</span>
         </button>
+        {/* outra tela: a seta diz que o botão leva pra fora daqui */}
+        {onNavigateToCreators && (
+          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={onNavigateToCreators} title={tr.seeCreatorsTitle} aria-label={tr.seeCreators}>
+            <Users size={14} strokeWidth={1.8} aria-hidden="true" />
+            <span className="rk-hide-mobile">{tr.seeCreators}</span>
+            <ArrowRight size={14} strokeWidth={1.8} aria-hidden="true" />
+          </button>
+        )}
       </div>
 
       {showNewTable && (
