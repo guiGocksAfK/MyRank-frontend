@@ -22,7 +22,6 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
   const [draggedItemId, setDraggedItemId] = useState(null);
   const [showEditTable, setShowEditTable] = useState(false);
   const mode    = getMode(sortBy, useTimeWeight);
-  const maxNote = mode === 'weight' ? 12 : 10;
 
   const subcategories = table.subcategories;
   // o filtro de subcategoria mora na barra de filtros (filters.subcategory)
@@ -119,9 +118,10 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
           <div className="rk-grid">
             {sorted.map((item, i) => (
               <GridCard
-                key={item.id} item={item} mode={mode} maxNote={maxNote} index={i}
+                key={item.id} item={item} mode={mode} index={i}
                 customFields={table.customFields}
                 showActions={true}
+                onClick={() => setModal(item)}
                 onEdit={(it) => setModal(it)}
                 onDelete={id => setConfirmAction({ type: 'item', id })}
                 draggable={sortBy !== 'time'}

@@ -24,7 +24,6 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
   const { t, locale } = useLanguage();
   const tr = t.rankings;
   const mode    = getMode(sortBy, useTimeWeight);
-  const maxNote = mode === 'weight' ? 12 : 10;
   // ordem vinda do backend (via prop); localOrder é o override otimista durante o drag
   const [localOrder, setLocalOrder] = useState(null);
   const unifiedOrder = localOrder ?? manualOrder;
@@ -126,7 +125,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
           {sorted.map((item, i) => (
             <GridCard
               key={getItemKey(item)}
-              item={item} mode={mode} maxNote={maxNote} index={i} showActions={false}
+              item={item} mode={mode} index={i} unified showActions={false}
               onClick={() => showHint(item)}
               draggable={sortBy !== 'time'}
               onDragStart={() => setDraggedItemKey(getItemKey(item))}
