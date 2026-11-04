@@ -6,8 +6,10 @@ import { useLanguage } from '../i18n';
 /**
  * Moldura padrão de modal: título + ×, corpo com rolagem e rodapé com os botões.
  * Esc e clique fora fecham, a não ser durante `busy` (salvando, criando…).
+ * Formulário longo passa `closeOnBackdrop={false}`: um clique fora sem querer
+ * apagava tudo que foi digitado.
  */
-export default function Modal({ title, onClose, footer, children, width = 440, busy = false }) {
+export default function Modal({ title, onClose, footer, children, width = 440, busy = false, closeOnBackdrop = true }) {
   const { t } = useLanguage();
   const titleId = useId();
 
@@ -20,7 +22,7 @@ export default function Modal({ title, onClose, footer, children, width = 440, b
   }, [busy, onClose]);
 
   return createPortal(
-    <div className="mr-dialog-backdrop" role="presentation" onClick={() => !busy && onClose()}>
+    <div className="mr-dialog-backdrop" role="presentation" onClick={() => !busy && closeOnBackdrop && onClose()}>
       <div
         className="mr-dialog"
         role="dialog"
