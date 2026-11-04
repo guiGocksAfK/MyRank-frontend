@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Calendar, ChevronDown, Hash, Lock, Plus, SquareCheck, Type, X } from 'lucide-react';
+import { Calendar, ChevronDown, Hash, ListPlus, Lock, Plus, SquareCheck, Type, X } from 'lucide-react';
 import { useLanguage } from '../../../shared/i18n';
+import CollapsibleField from './CollapsibleField';
 
 const MAX_CUSTOM_FIELDS = 5;
 const TYPES = [
@@ -83,12 +84,13 @@ function TypeMenu({ value, onChange, locked, labels }) {
 }
 
 /**
- * Campos próprios do Personalizado (até 5). Campo que já existe tem `id` e não
- * troca de tipo (o backend recusa); renomear e remover pode.
+ * Campos próprios do Personalizado (até 5), numa linha que abre e fecha. Campo que
+ * já existe tem `id` e não troca de tipo (o backend recusa); renomear e remover pode.
  */
 export default function CustomFieldsEditor({ value, onChange, disabled = false }) {
   const { t } = useLanguage();
   const tc = t.rankings.customFields;
+  const [open, setOpen] = useState(false);
   // campo recém-adicionado já recebe o cursor
   const [focusIndex, setFocusIndex] = useState(null);
 
@@ -99,53 +101,53 @@ export default function CustomFieldsEditor({ value, onChange, disabled = false }
   };
   const canAdd = value.length < MAX_CUSTOM_FIELDS;
 
-  return (
-    <div>
-      <div className="rk-label-row">
-        <span className="mr-field-label">{tc.label}</span>
-        {value.length > 0 && (
-          <span className="rk-fields-count">{tc.count.replace('{n}', value.length).replace('{max}', MAX_CUSTOM_FIELDS)}</span>
-        )}
-      </div>
+  function toggle() {
+    // abrir sem nenhum já cria o primeiro, com o cursor nele
+    if (!open && value.length === 0) add();
+    setOpen(v => !v);
+  }
 
-      {value.length === 0 ? (
-        <div className="rk-fields-empty">
-          <p>{tc.emptyHint}</p>
-          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={add} disabled={disabled}>
+  const names = value.map(field => field.name.trim()).filter(Boolean);
+  const summary = open
+    ? tc.count.replace('{n}', value.length).replace('{max}', MAX_CUSTOM_FIELDS)
+    : names.length === 0
+      ? tc.none
+      : names.slice(0, 2).join(', ') + (names.length > 2 ? ` +${names.length - 2}` : '');
+
+  return (
+    <CollapsibleField icon={ListPlus} title={tc.label} summary={summary} open={open} onToggle={toggle}>
+      {value.length > 0 && (
+        <ul className="rk-fields">
+          {value.map((field, index) => (
+            <li key={field.id ?? `new-${index}`}>
+              <TypeMenu value={field.type} onChange={type => update(index, { type })} locked={disabled || !!field.id} labels={tc} />
+              <input
+                className="rk-fields-name"
+                value={field.name}
+                placeholder={tc.namePlaceholder}
+                maxLength={40}
+                autoFocus={index === focusIndex}
+                onChange={event => update(index, { name: event.target.value })}
+                onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); if (canAdd) add(); } }}
+                disabled={disabled}
+              />
+              <button type="button" className="rk-icon-btn is-danger" aria-label={tc.remove} title={tc.remove}
+                onClick={() => onChange(value.filter((_, i) => i !== index))} disabled={disabled}>
+                <X size={16} strokeWidth={1.8} aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="rk-coll-foot">
+        {canAdd && (
+          <button type="button" className="mr-btn mr-btn-ghost mr-btn-sm rk-add-link" onClick={add} disabled={disabled}>
             <Plus size={14} strokeWidth={2} aria-hidden="true" />
             {tc.add}
           </button>
-        </div>
-      ) : (
-        <>
-          <ul className="rk-fields">
-            {value.map((field, index) => (
-              <li key={field.id ?? `new-${index}`}>
-                <TypeMenu value={field.type} onChange={type => update(index, { type })} locked={disabled || !!field.id} labels={tc} />
-                <input
-                  className="rk-fields-name"
-                  value={field.name}
-                  placeholder={tc.namePlaceholder}
-                  maxLength={40}
-                  autoFocus={index === focusIndex}
-                  onChange={event => update(index, { name: event.target.value })}
-                  disabled={disabled}
-                />
-                <button type="button" className="rk-icon-btn is-danger" aria-label={tc.remove} title={tc.remove}
-                  onClick={() => onChange(value.filter((_, i) => i !== index))} disabled={disabled}>
-                  <X size={16} strokeWidth={1.8} aria-hidden="true" />
-                </button>
-              </li>
-            ))}
-          </ul>
-          {canAdd && (
-            <button type="button" className="mr-btn mr-btn-ghost mr-btn-sm rk-add-link" onClick={add} disabled={disabled}>
-              <Plus size={14} strokeWidth={2} aria-hidden="true" />
-              {tc.add}
-            </button>
-          )}
-        </>
-      )}
-    </div>
+        )}
+        <p className="mr-field-hint">{tc.emptyHint}</p>
+      </div>
+    </CollapsibleField>
   );
 }
