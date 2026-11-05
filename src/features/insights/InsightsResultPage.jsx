@@ -4,12 +4,17 @@ import { generateInsights, getLatestInsights, sendInsightChat } from '../../serv
 import { useLanguage } from '../../shared/i18n';
 import InfoTip from '../../shared/components/InfoTip';
 import { genreKeys, genreLabel } from '../../shared/genres';
-import { relativeTime } from '../../shared/useUnifiedItems';
+import { relativeTime, useUnifiedItems } from '../../shared/useUnifiedItems';
+import { TEMPLATE_ICONS } from '../../shared/tableTemplates';
 import '../rankings/rankings/rankings.css';
 import './insights.css';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 const plural = (pair, n) => fmt(n === 1 ? pair[0] : pair[1], { n });
+const FAN_MAX = 5;
+// tipo que a IA escreve na recomendação → ícone do template (capa que não veio)
+const RECO_TEMPLATE = { filme: 'movie', serie: 'tv', anime: 'anime', manga: 'manga', jogo: 'game', livro: 'book', musica: 'music', album: 'album' };
+const plain = (s) => String(s ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
 
 /**
  * Resultado da IA Insights, dentro do app (com a navbar). Lê como um relatório:
@@ -97,6 +102,7 @@ export default function InsightsResult({ workIds = null, onBack }) {
       {status === 'ready' && result && (
         <ReadyView
           result={result}
+          workIds={workIds}
           canRegenerate={Boolean(workIds)}
           regenerating={regenerating}
           onRegenerate={regenerate}
@@ -107,7 +113,7 @@ export default function InsightsResult({ workIds = null, onBack }) {
   );
 }
 
-function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult }) {
+function ReadyView({ result, workIds, canRegenerate, regenerating, onRegenerate, onResult }) {
   const { t, lang, locale } = useLanguage();
   const tr = t.insights.result;
   const { analysis, workCount, generatedAt } = result;
@@ -121,23 +127,43 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult
   const maxPercent = Math.max(1, ...taste.map((s) => s.percent || 0));
   const genreName = (raw) => genreLabel(genreKeys([raw])[0] ?? raw, t.rankings.genreNames);
   const decimal = (n) => n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  // barra = quanto daquele gênero você consome (nº de obras); a média fica no número.
+  // Pela média as barras saíam todas quase cheias pra quem dá nota alta em tudo.
+  const maxCount = Math.max(1, ...taste.map((s) => s.count || 0));
+
+  // capas das obras analisadas, no topo: liga "o que a IA leu" ao que ela concluiu
+  const { items } = useUnifiedItems();
+  const wanted = workIds ? new Set(workIds) : null;
+  const fan = (items ?? [])
+    .filter((it) => it.image && (!wanted || wanted.has(it.id)))
+    .sort((a, b) => (b.note ?? 0) - (a.note ?? 0))
+    .slice(0, FAN_MAX);
 
   return (
     <>
       <header className="ir-hero insights-enter">
-        <div className="ir-hero-meta">
-          <span className="ir-eyebrow">{tr.eyebrow}</span>
-          <span>{plural(tr.works, workCount)}</span>
-          {generatedAt && <span>{fmt(tr.generated, { when: relativeTime(generatedAt, lang) })}</span>}
-          {canRegenerate && (
-            <button type="button" className="ir-regen" onClick={onRegenerate} disabled={regenerating}>
-              <RefreshCw size={13} strokeWidth={2} className={regenerating ? 'is-spinning' : ''} aria-hidden="true" />
-              {regenerating ? tr.regenerating : tr.regenerate}
-            </button>
-          )}
+        <div className="ir-hero-text">
+          <div className="ir-hero-meta">
+            <span className="ir-eyebrow">{tr.eyebrow}</span>
+            <span>{plural(tr.works, workCount)}</span>
+            {generatedAt && <span>{fmt(tr.generated, { when: relativeTime(generatedAt, lang) })}</span>}
+            {canRegenerate && (
+              <button type="button" className="ir-regen" onClick={onRegenerate} disabled={regenerating}>
+                <RefreshCw size={13} strokeWidth={2} className={regenerating ? 'is-spinning' : ''} aria-hidden="true" />
+                {regenerating ? tr.regenerating : tr.regenerate}
+              </button>
+            )}
+          </div>
+          <h1 className="ir-title">{analysis.summaryTitle}</h1>
+          <p className="ir-summary">{analysis.summaryText}</p>
         </div>
-        <h1 className="ir-title">{analysis.summaryTitle}</h1>
-        <p className="ir-summary">{analysis.summaryText}</p>
+        {fan.length > 0 && (
+          <div className="ir-fan" aria-hidden="true">
+            {fan.map((it, i) => (
+              <img key={it.id} src={it.image} alt="" loading="lazy" style={{ '--i': i, '--n': fan.length }} />
+            ))}
+          </div>
+        )}
       </header>
 
       {traits.length > 0 && (
@@ -170,7 +196,7 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult
           <ul className="ir-genres">
             {taste.map((slice, i) => {
               const hasAvg = typeof slice.average === 'number';
-              const width = hasAvg ? slice.average * 10 : ((slice.percent || 0) / maxPercent) * 100;
+              const width = hasAvg ? ((slice.count || 0) / maxCount) * 100 : ((slice.percent || 0) / maxPercent) * 100;
               return (
                 <li key={`${slice.name}-${i}`} style={{ '--ir-fade': Math.max(0.4, 1 - i * 0.14) }}>
                   <span className="ir-genre-name">{genreName(slice.name)}</span>
@@ -211,10 +237,11 @@ function RecoCard({ reco, labels }) {
   const [broken, setBroken] = useState(false);
   const cover = reco.posterUrl && !broken ? reco.posterUrl : null;
   const long = (reco.reason ?? '').length > 220;
+  const Icon = TEMPLATE_ICONS[RECO_TEMPLATE[plain(reco.category)]] ?? TEMPLATE_ICONS.custom;
   return (
     <article className="ir-reco">
       <span className="ir-reco-cover">
-        {cover ? <img src={cover} alt="" loading="lazy" onError={() => setBroken(true)} /> : <span>{reco.title.slice(0, 1)}</span>}
+        {cover ? <img src={cover} alt="" loading="lazy" onError={() => setBroken(true)} /> : <Icon size={26} strokeWidth={1.4} aria-hidden="true" />}
       </span>
       <div className="ir-reco-body">
         <strong>{reco.title}</strong>

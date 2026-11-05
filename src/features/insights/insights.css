@@ -118,19 +118,38 @@
 
 /* ---- topo: título da análise e resumo, com um brilho dourado bem leve atrás ---- */
 .ir-hero {
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mr-space-7);
   padding-top: var(--mr-space-2);
 }
 
-.ir-hero::before {
-  content: "";
+.ir-hero-text { min-width: 0; }
+
+/* leque com as capas das obras analisadas, à direita do título */
+.ir-fan {
+  position: relative;
+  flex: none;
+  width: 300px;
+  height: 200px;
+}
+
+.ir-fan img {
   position: absolute;
-  inset: -60px auto auto -80px;
-  z-index: -1;
-  width: 520px;
-  height: 260px;
-  background: radial-gradient(closest-side, rgba(212, 175, 55, 0.12), transparent);
-  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  width: 104px;
+  height: 156px;
+  object-fit: cover;
+  border-radius: var(--mr-radius-sm);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 32px rgba(0, 0, 0, 0.6);
+  /* espalhadas em leque a partir do meio; a primeira (maior nota) fica na frente */
+  transform:
+    translate(-50%, -50%)
+    translateX(calc((var(--i) - (var(--n) - 1) / 2) * 44px))
+    rotate(calc((var(--i) - (var(--n) - 1) / 2) * 6deg));
+  z-index: calc(10 - var(--i));
 }
 
 .ir-hero-meta {
@@ -153,8 +172,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-left: auto;
-  padding: 6px 12px;
+  margin-left: -4px;
+  padding: 4px 8px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -473,10 +492,16 @@
   transition: opacity var(--mr-duration-fast) var(--mr-ease);
 }
 
-.ir-send:disabled { opacity: 0.35; cursor: default; }
+.ir-send:disabled {
+  background: var(--mr-track);
+  color: var(--mr-text-muted);
+  cursor: default;
+}
 
 @media (max-width: 900px) {
   .ir-traits { grid-template-columns: 1fr; gap: var(--mr-space-4); }
+  .ir-fan { width: 220px; height: 160px; }
+  .ir-fan img { width: 80px; height: 120px; }
   .ir-genres { grid-template-columns: 1fr; }
   .ir-recos { grid-template-columns: 1fr; }
 }
@@ -484,7 +509,7 @@
 @media (max-width: 640px) {
   .ir-page { gap: var(--mr-space-6); }
   .ir-genres li { grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr) auto; }
-  .ir-hero::before { width: 300px; }
+  .ir-fan { display: none; }
 }
 
 /* ---- estados (vazio / erro) ---- */
