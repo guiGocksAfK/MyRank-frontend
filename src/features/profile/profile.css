@@ -705,41 +705,96 @@
 }
 
 /* ---- modais (editar perfil, excluir conta) ---- */
-.pf-edit-head {
+/* editar perfil: foto grande com lápis por cima e as ações do lado */
+.pf-photo {
   display: flex;
   align-items: center;
-  gap: var(--mr-space-4);
+  gap: var(--mr-space-5);
 }
 
-.pf-edit-head strong {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  font-size: var(--mr-text-lg);
-  font-weight: 800;
+.pf-photo-btn {
+  position: relative;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
 }
 
 .mr-avatar-lg.pf-avatar-md {
-  width: 64px;
-  height: 64px;
+  width: 88px;
+  height: 88px;
   margin: 0;
+  font-size: 1.5rem;
+}
+
+.pf-photo-edit {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #f5f5f5;
+  opacity: 0;
+  transition: opacity var(--mr-duration-fast) var(--mr-ease);
+}
+
+.pf-photo-btn:hover .pf-photo-edit,
+.pf-photo-btn:focus-visible .pf-photo-edit { opacity: 1; }
+
+.pf-photo-actions { display: flex; flex-wrap: wrap; gap: var(--mr-space-2); }
+
+.pf-photo-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: var(--mr-space-2) 0 0;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+  font-weight: 600;
+}
+
+.pf-photo-status.is-ok { color: var(--mr-gold); }
+.pf-photo-status.is-bad,
+.pf-photo-status.is-https { color: var(--mr-red); }
+
+/* campo com "@" na frente */
+.pf-prefixed { position: relative; display: block; }
+
+.pf-prefixed > span {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  color: var(--mr-text-muted);
+  font-weight: 600;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.pf-prefixed .mr-input { padding-left: 32px; }
+
+.pf-field-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--mr-space-3);
+  margin-top: 6px;
+  font-size: var(--mr-text-xs);
+}
+
+.pf-field-error { color: var(--mr-red); }
+
+.pf-count {
   flex: none;
-  font-size: 1.25rem;
+  color: var(--mr-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .pf-field { display: block; }
 .pf-field .mr-input { width: 100%; }
 
 .pf-textarea { min-height: 84px; resize: vertical; }
-
-.pf-link {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--mr-gold);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
 
 .pf-form-error {
   margin: 0 auto 0 0;
@@ -808,6 +863,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pf-icon-btn, .pf-badge, .pf-split > span, .pf-strip-dot, .pf-types tbody tr { transition: none; }
+  .pf-icon-btn, .pf-photo-edit, .pf-badge, .pf-split > span, .pf-strip-dot, .pf-types tbody tr { transition: none; }
   .pf-dotcard { animation: none; }
 }
