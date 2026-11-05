@@ -140,6 +140,9 @@
 
 .pf-badge-card { padding: var(--mr-space-4) var(--mr-space-4) var(--mr-space-3); }
 
+.pf-badge-card.is-wide { grid-column: span 2; }
+.pf-badge-card.is-wide .pf-badge-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
 .pf-badge-card .pf-group-title { justify-content: space-between; padding: 0 var(--mr-space-1); }
 
 .pf-badge-grid {
@@ -270,75 +273,389 @@
 }
 
 /* ---- estatísticas ---- */
-.pf-stats-grid {
+.pf-stats { display: flex; flex-direction: column; gap: var(--mr-space-6); }
+
+/* destaques: 4 capas no desenho do grid dos Rankings */
+.pf-hl-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--mr-space-5);
-  align-items: start;
-}
-
-.pf-card { padding: var(--mr-space-5); }
-
-.pf-kv { margin: 0; }
-
-.pf-kv > div {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--mr-space-4);
-  padding: var(--mr-space-3) 0;
 }
 
-.pf-kv > div + div { border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.pf-hl { display: flex; flex-direction: column; min-width: 0; }
+.pf-hl .rk-gcard-cover { margin: var(--mr-space-2) 0 var(--mr-space-3); }
 
-.pf-kv dt {
-  flex: none;
-  color: var(--mr-text-muted);
-  font-size: var(--mr-text-sm);
-}
-
-.pf-kv dd {
-  display: flex;
-  gap: var(--mr-space-2);
-  min-width: 0;
-  margin: 0;
-  font-size: var(--mr-text-sm);
-}
-
-.pf-kv-value {
+.pf-hl-label {
   overflow: hidden;
-  font-weight: 600;
+  color: var(--mr-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--mr-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pf-hl-title {
+  margin-top: 4px;
+  overflow: hidden;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.pf-kv-meta {
-  flex: none;
+.pf-hl-meta {
+  overflow: hidden;
   color: var(--mr-gold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--mr-text-sm);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-.pf-bars { margin: 0; padding: 0; list-style: none; }
-.pf-bars li + li { margin-top: var(--mr-space-4); }
-
-.pf-bar-head {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--mr-space-3);
-  font-size: var(--mr-text-sm);
-  font-weight: 600;
+.pf-stats-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--mr-space-5);
+  align-items: stretch;
 }
 
-.pf-bar-meta {
+/* cartões em coluna: no das notas, os números em cima e a régua ocupando o resto */
+.pf-stats-grid > .pf-card { display: flex; flex-direction: column; }
+
+.pf-strip-stats {
+  display: flex;
+  gap: var(--mr-space-8);
+  margin: var(--mr-space-3) 0 0;
+}
+
+.pf-strip-stats dt {
   color: var(--mr-text-muted);
-  font-weight: 400;
+  font-size: var(--mr-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pf-strip-stats dd {
+  margin: 2px 0 0;
+  font-size: var(--mr-text-2xl);
+  font-weight: 800;
+  letter-spacing: var(--mr-tracking-tight);
   font-variant-numeric: tabular-nums;
 }
 
+.pf-strip-stats div:first-child dd { color: var(--mr-gold); }
+
+/* por tipo: passar o mouse acende um pedaço e apaga os outros */
+.pf-split-wrap { position: relative; }
+
+.pf-split > span { cursor: pointer; transition: flex-grow var(--mr-duration) var(--mr-ease), opacity var(--mr-duration-fast) var(--mr-ease); }
+.pf-split.has-lit > span:not(.is-lit) { opacity: 0.3; }
+
+.pf-split-tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  z-index: 2;
+  padding: 5px 10px;
+  border: 1px solid color-mix(in srgb, var(--mr-text) 14%, transparent);
+  border-radius: var(--mr-radius-sm);
+  background: #141414;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  color: var(--mr-text);
+  font-size: var(--mr-text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.pf-types tbody tr { transition: opacity var(--mr-duration-fast) var(--mr-ease); }
+.pf-types tbody tr.is-dim { opacity: 0.4; }
+.pf-types tbody tr.is-lit th { color: var(--mr-gold); }
+
+.pf-card { padding: var(--mr-space-5); }
+
+.pf-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mr-space-3);
+  margin-bottom: var(--mr-space-4);
+}
+
+.pf-card-head .pf-group-title { margin: 0; }
+
+/* uma barra só, dividida pelos tipos */
+.pf-split {
+  display: flex;
+  gap: 2px;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--mr-track);
+}
+
+.pf-split > span { min-width: 4px; }
+
+.pf-types {
+  width: 100%;
+  margin-top: var(--mr-space-4);
+  border-collapse: collapse;
+  font-size: var(--mr-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-types th,
+.pf-types td { padding: 10px 0; text-align: right; }
+
+.pf-types thead th {
+  padding-top: 0;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pf-types tbody tr + tr { border-top: 1px solid rgba(255, 255, 255, 0.06); }
+
+.pf-types tbody th {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-2);
+  font-weight: 600;
+  text-align: left;
+}
+
+.pf-types td { width: 18%; color: var(--mr-text-secondary); }
+
+.pf-swatch { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+
+/* régua das notas: cada obra é um ponto na nota exata */
+.pf-strip { display: flex; flex: 1; flex-direction: column; }
+
+.pf-strip-plot {
+  position: relative;
+  flex: 1;
+  margin: var(--mr-space-4) 10px 0;
+}
+
+.pf-strip-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--mr-text) 34%, transparent);
+  transform: translateX(-50%);
+  transition: transform var(--mr-duration-fast) var(--mr-ease);
+}
+
+/* com muitas obras (ou notas muito juntas) o ponto diminui */
+.pf-strip-dot.is-small { width: 7px; height: 7px; }
+
+.pf-strip-dot.is-ten { background: var(--mr-gold); }
+.pf-strip-dot:hover,
+.pf-strip-dot.is-on,
+.pf-strip-dot:focus-visible { outline: none; transform: translateX(-50%) scale(1.4); box-shadow: 0 0 0 2px var(--mr-bg); }
+
+/* cartãozinho da obra em cima do ponto */
+.pf-dotcard {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-2);
+  max-width: 240px;
+  padding: 6px 10px 6px 6px;
+  border: 1px solid color-mix(in srgb, var(--mr-text) 14%, transparent);
+  border-radius: var(--mr-radius-sm);
+  background: #141414;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: pf-dotcard-in var(--mr-duration-fast) var(--mr-ease);
+}
+
+.pf-dotcard.is-start { transform: translateX(-10px); }
+.pf-dotcard.is-end { transform: translateX(calc(-100% + 10px)); }
+
+@keyframes pf-dotcard-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pf-dotcard-cover {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--mr-surface);
+  color: var(--mr-text-muted);
+}
+
+.pf-dotcard-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+.pf-dotcard-text { display: flex; flex-direction: column; min-width: 0; }
+
+.pf-dotcard-title {
+  overflow: hidden;
+  font-size: var(--mr-text-sm);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-dotcard-note {
+  color: var(--mr-gold);
+  font-size: var(--mr-text-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-strip-more {
+  position: absolute;
+  color: var(--mr-text-muted);
+  transform: translateX(-50%);
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.pf-strip-axis {
+  position: relative;
+  height: 44px;
+  margin: 8px 10px 0;
+  border-top: 1px solid color-mix(in srgb, var(--mr-text) 18%, transparent);
+}
+
+.pf-strip-tick {
+  position: absolute;
+  top: 0;
+  padding-top: 8px;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+}
+
+/* tracinho de cada marca; o das que têm número é mais alto */
+.pf-strip-tick::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 4px;
+  background: color-mix(in srgb, var(--mr-text) 18%, transparent);
+}
+
+.pf-strip-tick.is-major::before { height: 7px; }
+
+.pf-strip-mean {
+  position: absolute;
+  top: 26px;
+  color: var(--mr-gold);
+  font-size: var(--mr-text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.pf-strip-mean::before { content: '▲ '; font-size: 0.5rem; vertical-align: 1px; }
+
+/* de que época: uma capa por década (a de maior nota), com obras e média */
+.pf-era { display: flex; flex-direction: column; }
+
+.pf-era-row {
+  display: flex;
+  gap: var(--mr-space-3);
+  margin-top: var(--mr-space-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.pf-era-row::-webkit-scrollbar { display: none; }
+
+.pf-era-col {
+  display: flex;
+  flex: 1 0 84px;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  scroll-snap-align: start;
+  text-align: center;
+}
+
+/* buraco no tempo: marquinha fina na altura das capas */
+.pf-era-gap {
+  display: flex;
+  flex: none;
+  align-items: center;
+  align-self: flex-start;
+  height: 136px; /* mais ou menos a altura das capas, pra ficar no meio delas */
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-sm);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.pf-era-cover {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 96px;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: var(--mr-radius-sm);
+  background: var(--mr-surface);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  color: var(--mr-text-muted);
+}
+
+.pf-era-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+.pf-era-col.is-empty .pf-era-cover {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mr-text) 10%, transparent);
+}
+
+.pf-era-col.is-top .pf-era-cover { box-shadow: 0 0 0 1px var(--mr-gold-20), 0 0 18px var(--mr-gold-10); }
+
+.pf-era-year {
+  margin-top: var(--mr-space-2);
+  color: var(--mr-text-secondary);
+  font-size: var(--mr-text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-era-col.is-top .pf-era-year { color: var(--mr-gold); }
+
+.pf-era-info,
+.pf-era-avg {
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pf-histo-foot {
+  margin: var(--mr-space-4) 0 0;
+  color: var(--mr-text-secondary);
+  font-size: var(--mr-text-sm);
+}
+
+/* barra fina usada no resumo das conquistas */
 .pf-bar {
   height: 6px;
-  margin-top: 6px;
   overflow: hidden;
   border-radius: 999px;
   background: var(--mr-track);
@@ -449,6 +766,12 @@
 }
 
 /* ---- celular ---- */
+@media (max-width: 1280px) {
+  /* destaques e notas precisam de largura: um embaixo do outro */
+  .pf-stats-grid.is-top { grid-template-columns: 1fr; }
+  .pf-stats-grid.is-top .pf-hl-row { grid-template-columns: repeat(4, minmax(0, 200px)); }
+}
+
 @media (max-width: 1100px) {
   .pf-badge-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -464,7 +787,13 @@
 }
 
 @media (max-width: 640px) {
+  .pf-hl-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--mr-space-2); }
+  .pf-hl-label { font-size: 0.625rem; letter-spacing: 0.06em; }
+  .pf-hl-title { font-size: var(--mr-text-xs); }
+  .pf-hl-meta { font-size: var(--mr-text-xs); }
   .pf-badge-groups { grid-template-columns: 1fr; }
+  .pf-badge-card.is-wide { grid-column: auto; }
+  .pf-badge-card.is-wide .pf-badge-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .pf-hero {
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--mr-space-4);
@@ -479,5 +808,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pf-icon-btn, .pf-badge { transition: none; }
+  .pf-icon-btn, .pf-badge, .pf-split > span, .pf-strip-dot, .pf-types tbody tr { transition: none; }
+  .pf-dotcard { animation: none; }
 }
