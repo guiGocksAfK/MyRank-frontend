@@ -18,7 +18,7 @@ const TRANSLATIONS = {
       loading: 'Carregando…',
       seeAll: 'Ver todas →',
       mediaTypes: { filme: 'Filmes', serie: 'Séries', jogo: 'Jogos', livro: 'Livros', anime: 'Animes', manga: 'Mangás', musica: 'Músicas', album: 'Álbuns', outro: 'Outros' },
-      badgeBuckets: { jogo: 'Jogos', filme: 'Filmes', serie: 'Séries', livro: 'Livros', anime: 'Animes', geral: 'Gerais', site: 'Usar o site' },
+      badgeBuckets: { jogo: 'Jogos', filme: 'Filmes', serie: 'Séries', livro: 'Livros', anime: 'Animes', manga: 'Mangás', musica: 'Músicas', album: 'Álbuns', outro: 'Personalizadas', geral: 'Gerais', site: 'Usar o site' },
       badgeUnlockedToast: '🏅 Conquista desbloqueada',
     },
     social: {
@@ -843,7 +843,7 @@ const TRANSLATIONS = {
       loading: 'Loading…',
       seeAll: 'See all →',
       mediaTypes: { filme: 'Movies', serie: 'Series', jogo: 'Games', livro: 'Books', anime: 'Anime', manga: 'Manga', musica: 'Music', album: 'Albums', outro: 'Other' },
-      badgeBuckets: { jogo: 'Games', filme: 'Movies', serie: 'Series', livro: 'Books', anime: 'Anime', geral: 'General', site: 'Using the site' },
+      badgeBuckets: { jogo: 'Games', filme: 'Movies', serie: 'Series', livro: 'Books', anime: 'Anime', manga: 'Manga', musica: 'Music', album: 'Albums', outro: 'Custom', geral: 'General', site: 'Using the site' },
       badgeUnlockedToast: '🏅 Achievement unlocked',
     },
     social: {
@@ -1660,7 +1660,7 @@ const TRANSLATIONS = {
       loading: 'Cargando…',
       seeAll: 'Ver todas →',
       mediaTypes: { filme: 'Películas', serie: 'Series', jogo: 'Juegos', livro: 'Libros', anime: 'Animes', manga: 'Mangas', musica: 'Música', album: 'Álbumes', outro: 'Otros' },
-      badgeBuckets: { jogo: 'Juegos', filme: 'Películas', serie: 'Series', livro: 'Libros', anime: 'Animes', geral: 'Generales', site: 'Usar el sitio' },
+      badgeBuckets: { jogo: 'Juegos', filme: 'Películas', serie: 'Series', livro: 'Libros', anime: 'Animes', manga: 'Mangas', musica: 'Música', album: 'Álbumes', outro: 'Personalizadas', geral: 'Generales', site: 'Usar el sitio' },
       badgeUnlockedToast: '🏅 Logro desbloqueado',
     },
     social: {
