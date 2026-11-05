@@ -315,6 +315,8 @@ const TRANSLATIONS = {
         placeholder: 'Pergunte sobre a sua análise…', send: 'Perguntar',
         limitHint: 'Você usou as {max} mensagens de IA de hoje. O limite zera às 6h.',
         chatError: 'Não consegui responder agora. Tente de novo em instantes.',
+        enterHint: 'Enter envia, Shift+Enter quebra linha',
+        suggestions: ['Me recomenda algo pra hoje', 'Qual é o meu ponto cego?', 'Por que esse título?'],
       },
     },
     creators: {
@@ -1137,6 +1139,8 @@ const TRANSLATIONS = {
         placeholder: 'Ask about your analysis…', send: 'Ask',
         limitHint: "You've used today's {max} AI messages. The limit resets at 6 AM.",
         chatError: "Couldn't answer right now. Try again in a moment.",
+        enterHint: 'Enter sends, Shift+Enter adds a line',
+        suggestions: ['Recommend me something for today', "What's my blind spot?", 'Why this title?'],
       },
     },
     creators: {
@@ -1951,6 +1955,8 @@ const TRANSLATIONS = {
         placeholder: 'Pregunta sobre tu análisis…', send: 'Preguntar',
         limitHint: 'Usaste los {max} mensajes de IA de hoy. El límite se reinicia a las 6h.',
         chatError: 'No pude responder ahora. Inténtalo de nuevo en un momento.',
+        enterHint: 'Enter envía, Shift+Enter agrega una línea',
+        suggestions: ['Recomiéndame algo para hoy', '¿Cuál es mi punto ciego?', '¿Por qué este título?'],
       },
     },
     creators: {

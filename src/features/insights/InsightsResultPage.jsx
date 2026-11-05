@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowUp, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowUp, RefreshCw, Sparkles } from 'lucide-react';
 import { generateInsights, getLatestInsights, sendInsightChat } from '../../services/insightsService';
 import { useLanguage } from '../../shared/i18n';
 import InfoTip from '../../shared/components/InfoTip';
@@ -270,12 +270,21 @@ function InsightChat({ insightId, initialChat, dailyLimit, dailyRemaining, onRes
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const scrollRef = useRef(null);
+  const inputRef = useRef(null);
 
   const canSend = remaining > 0 && !sending;
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [thread, sending]);
+
+  // a caixa cresce com o texto (até um teto), como no chat do Claude
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+  }, [draft]);
 
   const submit = async (e) => {
     e?.preventDefault();
@@ -294,13 +303,26 @@ function InsightChat({ insightId, initialChat, dailyLimit, dailyRemaining, onRes
       if (typeof data?.dailyRemaining === 'number') setRemaining(data.dailyRemaining);
       onResult?.(data);
     } catch (err) {
-      setThread((prev) => prev.slice(0, -1)); // desfaz a bolha otimista
+      setThread((prev) => prev.slice(0, -1)); // desfaz a mensagem otimista
       setRemaining((r) => Math.min(dailyLimit, r + 1));
       setDraft(question);
       setError(err?.response?.data?.message || tr.chatError);
     } finally {
       setSending(false);
     }
+  };
+
+  // Enter envia; Shift+Enter quebra linha
+  const onKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      submit();
+    }
+  };
+
+  const suggest = (text) => {
+    setDraft(text);
+    inputRef.current?.focus();
   };
 
   return (
@@ -310,37 +332,49 @@ function InsightChat({ insightId, initialChat, dailyLimit, dailyRemaining, onRes
         <InfoTip label={tr.chatHelpLabel} title={tr.chatTitle}>
           <span className="mr-infotip-text">{fmt(tr.chatHelp, { max: dailyLimit })}</span>
         </InfoTip>
-        <span className="ir-chat-quota">
-          {remaining > 0 ? fmt(tr.quota, { n: remaining, max: dailyLimit }) : tr.quotaOut}
-        </span>
       </div>
 
       {(thread.length > 0 || sending) && (
         <div className="ir-chat-thread" ref={scrollRef}>
-          {thread.map((m, i) => (
-            <div key={i} className={`ir-msg ${m.role === 'USER' ? 'is-user' : 'is-ai'}`}>
-              <div className="ir-bubble">{m.content}</div>
+          {thread.map((m, i) => (m.role === 'USER' ? (
+            <div key={i} className="ir-msg is-user"><div className="ir-bubble">{m.content}</div></div>
+          ) : (
+            <div key={i} className="ir-msg is-ai">
+              <Sparkles className="ir-ai-mark" size={16} strokeWidth={1.8} aria-hidden="true" />
+              <div className="ir-ai-text">{m.content}</div>
             </div>
-          ))}
+          )))}
           {sending && (
             <div className="ir-msg is-ai">
-              <div className="ir-bubble ir-typing"><span /><span /><span /></div>
+              <Sparkles className="ir-ai-mark" size={16} strokeWidth={1.8} aria-hidden="true" />
+              <div className="ir-typing" aria-label={tr.loading}><span /><span /><span /></div>
             </div>
           )}
+        </div>
+      )}
+
+      {thread.length === 0 && !sending && remaining > 0 && (
+        <div className="ir-suggestions">
+          {tr.suggestions.map((text) => (
+            <button key={text} type="button" className="ir-suggestion" onClick={() => suggest(text)}>{text}</button>
+          ))}
         </div>
       )}
 
       {error && <p className="ir-chat-error" role="alert">{error}</p>}
 
       {remaining > 0 ? (
-        <form className="ir-chat-form" onSubmit={submit}>
-          <input
-            className="mr-input"
+        <form className="ir-composer" onSubmit={submit}>
+          <textarea
+            ref={inputRef}
+            rows={1}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={onKeyDown}
             placeholder={tr.placeholder}
             maxLength={500}
             disabled={sending}
+            aria-label={tr.placeholder}
           />
           <button className="ir-send" type="submit" disabled={!canSend || !draft.trim()} aria-label={tr.send} title={tr.send}>
             <ArrowUp size={18} strokeWidth={2.2} aria-hidden="true" />
@@ -348,6 +382,13 @@ function InsightChat({ insightId, initialChat, dailyLimit, dailyRemaining, onRes
         </form>
       ) : (
         <p className="ir-chat-hint">{fmt(tr.limitHint, { max: dailyLimit })}</p>
+      )}
+      {remaining > 0 && (
+        <p className="ir-chat-foot">
+          {fmt(tr.quota, { n: remaining, max: dailyLimit })}
+          <span aria-hidden="true"> · </span>
+          <span className="ir-hide-mobile">{tr.enterHint}</span>
+        </p>
       )}
     </section>
   );
