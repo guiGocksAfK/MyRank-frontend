@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Check, Sparkles } from 'lucide-react';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
@@ -25,8 +24,7 @@ const num = (v) => {
  * então dá pra somar (Filmes + Jogos); nenhuma ou todas = "Todas". O ✓ de cada
  * linha tira uma obra ou outra; a barra presa no pé resume e gera.
  */
-export default function InsightsPanel() {
-  const navigate = useNavigate();
+export default function InsightsPanel({ onGenerate }) {
   const { t, locale } = useLanguage();
   const tp = t.insights.panel;
   const { items, loading, error } = useUnifiedItems();
@@ -77,12 +75,7 @@ export default function InsightsPanel() {
 
   const generate = () => {
     if (selected.length < MIN_WORKS_FOR_INSIGHTS) return;
-    navigate('/insights', {
-      state: {
-        workIds: selected.map((w) => w.id),
-        preview: selected.slice(0, 8).map((w) => ({ title: w.title, note: w.note })),
-      },
-    });
+    onGenerate?.(selected.map((w) => w.id));
   };
 
   if (loading) {

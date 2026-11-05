@@ -6,6 +6,7 @@ import RankingsTab from '../rankings/rankings/RankingsTab';
 import CreatorsPanel from '../creators/CreatorsPanel';
 import SocialPanel from '../social/SocialPanel';
 import InsightsPanel from '../insights/InsightsPanel';
+import InsightsResult from '../insights/InsightsResultPage';
 import ProfilePanel from '../profile/ProfilePanel';
 import SiteFooter from '../../shared/components/SiteFooter';
 import { UserProvider, useUser } from '../../shared/userContext';
@@ -38,6 +39,8 @@ export default function DashboardPage() {
   const [openConvId, setOpenConvId] = useState(location.state?.openConvId ?? null);
   const [isDark, setIsDark] = useState(true);
   const [creatorsView, setCreatorsView] = useState(false);
+  // análise da IA aberta dentro da aba (com a navbar): { workIds } ou null = painel
+  const [insightRun, setInsightRun] = useState(null);
   const [rankingsVisited, setRankingsVisited] = useState(false);
 
   const handleThemeToggle = () => setIsDark((prev) => !prev);
@@ -47,6 +50,7 @@ export default function DashboardPage() {
     setActiveTab(tab);
     if (tab === 'rankings') setRankingsVisited(true);
     setCreatorsView(false);
+    setInsightRun(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -66,7 +70,9 @@ export default function DashboardPage() {
           />
         );
       case 'ai':
-        return <InsightsPanel />;
+        return insightRun
+          ? <InsightsResult workIds={insightRun.workIds} onBack={() => { setInsightRun(null); window.scrollTo({ top: 0 }); }} />
+          : <InsightsPanel onGenerate={(workIds) => { setInsightRun({ workIds }); window.scrollTo({ top: 0 }); }} />;
       case 'profile':
         return <ProfilePanel isDark={isDark} onThemeToggle={handleThemeToggle} />;
       default:
