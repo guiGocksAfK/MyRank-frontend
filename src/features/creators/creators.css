@@ -1,25 +1,177 @@
-.creators-panel {
-  position: relative;
+/* ============ CRIADORES ============
+   Mesma linguagem da aba Rankings (usa as classes rk-* de lá); aqui só o que é
+   próprio: caminho de volta, leque de capas, mosaico do grid e as obras abertas. */
+
+.cr-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--mr-space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mr-text-muted);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--mr-duration-fast) var(--mr-ease);
 }
 
-.creators-toolbar-divider {
-  width: 1px;
-  height: 24px;
-  flex: 0 0 1px;
-  background: var(--mr-border);
+.cr-back:hover { color: var(--mr-text); }
+
+.cr-head {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-3);
+}
+
+.cr-seg-count {
+  margin-left: 4px;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* linha inteira abre as obras */
+.cr-row { cursor: pointer; }
+.cr-row:focus-visible { outline: 2px solid var(--mr-gold); outline-offset: -2px; }
+
+.cr-chevron {
+  justify-self: end;
+  color: var(--mr-text-muted);
+  transition: transform var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.cr-row:hover .cr-chevron { color: var(--mr-text); }
+.cr-row.is-open .cr-chevron { transform: rotate(180deg); }
+
+/* leque: até 3 capas sobrepostas */
+.cr-fan {
+  display: flex;
+  height: 51px;
+}
+
+.cr-fan img {
+  position: relative;
+  width: 34px;
+  height: 51px;
+  border-radius: 5px;
+  object-fit: cover;
+  box-shadow: 0 0 0 2px var(--mr-bg);
+}
+
+.cr-fan img + img { margin-left: -21px; }
+
+.cr-fan-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 51px;
+  border-radius: 5px;
+  background: var(--mr-surface);
+  color: var(--mr-text-muted);
+}
+
+/* obras do criador, abertas embaixo da linha */
+.cr-works {
+  padding: var(--mr-space-2) var(--mr-space-3) var(--mr-space-4) calc(2.25rem + 60px + var(--mr-space-3) * 2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.015);
+  animation: cr-open var(--mr-duration) var(--mr-ease-out);
+}
+
+.cr-works-note {
+  margin: 0 0 var(--mr-space-2);
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+}
+
+.cr-works ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cr-works li {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-3);
+  padding: 6px 0;
+}
+
+.cr-work-cover {
+  flex: none;
+  width: 26px;
+  height: 39px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--mr-surface);
+}
+
+.cr-work-cover.is-square { height: 26px; }
+.cr-work-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.cr-work-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cr-work-title,
+.cr-work-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cr-work-title { color: var(--mr-text); font-size: var(--mr-text-sm); font-weight: 600; }
+.cr-work-sub { color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+
+.cr-work-note {
+  flex: none;
+  color: var(--mr-gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes cr-open {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+/* grid: mosaico 2x2 com as capas das obras */
+.cr-gcard { cursor: default; }
+
+.cr-mosaic {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  background: var(--mr-bg);
+}
+
+.cr-mosaic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
 }
 
 @media (max-width: 640px) {
-  .creators-toolbar-divider {
-    display: none;
-  }
+  .cr-fan, .cr-fan-empty { flex: none; }
+  .cr-fan { width: auto; }
+  .cr-chevron { flex: none; }
+  .cr-works { padding-left: var(--mr-space-3); }
+}
 
-  .creators-panel .mr-table-header,
-  .creators-panel .mr-table-row {
-    min-width: 680px;
-  }
-
-  .creators-panel .mr-card {
-    overflow-x: auto;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .cr-works { animation: none; }
+  .cr-chevron, .cr-back { transition: none; }
 }

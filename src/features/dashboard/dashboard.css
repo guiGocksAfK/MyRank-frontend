@@ -349,20 +349,6 @@
   box-shadow: 0 0 0 1px var(--mr-border);
 }
 
-.mr-avatar-sm {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--mr-blue-20);
-  color: var(--mr-blue-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
 
 /* ============ SWITCH TOGGLE ============ */
 .mr-switch {
@@ -997,21 +983,6 @@
   background: linear-gradient(135deg, rgba(110, 231, 183, 0.06), rgba(17,17,17,0.94));
 }
 
-/* ============ RANKING LIST ============ */
-.mr-rank-number {
-  font-size: 1.125rem;
-  font-weight: 800;
-  width: 28px;
-  text-align: center;
-  color: var(--mr-text-muted);
-  flex-shrink: 0;
-  font-family: var(--mr-font);
-}
-
-.mr-rank-number-1 { color: var(--mr-gold); text-shadow: 0 0 12px rgba(212, 175, 55, 0.4); }
-.mr-rank-number-2 { color: #c0c0c0; }
-.mr-rank-number-3 { color: #cd7f32; }
-
 /* ============ DOT INDICATORS ============ */
 .mr-dot-green {
   width: 8px;
@@ -1264,25 +1235,6 @@
   display: block;
 }
 
-.mr-note-bar {
-  flex: 1;
-  height: 6px;
-  background: var(--mr-track);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.mr-note-bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.3s ease;
-}
-
-.mr-note-bar-fill.gold   { background: var(--mr-gold); }
-.mr-note-bar-fill.green  { background: var(--mr-green); }
-.mr-note-bar-fill.yellow { background: #facc15; }
-.mr-note-bar-fill.red    { background: var(--mr-red); }
-
 /* Etiqueta da subcategoria na linha da obra (tabela individual, filtro "Todas") */
 .mr-subcategory-tag {
   display: inline-block;
@@ -1346,8 +1298,7 @@
     text-overflow: ellipsis;
   }
 
-  /* barra de nota e o "+bônus" somem no mobile — fica só nota / nota final */
-  .mr-table-row .mr-note-bar { display: none !important; }
+  /* o "+bônus" some no mobile — fica só nota / nota final */
   .mr-table-row .mr-cell-bonus { display: none !important; }
 
   /* obra em si um pouco maior — era o que ficava pequeno demais */
