@@ -1,17 +1,34 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Check, Sparkles } from 'lucide-react';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
+import { useLanguage } from '../../shared/i18n';
+import InfoTip from '../../shared/components/InfoTip';
+import { tableName } from '../../shared/tableTemplates';
+import Poster from '../rankings/rankings/Poster';
+import AnimatedNumber from '../rankings/rankings/AnimatedNumber';
+import '../rankings/rankings/rankings.css';
 import './insights.css';
 
 const MIN_WORKS_FOR_INSIGHTS = 5;
+const COLS = '24px 2.25rem 40px minmax(0, 1fr) minmax(0, 180px) 72px';
 
+const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 const num = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 };
 
+/**
+ * O que a IA vai analisar. O filtro de tabela define o escopo: o que está na tela
+ * é o que vai pra IA ("Jogos" analisa só os jogos). As tabelas ligam e desligam,
+ * então dá pra somar (Filmes + Jogos); nenhuma ou todas = "Todas". O ✓ de cada
+ * linha tira uma obra ou outra; a barra presa no pé resume e gera.
+ */
 export default function InsightsPanel() {
   const navigate = useNavigate();
+  const { t, locale } = useLanguage();
+  const tp = t.insights.panel;
   const { items, loading, error } = useUnifiedItems();
 
   const works = useMemo(
@@ -19,67 +36,61 @@ export default function InsightsPanel() {
       .map((it) => ({
         id: it.id,
         title: it.title,
+        image: it.image,
         note: num(it.note),
-        category: it.categoryName || 'Outros',
+        table: it.categoryName || '',
         timeMinutes: num(it.timeMinutes),
       }))
       .sort((a, b) => b.note - a.note),
     [items],
   );
 
-  const categories = useMemo(
-    () => ['Todos', ...Array.from(new Set(works.map((w) => w.category)))],
-    [works],
-  );
+  // tabelas na ordem de quantidade de obras, com a contagem no filtro
+  const tables = useMemo(() => {
+    const counts = new Map();
+    works.forEach(w => counts.set(w.table, (counts.get(w.table) ?? 0) + 1));
+    return [...counts].sort((a, b) => b[1] - a[1]);
+  }, [works]);
 
-  const [category, setCategory] = useState('Todos');
-  const [selectedIds, setSelectedIds] = useState(null); // null = tudo (default)
+  const [picked, setPicked] = useState(() => new Set()); // vazio = Todas
+  const [excluded, setExcluded] = useState(() => new Set()); // obras tiradas uma a uma
+  const isAll = picked.size === 0;
+
+  const toggleTable = (name) => setPicked((current) => {
+    const next = new Set(current);
+    if (next.has(name)) next.delete(name); else next.add(name);
+    // todas marcadas uma a uma também é "Todas"
+    return next.size === tables.length ? new Set() : next;
+  });
 
   const visible = useMemo(
-    () => (category === 'Todos' ? works : works.filter((w) => w.category === category)),
-    [works, category],
+    () => (isAll ? works : works.filter((w) => picked.has(w.table))),
+    [works, picked, isAll],
   );
+  const selected = useMemo(() => visible.filter(w => !excluded.has(w.id)), [visible, excluded]);
 
-  const effectiveSelected = useMemo(() => {
-    if (selectedIds !== null) return selectedIds;
-    return new Set(works.map((w) => w.id));
-  }, [selectedIds, works]);
-
-  const selectedWorks = useMemo(
-    () => works.filter((w) => effectiveSelected.has(w.id)),
-    [works, effectiveSelected],
-  );
-
-  const mutate = (fn) => {
-    setSelectedIds((current) => {
-      const base = current !== null ? new Set(current) : new Set(works.map((w) => w.id));
-      fn(base);
-      return base;
-    });
-  };
-
-  const toggle = (id) => mutate((s) => (s.has(id) ? s.delete(id) : s.add(id)));
-  const selectAllVisible = () => mutate((s) => visible.forEach((w) => s.add(w.id)));
-  const clearSelection = () => setSelectedIds(new Set());
+  const toggle = (id) => setExcluded((current) => {
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
 
   const generate = () => {
-    if (selectedWorks.length === 0) return;
+    if (selected.length < MIN_WORKS_FOR_INSIGHTS) return;
     navigate('/insights', {
       state: {
-        workIds: selectedWorks.map((w) => w.id),
-        preview: selectedWorks.slice(0, 8).map((w) => ({ title: w.title, note: w.note })),
+        workIds: selected.map((w) => w.id),
+        preview: selected.slice(0, 8).map((w) => ({ title: w.title, note: w.note })),
       },
     });
   };
 
   if (loading) {
     return (
-      <div className="mr-space-y-4">
-        <div className="insights-skel" style={{ height: 40, width: 240 }} />
-        <div className="insights-metrics">
-          {[0, 1, 2].map((i) => <div key={i} className="insights-skel" style={{ height: 78 }} />)}
-        </div>
-        <div className="insights-skel" style={{ height: 320 }} />
+      <div className="rk-page">
+        <div className="insights-skel" style={{ height: 40, width: 220 }} />
+        <div className="insights-skel" style={{ height: 34, width: 420 }} />
+        <div className="insights-skel" style={{ height: 360 }} />
       </div>
     );
   }
@@ -87,159 +98,107 @@ export default function InsightsPanel() {
   if (error) {
     return (
       <div className="insights-state-card">
-        <div className="insights-state-emoji">⚠️</div>
-        <div className="insights-state-title">Não foi possível carregar suas obras</div>
-        <div className="insights-state-text">Recarregue a página e tente de novo.</div>
+        <div className="insights-state-title">{tp.loadErrorTitle}</div>
+        <div className="insights-state-text">{tp.loadErrorText}</div>
       </div>
     );
   }
 
   // Com poucas notas o perfil sai genérico; 5 é o mínimo pra dizer algo sobre o gosto.
   if (works.length < MIN_WORKS_FOR_INSIGHTS) {
-    const missing = MIN_WORKS_FOR_INSIGHTS - works.length;
     return (
       <div className="insights-state-card">
-        <div className="insights-state-emoji">🤖</div>
-        <div className="insights-state-title">Quase lá</div>
+        <Sparkles className="insights-state-icon" size={28} strokeWidth={1.5} aria-hidden="true" />
+        <div className="insights-state-title">{tp.minTitle}</div>
         <div className="insights-state-text">
-          Avalie pelo menos {MIN_WORKS_FOR_INSIGHTS} obras pra IA traçar o seu perfil. Faltam {missing}.
+          {fmt(tp.minText, { min: MIN_WORKS_FOR_INSIGHTS, n: MIN_WORKS_FOR_INSIGHTS - works.length })}
         </div>
       </div>
     );
   }
 
+  const count = selected.length;
+  const enough = count >= MIN_WORKS_FOR_INSIGHTS;
+  const rated = selected.filter(w => w.note > 0);
+  const avg = rated.length ? rated.reduce((s, w) => s + w.note, 0) / rated.length : 0;
+  const hours = Math.round(selected.reduce((s, w) => s + w.timeMinutes, 0) / 60);
+
   return (
-    <div className="mr-space-y-6 insights-panel">
-      <div className="mr-section-header" style={{ alignItems: 'flex-start' }}>
-        <div>
-          <h1 className="mr-section-title" style={{ fontSize: '1.4rem' }}>🤖 IA Insights</h1>
-          <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.9rem', marginTop: 4 }}>
-            Selecione as obras que você quer analisar e gere seu perfil de consumo.
-          </p>
-        </div>
-        <button
-          type="button"
-          className="mr-btn mr-btn-gold"
-          onClick={generate}
-          disabled={selectedWorks.length === 0}
-        >
-          ✨ Gerar Análise
-        </button>
+    <div className="rk-page ai-panel">
+      <div className="ai-head">
+        <h1 className="rk-page-title">{tp.title}</h1>
+        <InfoTip label={tp.helpLabel} title={tp.helpTitle}>
+          <span className="mr-infotip-text">{tp.help}</span>
+          <span className="mr-infotip-text">{tp.helpSaved}</span>
+        </InfoTip>
       </div>
 
-      <div className="insights-metrics">
-        <div className="insights-metric">
-          <div className="insights-metric-label">Obras disponíveis</div>
-          <div className="insights-metric-value">{visible.length}</div>
-        </div>
-        <div className="insights-metric insights-metric--accent">
-          <div className="insights-metric-label">Selecionadas</div>
-          <div className="insights-metric-value">{selectedWorks.length}</div>
-        </div>
-        <div className="insights-metric">
-          <div className="insights-metric-label">Categoria</div>
-          <div className="insights-metric-value" style={{ fontSize: '1.05rem' }}>{category}</div>
-        </div>
-      </div>
-
-      <div className="mr-card">
-        <div className="mr-card-body mr-space-y-4">
-          <div className="insights-filters">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                className={`mr-btn mr-btn-sm ${category === cat ? 'mr-btn-gold' : 'mr-btn-outline'}`}
-                onClick={() => setCategory(cat)}
-              >
-                {cat}
+      {tables.length > 1 && (
+        <div className="rk-controls">
+          <div className="rk-seg" role="group" aria-label={tp.filterLabel}>
+            <button type="button" className={isAll ? 'is-active' : ''} aria-pressed={isAll} onClick={() => setPicked(new Set())}>
+              {tp.all} <span className="ai-seg-count">{works.length}</span>
+            </button>
+            {tables.map(([name, n]) => (
+              <button key={name} type="button" className={picked.has(name) ? 'is-active' : ''} aria-pressed={picked.has(name)} onClick={() => toggleTable(name)}>
+                {tableName(name)} <span className="ai-seg-count">{n}</span>
               </button>
             ))}
-            <span className="insights-filter-sep" />
-            <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={selectAllVisible}>
-              Selecionar tudo
-            </button>
-            <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={clearSelection}>
-              Limpar seleção
-            </button>
-          </div>
-
-          <div className="insights-layout">
-            <div className="insights-list">
-              {visible.map((item, idx) => {
-                const selected = effectiveSelected.has(item.id);
-                const rankClass = idx === 0 ? 'top-1' : idx === 1 ? 'top-2' : idx === 2 ? 'top-3' : '';
-                return (
-                  <div
-                    key={item.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-pressed={selected}
-                    className={`insights-row insights-enter ${selected ? 'is-selected' : ''}`}
-                    style={{ '--d': `${Math.min(idx, 12) * 22}ms` }}
-                    onClick={() => toggle(item.id)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        toggle(item.id);
-                      }
-                    }}
-                  >
-                    <span className="insights-check">{selected ? '✓' : ''}</span>
-                    <span className={`insights-rank-num ${rankClass}`}>{idx + 1}</span>
-                    <div className="insights-row-info">
-                      <div className="insights-row-title">{item.title}</div>
-                      <div className="insights-row-sub">{item.category}</div>
-                    </div>
-                    <span className="mr-badge mr-badge-gold">{item.note.toFixed(1)}</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="insights-aside">
-              <div className="mr-info-card-blue">
-                <div className="mr-card-body">
-                  <div className="insights-aside-head">
-                    <div>
-                      <div className="insights-metric-label">Seleção atual</div>
-                      <div className="insights-aside-count">{selectedWorks.length} obras</div>
-                    </div>
-                    <span className="mr-badge mr-badge-green">{category}</span>
-                  </div>
-                  {selectedWorks.length === 0 ? (
-                    <div className="insights-step-copy">Nenhuma obra selecionada.</div>
-                  ) : (
-                    <div className="insights-aside-list">
-                      {selectedWorks.slice(0, 6).map((item) => (
-                        <div key={item.id} className="insights-aside-item">
-                          <span>{item.title}</span>
-                          <span className="note">{item.note.toFixed(1)}</span>
-                        </div>
-                      ))}
-                      {selectedWorks.length > 6 && (
-                        <div className="insights-aside-more">
-                          + {selectedWorks.length - 6} outras obras
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="mr-info-card-gold">
-                <div className="mr-card-body">
-                  <div className="insights-metric-label" style={{ marginBottom: 8 }}>Como funciona</div>
-                  <p className="insights-step-copy">
-                    A IA analisa suas notas e monta um perfil de consumo com traços, gêneros
-                    favoritos e uma recomendação. O resultado fica salvo — reabrir não gasta
-                    uma nova geração.
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
+      )}
+
+      <div className="ai-list">
+        {visible.map((item, idx) => {
+          const on = !excluded.has(item.id);
+          return (
+            <div
+              key={item.id}
+              role="checkbox"
+              tabIndex={0}
+              aria-checked={on}
+              aria-label={fmt(tp.toggle, { title: item.title })}
+              className={`rk-row mr-rankings-enter ai-row${idx < 3 ? ' is-top' : ''}${on ? ' is-selected' : ''}`}
+              style={{ '--rk-cols': COLS, '--rank-delay': `${Math.min(idx, 12) * 30}ms` }}
+              onClick={() => toggle(item.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  toggle(item.id);
+                }
+              }}
+            >
+              <span className="ai-check" aria-hidden="true">{on && <Check size={13} strokeWidth={3} />}</span>
+              <span className="rk-rank">{idx + 1}</span>
+              <Poster src={item.image} title={item.title} size="thumb" />
+              <div className="rk-main">
+                <div className="rk-title">{item.title}</div>
+                <div className="rk-sub ai-only-mobile">{tableName(item.table)}</div>
+              </div>
+              <span className="rk-table rk-hide-mobile">{tableName(item.table)}</span>
+              <span className="rk-score"><AnimatedNumber value={item.note} locale={locale} /></span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* presa no pé: o que vai pra IA e a ação, à mão em qualquer ponto da lista */}
+      <div className="ai-bar">
+        <span className="ai-bar-text">
+          <strong>{fmt(count === 1 ? tp.works[0] : tp.works[1], { n: count })}</strong>
+          {!enough ? (
+            <span className="ai-bar-warn">{fmt(tp.minHint, { min: MIN_WORKS_FOR_INSIGHTS })}</span>
+          ) : (
+            <span>
+              {fmt(tp.avg, { avg: avg.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) })}
+              {hours > 0 && ` · ${fmt(tp.hours, { n: hours.toLocaleString(locale) })}`}
+            </span>
+          )}
+        </span>
+        <button type="button" className="mr-btn mr-btn-gold" onClick={generate} disabled={!enough}>
+          <Sparkles size={15} strokeWidth={2} aria-hidden="true" />
+          {tp.generate}
+        </button>
       </div>
     </div>
   );

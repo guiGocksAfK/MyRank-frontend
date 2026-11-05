@@ -953,10 +953,7 @@
 .mr-poster-overlay-time  { font-size: 0.6875rem; color: var(--mr-text-muted); }
 
 /* ============ CARDS ============ */
-.mr-card,
-.mr-info-card-gold,
-.mr-info-card-green,
-.mr-info-card-blue {
+.mr-card {
   background: var(--mr-card);
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius);
@@ -966,22 +963,6 @@
 .mr-card-body { padding: 20px; }
 
 .mr-card:hover { border-color: rgba(212, 175, 55, 0.25); }
-
-/* Info Cards */
-.mr-info-card-gold {
-  border-color: rgba(212, 175, 55, 0.25);
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(17,17,17,0.94));
-}
-
-.mr-info-card-blue {
-  border-color: rgba(74, 144, 217, 0.25);
-  background: linear-gradient(135deg, rgba(74, 144, 217, 0.08), rgba(17,17,17,0.94));
-}
-
-.mr-info-card-green {
-  border-color: rgba(110, 231, 183, 0.2);
-  background: linear-gradient(135deg, rgba(110, 231, 183, 0.06), rgba(17,17,17,0.94));
-}
 
 /* ============ DOT INDICATORS ============ */
 .mr-dot-green {
