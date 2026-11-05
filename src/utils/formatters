@@ -1,4 +1,5 @@
 import { genreKeys } from '../shared/genres';
+import { creatorKey, splitCreators } from '../shared/creatorNames';
 // Formata minutos → "2h 30min" / "45min" / "50h"
 export function formatTime(minutes) {
   if (!minutes || minutes <= 0) return '—';
@@ -90,7 +91,10 @@ export function applyFilters(items, filters) {
     if (query && !normalize(item.title).includes(query) && !normalize(item.sub).includes(query)) return false;
     if (filters.types?.length && !filters.types.includes(item.type)) return false;
     if (filters.genres?.length && !itemGenres(item).some(genre => filters.genres.includes(genre))) return false;
-    if (filters.creators?.length && !filters.creators.includes((item.sub || '').trim())) return false;
+    if (filters.creators?.length) {
+      const wanted = filters.creators.map(creatorKey);
+      if (!splitCreators(item.sub).some(name => wanted.includes(creatorKey(name)))) return false;
+    }
     if (outside(item.note ?? 0, filters.noteMin, filters.noteMax)) return false;
     if (filters.yearMin != null || filters.yearMax != null) {
       const year = getYear(item.releaseDate);

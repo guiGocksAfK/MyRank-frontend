@@ -3,6 +3,7 @@ import { ChevronDown, Search, X } from 'lucide-react';
 import { useLanguage } from '../../../shared/i18n';
 import { TABLE_TEMPLATES, tableName } from '../../../shared/tableTemplates';
 import { genreLabel } from '../../../shared/genres';
+import { creatorKey, splitCreators } from '../../../shared/creatorNames';
 import { activeFilterCount, getYear, itemGenres, statusGroup } from '../../../utils/formatters';
 import useDismiss from '../../../shared/components/useDismiss';
 
@@ -205,10 +206,17 @@ export default function FilterPanel({ filters, onChange, onClear, items = [], ta
     const types = new Set(items.map(item => item.type));
     const genreCount = new Map();
     const creatorCount = new Map();
+    const creatorNames = new Map(); // chave → nome mostrado
     items.forEach(item => {
       itemGenres(item).forEach(key => genreCount.set(key, (genreCount.get(key) ?? 0) + 1));
-      const creator = (item.sub || '').trim();
-      if (creator) creatorCount.set(creator, (creatorCount.get(creator) ?? 0) + 1);
+      // obra com dois criadores aparece nos dois (mesma regra da tela de Criadores)
+      // e grafias que só diferem em acento/maiúscula viram uma opção (a primeira que apareceu)
+      splitCreators(item.sub).forEach(name => {
+        const key = creatorKey(name);
+        if (!creatorNames.has(key)) creatorNames.set(key, name);
+        const shown = creatorNames.get(key);
+        creatorCount.set(shown, (creatorCount.get(shown) ?? 0) + 1);
+      });
     });
     const byCount = (labelOf) => (a, b) => b[1] - a[1] || labelOf(a[0]).localeCompare(labelOf(b[0]));
     const years = items.map(item => getYear(item.releaseDate)).filter(Boolean);
