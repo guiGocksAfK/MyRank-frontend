@@ -413,9 +413,11 @@
   flex-direction: column;
   gap: var(--mr-space-5);
   max-width: 820px;
+  margin-inline: auto;
   max-height: 520px;
   margin-bottom: var(--mr-space-5);
   overflow-y: auto;
+  /* coluna centralizada, como no chat do Claude: a bolha não fica solta no meio da página */
 }
 
 .ir-msg { display: flex; }
@@ -469,7 +471,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--mr-space-2);
-  margin-bottom: var(--mr-space-3);
+  max-width: 820px;
+  margin: 0 auto var(--mr-space-3);
 }
 
 .ir-suggestion {
@@ -486,8 +489,8 @@
 
 .ir-suggestion:hover { border-color: color-mix(in srgb, var(--mr-text) 28%, transparent); color: var(--mr-text); }
 
-.ir-chat-error { margin: 0 0 var(--mr-space-3); color: var(--mr-red); font-size: var(--mr-text-sm); }
-.ir-chat-hint { margin: 0; color: var(--mr-text-muted); font-size: var(--mr-text-sm); }
+.ir-chat-error { max-width: 820px; margin: 0 auto var(--mr-space-3); color: var(--mr-red); font-size: var(--mr-text-sm); }
+.ir-chat-hint { max-width: 820px; margin: 0 auto; color: var(--mr-text-muted); font-size: var(--mr-text-sm); }
 
 /* campo: caixa grande que cresce, botão redondo dentro no canto de baixo */
 .ir-composer {
@@ -495,6 +498,7 @@
   align-items: flex-end;
   gap: var(--mr-space-2);
   max-width: 820px;
+  margin-inline: auto;
   padding: 12px 12px 12px 18px;
   border: 1px solid color-mix(in srgb, var(--mr-text) 14%, transparent);
   border-radius: 22px;
@@ -545,7 +549,7 @@
 
 .ir-chat-foot {
   max-width: 820px;
-  margin: var(--mr-space-2) 0 0;
+  margin: var(--mr-space-2) auto 0;
   padding-left: 18px;
   color: var(--mr-text-muted);
   font-size: var(--mr-text-xs);

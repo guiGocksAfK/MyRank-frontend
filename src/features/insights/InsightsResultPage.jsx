@@ -220,7 +220,10 @@ function ReadyView({ result, workIds, canRegenerate, regenerating, onRegenerate,
         </section>
       )}
 
+      {/* gerar de novo zera a conversa no back (e gasta 1 mensagem): a key remonta o
+          chat com a conversa vazia e o saldo novo, em vez de manter o estado antigo */}
       <InsightChat
+        key={`${result.id}-${generatedAt}`}
         insightId={result.id}
         initialChat={Array.isArray(result.chat) ? result.chat : []}
         dailyLimit={result.dailyLimit || 15}
