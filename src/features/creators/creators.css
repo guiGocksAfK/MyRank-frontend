@@ -1,6 +1,7 @@
 /* ============ CRIADORES ============
    Mesma linguagem da aba Rankings (usa as classes rk-* de lá); aqui só o que é
-   próprio: caminho de volta, leque de capas, mosaico do grid e as obras abertas. */
+   próprio: retrato redondo (pessoa/estúdio), filmografia em capinhas, cartão de
+   perfil do grid, obras abertas e o modal de editar. */
 
 .cr-back {
   display: inline-flex;
@@ -32,7 +33,85 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* linha inteira abre as obras */
+/* ---- retrato: redondo = pessoa/estúdio (retângulo fica pras obras) ---- */
+.cr-avatar {
+  --cr-size: 44px;
+  display: inline-flex;
+  flex: none;
+}
+
+.cr-avatar.is-lg { --cr-size: 76px; }
+
+.cr-face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--cr-size);
+  height: var(--cr-size);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--mr-text) 14%, transparent);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1c1c1c, #0d0d0d);
+}
+
+.cr-avatar.is-top .cr-face { border-color: rgba(212, 175, 55, 0.6); }
+
+.cr-face img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* logo de estúdio costuma ser escuro e transparente: fundo claro e inteiro no círculo */
+.cr-face.is-logo { background: #ececec; }
+.cr-face.is-logo img { padding: 18%; object-fit: contain; }
+
+.cr-face-initials {
+  color: var(--mr-text-secondary);
+  font-size: calc(var(--cr-size) * 0.34);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.cr-avatar.is-top .cr-face-initials { color: var(--mr-gold); }
+
+/* dupla: dois retratos menores, sobrepostos */
+.cr-avatar.is-duo .cr-face {
+  width: calc(var(--cr-size) * 0.78);
+  height: calc(var(--cr-size) * 0.78);
+  box-shadow: 0 0 0 2px var(--mr-bg);
+}
+
+.cr-avatar.is-duo .cr-face + .cr-face { margin-left: calc(var(--cr-size) * -0.2); }
+.cr-avatar.is-duo .cr-face-initials { font-size: calc(var(--cr-size) * 0.24); }
+
+/* ---- filmografia: capinhas das obras ---- */
+.cr-films {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cr-film {
+  width: 26px;
+  height: 39px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--mr-surface);
+}
+
+.cr-film.is-square { height: 26px; }
+.cr-film img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.cr-films-more {
+  margin-left: 2px;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+  font-weight: 600;
+}
+
+/* ---- lista: a linha inteira abre as obras ---- */
 .cr-row { cursor: pointer; }
 .cr-row:focus-visible { outline: 2px solid var(--mr-gold); outline-offset: -2px; }
 
@@ -45,47 +124,41 @@
 .cr-row:hover .cr-chevron { color: var(--mr-text); }
 .cr-row.is-open .cr-chevron { transform: rotate(180deg); }
 
-/* leque: até 3 capas sobrepostas */
-.cr-fan {
-  display: flex;
-  height: 51px;
-}
-
-.cr-fan img {
-  position: relative;
-  width: 34px;
-  height: 51px;
-  border-radius: 5px;
-  object-fit: cover;
-  box-shadow: 0 0 0 2px var(--mr-bg);
-}
-
-.cr-fan img + img { margin-left: -21px; }
-
-.cr-fan-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 51px;
-  border-radius: 5px;
-  background: var(--mr-surface);
-  color: var(--mr-text-muted);
-}
-
-/* obras do criador, abertas embaixo da linha */
 .cr-works {
-  padding: var(--mr-space-2) var(--mr-space-3) var(--mr-space-4) calc(2.25rem + 60px + var(--mr-space-3) * 2);
+  padding: var(--mr-space-2) var(--mr-space-3) var(--mr-space-4) calc(2.25rem + 48px + var(--mr-space-3) * 2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.015);
   animation: cr-open var(--mr-duration) var(--mr-ease-out);
 }
 
-.cr-works-note {
-  margin: 0 0 var(--mr-space-2);
+.cr-works-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mr-space-3);
+  min-height: 28px;
+  margin-bottom: var(--mr-space-1);
   color: var(--mr-text-muted);
   font-size: var(--mr-text-xs);
 }
+
+.cr-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font: inherit;
+  font-size: var(--mr-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cr-edit-btn:hover { background: var(--mr-track); color: var(--mr-text); }
 
 .cr-works ul {
   display: flex;
@@ -143,35 +216,121 @@
   from { opacity: 0; transform: translateY(-4px); }
 }
 
-/* grid: mosaico 2x2 com as capas das obras */
-.cr-gcard { cursor: default; }
-
-.cr-mosaic {
-  position: absolute;
-  inset: 0;
+/* ---- grid: cartão de perfil (não pôster) ---- */
+.cr-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 2px;
-  background: var(--mr-bg);
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--mr-space-4);
 }
 
-.cr-mosaic img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  object-fit: cover;
+.cr-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: var(--mr-space-5) var(--mr-space-4) var(--mr-space-4);
+  border: 1px solid color-mix(in srgb, var(--mr-text) 8%, transparent);
+  border-radius: var(--mr-radius);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  text-align: center;
+  transition: border-color var(--mr-duration-fast) var(--mr-ease), transform var(--mr-duration) var(--mr-ease);
+}
+
+.cr-card:hover { border-color: color-mix(in srgb, var(--mr-text) 18%, transparent); transform: translateY(-2px); }
+.cr-card.is-top { border-color: rgba(212, 175, 55, 0.25); }
+
+.cr-card-rank {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-lg);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.cr-card.is-top .cr-card-rank { color: var(--mr-gold); }
+
+.cr-card-edit {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mr-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--mr-duration-fast) var(--mr-ease);
+}
+
+.cr-card:hover .cr-card-edit,
+.cr-card-edit:focus-visible { opacity: 1; }
+.cr-card-edit:hover { background: var(--mr-track); color: var(--mr-text); }
+
+.cr-card .cr-avatar { margin-bottom: var(--mr-space-2); }
+
+.cr-card-name {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--mr-text);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cr-card-sub { color: var(--mr-text-secondary); font-size: var(--mr-text-xs); }
+.cr-card-score { color: var(--mr-gold); font-weight: 700; font-variant-numeric: tabular-nums; }
+.cr-card .cr-films { margin-top: var(--mr-space-2); }
+
+/* ---- modal de editar ---- */
+.cr-edit-head {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-4);
+}
+
+.cr-edit-head strong { font-size: var(--mr-text-lg); font-weight: 800; }
+.cr-edit-field { display: block; }
+
+.cr-edit-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mr-gold);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cr-edit-error {
+  margin: 0 auto 0 0;
+  color: var(--mr-red);
+  font-size: var(--mr-text-xs);
+}
+
+@media (hover: none) {
+  .cr-card-edit { opacity: 1; }
 }
 
 @media (max-width: 640px) {
-  .cr-fan, .cr-fan-empty { flex: none; }
-  .cr-fan { width: auto; }
+  .cr-avatar { flex: none; }
   .cr-chevron { flex: none; }
   .cr-works { padding-left: var(--mr-space-3); }
+  .cr-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mr-space-3); }
+  .cr-card { padding: var(--mr-space-4) var(--mr-space-3) var(--mr-space-3); }
+  .cr-avatar.is-lg { --cr-size: 64px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cr-works { animation: none; }
-  .cr-chevron, .cr-back { transition: none; }
+  .cr-chevron, .cr-back, .cr-card, .cr-card-edit { transition: none; }
+  .cr-card:hover { transform: none; }
 }

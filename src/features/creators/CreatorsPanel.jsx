@@ -1,19 +1,22 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ChevronDown, LayoutGrid, List, UserRound } from 'lucide-react';
+import { ArrowLeft, ChevronDown, LayoutGrid, List, Pencil } from 'lucide-react';
 import { getUnifiedWorks } from '../../services/WorkService';
+import { getCreatorProfiles } from '../../services/creatorService';
 import { mapWorkToItem } from '../../utils/mapWork';
 import { useLanguage } from '../../shared/i18n';
 import InfoTip from '../../shared/components/InfoTip';
 import { hasSquareCover, tableName } from '../../shared/tableTemplates';
-import { creatorKey, splitCreators } from '../../shared/creatorNames';
 import AnimatedNumber from '../rankings/rankings/AnimatedNumber';
+import CreatorAvatar from './CreatorAvatar';
+import EditCreatorModal from './EditCreatorModal';
+import { groupCreators } from './groupCreators';
 import '../rankings/rankings/rankings.css';
 import './creators.css';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
-// Ranking de criadores derivado das obras reais do usuário (/works/unified),
-// agrupadas por `creator`. Mesma linguagem visual da aba Rankings (rk-*).
+// Ranking de criadores derivado das obras reais do usuário (/works/unified). Quem
+// junta pessoas, duplas e co-criadores é o groupCreators; as fotos vêm do back.
 
 const TYPE_OPTIONS = ['Diretor', 'Escritor', 'Studio', 'Criador'];
 const ORDERS = [
@@ -22,21 +25,9 @@ const ORDERS = [
   { id: 'works', label: 'sortWorks' },
 ];
 const VOLUME_BONUS_CAP = 1;
-const COLS = '2.25rem 60px minmax(0, 1fr) 72px 32px';
-
-function creatorType(template) {
-  return { book: 'Escritor', manga: 'Escritor', game: 'Studio', anime: 'Studio', movie: 'Diretor', tv: 'Diretor' }[template] ?? 'Criador';
-}
-
-/** Tipo predominante entre as obras de um criador. */
-function dominantType(works) {
-  const counts = {};
-  works.forEach(w => {
-    const type = creatorType(w.template);
-    counts[type] = (counts[type] || 0) + 1;
-  });
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Criador';
-}
+const FILMOGRAPHY_MAX = 4;
+const PROFILE_RETRIES = 6; // fotos ainda não procuradas: pede de novo algumas vezes
+const COLS = '2.25rem 48px minmax(0, 1fr) auto 72px 32px';
 
 const num = (v) => {
   const n = Number(v);
@@ -58,35 +49,25 @@ function scoreOf(works, weighted) {
   return { raw, value: Math.min(timeWeighted + volumeBonus, 12) };
 }
 
-/** Leque de até 3 capas das obras do criador (a parte boa da tela antiga). */
-function CoverFan({ works }) {
-  const covers = works.map(w => w.image).filter(Boolean).slice(0, 3);
-  if (covers.length === 0) {
-    return <span className="cr-fan-empty" aria-hidden="true"><UserRound size={18} strokeWidth={1.6} /></span>;
-  }
-  return (
-    <span className="cr-fan" aria-hidden="true">
-      {covers.map((src, i) => (
-        <img key={i} src={src} alt="" loading="lazy" style={{ zIndex: covers.length - i }} />
-      ))}
-    </span>
-  );
+/** Tipo que vale: o escolhido pelo usuário (se todos da entrada concordam), senão o deduzido. */
+function typeOf(entry, profiles) {
+  const chosen = entry.members.map(m => profiles[m.key]?.type ?? null);
+  return chosen[0] && chosen.every(x => x === chosen[0]) ? chosen[0] : entry.autoType;
 }
 
-/** Capa do grid: mosaico 2x2 com 4+ obras, senão a capa da melhor. */
-function CoverMosaic({ works }) {
-  const covers = works.map(w => w.image).filter(Boolean);
-  if (covers.length === 0) {
-    return <span className="rk-gcard-empty"><UserRound size={28} strokeWidth={1.4} aria-hidden="true" /></span>;
-  }
-  if (covers.length >= 4) {
-    return (
-      <span className="cr-mosaic" aria-hidden="true">
-        {covers.slice(0, 4).map((src, i) => <img key={i} src={src} alt="" loading="lazy" />)}
-      </span>
-    );
-  }
-  return <img className="rk-gcard-img" src={covers[0]} alt="" loading="lazy" />;
+/** Capas pequenas das obras, como a filmografia do criador. */
+function Filmography({ works, more }) {
+  const shown = works.slice(0, FILMOGRAPHY_MAX);
+  return (
+    <span className="cr-films" aria-hidden="true">
+      {shown.map(work => (
+        <span key={work.id} className={`cr-film${hasSquareCover(work.template) ? ' is-square' : ''}`}>
+          {work.image && <img src={work.image} alt="" loading="lazy" />}
+        </span>
+      ))}
+      {works.length > FILMOGRAPHY_MAX && <span className="cr-films-more">{more.replace('{n}', works.length - FILMOGRAPHY_MAX)}</span>}
+    </span>
+  );
 }
 
 export default function CreatorsPanel({ onBack }) {
@@ -97,6 +78,8 @@ export default function CreatorsPanel({ onBack }) {
   const [viewMode, setViewMode] = useState('list');
   const [expanded, setExpanded] = useState([]);
   const [works, setWorks] = useState(null); // obras mapeadas + creator/categoryName; null = carregando
+  const [profiles, setProfiles] = useState({}); // chave da pessoa → { photoUrl, customPhoto, type }
+  const [editing, setEditing] = useState(null);
   const weighted = order === 'weighted';
 
   useEffect(() => {
@@ -115,71 +98,85 @@ export default function CreatorsPanel({ onBack }) {
   }, []);
 
   const loading = works === null;
+  const entries = useMemo(() => (works ? groupCreators(works) : []), [works]);
 
-  // Agrupa por pessoa: obra com dois criadores conta pros dois; grafias que só
-  // diferem em acento/maiúscula se juntam, com o nome escrito do jeito mais usado
-  const allCreators = useMemo(() => {
-    if (!works) return [];
-    const groups = new Map(); // chave → { spellings, works }
-    for (const w of works) {
-      for (const name of splitCreators(w.creator)) {
-        const key = creatorKey(name);
-        if (!groups.has(key)) groups.set(key, { spellings: new Map(), works: [] });
-        const group = groups.get(key);
-        group.spellings.set(name, (group.spellings.get(name) ?? 0) + 1);
-        group.works.push(w);
-      }
-    }
-    return [...groups.values()].map(({ spellings, works: ws }) => ({
-      name: [...spellings].sort((a, b) => b[1] - a[1])[0][0],
-      type: dominantType(ws),
-      count: ws.length,
-      works: ws,
-    }));
-  }, [works]);
+  // fotos e tipos escolhidos; sem o endpoint (back antigo) ficam as iniciais
+  useEffect(() => {
+    if (entries.length === 0) return undefined;
+    const request = entries.flatMap(entry => entry.members.map(m => ({
+      name: m.name, kind: entry.autoType === 'Studio' ? 'COMPANY' : 'PERSON',
+    })));
+    let active = true;
+    let timer;
+    const load = (attempt) => {
+      getCreatorProfiles(request)
+        .then(list => {
+          if (!active) return;
+          setProfiles(current => ({ ...current, ...Object.fromEntries(list.map(p => [p.key, p])) }));
+          if (list.some(p => p.pending) && attempt < PROFILE_RETRIES) timer = setTimeout(() => load(attempt + 1), 1200);
+        })
+        .catch(() => {});
+    };
+    load(1);
+    return () => { active = false; clearTimeout(timer); };
+  }, [entries]);
+
+  const typed = useMemo(() => entries.map(e => ({ ...e, type: typeOf(e, profiles) })), [entries, profiles]);
 
   const typeCounts = useMemo(() => {
     const acc = {};
-    allCreators.forEach(a => { acc[a.type] = (acc[a.type] ?? 0) + 1; });
+    typed.forEach(e => { acc[e.type] = (acc[e.type] ?? 0) + 1; });
     return acc;
-  }, [allCreators]);
+  }, [typed]);
   // só oferece os tipos que existem (esconde "Escritores"/"Outros" quando vazios)
   const availableTypes = TYPE_OPTIONS.filter(type => typeCounts[type] > 0);
+  const activeType = typeFilter === 'all' || typeCounts[typeFilter] ? typeFilter : 'all';
 
   const sorted = useMemo(() => {
-    const list = (typeFilter === 'all' ? allCreators : allCreators.filter(a => a.type === typeFilter))
-      .map(a => ({ ...a, score: scoreOf(a.works, weighted) }));
+    const list = (activeType === 'all' ? typed : typed.filter(e => e.type === activeType))
+      .map(e => ({ ...e, score: scoreOf(e.works, weighted) }));
     return list.sort((a, b) => (order === 'works'
       ? b.count - a.count || b.score.value - a.score.value
       : b.score.value - a.score.value || b.count - a.count));
-  }, [allCreators, typeFilter, weighted, order]);
+  }, [typed, activeType, weighted, order]);
 
-  const toggle = name => setExpanded(prev => (prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name]));
+  const toggle = id => setExpanded(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
   const worksLabel = n => `${n} ${n === 1 ? tc.workOne : tc.workMany}`;
   const typeLabel = type => tc.typeLabels[type] ?? type;
+  const noteOf = work => (weighted ? num(work.finalNote ?? work.note) : num(work.note));
+  const byNote = list => [...list].sort((a, b) => noteOf(b) - noteOf(a));
+  const formatAvg = value => value.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  const editButton = entry => (
+    <button type="button" className="cr-edit-btn" onClick={(event) => { event.stopPropagation(); setEditing(entry); }}>
+      <Pencil size={13} strokeWidth={1.8} aria-hidden="true" />
+      {tc.edit.button}
+    </button>
+  );
 
   let body;
   if (loading) body = <p className="rk-empty">{tc.loading}</p>;
-  else if (allCreators.length === 0) body = <p className="rk-empty">{tc.emptyHint}</p>;
+  else if (entries.length === 0) body = <p className="rk-empty">{tc.emptyHint}</p>;
   else if (sorted.length === 0) body = <p className="rk-empty">{tc.noneFiltered}</p>;
   else if (viewMode === 'grid') {
     body = (
-      <div className="rk-grid">
-        {sorted.map((author, i) => (
-          <div key={author.name} className={`rk-gcard mr-rankings-enter cr-gcard${i < 3 ? ' is-top' : ''}`}
+      <div className="cr-cards">
+        {sorted.map((entry, i) => (
+          <div key={entry.id} className={`cr-card mr-rankings-enter${i < 3 ? ' is-top' : ''}`}
             style={{ '--rank-delay': `${Math.min(i, 12) * 35}ms` }}>
-            <div className="rk-gcard-cover"><CoverMosaic works={author.works} /></div>
-            <div className="rk-gcard-info">
-              <span className="rk-gcard-rank" aria-hidden="true">{i + 1}</span>
-              <div className="rk-gcard-text">
-                <div className="rk-gcard-title" title={author.name}>{author.name}</div>
-                <div className="rk-gcard-sub">
-                  <span className="rk-gcard-context">{order === 'works' ? worksLabel(author.count) : typeLabel(author.type)}</span>
-                  <span aria-hidden="true"> · </span>
-                  <span className="rk-gcard-value"><AnimatedNumber value={author.score.value} locale={locale} /></span>
-                </div>
-              </div>
+            <span className="cr-card-rank">{i + 1}</span>
+            <button type="button" className="cr-card-edit" onClick={() => setEditing(entry)}
+              aria-label={`${tc.edit.button} ${entry.name}`} title={tc.edit.button}>
+              <Pencil size={13} strokeWidth={1.8} aria-hidden="true" />
+            </button>
+            <CreatorAvatar entry={entry} profiles={profiles} isCompany={entry.type === 'Studio'} size="lg" top={i < 3} />
+            <div className="cr-card-name" title={entry.name}>{entry.name}</div>
+            <div className="cr-card-sub">
+              {order === 'works' ? worksLabel(entry.count) : typeLabel(entry.type)}
+              {' · '}
+              <span className="cr-card-score"><AnimatedNumber value={entry.score.value} locale={locale} /></span>
             </div>
+            <Filmography works={byNote(entry.works)} more={tc.more} />
           </div>
         ))}
       </div>
@@ -191,39 +188,42 @@ export default function CreatorsPanel({ onBack }) {
           <span>#</span>
           <span />
           <span>{typeLabel('Criador')}</span>
+          <span className="rk-hide-mobile">{tc.colWorks}</span>
           <span>{weighted ? tc.sortWeighted : tc.sortAvg}</span>
           <span />
         </div>
-        {sorted.map((author, i) => {
-          const isOpen = expanded.includes(author.name);
-          const shown = [...author.works].sort((a, b) => (weighted
-            ? num(b.finalNote ?? b.note) - num(a.finalNote ?? a.note)
-            : num(b.note) - num(a.note)));
+        {sorted.map((entry, i) => {
+          const isOpen = expanded.includes(entry.id);
+          const shown = byNote(entry.works);
           return (
-            <Fragment key={author.name}>
+            <Fragment key={entry.id}>
               <div
                 className={`rk-row mr-rankings-enter cr-row${i < 3 ? ' is-top' : ''}${isOpen ? ' is-open' : ''}`}
                 style={{ '--rk-cols': COLS, '--rank-delay': `${Math.min(i, 12) * 35}ms` }}
                 role="button"
                 tabIndex={0}
                 aria-expanded={isOpen}
-                aria-label={fmt(tc.expandWorks, { name: author.name })}
-                onClick={() => toggle(author.name)}
-                onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(author.name); } }}
+                aria-label={fmt(tc.expandWorks, { name: entry.name })}
+                onClick={() => toggle(entry.id)}
+                onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(entry.id); } }}
               >
                 <span className="rk-rank">{i + 1}</span>
-                <CoverFan works={shown} />
+                <CreatorAvatar entry={entry} profiles={profiles} isCompany={entry.type === 'Studio'} top={i < 3} />
                 <div className="rk-main">
-                  <div className="rk-title">{author.name}</div>
-                  <div className="rk-sub">{typeLabel(author.type)} · {worksLabel(author.count)}</div>
+                  <div className="rk-title">{entry.name}</div>
+                  <div className="rk-sub">{typeLabel(entry.type)} · {worksLabel(entry.count)}</div>
                 </div>
-                <span className="rk-score"><AnimatedNumber value={author.score.value} locale={locale} /></span>
+                <span className="rk-hide-mobile"><Filmography works={shown} more={tc.more} /></span>
+                <span className="rk-score"><AnimatedNumber value={entry.score.value} locale={locale} /></span>
                 <ChevronDown className="cr-chevron" size={18} strokeWidth={1.8} aria-hidden="true" />
               </div>
 
               {isOpen && (
                 <div className="cr-works">
-                  {weighted && <p className="cr-works-note">{fmt(tc.realAvg, { avg: author.score.raw.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) })}</p>}
+                  <div className="cr-works-head">
+                    <span>{weighted ? fmt(tc.realAvg, { avg: formatAvg(entry.score.raw) }) : ''}</span>
+                    {editButton(entry)}
+                  </div>
                   <ul>
                     {shown.map(work => (
                       <li key={work.id}>
@@ -232,11 +232,12 @@ export default function CreatorsPanel({ onBack }) {
                         </span>
                         <span className="cr-work-text">
                           <span className="cr-work-title">{work.title}</span>
-                          <span className="cr-work-sub">{tableName(work.categoryName ?? '')}</span>
+                          <span className="cr-work-sub">
+                            {tableName(work.categoryName ?? '')}
+                            {entry.coCredits[work.id] && ` · ${fmt(tc.withPeople, { names: entry.coCredits[work.id].join(', ') })}`}
+                          </span>
                         </span>
-                        <span className="cr-work-note">
-                          <AnimatedNumber value={weighted ? num(work.finalNote ?? work.note) : num(work.note)} locale={locale} />
-                        </span>
+                        <span className="cr-work-note"><AnimatedNumber value={noteOf(work)} locale={locale} /></span>
                       </li>
                     ))}
                   </ul>
@@ -262,6 +263,7 @@ export default function CreatorsPanel({ onBack }) {
           <h1 className="rk-page-title">{tc.title}</h1>
           <InfoTip label={tc.helpLabel} title={tc.helpTitle}>
             <span className="mr-infotip-text">{tc.help}</span>
+            <span className="mr-infotip-text">{tc.helpGroups}</span>
             <span className="mr-infotip-text">{tc.helpWeighted}</span>
           </InfoTip>
         </div>
@@ -277,11 +279,11 @@ export default function CreatorsPanel({ onBack }) {
         </div>
         {availableTypes.length > 1 && (
           <div className="rk-seg" role="group" aria-label={tc.typeLabel}>
-            <button type="button" className={typeFilter === 'all' ? 'is-active' : ''} aria-pressed={typeFilter === 'all'} onClick={() => setTypeFilter('all')}>
-              {tc.all} <span className="cr-seg-count">{allCreators.length}</span>
+            <button type="button" className={activeType === 'all' ? 'is-active' : ''} aria-pressed={activeType === 'all'} onClick={() => setTypeFilter('all')}>
+              {tc.all} <span className="cr-seg-count">{typed.length}</span>
             </button>
             {availableTypes.map(type => (
-              <button key={type} type="button" className={typeFilter === type ? 'is-active' : ''} aria-pressed={typeFilter === type} onClick={() => setTypeFilter(type)}>
+              <button key={type} type="button" className={activeType === type ? 'is-active' : ''} aria-pressed={activeType === type} onClick={() => setTypeFilter(type)}>
                 {tc.typePlural[type]} <span className="cr-seg-count">{typeCounts[type]}</span>
               </button>
             ))}
@@ -301,6 +303,15 @@ export default function CreatorsPanel({ onBack }) {
       </div>
 
       {body}
+
+      {editing && (
+        <EditCreatorModal
+          entry={editing}
+          profiles={profiles}
+          onSaved={list => setProfiles(current => ({ ...current, ...Object.fromEntries(list.map(p => [p.key, p])) }))}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </div>
   );
 }
