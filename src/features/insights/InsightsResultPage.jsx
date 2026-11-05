@@ -1,19 +1,24 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, ArrowUp, RefreshCw } from 'lucide-react';
 import { generateInsights, getLatestInsights, sendInsightChat } from '../../services/insightsService';
-import SiteFooter from '../../shared/components/SiteFooter';
-import { BAR_COLORS, relativeFromNow } from './aiInsightsHelpers';
-import '../dashboard/dashboard.css';
+import { useLanguage } from '../../shared/i18n';
+import InfoTip from '../../shared/components/InfoTip';
+import { genreKeys, genreLabel } from '../../shared/genres';
+import { relativeTime } from '../../shared/useUnifiedItems';
+import '../rankings/rankings/rankings.css';
 import './insights.css';
 
-export default function InsightsResult() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const workIds = useMemo(() => {
-    const raw = location.state?.workIds;
-    return Array.isArray(raw) ? raw : null;
-  }, [location.state]);
+const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
+const plural = (pair, n) => fmt(n === 1 ? pair[0] : pair[1], { n });
 
+/**
+ * Resultado da IA Insights, dentro do app (com a navbar). Lê como um relatório:
+ * título e resumo, traços, gêneros, recomendações com capa e o chat no pé.
+ * Com `workIds` gera (ou reaproveita do cache do back); sem, abre a última análise.
+ */
+export default function InsightsResult({ workIds = null, onBack }) {
+  const { t } = useLanguage();
+  const tr = t.insights.result;
   const [status, setStatus] = useState('loading'); // loading | ready | empty | error
   const [result, setResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -21,10 +26,7 @@ export default function InsightsResult() {
 
   useEffect(() => {
     let active = true;
-    setStatus('loading');
-
     const load = workIds ? generateInsights(workIds, false) : getLatestInsights();
-
     load
       .then((data) => {
         if (!active) return;
@@ -34,17 +36,11 @@ export default function InsightsResult() {
       })
       .catch((err) => {
         if (!active) return;
-        setErrorMessage(
-          err?.response?.data?.message
-          || 'Não foi possível gerar a análise agora. Tente novamente em instantes.',
-        );
+        setErrorMessage(err?.response?.data?.message || tr.errorDefault);
         setStatus('error');
       });
-
     return () => { active = false; };
-  }, [workIds]);
-
-  const goBack = () => navigate('/dashboard', { state: { tab: 'ai' } });
+  }, [workIds, tr.errorDefault]);
 
   const regenerate = async () => {
     if (!workIds || regenerating) return;
@@ -55,172 +51,147 @@ export default function InsightsResult() {
       setResult(data);
       setStatus('ready');
     } catch (err) {
-      setErrorMessage(
-        err?.response?.data?.message
-        || 'Não foi possível gerar de novo agora. Tente em instantes.',
-      );
+      setErrorMessage(err?.response?.data?.message || tr.errorDefault);
+      setStatus('error');
     } finally {
       setRegenerating(false);
     }
   };
 
   return (
-    <div className="insights-result-page">
-      <div className="insights-result-inner">
-        <div className="insights-topbar">
-          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={goBack}>← IA Insights</button>
-          <span className="insights-brand">My<span className="g">Rank</span></span>
+    <div className="rk-page ir-page">
+      <button type="button" className="ir-back" onClick={onBack}>
+        <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
+        {tr.back}
+      </button>
+
+      {status === 'loading' && (
+        <div className="ir-loading" role="status">
+          <div className="insights-spinner" />
+          <p>{tr.loading}</p>
         </div>
-
-        {status === 'loading' && <LoadingView />}
-        {status === 'empty' && <EmptyView onBack={goBack} />}
-        {status === 'error' && (
-          <ErrorView
-            message={errorMessage}
-            canRetry={Boolean(workIds)}
-            retrying={regenerating}
-            onRetry={regenerate}
-            onBack={goBack}
-          />
-        )}
-        {status === 'ready' && result && (
-          <ReadyView
-            result={result}
-            canRegenerate={Boolean(workIds)}
-            regenerating={regenerating}
-            onRegenerate={regenerate}
-            onResult={setResult}
-          />
-        )}
-      </div>
-
-      <SiteFooter />
+      )}
+      {status === 'empty' && (
+        <div className="insights-state-card">
+          <div className="insights-state-title">{tr.emptyTitle}</div>
+          <div className="insights-state-text">{tr.emptyText}</div>
+          <div className="insights-state-actions">
+            <button type="button" className="mr-btn mr-btn-gold" onClick={onBack}>{tr.backButton}</button>
+          </div>
+        </div>
+      )}
+      {status === 'error' && (
+        <div className="insights-state-card">
+          <div className="insights-state-title">{tr.errorTitle}</div>
+          <div className="insights-state-text">{errorMessage}</div>
+          <div className="insights-state-actions">
+            {workIds && (
+              <button type="button" className="mr-btn mr-btn-gold" onClick={regenerate} disabled={regenerating}>
+                {regenerating ? tr.retrying : tr.retry}
+              </button>
+            )}
+            <button type="button" className="mr-btn mr-btn-ghost" onClick={onBack}>{tr.backButton}</button>
+          </div>
+        </div>
+      )}
+      {status === 'ready' && result && (
+        <ReadyView
+          result={result}
+          canRegenerate={Boolean(workIds)}
+          regenerating={regenerating}
+          onRegenerate={regenerate}
+          onResult={setResult}
+        />
+      )}
     </div>
   );
 }
 
 function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult }) {
-  const { analysis, model, workCount, cached, generatedAt } = result;
+  const { t, lang, locale } = useLanguage();
+  const tr = t.insights.result;
+  const { analysis, workCount, generatedAt } = result;
   const traits = Array.isArray(analysis.traits) ? analysis.traits : [];
   const contradictions = Array.isArray(analysis.contradictions) ? analysis.contradictions : [];
   const taste = Array.isArray(analysis.tasteProfile) ? analysis.tasteProfile : [];
-  // Análises novas trazem média real + nº de obras; as antigas, a % que a IA inventava.
-  const maxPercent = Math.max(1, ...taste.map((s) => s.percent || 0));
-  // até 3 na lista; o back antigo (antes do deploy) ainda manda uma só em `recommendation`
+  // até 3 na lista; análise bem antiga ainda manda uma só em `recommendation`
   const recos = (analysis.recommendations ?? (analysis.recommendation ? [analysis.recommendation] : []))
     .filter((r) => r?.title);
+  // análises antigas trazem a % que a IA inventava em vez de média + nº de obras
+  const maxPercent = Math.max(1, ...taste.map((s) => s.percent || 0));
+  const genreName = (raw) => genreLabel(genreKeys([raw])[0] ?? raw, t.rankings.genreNames);
+  const decimal = (n) => n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   return (
     <>
-      <section className="insights-hero insights-enter">
-        <div className="mr-flex mr-justify-between mr-gap-4" style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <div style={{ minWidth: 0 }}>
-            <span className="insights-hero-eyebrow">✨ Perfil de consumo</span>
-            <h1 className="insights-hero-title">{analysis.summaryTitle}</h1>
-            <p className="insights-hero-text">{analysis.summaryText}</p>
-          </div>
-        </div>
-
-        <div className="insights-hero-meta">
-          <span>{workCount} obras analisadas</span>
-          <span className="dot">•</span>
-          <span>{model}</span>
-          {generatedAt && <><span className="dot">•</span><span>gerado {relativeFromNow(generatedAt)}</span></>}
-          {cached && <><span className="dot">•</span><span>reaproveitado do cache</span></>}
-        </div>
-
-        {canRegenerate && (
-          <div className="insights-hero-actions">
-            <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onRegenerate} disabled={regenerating}>
-              {regenerating ? 'Gerando…' : '↻ Gerar novamente'}
+      <header className="ir-hero insights-enter">
+        <div className="ir-hero-meta">
+          <span className="ir-eyebrow">{tr.eyebrow}</span>
+          <span>{plural(tr.works, workCount)}</span>
+          {generatedAt && <span>{fmt(tr.generated, { when: relativeTime(generatedAt, lang) })}</span>}
+          {canRegenerate && (
+            <button type="button" className="ir-regen" onClick={onRegenerate} disabled={regenerating}>
+              <RefreshCw size={13} strokeWidth={2} className={regenerating ? 'is-spinning' : ''} aria-hidden="true" />
+              {regenerating ? tr.regenerating : tr.regenerate}
             </button>
-          </div>
-        )}
-      </section>
+          )}
+        </div>
+        <h1 className="ir-title">{analysis.summaryTitle}</h1>
+        <p className="ir-summary">{analysis.summaryText}</p>
+      </header>
 
       {traits.length > 0 && (
         <section className="insights-enter" style={{ '--d': '60ms' }}>
-          <h2 className="insights-section-title">🧬 Seus traços</h2>
-          <div className="insights-traits-grid">
+          <h2 className="ir-section">{tr.traits}</h2>
+          <ol className="ir-traits">
             {traits.map((trait, i) => (
-              <div key={`${trait.label}-${i}`} className="insights-trait">
-                <div className="insights-trait-icon">{trait.icon || '•'}</div>
-                <div className="insights-trait-label">{trait.label}</div>
-                <div className="insights-trait-desc">{trait.description}</div>
-              </div>
+              <li key={`${trait.label}-${i}`}>
+                <span className="ir-num">{String(i + 1).padStart(2, '0')}</span>
+                <strong>{trait.label}</strong>
+                <p>{trait.description}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </section>
       )}
 
       {contradictions.length > 0 && (
         <section className="insights-enter" style={{ '--d': '90ms' }}>
-          <h2 className="insights-section-title">⚡ Suas contradições</h2>
-          <div className="insights-traits-grid">
-            {contradictions.map((item, i) => (
-              <div key={i} className="insights-trait">
-                <div className="insights-trait-icon">{item.icon || '•'}</div>
-                <div className="insights-trait-desc">{item.text}</div>
-              </div>
-            ))}
-          </div>
+          <h2 className="ir-section">{tr.contradictions}</h2>
+          <ul className="ir-contradictions">
+            {contradictions.map((item, i) => <li key={i}>{item.text}</li>)}
+          </ul>
         </section>
       )}
 
-      {(taste.length > 0 || recos.length > 0) && (
-        <div className="insights-bottom-grid">
-          {taste.length > 0 && (
-            <section className="mr-card insights-enter" style={{ '--d': '120ms' }}>
-              <div className="mr-card-body">
-                <h2 className="insights-section-title">🎯 Perfil de gosto</h2>
-                {taste.map((slice, i) => (
-                  <div key={`${slice.name}-${i}`} className="insights-taste-row">
-                    <div className="insights-taste-head">
-                      <span>{slice.name}</span>
-                      <span className="pct">
-                        {typeof slice.average === 'number'
-                          ? `${slice.average.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} · ${slice.count} ${slice.count === 1 ? 'obra' : 'obras'}`
-                          : `${slice.percent}%`}
-                      </span>
-                    </div>
-                    <div className="mr-progress">
-                      <div
-                        className="mr-progress-bar"
-                        style={{
-                          width: typeof slice.average === 'number'
-                            ? `${Math.round(slice.average * 10)}%`
-                            : `${Math.round(((slice.percent || 0) / maxPercent) * 100)}%`,
-                          background: BAR_COLORS[i % BAR_COLORS.length],
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+      {taste.length > 0 && (
+        <section className="insights-enter" style={{ '--d': '120ms' }}>
+          <h2 className="ir-section">{tr.genres}</h2>
+          <ul className="ir-genres">
+            {taste.map((slice, i) => {
+              const hasAvg = typeof slice.average === 'number';
+              const width = hasAvg ? slice.average * 10 : ((slice.percent || 0) / maxPercent) * 100;
+              return (
+                <li key={`${slice.name}-${i}`} style={{ '--ir-fade': Math.max(0.4, 1 - i * 0.14) }}>
+                  <span className="ir-genre-name">{genreName(slice.name)}</span>
+                  <span className="ir-genre-bar"><span style={{ width: `${Math.round(width)}%` }} /></span>
+                  <span className="ir-genre-meta">
+                    {hasAvg ? <><b>{decimal(slice.average)}</b> · {plural(tr.works, slice.count)}</> : `${slice.percent}%`}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
-          {recos.length > 0 && (
-            <section className="insights-reco insights-enter" style={{ '--d': '180ms' }}>
-              <span className="insights-hero-eyebrow">
-                💡 {recos.length > 1 ? 'Recomendações para você' : 'Recomendação para você'}
-              </span>
-              {recos.map((reco) => (
-                <div className="insights-reco-item" key={reco.title}>
-                  <div className="insights-reco-title">{reco.title}</div>
-                  <div className="insights-reco-badges">
-                    {reco.year && <span className="mr-badge mr-badge-outline">{reco.year}</span>}
-                    {reco.category && <span className="mr-badge mr-badge-green">{reco.category}</span>}
-                    {typeof reco.compatPercent === 'number' && (
-                      <span className="mr-badge mr-badge-gold">{reco.compatPercent}% compatível</span>
-                    )}
-                  </div>
-                  <p className="insights-reco-reason">{reco.reason}</p>
-                </div>
-              ))}
-            </section>
-          )}
-        </div>
+      {recos.length > 0 && (
+        <section className="insights-enter" style={{ '--d': '160ms' }}>
+          <h2 className="ir-section">{tr.recos}</h2>
+          <div className="ir-recos">
+            {recos.map((reco) => <RecoCard key={reco.title} reco={reco} labels={tr} />)}
+          </div>
+        </section>
       )}
 
       <InsightChat
@@ -234,23 +205,43 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult
   );
 }
 
-const SendArrow = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-    <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a1 1 0 00-1.4 1.15L4 11l10 1-10 1-2 6.25a1 1 0 001.4 1.15z" />
-  </svg>
-);
+/** Recomendação: capa (achada pelo back na geração), nome, tipo · ano e o motivo. */
+function RecoCard({ reco, labels }) {
+  const [open, setOpen] = useState(false);
+  const [broken, setBroken] = useState(false);
+  const cover = reco.posterUrl && !broken ? reco.posterUrl : null;
+  const long = (reco.reason ?? '').length > 220;
+  return (
+    <article className="ir-reco">
+      <span className="ir-reco-cover">
+        {cover ? <img src={cover} alt="" loading="lazy" onError={() => setBroken(true)} /> : <span>{reco.title.slice(0, 1)}</span>}
+      </span>
+      <div className="ir-reco-body">
+        <strong>{reco.title}</strong>
+        <span className="ir-reco-meta">{[reco.category, reco.year].filter(Boolean).join(' · ')}</span>
+        <p className={open ? 'is-open' : ''}>{reco.reason}</p>
+        {long && (
+          <button type="button" className="ir-more" onClick={() => setOpen(v => !v)}>
+            {open ? labels.readLess : labels.readMore}
+          </button>
+        )}
+      </div>
+    </article>
+  );
+}
 
 /**
  * Chat de follow-up sobre a análise. Cada pergunta consome 1 do orçamento diário
- * de mensagens de IA (15/dia, reseta às 6h) — o mesmo orçamento de gerar análise.
+ * de mensagens de IA (15/dia, reseta às 6h), o mesmo de gerar análise.
  */
 function InsightChat({ insightId, initialChat, dailyLimit, dailyRemaining, onResult }) {
+  const { t } = useLanguage();
+  const tr = t.insights.result;
   const [thread, setThread] = useState(() => initialChat);
   const [remaining, setRemaining] = useState(dailyRemaining);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const [showHelp, setShowHelp] = useState(false);
   const scrollRef = useRef(null);
 
   const canSend = remaining > 0 && !sending;
@@ -279,136 +270,58 @@ function InsightChat({ insightId, initialChat, dailyLimit, dailyRemaining, onRes
       setThread((prev) => prev.slice(0, -1)); // desfaz a bolha otimista
       setRemaining((r) => Math.min(dailyLimit, r + 1));
       setDraft(question);
-      setError(
-        err?.response?.data?.message
-        || 'Não consegui responder agora. Tente de novo em instantes.',
-      );
+      setError(err?.response?.data?.message || tr.chatError);
     } finally {
       setSending(false);
     }
   };
 
-  const quota = remaining > 0
-    ? `${remaining} de ${dailyLimit} ${remaining === 1 ? 'mensagem restante hoje' : 'mensagens restantes hoje'}`
-    : 'limite diário atingido';
-
   return (
-    <section className="insights-chat insights-enter" style={{ '--d': '240ms' }}>
-      <div className="insights-chat-head">
-        <div className="insights-chat-title-row">
-          <h2 className="insights-section-title" style={{ marginBottom: 0 }}>💬 Pergunte à IA</h2>
-          <button
-            type="button"
-            className="insights-chat-help"
-            aria-label="Como funciona"
-            aria-expanded={showHelp}
-            onClick={() => setShowHelp((v) => !v)}
-          >
-            !
-            {showHelp && (
-              <span className="insights-chat-help-pop" role="tooltip">
-                Questione a análise: peça mais recomendações, entenda um traço, compare gêneros.
-                São {dailyLimit} mensagens de IA por dia (gerar análise conta também) e o limite zera às 6h.
-              </span>
-            )}
-          </button>
-        </div>
-        <span className="insights-chat-quota">{quota}</span>
+    <section className="ir-chat insights-enter" style={{ '--d': '220ms' }}>
+      <div className="ir-chat-head">
+        <h2 className="ir-section">{tr.chatTitle}</h2>
+        <InfoTip label={tr.chatHelpLabel} title={tr.chatTitle}>
+          <span className="mr-infotip-text">{fmt(tr.chatHelp, { max: dailyLimit })}</span>
+        </InfoTip>
+        <span className="ir-chat-quota">
+          {remaining > 0 ? fmt(tr.quota, { n: remaining, max: dailyLimit }) : tr.quotaOut}
+        </span>
       </div>
 
       {(thread.length > 0 || sending) && (
-        <div className="insights-chat-thread" ref={scrollRef}>
+        <div className="ir-chat-thread" ref={scrollRef}>
           {thread.map((m, i) => (
-            <div key={i} className={`insights-chat-msg ${m.role === 'USER' ? 'is-user' : 'is-ai'}`}>
-              <div className="insights-chat-bubble">{m.content}</div>
+            <div key={i} className={`ir-msg ${m.role === 'USER' ? 'is-user' : 'is-ai'}`}>
+              <div className="ir-bubble">{m.content}</div>
             </div>
           ))}
           {sending && (
-            <div className="insights-chat-msg is-ai">
-              <div className="insights-chat-bubble insights-chat-typing">
-                <span /><span /><span />
-              </div>
+            <div className="ir-msg is-ai">
+              <div className="ir-bubble ir-typing"><span /><span /><span /></div>
             </div>
           )}
         </div>
       )}
 
-      {error && <p className="insights-chat-error">{error}</p>}
+      {error && <p className="ir-chat-error" role="alert">{error}</p>}
 
       {remaining > 0 ? (
-        <form className="insights-chat-form" onSubmit={submit}>
+        <form className="ir-chat-form" onSubmit={submit}>
           <input
             className="mr-input"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Escreva sua pergunta…"
+            placeholder={tr.placeholder}
             maxLength={500}
             disabled={sending}
           />
-          <button
-            className="insights-chat-send"
-            type="submit"
-            disabled={!canSend || !draft.trim()}
-            aria-label="Perguntar"
-          >
-            <SendArrow />
+          <button className="ir-send" type="submit" disabled={!canSend || !draft.trim()} aria-label={tr.send} title={tr.send}>
+            <ArrowUp size={18} strokeWidth={2.2} aria-hidden="true" />
           </button>
         </form>
       ) : (
-        <p className="insights-chat-hint">
-          Você usou suas {dailyLimit} mensagens de IA de hoje. O limite zera às 6h.
-        </p>
+        <p className="ir-chat-hint">{fmt(tr.limitHint, { max: dailyLimit })}</p>
       )}
     </section>
-  );
-}
-
-function LoadingView() {
-  return (
-    <>
-      <section className="insights-hero">
-        <div className="insights-spinner" />
-        <p style={{ textAlign: 'center', color: 'var(--mr-text-secondary)', marginTop: 12 }}>
-          Analisando seu perfil de consumo…
-        </p>
-      </section>
-      <div className="insights-traits-grid">
-        {[0, 1, 2].map((i) => <div key={i} className="insights-skel" style={{ height: 130 }} />)}
-      </div>
-      <div className="insights-skel" style={{ height: 220 }} />
-    </>
-  );
-}
-
-function EmptyView({ onBack }) {
-  return (
-    <div className="insights-state-card">
-      <div className="insights-state-emoji">🤖</div>
-      <div className="insights-state-title">Nenhuma análise ainda</div>
-      <div className="insights-state-text">
-        Volte ao painel de IA Insights, selecione suas obras e gere sua primeira análise.
-      </div>
-      <div className="insights-state-actions">
-        <button className="mr-btn mr-btn-gold" onClick={onBack}>Voltar ao IA Insights</button>
-      </div>
-    </div>
-  );
-}
-
-function ErrorView({ message, canRetry, retrying, onRetry, onBack }) {
-  return (
-    <div className="insights-state-card">
-      <div className="insights-state-emoji">⚠️</div>
-      <div className="insights-state-title">Erro ao gerar a análise</div>
-      <div className="insights-state-text">{message}</div>
-      <div className="insights-state-actions">
-        {canRetry && (
-          <button className="mr-btn mr-btn-gold" onClick={onRetry} disabled={retrying}>
-            {retrying ? 'Tentando…' : 'Tentar de novo'}
-          </button>
-        )}
-        <button className="mr-btn mr-btn-outline" onClick={onBack}>Voltar ao IA Insights</button>
-      </div>
-    </div>
   );
 }
