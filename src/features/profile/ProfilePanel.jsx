@@ -1,643 +1,153 @@
-import React, { useState, useEffect } from 'react';
-import { getMe, updateMe } from '../../services/userService';
+import { useEffect, useState } from 'react';
+import { Settings } from 'lucide-react';
+import { getMe } from '../../services/userService';
+import { socialApi } from '../social/socialData';
 import Avatar from '../../shared/components/Avatar';
-import AvatarUrlModal from './AvatarUrlModal';
-import DeleteAccountModal from './DeleteAccountModal';
 import { useUser } from '../../shared/userContext';
-import { useLanguage, LANGUAGES } from '../../shared/i18n';
-import {
-  useUnifiedItems,
-  computeStats,
-  computeBreakdown,
-  computeHighlights,
-  relativeTime,
-} from '../../shared/useUnifiedItems';
-import { useBadges, groupByBucket } from '../../shared/badges';
-import BadgeIcon from '../../shared/badgeIcons';
+import { useLanguage } from '../../shared/i18n';
+import { useUnifiedItems } from '../../shared/useUnifiedItems';
+import { useBadges } from '../../shared/badges';
+import EditProfileModal from './EditProfileModal';
+import ProfileSettings from './ProfileSettings';
+import ProfileBadges, { BadgeSummary } from './ProfileBadges';
+import ProfileStats from './ProfileStats';
+import './profile.css';
 
-// ─── helpers ───────────────────────────────────────────────────────────────
-/** Interpola {chaves} de uma string de tradução. */
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
-const typeIcons = {
-  filme:  '🎬',
-  jogo:   '🎮',
-  serie:  '📺',
-  livro:  '📚',
-  anime:  '🎌',
-  outro:  '📦',
-};
-
-// APIs externas que o MyRank consome. `feature` = TMDB, ocupa a linha inteira.
-// Descrição e escopo vêm do i18n (tp.apis).
-const APIS = [
-  { key: 'tmdb',   name: 'TMDB',          icon: '🎬', site: 'themoviedb.org',   feature: true },
-  { key: 'rawg',   name: 'RAWG',          icon: '🎮', site: 'rawg.io' },
-  { key: 'mal',    name: 'MyAnimeList',   icon: '🌸', site: 'myanimelist.net' },
-  { key: 'books',  name: 'Google Books',  icon: '📚', site: 'books.google.com' },
-  { key: 'gemini', name: 'Google Gemini', icon: '✨', site: 'ai.google.dev' },
-];
-
-function formatTime(totalMinutes) {
-  if (!totalMinutes || totalMinutes <= 0) return '0h';
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
-  return m > 0 ? `${h}h ${m}min` : `${h}h`;
-}
-
-function formatDate(dateString, locale) {
-  if (!dateString) return null;
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString(locale || 'pt-BR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
-}
-
-// ─── Componente: linha de configuração ────────────────────────────────────
-function SettingRow({ label, desc, children }) {
-  return (
-    <div className="mr-setting-row">
-      <div>
-        <div className="mr-setting-label">{label}</div>
-        {desc && <div className="mr-setting-desc">{desc}</div>}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-// ─── Componente: linha rótulo → valor (destaques / dados da conta) ─────────
-function KVRow({ label, value, meta }) {
-  return (
-    <div
-      className="mr-flex mr-items-center mr-justify-between mr-gap-3"
-      style={{ fontSize: '0.85rem' }}
-    >
-      <span style={{ color: 'var(--mr-text-secondary)', flexShrink: 0 }}>{label}</span>
-      <span
-        className="mr-flex mr-items-center mr-gap-2"
-        style={{ minWidth: 0, justifyContent: 'flex-end', textAlign: 'right' }}
-      >
-        <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {value ?? '—'}
-        </span>
-        {meta ? <strong style={{ color: 'var(--mr-gold)', flexShrink: 0 }}>{meta}</strong> : null}
-      </span>
-    </div>
-  );
-}
-
-// ─── Componente: Badge card ───────────────────────────────────────────────
-function BadgeCard({ badge }) {
-  const { t } = useLanguage();
-  const tp = t.profile;
-  const pct = Math.min(
-    Math.round((badge.progress / Math.max(badge.maxProgress, 1)) * 100),
-    100
-  );
-
-  return (
-    <div className={`mr-badge-card ${badge.unlocked ? 'unlocked' : 'locked'}`}>
-      <span className="mr-badge-icon"><BadgeIcon code={badge.id} /></span>
-
-      <div style={{ fontWeight: 600, fontSize: '0.8125rem', marginBottom: 4 }}>
-        {badge.name}
-      </div>
-      <div style={{
-        fontSize: '0.6875rem',
-        color: 'var(--mr-text-secondary)',
-        marginBottom: 10,
-        lineHeight: 1.35,
-      }}>
-        {badge.description}
-      </div>
-
-      {badge.unlocked ? (
-        <div className="mr-flex mr-items-center mr-justify-center mr-gap-2">
-          <div className="mr-dot-green" />
-          <span style={{ fontSize: '0.75rem', color: 'var(--mr-green)', fontWeight: 500 }}>
-            {tp.badgeUnlocked}
-          </span>
-        </div>
-      ) : badge.hasProgress ? (
-        <div>
-          <div className="mr-flex mr-justify-between mr-mb-1" style={{ fontSize: '0.6875rem' }}>
-            <span style={{ color: 'var(--mr-text-secondary)' }}>
-              {badge.progress}/{badge.maxProgress}
-            </span>
-            <span style={{ color: 'var(--mr-text-secondary)' }}>{pct}%</span>
-          </div>
-          <div className="mr-progress mr-progress-sm">
-            <div
-              className="mr-progress-bar"
-              style={{
-                width: `${pct}%`,
-                backgroundColor: 'var(--mr-gold)',
-              }}
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="mr-flex mr-items-center mr-justify-center mr-gap-2">
-          <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-muted)' }}>{tp.badgeLocked}</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Componente principal ─────────────────────────────────────────────────
+/**
+ * Perfil: quem você é (topo), suas conquistas e estatísticas. Nada do que já está
+ * na Dashboard (números, Hall da fama) se repete aqui. Tema, idioma, privacidade
+ * e conta ficam numa página própria (o ⚙).
+ */
 export default function ProfilePanel({ isDark, onThemeToggle }) {
-  const { t, lang, setLang, locale } = useLanguage();
+  const { t, locale } = useLanguage();
   const tp = t.profile;
-
-  const [profileUsername, setProfileUsername] = useState('usuario');
-  const [profileBio,      setProfileBio]      = useState('');
-  const [createdAt,       setCreatedAt]       = useState(null);
-  const [loadingProfile,  setLoadingProfile]  = useState(true);
-  const [editMode,        setEditMode]        = useState(false);
-  const [draftUsername,   setDraftUsername]   = useState(profileUsername);
-  const [draftBio,        setDraftBio]        = useState(profileBio);
-  const [saving,          setSaving]          = useState(false);
-  const [error,           setError]           = useState('');
-  const [badgeFilter,     setBadgeFilter]     = useState('all'); // 'all' | 'unlocked' | 'locked'
-  const [profile,         setProfile]         = useState(null);  // objeto /users/me completo (id, avatarUrl, updatedAt...)
-  const [avatarVersion,   setAvatarVersion]   = useState(0);     // muda pra furar o cache do <img> após troca
-  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { setUser } = useUser();
 
-  // atualiza o form local + o usuário compartilhado (header, saudação da home)
-  const applyUser = (u) => {
-    setProfile(u);
-    setUser(u);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [avatarVersion, setAvatarVersion] = useState(0); // fura o cache do <img> depois de trocar a foto
+  const [summary, setSummary] = useState(null);
+  const [tab, setTab] = useState('badges');
+  const [badgeFilter, setBadgeFilter] = useState('all');
+  const [view, setView] = useState('profile'); // 'profile' | 'settings'
+  const [editing, setEditing] = useState(false);
+
+  // atualiza o perfil daqui e o usuário compartilhado (navbar, saudação da home)
+  const applyUser = (user) => {
+    setProfile(user);
+    setUser(user);
   };
 
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const user = await getMe();
-        applyUser(user);
-        setProfileUsername(user.username || 'usuario');
-        setProfileBio(user.bio || tp.defaultBio);
-        setCreatedAt(user.createdAt || null);
-      } catch (err) {
-        setError(tp.loadError);
-      } finally {
-        setLoadingProfile(false);
-      }
-    };
-    loadProfile();
+    getMe()
+      .then(applyUser)
+      .catch(() => setError(tp.loadError))
+      .finally(() => setLoading(false));
+    socialApi.getSummary().then(setSummary).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAvatarDone = (freshUser) => {
-    applyUser(freshUser);
-    setAvatarVersion((v) => v + 1);
-    setAvatarModalOpen(false);
-  };
-
-  useEffect(() => {
-    setDraftUsername(profileUsername);
-    setDraftBio(profileBio);
-  }, [profileUsername, profileBio]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    setError('');
-    try {
-      const updated = await updateMe({
-        username: draftUsername.trim() || profileUsername,
-        bio: draftBio.trim() || profileBio,
-      });
-
-      applyUser(updated);
-      setProfileUsername(updated.username || profileUsername);
-      setProfileBio(updated.bio || profileBio);
-      setEditMode(false);
-    } catch (err) {
-      const message = err.response?.data?.message || tp.saveError;
-      setError(message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // ── Stats reais das obras do usuário (GET /works/unified) ──
-  const { items: works, loading: loadingWorks } = useUnifiedItems();
-  const stats = computeStats(works || []);
-  const breakdown = computeBreakdown(works || []);
-  const highlights = computeHighlights(works || []);
-
+  const { items, loading: loadingWorks } = useUnifiedItems();
   const { badges, loading: loadingBadges } = useBadges();
-  const badgeList = badges || [];
-  const unlockedCount = badgeList.filter(b => b.unlocked).length;
 
-  const hoursLabel = (min) => `${Math.round((min || 0) / 60)}h`;
+  const openSettings = () => { setView('settings'); window.scrollTo({ top: 0 }); };
+  const closeSettings = () => { setView('profile'); window.scrollTo({ top: 0 }); };
 
-  // Filtro de badges
-  const visibleBadges =
-    badgeFilter === 'unlocked' ? badgeList.filter(b =>  b.unlocked) :
-    badgeFilter === 'locked'   ? badgeList.filter(b => !b.unlocked) :
-    badgeList;
-  const visibleGroups = groupByBucket(visibleBadges);
+  if (loading) return <p className="pf-muted">{tp.loading}</p>;
+  if (error || !profile) return <p className="pf-muted">{error || tp.loadError}</p>;
 
-  if (loadingProfile) {
+  if (view === 'settings') {
     return (
-      <div className="mr-card">
-        <div className="mr-card-body">{tp.loading}</div>
-      </div>
+      <ProfileSettings
+        profile={profile}
+        onUserChange={applyUser}
+        isDark={isDark}
+        onThemeToggle={onThemeToggle}
+        onBack={closeSettings}
+      />
     );
   }
 
+  const since = profile.createdAt
+    ? new Date(profile.createdAt).toLocaleDateString(locale || 'pt-BR', { month: 'long', year: 'numeric' })
+    : null;
+  const meta = [
+    since && fmt(tp.memberSince, { date: since }),
+    summary && (summary.followers === 1 ? tp.followersOne : fmt(tp.followersCount, { n: summary.followers })),
+    summary && fmt(tp.followingCount, { n: summary.following }),
+  ].filter(Boolean);
+
+  const tabs = [
+    { id: 'badges', label: tp.tabBadges },
+    { id: 'stats', label: tp.tabStats },
+  ];
+
   return (
-    <div className="mr-space-y-6">
-
-      {/* ── Header ── */}
-      <div className="mr-flex mr-items-center mr-justify-between mr-flex-wrap mr-gap-4">
-        <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{tp.title}</h1>
-          <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', marginTop: 4 }}>
-            {tp.subtitle}
-          </p>
-        </div>
-      </div>
-
-      {/* ── Layout principal: avatar + settings ── */}
-      <div className="mr-profile-grid">
-
-        {/* ── Coluna esquerda: card do perfil ── */}
-        <div className="mr-card">
-          <div className="mr-card-body mr-text-center mr-space-y-4">
-
-            {/* Avatar */}
-            <div className="mr-flex mr-justify-center" style={{ flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-              <Avatar
-                user={profile || { username: profileUsername }}
-                cacheKey={avatarVersion}
-                className="mr-avatar-lg"
-              />
-
-              {editMode && (
-                <button
-                  type="button"
-                  className="mr-btn mr-btn-sm mr-btn-outline"
-                  onClick={() => setAvatarModalOpen(true)}
-                >
-                  {tp.changePhoto}
-                </button>
-              )}
-            </div>
-
-            <div style={{ textAlign: 'left', width: '100%' }}>
-              {editMode ? (
-                <div className="mr-space-y-3">
-                  <div>
-                    <label className="mr-setting-label" style={{ marginBottom: 6 }}>{tp.usernameLabel}</label>
-                    <input
-                      className="mr-input"
-                      value={draftUsername}
-                      onChange={e => setDraftUsername(e.target.value)}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-                  <div>
-                    <label className="mr-setting-label" style={{ marginBottom: 6 }}>{tp.bioLabel}</label>
-                    <textarea
-                      className="mr-input"
-                      value={draftBio}
-                      onChange={e => setDraftBio(e.target.value)}
-                      rows={3}
-                      style={{ width: '100%', resize: 'vertical' }}
-                    />
-                  </div>
-                  {error && <p className="auth-error">{error}</p>}
-                  <div className="mr-flex mr-gap-2 mr-justify-center" style={{ marginTop: 6 }}>
-                    <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => {
-                      setEditMode(false);
-                      setDraftUsername(profileUsername);
-                      setDraftBio(profileBio);
-                      setError('');
-                    }}>
-                      {tp.cancel}
-                    </button>
-                    <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving}>
-                      {saving ? tp.saving : tp.save}
-                    </button>
-                  </div>
-                  {/* De propósito só no modo de edição e sem destaque: é irreversível. */}
-                  <div style={{ textAlign: 'center' }}>
-                    <button
-                      type="button"
-                      className="mr-profile-delete-link"
-                      onClick={() => setDeleteModalOpen(true)}
-                      disabled={!profile}
-                    >
-                      {tp.deleteAccount}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="mr-flex mr-items-center mr-justify-center mr-gap-2">
-                    <span aria-hidden="true" style={{ width: 24, flexShrink: 0 }} />
-                    <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>{profileUsername}</span>
-                    <button
-                      type="button"
-                      className="mr-profile-edit-pencil"
-                      onClick={() => setEditMode(true)}
-                      title={tp.editProfile}
-                      aria-label={tp.editProfile}
-                    >
-                      ✏️
-                    </button>
-                  </div>
-
-                  {profile?.email && (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)', marginTop: 4, textAlign: 'center' }}>
-                      {profile.email}
-                    </div>
-                  )}
-
-                  {createdAt && (
-                    <div style={{ textAlign: 'center' }}>
-                      <span className="mr-profile-since-pill">
-                        {fmt(tp.memberSince, { date: formatDate(createdAt, locale) })}
-                      </span>
-                    </div>
-                  )}
-
-                </>
-              )}
-            </div>
-
-            {/* Mini stats inline */}
-            <div className="mr-profile-stats">
-              {[
-                { label: tp.statWorks, value: loadingWorks ? '—' : stats.obras },
-                { label: tp.statHours, value: loadingWorks ? '—' : `${stats.totalHours}h` },
-                { label: tp.statAvg,   value: loadingWorks ? '—' : stats.avgNoteLabel },
-              ].map((s, i) => (
-                <div key={i}>
-                  <div style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--mr-gold)' }}>
-                    {s.value}
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)' }}>
-                    {s.label}
-                  </div>
-                </div>
+    <div className="rk-page pf-page">
+      <header className="pf-hero">
+        <Avatar user={profile} cacheKey={avatarVersion} className="mr-avatar-lg pf-avatar" />
+        <div className="pf-id">
+          <h1 className="rk-page-title pf-name">{profile.username}</h1>
+          {profile.bio && <p className="pf-bio">{profile.bio}</p>}
+          {meta.length > 0 && (
+            <p className="pf-meta">
+              {meta.map((m, i) => (
+                <span key={m}>{i > 0 && <span className="pf-dot" aria-hidden="true">·</span>}{m}</span>
               ))}
-            </div>
-
-            {/* Bio */}
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: '0.85rem', color: 'var(--mr-text)', lineHeight: 1.5 }}>
-                {profileBio}
-              </div>
-            </div>
-
-            {/* Conquistas rápidas */}
-            <div className="mr-profile-quickbadges">
-              <div className="mr-flex mr-items-center mr-justify-between">
-                <span className="mr-profile-quickbadges-label">{tp.quickBadges}</span>
-                <span className="mr-profile-quickbadges-count">
-                  {fmt(tp.unlockedShort, { n: unlockedCount, m: badgeList.length })}
-                </span>
-              </div>
-              <div className="mr-flex mr-flex-wrap mr-gap-2" style={{ marginTop: 12 }}>
-                {loadingBadges ? (
-                  <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>{tp.loadingShort}</span>
-                ) : unlockedCount === 0 ? (
-                  <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)' }}>
-                    {tp.noBadgesYet}
-                  </span>
-                ) : (
-                  badgeList.filter(b => b.unlocked).slice(0, 6).map(badge => (
-                    <span
-                      key={badge.id}
-                      title={badge.name}
-                      className="mr-profile-quickbadge-chip"
-                    >
-                      <BadgeIcon code={badge.id} />
-                    </span>
-                  ))
-                )}
-              </div>
-            </div>
-
-          </div>
+            </p>
+          )}
         </div>
-
-        {/* ── Coluna direita: configurações ── */}
-        <div className="mr-space-y-6">
-
-          {/* Aparência (RF-012) — modo escuro + idioma, meia a meia */}
-          <div className="mr-card">
-            <div className="mr-card-body mr-space-y-4">
-              <h3 style={{ fontWeight: 700 }}>{tp.appearance}</h3>
-              <div className="mr-appearance-split">
-                <SettingRow label={tp.darkMode} desc={tp.darkModeDesc}>
-                  <button
-                    className={`mr-switch ${isDark ? 'checked' : ''}`}
-                    onClick={onThemeToggle}
-                  >
-                    <span className="mr-switch-thumb" />
-                  </button>
-                </SettingRow>
-
-                <SettingRow label={tp.language} desc={tp.languageDesc}>
-                  <div className="mr-lang-seg" role="group" aria-label={tp.language}>
-                    {LANGUAGES.map((code) => (
-                      <button
-                        key={code}
-                        type="button"
-                        className={`mr-lang-seg-btn ${lang === code ? 'is-active' : ''}`}
-                        onClick={() => setLang(code)}
-                      >
-                        {code}
-                      </button>
-                    ))}
-                  </div>
-                </SettingRow>
-              </div>
-            </div>
-          </div>
-
-          {/* Destaques */}
-          <div className="mr-card">
-            <div className="mr-card-body mr-space-y-4">
-              <h3 style={{ fontWeight: 700 }}>{tp.highlights}</h3>
-              {loadingWorks ? (
-                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>{tp.loadingShort}</div>
-              ) : !highlights ? (
-                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
-                  {tp.noHighlights}
-                </div>
-              ) : (
-                <div className="mr-space-y-3">
-                  <KVRow
-                    label={tp.bestRated}
-                    value={highlights.byNote?.title}
-                    meta={highlights.byNote ? Number(highlights.byNote.note).toFixed(1) : null}
-                  />
-                  <KVRow
-                    label={tp.mostHours}
-                    value={highlights.byTime?.title}
-                    meta={highlights.byTime ? hoursLabel(highlights.byTime.timeMinutes) : null}
-                  />
-                  <KVRow
-                    label={tp.lastAdded}
-                    value={highlights.byRecent?.title}
-                    meta={highlights.byRecent ? relativeTime(highlights.byRecent.addedDate, lang) : null}
-                  />
-                  <KVRow
-                    label={tp.favCategory}
-                    value={highlights.favCategory ? `${highlights.favCategory.icon} ${t.common.mediaTypes[highlights.favCategory.type] || highlights.favCategory.label}` : '—'}
-                    meta={highlights.favCategory ? `${highlights.favCategory.count}` : null}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Distribuição por categoria */}
-          <div className="mr-card">
-            <div className="mr-card-body mr-space-y-4">
-              <h3 style={{ fontWeight: 700 }}>{tp.distribution}</h3>
-              {loadingWorks ? (
-                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>{tp.loadingShort}</div>
-              ) : breakdown.length === 0 ? (
-                <div style={{ fontSize: '0.85rem', color: 'var(--mr-text-secondary)' }}>
-                  {tp.noWorks}
-                </div>
-              ) : (
-                <div className="mr-space-y-3">
-                  {breakdown.map((b) => (
-                    <div key={b.type}>
-                      <div
-                        className="mr-flex mr-items-center mr-justify-between"
-                        style={{ fontSize: '0.85rem', marginBottom: 4 }}
-                      >
-                        <span>{b.icon} {t.common.mediaTypes[b.type] || b.label}</span>
-                        <span style={{ color: 'var(--mr-text-secondary)' }}>
-                          {fmt(b.count === 1 ? tp.distLineOne : tp.distLineMany, { count: b.count, avg: b.avgLabel })}
-                        </span>
-                      </div>
-                      <div style={{ height: 6, borderRadius: 3, background: 'var(--mr-track)', border: '1px solid var(--mr-border)', overflow: 'hidden' }}>
-                        <div style={{ width: `${Math.round(b.share * 100)}%`, height: '100%', background: 'var(--mr-gold)' }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
+        <div className="pf-actions">
+          <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={() => setEditing(true)}>
+            {tp.editProfile}
+          </button>
+          <button type="button" className="pf-icon-btn" onClick={openSettings} aria-label={tp.settings} title={tp.settings}>
+            <Settings size={17} strokeWidth={1.8} aria-hidden="true" />
+          </button>
         </div>
-      </div>
+      </header>
 
-      {/* ── APIs que usamos — largura total, TMDB em destaque ── */}
-      <div>
-        <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap" style={{ marginBottom: 16 }}>
-          <h2 style={{ fontWeight: 700, fontSize: '1.25rem', marginRight: 'auto' }}>{tp.apis.title}</h2>
-          <div style={{ fontSize: '0.8125rem', color: 'var(--mr-text-muted)' }}>{tp.apis.subtitle}</div>
-        </div>
-
-        <div className="mr-api-list">
-          {APIS.map((api) => (
-            <div key={api.key} className={`mr-api-card${api.feature ? ' is-feature' : ''}`}>
-              <div className="mr-api-card-head">
-                <span className="mr-api-icon">{api.icon}</span>
-                <div className="mr-min-w-0">
-                  <div className="mr-api-name">{api.name}</div>
-                  <div className="mr-api-site">{api.site}</div>
-                </div>
-                <span className="mr-api-scope">{tp.apis.scope[api.key]}</span>
-              </div>
-              <p className="mr-api-desc">{tp.apis[api.key]}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Badges e Conquistas — largura total ── */}
-      <div id="mr-badges" style={{ scrollMarginTop: 80 }}>
-        <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap" style={{ marginBottom: 16 }}>
-          <h2 style={{ fontWeight: 700, fontSize: '1.25rem', marginRight: 'auto' }}>{tp.badgesTitle}</h2>
-
-          {/* Filtro de badges — mesmo padrão toolbar */}
-          <div className="mr-flex mr-gap-1">
-            {[
-              { id: 'all',      label: tp.filterAll      },
-              { id: 'unlocked', label: tp.filterUnlocked },
-              { id: 'locked',   label: tp.filterLocked   },
-            ].map(f => (
+      {/* abas à esquerda; nas Conquistas, a barra geral e o filtro à direita */}
+      <div className="pf-tabbar">
+        <div className="rk-tabs" role="tablist" aria-label={tp.tabsLabel}>
+          <div className="rk-tabs-scroll">
+            {tabs.map((x) => (
               <button
-                key={f.id}
-                className={`mr-btn mr-btn-sm ${badgeFilter === f.id ? 'mr-btn-gold' : 'mr-btn-outline'}`}
-                onClick={() => setBadgeFilter(f.id)}
+                key={x.id}
+                type="button"
+                role="tab"
+                aria-selected={tab === x.id}
+                className={`rk-tab${tab === x.id ? ' is-active' : ''}`}
+                onClick={() => setTab(x.id)}
               >
-                {f.label}
+                {x.label}
               </button>
             ))}
           </div>
-
-          <div style={{ fontSize: '0.8125rem', color: 'var(--mr-text-muted)' }}>
-            {loadingBadges ? '…' : fmt(tp.unlockedShort, { n: unlockedCount, m: badgeList.length })}
-          </div>
         </div>
-
-        {loadingBadges ? (
-          <div className="mr-card">
-            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-              {tp.loadingBadges}
-            </div>
-          </div>
-        ) : visibleBadges.length === 0 ? (
-          <div className="mr-card">
-            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--mr-text-secondary)', fontSize: '0.875rem' }}>
-              {tp.noBadgesFilter}
-            </div>
-          </div>
-        ) : (
-          <div className="mr-space-y-6">
-            {visibleGroups.map(group => (
-              <div key={group.key}>
-                <div
-                  className="mr-flex mr-items-center mr-gap-2"
-                  style={{ marginBottom: 10, fontSize: '0.95rem', fontWeight: 700 }}
-                >
-                  <span>{group.icon} {t.common.badgeBuckets[group.key] || group.label}</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--mr-text-muted)' }}>
-                    {group.items.filter(b => b.unlocked).length}/{group.items.length}
-                  </span>
-                </div>
-                <div className="mr-badge-grid">
-                  {group.items.map(badge => (
-                    <BadgeCard key={badge.id} badge={badge} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+        {tab === 'badges' && !loadingBadges && (
+          <BadgeSummary badges={badges || []} filter={badgeFilter} onFilter={setBadgeFilter} />
         )}
       </div>
 
-      {avatarModalOpen && (
-        <AvatarUrlModal
-          currentUser={profile}
-          onClose={() => setAvatarModalOpen(false)}
-          onDone={handleAvatarDone}
+      {tab === 'badges' && <ProfileBadges badges={badges || []} loading={loadingBadges} filter={badgeFilter} />}
+
+      {tab === 'stats' && <ProfileStats works={items || []} loading={loadingWorks} />}
+
+      {editing && (
+        <EditProfileModal
+          profile={profile}
+          onClose={() => setEditing(false)}
+          onSaved={(user) => {
+            applyUser(user);
+            setAvatarVersion((v) => v + 1);
+            setEditing(false);
+          }}
         />
       )}
-
-      {deleteModalOpen && profile && (
-        <DeleteAccountModal user={profile} onClose={() => setDeleteModalOpen(false)} />
-      )}
-
     </div>
   );
 }
