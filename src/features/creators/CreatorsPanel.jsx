@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ChevronDown, LayoutGrid, List, Pencil } from 'lucide-react';
+import { ArrowLeft, ChevronDown, LayoutGrid, List } from 'lucide-react';
 import { getUnifiedWorks } from '../../services/WorkService';
 import { getCreatorProfiles } from '../../services/creatorService';
 import { mapWorkToItem } from '../../utils/mapWork';
@@ -147,12 +147,7 @@ export default function CreatorsPanel({ onBack }) {
   const byNote = list => [...list].sort((a, b) => noteOf(b) - noteOf(a));
   const formatAvg = value => value.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-  const editButton = entry => (
-    <button type="button" className="cr-edit-btn" onClick={(event) => { event.stopPropagation(); setEditing(entry); }}>
-      <Pencil size={13} strokeWidth={1.8} aria-hidden="true" />
-      {tc.edit.button}
-    </button>
-  );
+  const editLabel = entry => `${tc.edit.button} ${entry.name}`;
 
   let body;
   if (loading) body = <p className="rk-empty">{tc.loading}</p>;
@@ -165,11 +160,8 @@ export default function CreatorsPanel({ onBack }) {
           <div key={entry.id} className={`cr-card mr-rankings-enter${i < 3 ? ' is-top' : ''}`}
             style={{ '--rank-delay': `${Math.min(i, 12) * 35}ms` }}>
             <span className="cr-card-rank">{i + 1}</span>
-            <button type="button" className="cr-card-edit" onClick={() => setEditing(entry)}
-              aria-label={`${tc.edit.button} ${entry.name}`} title={tc.edit.button}>
-              <Pencil size={13} strokeWidth={1.8} aria-hidden="true" />
-            </button>
-            <CreatorAvatar entry={entry} profiles={profiles} isCompany={entry.type === 'Studio'} size="lg" top={i < 3} />
+            <CreatorAvatar entry={entry} profiles={profiles} isCompany={entry.type === 'Studio'} size="lg" top={i < 3}
+              onEdit={() => setEditing(entry)} editLabel={editLabel(entry)} />
             <div className="cr-card-name" title={entry.name}>{entry.name}</div>
             <div className="cr-card-sub">
               {order === 'works' ? worksLabel(entry.count) : typeLabel(entry.type)}
@@ -208,7 +200,8 @@ export default function CreatorsPanel({ onBack }) {
                 onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(entry.id); } }}
               >
                 <span className="rk-rank">{i + 1}</span>
-                <CreatorAvatar entry={entry} profiles={profiles} isCompany={entry.type === 'Studio'} top={i < 3} />
+                <CreatorAvatar entry={entry} profiles={profiles} isCompany={entry.type === 'Studio'} top={i < 3}
+                  onEdit={() => setEditing(entry)} editLabel={editLabel(entry)} />
                 <div className="rk-main">
                   <div className="rk-title">{entry.name}</div>
                   <div className="rk-sub">{typeLabel(entry.type)} · {worksLabel(entry.count)}</div>
@@ -220,10 +213,7 @@ export default function CreatorsPanel({ onBack }) {
 
               {isOpen && (
                 <div className="cr-works">
-                  <div className="cr-works-head">
-                    <span>{weighted ? fmt(tc.realAvg, { avg: formatAvg(entry.score.raw) }) : ''}</span>
-                    {editButton(entry)}
-                  </div>
+                  {weighted && <p className="cr-works-note">{fmt(tc.realAvg, { avg: formatAvg(entry.score.raw) })}</p>}
                   <ul>
                     {shown.map(work => (
                       <li key={work.id}>
