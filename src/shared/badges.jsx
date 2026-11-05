@@ -34,7 +34,7 @@ export const BUCKET_META = {
   site:  { label: 'Usar o site', icon: '🚀' },
 };
 
-export const BUCKET_ORDER = ['jogo', 'filme', 'serie', 'livro', 'anime', 'manga', 'musica', 'album', 'outro', 'geral', 'site'];
+export const BUCKET_ORDER = ['jogo', 'filme', 'serie', 'livro', 'anime', 'manga', 'musica', 'album', 'outro', 'site', 'geral'];
 
 /** DTO do backend → shape usado pelos componentes de badge. */
 function mapBadge(b) {

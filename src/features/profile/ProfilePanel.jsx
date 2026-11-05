@@ -16,7 +16,7 @@ import './profile.css';
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
 /**
- * Perfil: quem você é (topo), suas conquistas e estatísticas. Nada do que já está
+ * Perfil: quem você é (topo), suas estatísticas e conquistas. Nada do que já está
  * na Dashboard (números, Hall da fama) se repete aqui. Tema, idioma, privacidade
  * e conta ficam numa página própria (o ⚙).
  */
@@ -30,7 +30,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const [error, setError] = useState('');
   const [avatarVersion, setAvatarVersion] = useState(0); // fura o cache do <img> depois de trocar a foto
   const [summary, setSummary] = useState(null);
-  const [tab, setTab] = useState('badges');
+  const [tab, setTab] = useState('stats'); // estatísticas primeiro: é a parte mais pessoal do perfil
   const [badgeFilter, setBadgeFilter] = useState('all');
   const [view, setView] = useState('profile'); // 'profile' | 'settings'
   const [editing, setEditing] = useState(false);
@@ -81,8 +81,8 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   ].filter(Boolean);
 
   const tabs = [
-    { id: 'badges', label: tp.tabBadges },
     { id: 'stats', label: tp.tabStats },
+    { id: 'badges', label: tp.tabBadges },
   ];
 
   return (

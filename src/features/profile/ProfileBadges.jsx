@@ -67,7 +67,8 @@ export default function ProfileBadges({ badges, loading, filter }) {
   return (
     <section className="pf-badge-groups">
       {groups.map((group) => (
-        <div key={group.key} className="mr-panel pf-badge-card">
+        // Gerais vem por último e ocupa duas colunas (12 conquistas em 2 fileiras de 6)
+        <div key={group.key} className={`mr-panel pf-badge-card${group.key === 'geral' ? ' is-wide' : ''}`}>
           <h3 className="pf-group-title">
             {t.common.badgeBuckets[group.key] || group.label}
             <span>{totals[group.key]}</span>
