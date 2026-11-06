@@ -25,3 +25,13 @@ export const deleteMe = async ({ confirmUsername, deletionCode }) => {
  * Retorna null quando não há foto (o componente cai nas iniciais).
  */
 export const avatarUrlFor = (user) => user?.avatarUrl || null;
+
+/**
+ * "Sair dos outros aparelhos": invalida todos os tokens da conta. Este aparelho
+ * continua logado com o token novo que vem na resposta.
+ */
+export const revokeOtherSessions = async () => {
+  const { data } = await api.post("/users/me/sessions/revoke");
+  localStorage.setItem("myrank_token", data.token);
+  return data;
+};
