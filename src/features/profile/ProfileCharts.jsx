@@ -168,7 +168,7 @@ function DotCard({ work, note, left, bottom }) {
  * "De que época": uma coluna por década com uma capa só, a de maior nota
  * daquela época, e embaixo quantas obras e a média. Escala com qualquer
  * quantidade de obras; décadas vazias viram "· · ·" e, quando são muitas
- * décadas, as capas encolhem pra caber todas (no celular, quebram em linhas).
+ * décadas, as capas encolhem pra caber todas numa linha (até no celular).
  * "Seu forte" é a década com a maior média.
  */
 export function EraTimeline({ works }) {
@@ -210,7 +210,9 @@ export function EraTimeline({ works }) {
   return (
     <div className="pf-era">
       {/* --n/--g: quantas décadas e quantos buracos, pro CSS saber a altura das capas */}
-      <div className="pf-era-row" style={{ '--n': decades.length, '--g': columns.length - decades.length }}>
+      {/* is-dense: muitas décadas; no celular fica só capa e ano pra caber */}
+      <div className={`pf-era-row${columns.length >= 7 ? ' is-dense' : ''}`}
+        style={{ '--n': decades.length, '--g': columns.length - decades.length }}>
         {columns.map((d, i) => {
           if (d === 'gap') return <span key={`gap-${i}`} className="pf-era-gap" aria-hidden="true">· · ·</span>;
           const list = byDecade.get(d) || [];
