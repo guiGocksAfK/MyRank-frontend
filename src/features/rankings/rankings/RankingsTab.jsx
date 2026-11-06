@@ -17,6 +17,7 @@ import { useWorks } from '../../../shared/worksContext';
 import { useLanguage } from '../../../shared/i18n';
 import { tableName } from '../../../shared/tableTemplates';
 import './rankings.css';
+import { useUser } from '../../../shared/userContext';
 
 const ORDERS = [
   { mode: 'simple', label: 'sortScores', sortBy: 'nota', weight: false },
@@ -85,7 +86,23 @@ export default function RankingsTab({ onNavigateToCreators }) {
   const [activeTab,        setActiveTab]        = useState('unified');
   const [useTimeWeight,    setUseTimeWeight]    = useState(false);
   const [sortBy,           setSortBy]           = useState('nota');
+  // "nota ponderada ligada por padrão" (Configurações): abre em "Ponderada" quando ligado
+  const { user } = useUser();
+  const weightedDefault = Boolean(user?.weightedByDefault);
+  const [seenWeightedDefault, setSeenWeightedDefault] = useState(false);
+  if (weightedDefault !== seenWeightedDefault) {
+    setSeenWeightedDefault(weightedDefault);
+    setSortBy('nota');
+    setUseTimeWeight(weightedDefault);
+  }
   const [viewMode,         setViewMode]         = useState('list');
+  // "visualização padrão" (Configurações): abre em lista ou grade
+  const viewDefault = user?.rankingsView === 'GRID' ? 'grid' : 'list';
+  const [seenViewDefault, setSeenViewDefault] = useState('list');
+  if (viewDefault !== seenViewDefault) {
+    setSeenViewDefault(viewDefault);
+    setViewMode(viewDefault);
+  }
   const [showFilters,      setShowFilters]      = useState(false);
   const [filters,          setFilters]          = useState({});
   const [selectedTableIds, setSelectedTableIds] = useState([]);

@@ -25,3 +25,12 @@ export const deleteMe = async ({ confirmUsername, deletionCode }) => {
  * Retorna null quando não há foto (o componente cai nas iniciais).
  */
 export const avatarUrlFor = (user) => user?.avatarUrl || null;
+
+/**
+ * Invalida todos os tokens da conta (todos os aparelhos). Usado pelo "Sair" das
+ * configurações, que em seguida faz o logout deste aparelho também.
+ */
+export const revokeSessions = async () => {
+  const { data } = await api.post("/users/me/sessions/revoke");
+  return data;
+};

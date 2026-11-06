@@ -26,11 +26,15 @@ export const BUCKET_META = {
   serie: { label: 'Séries', icon: '📺' },
   livro: { label: 'Livros', icon: '📚' },
   anime: { label: 'Animes', icon: '🌸' },
+  manga: { label: 'Mangás', icon: '📖' },
+  musica: { label: 'Músicas', icon: '🎵' },
+  album: { label: 'Álbuns', icon: '💿' },
+  outro: { label: 'Outros', icon: '📦' },
   geral: { label: 'Gerais', icon: '🌐' },
   site:  { label: 'Usar o site', icon: '🚀' },
 };
 
-export const BUCKET_ORDER = ['jogo', 'filme', 'serie', 'livro', 'anime', 'geral', 'site'];
+export const BUCKET_ORDER = ['jogo', 'filme', 'serie', 'livro', 'anime', 'manga', 'musica', 'album', 'outro', 'site', 'geral'];
 
 /** DTO do backend → shape usado pelos componentes de badge. */
 function mapBadge(b) {

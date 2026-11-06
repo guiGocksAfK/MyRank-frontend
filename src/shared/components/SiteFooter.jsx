@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useLanguage } from "../i18n";
+import DataSourcesModal from "./DataSourcesModal";
 import "./SiteFooter.css";
 
 // Assinatura do autor no rodapé (não são "redes do MyRank").
@@ -29,6 +31,7 @@ const AUTHOR_LINKS = [
 const SiteFooter = () => {
   const { t } = useLanguage();
   const footer = t.home.footer;
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   return (
     <footer className="sf">
       <div className="sf-inner">
@@ -43,6 +46,9 @@ const SiteFooter = () => {
           <a href="#">{footer.terms}</a>
           <a href="#">{footer.privacy}</a>
           <a href={`mailto:${CONTACT_EMAIL}`}>{footer.contact}</a>
+          <button type="button" className="sf-link-btn" onClick={() => setSourcesOpen(true)}>
+            {footer.sources}
+          </button>
         </nav>
 
         <div className="sf-author">
@@ -65,6 +71,7 @@ const SiteFooter = () => {
           ))}
         </div>
       </div>
+      {sourcesOpen && <DataSourcesModal onClose={() => setSourcesOpen(false)} />}
     </footer>
   );
 };
