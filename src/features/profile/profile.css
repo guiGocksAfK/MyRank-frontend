@@ -558,49 +558,35 @@
 
 .pf-strip-tick.is-major::before { height: 7px; }
 
-.pf-strip-mean {
-  position: absolute;
-  top: 26px;
-  color: var(--mr-gold);
-  font-size: var(--mr-text-xs);
-  font-weight: 700;
-  white-space: nowrap;
-  transform: translateX(-50%);
-}
-
-.pf-strip-mean::before { content: '▲ '; font-size: 0.5rem; vertical-align: 1px; }
-
-/* de que época: uma capa por década (a de maior nota), com obras e média */
+/* de que época: uma capa por década (a de maior nota), com obras e média.
+   Todas as décadas cabem na largura: as colunas dividem o espaço e encolhem. */
 .pf-era { display: flex; flex-direction: column; }
 
 .pf-era-row {
+  container-type: inline-size;
   display: flex;
-  gap: var(--mr-space-3);
+  gap: var(--mr-space-2);
   margin-top: var(--mr-space-4);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
 }
-
-.pf-era-row::-webkit-scrollbar { display: none; }
 
 .pf-era-col {
   display: flex;
-  flex: 1 0 84px;
+  flex: 1 1 0;
   flex-direction: column;
   align-items: center;
   min-width: 0;
-  scroll-snap-align: start;
   text-align: center;
 }
 
 /* buraco no tempo: marquinha fina na altura das capas */
 .pf-era-gap {
   display: flex;
-  flex: none;
+  flex: 0 0 28px;
   align-items: center;
+  justify-content: center;
   align-self: flex-start;
-  height: 136px; /* mais ou menos a altura das capas, pra ficar no meio delas */
+  /* mesma altura das capas: largura de uma coluna × 1,5 (capa 2:3), no máximo 144px */
+  height: min(144px, calc((100cqw - (var(--n) + var(--g) - 1) * var(--mr-space-2) - var(--g) * 28px) / var(--n) * 1.5));
   color: var(--mr-text-muted);
   font-size: var(--mr-text-sm);
   letter-spacing: 0.1em;
@@ -641,9 +627,12 @@
 
 .pf-era-info,
 .pf-era-avg {
+  max-width: 100%;
+  overflow: hidden;
   color: var(--mr-text-muted);
   font-size: var(--mr-text-xs);
   font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -1110,6 +1099,9 @@
 }
 
 @media (max-width: 640px) {
+  .pf-era-row { flex-wrap: wrap; row-gap: var(--mr-space-4); }
+  .pf-era-col { flex: 0 0 calc((100% - 3 * var(--mr-space-2)) / 4); }
+  .pf-era-gap { display: none; }
   .pf-hl-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--mr-space-2); }
   .pf-hl-label { font-size: 0.625rem; letter-spacing: 0.06em; }
   .pf-hl-title { font-size: var(--mr-text-xs); }
