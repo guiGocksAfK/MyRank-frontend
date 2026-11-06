@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { ArrowLeft, Download, Globe, KeyRound, LayoutGrid, List, Lock, LogOut } from 'lucide-react';
+import {
+  ArrowLeft, Check, Database, Download, Flame, Globe, Heart, KeyRound, LayoutGrid, List, Lock, LogOut,
+  MessageSquare, UserCheck, UserPlus, Users,
+} from 'lucide-react';
 import { updateMe, revokeSessions } from '../../services/userService';
 import { logout } from '../../services/authService';
 import { useLanguage, LANGUAGES } from '../../shared/i18n';
@@ -15,7 +18,13 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
 const LANGUAGE_NAMES = { PT: 'Português', EN: 'English', ES: 'Español' };
 
 // grupos de aviso (NotificationGroup no back), na ordem da tela
-const NOTIFICATION_GROUPS = ['FOLLOWS', 'REACTIONS', 'COMMENTS', 'TAKES', 'GROUPS'];
+const NOTIFICATION_GROUPS = [
+  { id: 'FOLLOWS', icon: UserPlus },
+  { id: 'REACTIONS', icon: Heart },
+  { id: 'COMMENTS', icon: MessageSquare },
+  { id: 'TAKES', icon: Flame },
+  { id: 'GROUPS', icon: Users },
+];
 
 /** Nome do ajuste, com o "?" quando precisa de explicação. */
 function Label({ text, help }) {
@@ -34,20 +43,22 @@ function Label({ text, help }) {
 /**
  * Escolha visual: cada opção é um botão que mostra o que faz (miniatura do
  * tema, a nota de exemplo, um ícone). A escolhida fica com borda dourada.
+ * `hideText`: a prévia já explica (tema); o nome fica só pro leitor de tela.
  */
 function Options({ label, help, value, options, onChange, disabled }) {
   return (
     <div className="pf-opt-field">
       <Label text={label} help={help} />
       <div className="pf-opts" role="group" aria-label={label}>
-        {options.map(({ id, label: text, icon: Icon, preview }) => (
+        {options.map(({ id, label: text, icon: Icon, preview, hideText }) => (
           <button key={id} type="button" className={`pf-opt${value === id ? ' is-on' : ''}`} aria-pressed={value === id}
+            aria-label={hideText ? text : undefined} title={hideText ? text : undefined}
             disabled={disabled} onClick={() => value !== id && onChange(id)}>
             {preview}
-            <span className="pf-opt-text">
+            {!hideText && <span className="pf-opt-text">
               {Icon && <Icon size={14} strokeWidth={2} aria-hidden="true" />}
               {text}
-            </span>
+            </span>}
           </button>
         ))}
       </div>
@@ -160,8 +171,8 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
         <Card title={tp.appearance}>
           <Options label={tp.theme} value={isDark ? 'dark' : 'light'} onChange={onThemeToggle}
             options={[
-              { id: 'dark', label: tp.themeDark, preview: <span className="pf-theme-mini is-dark" aria-hidden="true"><i /></span> },
-              { id: 'light', label: tp.themeLight, preview: <span className="pf-theme-mini is-light" aria-hidden="true"><i /></span> },
+              { id: 'dark', label: tp.themeDark, hideText: true, preview: <span className="pf-theme-mini is-dark" aria-hidden="true"><i /></span> },
+              { id: 'light', label: tp.themeLight, hideText: true, preview: <span className="pf-theme-mini is-light" aria-hidden="true"><i /></span> },
             ]} />
           <Options label={tp.language} value={lang} onChange={setLang}
             options={LANGUAGES.map((code) => ({ id: code, label: LANGUAGE_NAMES[code] || code }))} />
@@ -188,34 +199,50 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
             ]} />
           <Options label={tp.messagesLabel} help={tp.dmPolicyDesc} value={profile.dmPolicy || 'EVERYONE'}
             disabled={saving === 'dm'} onChange={(v) => save('dm', { dmPolicy: v })}
-            options={[{ id: 'EVERYONE', label: tp.dmEveryone }, { id: 'FOLLOWING', label: tp.dmFollowing }]} />
+            options={[
+              { id: 'EVERYONE', label: tp.dmEveryone, icon: Globe },
+              { id: 'FOLLOWING', label: tp.dmFollowing, icon: UserCheck },
+            ]} />
         </Card>
 
         <Card title={tp.notifications}>
+          {/* uma linha por aviso: ✓ dourado = recebe; vazio = silenciado */}
           <div className="pf-opt-field">
             <Label text={tp.notifyLabel} />
-            <div className="pf-chips" role="group" aria-label={tp.notifyLabel}>
-              {NOTIFICATION_GROUPS.map((group) => (
-                <button key={group} type="button" className={`pf-chip${muted.has(group) ? '' : ' is-on'}`}
-                  aria-pressed={!muted.has(group)} title={tp.notif[group].desc} disabled={saving === 'notif'}
-                  onClick={() => toggleGroup(group)}>
-                  {tp.notif[group].label}
-                </button>
-              ))}
+            <div className="pf-notify" role="group" aria-label={tp.notifyLabel}>
+              {NOTIFICATION_GROUPS.map(({ id, icon: Icon }) => {
+                const on = !muted.has(id);
+                return (
+                  <button key={id} type="button" className={`pf-notify-row${on ? ' is-on' : ''}`} aria-pressed={on}
+                    title={tp.notif[id].desc} disabled={saving === 'notif'} onClick={() => toggleGroup(id)}>
+                    <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
+                    <span className="pf-notify-name">{tp.notif[id].label}</span>
+                    <span className="pf-notify-check" aria-hidden="true">
+                      {on && <Check size={12} strokeWidth={3} />}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-            <p className="pf-opt-hint">{tp.notifyDesc}</p>
           </div>
         </Card>
       </div>
 
-      {/* rodapé: exportar à esquerda, excluir sozinho à direita */}
-      <div className="pf-set-footer">
-        <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setModal('export')}>
-          <Download size={14} strokeWidth={2} aria-hidden="true" />
-          {tp.exportWorks}
-        </button>
-        <button type="button" className="pf-set-delete" onClick={() => setModal('delete')}>{tp.deleteAccount}</button>
-      </div>
+      {/* faixa "Seus dados", par da faixa da conta lá em cima */}
+      <section className="mr-panel pf-account pf-data" aria-label={tp.yourData}>
+        <Database className="pf-data-icon" size={20} strokeWidth={1.7} aria-hidden="true" />
+        <div className="pf-account-who">
+          <span className="pf-account-email">{tp.yourData}</span>
+          <span className="pf-account-sub">{tp.yourDataDesc}</span>
+        </div>
+        <div className="pf-account-actions">
+          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setModal('export')}>
+            <Download size={14} strokeWidth={2} aria-hidden="true" />
+            {tp.exportWorks}
+          </button>
+          <button type="button" className="pf-set-delete" onClick={() => setModal('delete')}>{tp.deleteAccount}</button>
+        </div>
+      </section>
 
       {modal === 'export' && <ExportWorksModal onClose={() => setModal(null)} />}
       {modal === 'delete' && <DeleteAccountModal user={profile} onClose={() => setModal(null)} />}
