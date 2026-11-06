@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Handshake, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 
 /**
@@ -8,9 +9,9 @@ import { useLanguage } from '../../shared/i18n';
 export default function ReactionBar({ reactions, onReact }) {
   const { t } = useLanguage();
   const KINDS = [
-    { id: 'up', icon: '👍', label: t.social.react.up },
-    { id: 'agree', icon: '🤝', label: t.social.react.agree },
-    { id: 'disagree', icon: '👎', label: t.social.react.disagree },
+    { id: 'up', icon: ThumbsUp, label: t.social.react.up },
+    { id: 'agree', icon: Handshake, label: t.social.react.agree },
+    { id: 'disagree', icon: ThumbsDown, label: t.social.react.disagree },
   ];
   const [state, setState] = useState(reactions);
   const [busy, setBusy] = useState(false);
@@ -51,8 +52,10 @@ export default function ReactionBar({ reactions, onReact }) {
             onClick={() => handle(k.id)}
             className="social-react-btn"
             data-active={active ? 'true' : undefined}
+            aria-pressed={active}
+            title={k.label}
           >
-            <span aria-hidden="true">{k.icon}</span>
+            <k.icon size={15} strokeWidth={1.8} aria-hidden="true" />
             <span className="social-react-label">{k.label}</span>
             {count > 0 && <span className="social-react-count">{count}</span>}
           </button>

@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+import { PenLine } from 'lucide-react';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
-import { typeIconFor } from './socialData';
+import { useUser } from '../../shared/userContext';
+import SocialAvatar from './SocialAvatar';
 
 const MAX = 280;
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
@@ -14,6 +16,7 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
 export default function TakeComposer({ onPost, onNavigate }) {
   const { items, loading } = useUnifiedItems();
   const { t } = useLanguage();
+  const { user } = useUser();
   const tc = t.social.composer;
   const [workKey, setWorkKey] = useState('');
   const [text, setText] = useState('');
@@ -56,8 +59,8 @@ export default function TakeComposer({ onPost, onNavigate }) {
   // Sem obras avaliadas → onboarding
   if (!loading && works.length === 0) {
     return (
-      <div className="mr-card social-onboard">
-        <div className="mr-card-body">
+      <div className="mr-panel social-composer social-onboard">
+        <div>
           <div className="social-onboard-title">{tc.onboardTitle}</div>
           <p className="social-onboard-text">{tc.onboardText}</p>
           <button
@@ -77,19 +80,23 @@ export default function TakeComposer({ onPost, onNavigate }) {
     return (
       <button
         type="button"
-        className="social-composer-collapsed"
+        className="mr-panel social-composer-collapsed"
         onClick={() => setExpanded(true)}
         disabled={loading}
       >
-        <span aria-hidden="true">✍️</span>
-        {loading ? tc.loadingWorks : tc.collapsedPrompt}
+        <SocialAvatar name={user?.username || '?'} src={user?.avatarUrl} size={32} />
+        <span className="social-composer-prompt">{loading ? tc.loadingWorks : tc.collapsedPrompt}</span>
+        <span className="social-composer-cta">
+          <PenLine size={14} strokeWidth={2} aria-hidden="true" />
+          {tc.write}
+        </span>
       </button>
     );
   }
 
   return (
-    <div className="mr-card">
-      <div className="mr-card-body">
+    <div className="mr-panel social-composer">
+      <div>
         <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap" style={{ marginBottom: 8 }}>
           <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{tc.title}</span>
           <select
@@ -102,7 +109,7 @@ export default function TakeComposer({ onPost, onNavigate }) {
             <option value="">{works.length === 0 ? tc.noWorks : tc.whichWork}</option>
             {works.map((w) => (
               <option key={w.id} value={String(w.id)}>
-                {typeIconFor(w.type)} {w.title}
+                {w.title}
               </option>
             ))}
           </select>

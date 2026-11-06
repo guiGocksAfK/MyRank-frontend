@@ -1,30 +1,40 @@
 import { useEffect, useState } from 'react';
+import { Check, X } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
-import { useUser } from '../../shared/userContext';
-import { updateMe } from '../../services/userService';
 import { socialApi } from './socialData';
 import SocialAvatar from './SocialAvatar';
 
+/** Pessoa numa linha: foto + nome (abre o perfil) e a ação à direita. */
+function Person({ u, onOpen, children }) {
+  return (
+    <div className="social-person">
+      <button type="button" className="social-person-main" onClick={() => onOpen?.(u.id)}>
+        <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={32} />
+        <span className="social-person-name">{u.username}</span>
+      </button>
+      {children}
+    </div>
+  );
+}
+
 /**
- * Trilho direito da aba Feed: card "Você" (contadores + público/privado)
- * e "Sugestões pra seguir". Some no mobile (as sugestões vivem na aba Descobrir).
+ * Trilho direito do Feed: "Você" (seguindo / seguidores), os pedidos pra te
+ * seguir (só quando há) e sugestões pra seguir. Público/privado não mora mais
+ * aqui: é ajuste, fica nas Configurações.
  */
-export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover }) {
+export default function SocialRail({ onOpenConnections, onOpenUser, onGoPeople }) {
   const { t } = useLanguage();
   const tr = t.social.rail;
-  const { user, setUser } = useUser();
+  const tp = t.social.people;
   const [summary, setSummary] = useState(null);
   const [suggestions, setSuggestions] = useState(null);
-  const [recentFollowers, setRecentFollowers] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [toggling, setToggling] = useState(false);
 
-  const isPublic = user?.isPublic ?? true;
+  const refreshSummary = () => socialApi.getSummary().then(setSummary).catch(() => {});
 
   useEffect(() => {
     socialApi.getSummary().then(setSummary).catch(() => setSummary({ following: 0, followers: 0 }));
-    socialApi.getSuggestions().then((r) => setSuggestions(r.slice(0, 4))).catch(() => setSuggestions([]));
-    socialApi.getRecentFollowers(4).then(setRecentFollowers).catch(() => setRecentFollowers([]));
+    socialApi.getSuggestions().then((r) => setSuggestions(r.slice(0, 3))).catch(() => setSuggestions([]));
     socialApi.getFollowRequests().then(setRequests).catch(() => setRequests([]));
   }, []);
 
@@ -33,22 +43,9 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover
     try {
       if (accept) await socialApi.approveFollowRequest(id);
       else await socialApi.rejectFollowRequest(id);
-      socialApi.getSummary().then(setSummary).catch(() => {});
+      refreshSummary();
     } catch {
       socialApi.getFollowRequests().then(setRequests).catch(() => {});
-    }
-  };
-
-  const togglePublic = async () => {
-    if (toggling) return;
-    setToggling(true);
-    try {
-      const updated = await updateMe({ isPublic: !isPublic });
-      setUser(updated);
-    } catch {
-      /* silencioso */
-    } finally {
-      setToggling(false);
     }
   };
 
@@ -60,7 +57,7 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover
           .filter((s) => s.id !== id || !u.following) // some da lista quando vira "seguindo"
           .map((s) => (s.id === id ? { ...s, requested: u.requested, following: u.following } : s)),
       );
-      socialApi.getSummary().then(setSummary).catch(() => {});
+      refreshSummary();
     } catch {
       /* silencioso */
     }
@@ -68,9 +65,8 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover
 
   return (
     <aside className="social-rail">
-      {/* Card "Você" */}
-      <div className="social-rail-card">
-        <div className="social-rail-title">{tr.you}</div>
+      <section className="mr-panel social-rail-card is-you">
+        <h2 className="social-rail-title">{tr.you}</h2>
         <div className="social-rail-stats">
           <button type="button" onClick={() => onOpenConnections('following')}>
             <b>{summary?.following ?? '—'}</b>
@@ -81,131 +77,54 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoDiscover
             <span>{tr.followers}</span>
           </button>
         </div>
-        <button
-          type="button"
-          className={`social-visibility ${isPublic ? 'is-public' : ''}`}
-          onClick={togglePublic}
-          disabled={toggling}
-          title={tr.toggleHint}
-        >
-          {isPublic ? tr.public : tr.private}
-        </button>
-      </div>
+      </section>
 
-      {/* Solicitações pra te seguir (só aparece se houver) */}
       {requests.length > 0 && (
-        <div className="social-rail-card">
-          <div className="social-rail-title">{tr.requests}</div>
+        <section className="mr-panel social-rail-card">
+          <h2 className="social-rail-title">{tr.requests} · {requests.length}</h2>
           <div className="social-rail-list">
             {requests.map((u) => (
-              <div key={u.id} className="social-rail-request">
-                <button
-                  type="button"
-                  className="social-rail-user-main"
-                  onClick={() => onOpenUser?.(u.id)}
-                >
-                  <SocialAvatar
-                    name={u.username}
-                    initials={u.initials}
-                    color={u.color}
-                    src={u.avatarSrc}
-                    size={34}
-                  />
-                  <span className="social-rail-user-name">{u.username}</span>
-                </button>
-                <div className="social-rail-request-actions">
-                  <button
-                    type="button"
-                    className="mr-btn mr-btn-gold mr-btn-sm"
-                    onClick={() => resolveRequest(u.id, true)}
-                  >
-                    {tr.accept}
+              <Person key={u.id} u={u} onOpen={onOpenUser}>
+                <span className="social-rail-request-actions">
+                  <button type="button" className="social-icon-btn is-gold" aria-label={tr.accept} title={tr.accept}
+                    onClick={() => resolveRequest(u.id, true)}>
+                    <Check size={16} strokeWidth={2.2} aria-hidden="true" />
                   </button>
-                  <button
-                    type="button"
-                    className="mr-btn mr-btn-outline mr-btn-sm"
-                    onClick={() => resolveRequest(u.id, false)}
-                  >
-                    {tr.decline}
+                  <button type="button" className="social-icon-btn" aria-label={tr.decline} title={tr.decline}
+                    onClick={() => resolveRequest(u.id, false)}>
+                    <X size={16} strokeWidth={2} aria-hidden="true" />
                   </button>
-                </div>
-              </div>
+                </span>
+              </Person>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Quem te seguiu (só aparece se houver) */}
-      {recentFollowers.length > 0 && (
-        <div className="social-rail-card">
-          <div className="social-rail-title">{tr.newFollowers}</div>
-          <div className="social-rail-list">
-            {recentFollowers.map((u) => (
-              <button
-                key={u.id}
-                type="button"
-                className="social-rail-user-main"
-                onClick={() => onOpenUser?.(u.id)}
-                style={{ padding: '6px 0' }}
-              >
-                <SocialAvatar
-                  name={u.username}
-                  initials={u.initials}
-                  color={u.color}
-                  src={u.avatarSrc}
-                  size={34}
-                />
-                <span className="social-rail-user-name">{u.username}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Sugestões pra seguir */}
-      <div className="social-rail-card">
-        <div className="social-rail-title">{tr.suggestions}</div>
+      {/* no celular some: as sugestões já estão na aba Pessoas */}
+      <section className="mr-panel social-rail-card is-suggest">
+        <h2 className="social-rail-title">{tr.suggestions}</h2>
         {suggestions === null ? (
-          <div className="social-rail-empty">{tr.loading}</div>
+          <p className="social-rail-empty">{tr.loading}</p>
         ) : suggestions.length === 0 ? (
-          <div className="social-rail-empty">{tr.noSuggestions}</div>
+          <p className="social-rail-empty">{tr.noSuggestions}</p>
         ) : (
           <div className="social-rail-list">
             {suggestions.map((u) => (
-              <div key={u.id} className="social-rail-user">
+              <Person key={u.id} u={u} onOpen={onOpenUser}>
                 <button
                   type="button"
-                  className="social-rail-user-main"
-                  onClick={() => onOpenUser?.(u.id)}
-                >
-                  <SocialAvatar
-                    name={u.username}
-                    initials={u.initials}
-                    color={u.color}
-                    src={u.avatarSrc}
-                    size={34}
-                  />
-                  <span className="social-rail-user-name">{u.username}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`mr-btn mr-btn-sm ${u.requested ? 'mr-btn-outline' : 'mr-btn-gold'}`}
+                  className={`social-chip-btn${u.requested ? '' : ' is-gold'}`}
                   onClick={() => followSuggestion(u.id)}
                 >
-                  {u.requested
-                    ? t.social.pill.requested
-                    : u.isPublic === false
-                      ? t.social.pill.request
-                      : tr.follow}
+                  {u.requested ? tp.requested : u.isPublic === false ? tp.request : tp.follow}
                 </button>
-              </div>
+              </Person>
             ))}
           </div>
         )}
-        <button type="button" className="social-rail-more" onClick={onGoDiscover}>
-          {tr.seeAll} →
-        </button>
-      </div>
+        <button type="button" className="social-rail-more" onClick={onGoPeople}>{tr.seeAll}</button>
+      </section>
     </aside>
   );
 }

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Rss } from 'lucide-react';
 import { socialApi } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import TakeComposer from './TakeComposer';
 import ActivityCard from './ActivityCard';
 import SocialEmpty from './SocialEmpty';
 
-export default function SocialFeed({ onOpenUser, onNavigate, onGoDiscover }) {
+export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople }) {
   const { t } = useLanguage();
   const tf = t.social.feed;
   const [items, setItems] = useState(null);
@@ -39,14 +40,14 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoDiscover }) {
       <TakeComposer onPost={handlePost} onNavigate={onNavigate} />
 
       {items === null ? (
-        <SocialEmpty icon="⏳" text={tf.loading} />
+        <SocialEmpty text={tf.loading} />
       ) : items.length === 0 ? (
         <SocialEmpty
-          icon="🌱"
+          icon={Rss}
           title={tf.emptyTitle}
           text={tf.emptyText}
           actionLabel={tf.emptyCta}
-          onAction={onGoDiscover}
+          onAction={onGoPeople}
         />
       ) : (
         items.map((item) => (
