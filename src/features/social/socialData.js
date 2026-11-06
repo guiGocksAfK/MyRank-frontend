@@ -4,18 +4,24 @@
  * `socialApi.*` fala com o backend (/api/social/**) e adapta os DTOs pro
  * shape que os componentes esperam (handle/initials/color derivados, etc.).
  * As assinaturas são as mesmas do mock antigo — os componentes não mudaram.
+ *
+ * Só no dev: com "Dados de teste" ligado, as chamadas vão pro socialMock.js
+ * (pessoas e takes inventados), pra dar pra ver e testar a Social cheia.
  */
+import { createElement } from 'react';
 import api from '../../services/api';
+import { getDirectory, joinGroup, cancelJoinRequest } from '../../services/chatService';
+import { TABLE_TEMPLATES, TEMPLATE_ICONS } from '../../shared/tableTemplates';
 
-const TYPE_ICON = {
-  jogo: '🎮',
-  filme: '🎬',
-  serie: '📺',
-  livro: '📚',
-  anime: '🌸',
-  outro: '📦',
-};
-export const typeIconFor = (type) => TYPE_ICON[type] || TYPE_ICON.outro;
+// tipo de mídia (filme, jogo...) → o mesmo ícone de traço dos templates
+const TYPE_ICON = Object.fromEntries(
+  Object.entries(TABLE_TEMPLATES).map(([template, { type }]) => [type, TEMPLATE_ICONS[template]]),
+);
+
+/** Ícone de traço do tipo da obra (no lugar do emoji antigo). */
+export const typeIconFor = (type, size = 14) => createElement(TYPE_ICON[type] || TEMPLATE_ICONS.custom, {
+  size, strokeWidth: 1.8, 'aria-hidden': true, className: 'social-type-icon',
+});
 
 // ─── derivações visuais ─────────────────────────────────────────────────────
 
@@ -44,7 +50,7 @@ function avatarSrc(user) {
 }
 
 /** SocialUserDTO / ActorDTO / SocialProfileDTO → shape dos componentes. */
-function decorateUser(u) {
+export function decorateUser(u) {
   if (!u) return null;
   return {
     ...u,
@@ -60,7 +66,7 @@ function decorateUser(u) {
 }
 
 /** FeedItemDTO → item que o ActivityCard consome. */
-function decorateFeedItem(it) {
+export function decorateFeedItem(it) {
   return {
     id: it.id,
     type: it.type,
@@ -71,7 +77,7 @@ function decorateFeedItem(it) {
       : it.score != null
         ? { score: it.score }
         : null,
-    badge: it.badge ? { icon: it.badge.icon, name: it.badge.name } : null,
+    badge: it.badge ? { code: it.badge.code, icon: it.badge.icon, name: it.badge.name } : null,
     text: it.takeText ?? null,
     takeId: it.takeId ?? null,
     commentCount: it.commentCount ?? 0,
@@ -82,7 +88,7 @@ function decorateFeedItem(it) {
 }
 
 /** TakeCommentDTO → nó de comentário (com respostas). */
-function decorateComment(c) {
+export function decorateComment(c) {
   return {
     id: c.id,
     parentId: c.parentId ?? null,
@@ -135,7 +141,7 @@ export function computeTasteMatch(myItems = [], theirWorks = []) {
 
 // ─── API ────────────────────────────────────────────────────────────────────
 
-export const socialApi = {
+const realApi = {
   async getSummary() {
     const { data } = await api.get('/social/summary');
     return {
@@ -244,4 +250,42 @@ export const socialApi = {
   async deleteTakeComment(commentId) {
     await api.delete(`/social/comments/${commentId}`);
   },
+
+  // grupos (moram no chat, mas a Social lista e entra por aqui)
+  getGroups: (q = '', page = 0) => getDirectory(q, page),
+  joinGroup: (convId) => joinGroup(convId),
+  cancelJoinRequest: (convId) => cancelJoinRequest(convId),
 };
+
+// ─── dados de teste (só no dev) ─────────────────────────────────────────────
+
+const MOCK_KEY = 'myrank_social_mock';
+
+/** Interruptor "Dados de teste": só existe no `npm run dev`. */
+export const socialMock = {
+  available: import.meta.env.DEV,
+  isOn() {
+    if (!import.meta.env.DEV) return false;
+    try { return localStorage.getItem(MOCK_KEY) === '1'; } catch { return false; }
+  },
+  set(on) {
+    try {
+      if (on) localStorage.setItem(MOCK_KEY, '1'); else localStorage.removeItem(MOCK_KEY);
+    } catch { /* sem localStorage: fica desligado */ }
+  },
+};
+
+/**
+ * Mesmas funções do realApi. No dev com o interruptor ligado, responde o
+ * socialMock.js; no build de produção esse caminho nem existe.
+ */
+export const socialApi = Object.fromEntries(Object.keys(realApi).map((name) => [
+  name,
+  async (...args) => {
+    if (import.meta.env.DEV && socialMock.isOn()) {
+      const { mockApi } = await import('./socialMock');
+      return mockApi[name](...args);
+    }
+    return realApi[name](...args);
+  },
+]));
