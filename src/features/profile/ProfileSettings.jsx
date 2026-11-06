@@ -1,52 +1,73 @@
 import { useState } from 'react';
-import { ArrowLeft, Download } from 'lucide-react';
-import { updateMe, revokeOtherSessions } from '../../services/userService';
+import { ArrowLeft, Download, Globe, KeyRound, LayoutGrid, List, Lock, LogOut } from 'lucide-react';
+import { updateMe, revokeSessions } from '../../services/userService';
 import { logout } from '../../services/authService';
 import { useLanguage, LANGUAGES } from '../../shared/i18n';
-import ConfirmModal from '../../shared/components/ConfirmModal';
+import Avatar from '../../shared/components/Avatar';
+import InfoTip from '../../shared/components/InfoTip';
 import DeleteAccountModal from './DeleteAccountModal';
 import ChangePasswordModal from './ChangePasswordModal';
-import { exportWorks } from './exportWorks';
+import ExportWorksModal from './ExportWorksModal';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
+
+// nome de cada idioma escrito nele mesmo (não traduz)
+const LANGUAGE_NAMES = { PT: 'Português', EN: 'English', ES: 'Español' };
 
 // grupos de aviso (NotificationGroup no back), na ordem da tela
 const NOTIFICATION_GROUPS = ['FOLLOWS', 'REACTIONS', 'COMMENTS', 'TAKES', 'GROUPS'];
 
-/** Linha de ajuste: nome e explicação à esquerda, o controle à direita. */
-function Row({ label, desc, children }) {
+/** Nome do ajuste, com o "?" quando precisa de explicação. */
+function Label({ text, help }) {
   return (
-    <div className="pf-set-row">
-      <div className="pf-set-text">
-        <div className="pf-set-label">{label}</div>
-        {desc && <div className="pf-set-desc">{desc}</div>}
+    <span className="pf-opt-label">
+      {text}
+      {help && (
+        <InfoTip label={text} title={text}>
+          <span className="mr-infotip-text">{help}</span>
+        </InfoTip>
+      )}
+    </span>
+  );
+}
+
+/**
+ * Escolha visual: cada opção é um botão que mostra o que faz (miniatura do
+ * tema, a nota de exemplo, um ícone). A escolhida fica com borda dourada.
+ */
+function Options({ label, help, value, options, onChange, disabled }) {
+  return (
+    <div className="pf-opt-field">
+      <Label text={label} help={help} />
+      <div className="pf-opts" role="group" aria-label={label}>
+        {options.map(({ id, label: text, icon: Icon, preview }) => (
+          <button key={id} type="button" className={`pf-opt${value === id ? ' is-on' : ''}`} aria-pressed={value === id}
+            disabled={disabled} onClick={() => value !== id && onChange(id)}>
+            {preview}
+            <span className="pf-opt-text">
+              {Icon && <Icon size={14} strokeWidth={2} aria-hidden="true" />}
+              {text}
+            </span>
+          </button>
+        ))}
       </div>
-      {children}
     </div>
   );
 }
 
-function Switch({ on, onClick, label, disabled }) {
+function Card({ title, children }) {
   return (
-    <button type="button" role="switch" aria-checked={on} aria-label={label}
-      className={`mr-switch${on ? ' checked' : ''}`} onClick={onClick} disabled={disabled}>
-      <span className="mr-switch-thumb" />
-    </button>
-  );
-}
-
-function Section({ id, title, children }) {
-  return (
-    <section className={`pf-set-section is-${id}`}>
+    <section className="mr-panel pf-set-card">
       <h2 className="pf-group-title">{title}</h2>
-      <div className="mr-panel pf-set-panel">{children}</div>
+      {children}
     </section>
   );
 }
 
 /**
- * Configurações: página dentro do Perfil, com "← Perfil" (igual aos Criadores).
- * Cada ajuste salva na hora (PUT /users/me); se der erro, volta como estava.
+ * Configurações: faixa da conta no topo, 4 cartões iguais (2×2) e, no rodapé,
+ * exportar e excluir. Cada ajuste salva na hora (PUT /users/me); se der erro,
+ * volta como estava.
  */
 export default function ProfileSettings({ profile, onUserChange, isDark, onThemeToggle, onBack }) {
   const { t, lang, setLang } = useLanguage();
@@ -54,13 +75,14 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
   const [saving, setSaving] = useState(null); // qual ajuste está salvando
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [modal, setModal] = useState(null); // 'delete' | 'password' | 'sessions'
-  const [exporting, setExporting] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [modal, setModal] = useState(null); // 'delete' | 'password' | 'export'
 
-  const isPublic = profile.isPublic ?? true;
-  const dmPolicy = profile.dmPolicy || 'EVERYONE';
   const muted = new Set(profile.mutedNotifications || []);
   const provider = profile.authProvider || 'LOCAL';
+  const signedIn = provider === 'LOCAL' || profile.hasPassword
+    ? tp.signedInLocal
+    : fmt(tp.signedInSocial, { provider: provider === 'GOOGLE' ? 'Google' : 'Discord' });
 
   // salva um pedaço e já mostra o novo estado; erro desfaz
   const save = async (key, patch) => {
@@ -68,6 +90,7 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
     onUserChange({ ...profile, ...patch });
     setSaving(key);
     setError('');
+    setNotice('');
     try {
       onUserChange(await updateMe(patch));
     } catch (err) {
@@ -81,32 +104,24 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
   const toggleGroup = (group) => {
     const next = new Set(muted);
     if (next.has(group)) next.delete(group); else next.add(group);
-    save(`notif-${group}`, { mutedNotifications: [...next] });
+    save('notif', { mutedNotifications: [...next] });
   };
 
-  const doExport = async (format) => {
-    setExporting(true);
-    setError('');
+  // "Sair" desconecta todos os aparelhos de uma vez. Se o pedido falhar (sem
+  // internet, por exemplo), pelo menos este aparelho sai.
+  const signOut = async () => {
+    setSigningOut(true);
     try {
-      const n = await exportWorks(format);
-      setNotice(fmt(n === 1 ? tp.exportDoneOne : tp.exportDone, { n }));
+      await revokeSessions();
     } catch {
-      setError(tp.exportError);
-    } finally {
-      setExporting(false);
+      // segue pro logout local
     }
-  };
-
-  // sai só deste aparelho; recarrega do zero, como o "Sair" do menu do avatar
-  const signOut = () => {
     logout();
     window.location.assign('/');
   };
 
-  const providerName = { LOCAL: tp.providerLocal, GOOGLE: 'Google', DISCORD: 'Discord' }[provider] || provider;
-
   return (
-    <div className="rk-page pf-page pf-settings">
+    <div className="pf-settings">
       <div>
         <button type="button" className="cr-back" onClick={onBack}>
           <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
@@ -119,133 +134,94 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
         <p className={`pf-set-notice${error ? ' is-error' : ''}`} role={error ? 'alert' : 'status'}>{error || notice}</p>
       )}
 
-      {/* no computador, pares do mesmo tamanho lado a lado (ordem no CSS);
-          no celular, uma coluna na ordem daqui */}
-      <div className="pf-set-grid">
-        <Section id="appearance" title={tp.appearance}>
-          <Row label={tp.darkMode} desc={tp.darkModeDesc}>
-            <Switch on={isDark} onClick={onThemeToggle} label={tp.darkMode} />
-          </Row>
-          <Row label={tp.language} desc={tp.languageDesc}>
-            <div className="rk-seg" role="group" aria-label={tp.language}>
-              {LANGUAGES.map((code) => (
-                <button key={code} type="button" className={lang === code ? 'is-active' : ''}
-                  aria-pressed={lang === code} onClick={() => setLang(code)}>
-                  {code}
-                </button>
-              ))}
-            </div>
-          </Row>
-        </Section>
-        <Section id="rankings" title={tp.rankingsSection}>
-          <Row label={tp.weightedDefault} desc={tp.weightedDefaultDesc}>
-            <Switch on={Boolean(profile.weightedByDefault)} label={tp.weightedDefault} disabled={saving === 'weighted'}
-              onClick={() => save('weighted', { weightedByDefault: !profile.weightedByDefault })} />
-          </Row>
-          <Row label={tp.rankingsView} desc={tp.rankingsViewDesc}>
-            <div className="rk-seg" role="group" aria-label={tp.rankingsView}>
-              {[{ id: 'LIST', label: tp.viewList }, { id: 'GRID', label: tp.viewGrid }].map((o) => (
-                <button key={o.id} type="button" className={(profile.rankingsView || 'LIST') === o.id ? 'is-active' : ''}
-                  aria-pressed={(profile.rankingsView || 'LIST') === o.id} disabled={saving === 'view'}
-                  onClick={() => (profile.rankingsView || 'LIST') !== o.id && save('view', { rankingsView: o.id })}>
-                  {o.label}
-                </button>
-              ))}
-            </div>
-          </Row>
-        </Section>
-        <Section id="privacy" title={tp.privacy}>
-          <Row label={tp.publicProfile} desc={tp.publicProfileDesc}>
-            <Switch on={isPublic} label={tp.publicProfile} disabled={saving === 'public'}
-              onClick={() => save('public', { isPublic: !isPublic })} />
-          </Row>
-          <Row label={tp.dmPolicy} desc={tp.dmPolicyDesc}>
-            <div className="rk-seg" role="group" aria-label={tp.dmPolicy}>
-              {[{ id: 'EVERYONE', label: tp.dmEveryone }, { id: 'FOLLOWING', label: tp.dmFollowing }].map((o) => (
-                <button key={o.id} type="button" className={dmPolicy === o.id ? 'is-active' : ''}
-                  aria-pressed={dmPolicy === o.id} disabled={saving === 'dm'}
-                  onClick={() => dmPolicy !== o.id && save('dm', { dmPolicy: o.id })}>
-                  {o.label}
-                </button>
-              ))}
-            </div>
-          </Row>
-        </Section>
-        <Section id="notifications" title={tp.notifications}>
-          {NOTIFICATION_GROUPS.map((group) => (
-            <Row key={group} label={tp.notif[group].label} desc={tp.notif[group].desc}>
-              <Switch on={!muted.has(group)} label={tp.notif[group].label} disabled={saving === `notif-${group}`}
-                onClick={() => toggleGroup(group)} />
-            </Row>
-          ))}
-        </Section>
-        <Section id="account" title={tp.account}>
-          {profile.email && (
-            <Row label={tp.email}>
-              <span className="pf-set-value">{profile.email}</span>
-            </Row>
-          )}
-          <Row label={tp.signInWith} desc={profile.hasPassword ? null : fmt(tp.signInSocialDesc, { provider: providerName })}>
-            <span className="pf-set-value">{providerName}</span>
-          </Row>
+      {/* faixa da conta: quem é você e as ações da conta */}
+      <section className="mr-panel pf-account" aria-label={tp.account}>
+        <Avatar user={profile} className="mr-avatar pf-account-avatar" />
+        <div className="pf-account-who">
+          <span className="pf-account-email">{profile.email}</span>
+          <span className="pf-account-sub">{signedIn}</span>
+        </div>
+        <div className="pf-account-actions">
           {profile.hasPassword && (
-            <Row label={tp.password} desc={tp.passwordDesc}>
-              <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={() => setModal('password')}>
-                {tp.changePassword}
-              </button>
-            </Row>
+            <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setModal('password')}>
+              <KeyRound size={14} strokeWidth={2} aria-hidden="true" />
+              {tp.changePassword}
+            </button>
           )}
-          <Row label={tp.sessions} desc={tp.sessionsDesc}>
-            <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={() => setModal('sessions')}>
-              {tp.sessionsButton}
-            </button>
-          </Row>
-          <Row label={tp.signOut} desc={tp.signOutDesc}>
-            <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={signOut}>
-              {tp.signOutButton}
-            </button>
-          </Row>
-        </Section>
-        <Section id="data" title={tp.yourData}>
-          <Row label={tp.exportWorks} desc={tp.exportWorksDesc}>
-            <div className="mr-actions pf-set-buttons">
-              {['csv', 'json'].map((format) => (
-                <button key={format} type="button" className="mr-btn mr-btn-sm mr-btn-outline"
-                  onClick={() => doExport(format)} disabled={exporting}>
-                  <Download size={14} strokeWidth={2} aria-hidden="true" />
-                  {format.toUpperCase()}
+          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" title={tp.signOutHint}
+            disabled={signingOut} onClick={signOut}>
+            <LogOut size={14} strokeWidth={2} aria-hidden="true" />
+            {signingOut ? tp.signingOut : tp.signOut}
+          </button>
+        </div>
+      </section>
+
+      <div className="pf-set-grid">
+        <Card title={tp.appearance}>
+          <Options label={tp.theme} value={isDark ? 'dark' : 'light'} onChange={onThemeToggle}
+            options={[
+              { id: 'dark', label: tp.themeDark, preview: <span className="pf-theme-mini is-dark" aria-hidden="true"><i /></span> },
+              { id: 'light', label: tp.themeLight, preview: <span className="pf-theme-mini is-light" aria-hidden="true"><i /></span> },
+            ]} />
+          <Options label={tp.language} value={lang} onChange={setLang}
+            options={LANGUAGES.map((code) => ({ id: code, label: LANGUAGE_NAMES[code] || code }))} />
+        </Card>
+
+        <Card title={tp.rankingsGroup}>
+          <Options label={tp.scoreLabel} help={tp.scoreDesc} value={profile.weightedByDefault ? 'weighted' : 'simple'}
+            disabled={saving === 'weighted'} onChange={(v) => save('weighted', { weightedByDefault: v === 'weighted' })}
+            options={[
+              { id: 'simple', label: tp.scoreSimple, preview: <span className="pf-opt-big">{tp.scoreSimpleEx}</span> },
+              { id: 'weighted', label: tp.scoreWeighted, preview: <span className="pf-opt-big">{tp.scoreWeightedEx}</span> },
+            ]} />
+          <Options label={tp.rankingsView} value={profile.rankingsView || 'LIST'} disabled={saving === 'view'}
+            onChange={(v) => save('view', { rankingsView: v })}
+            options={[{ id: 'LIST', label: tp.viewList, icon: List }, { id: 'GRID', label: tp.viewGrid, icon: LayoutGrid }]} />
+        </Card>
+
+        <Card title={tp.privacy}>
+          <Options label={tp.profileLabel} help={tp.profileDesc} value={(profile.isPublic ?? true) ? 'public' : 'private'}
+            disabled={saving === 'public'} onChange={(v) => save('public', { isPublic: v === 'public' })}
+            options={[
+              { id: 'public', label: tp.profilePublic, icon: Globe },
+              { id: 'private', label: tp.profilePrivate, icon: Lock },
+            ]} />
+          <Options label={tp.messagesLabel} help={tp.dmPolicyDesc} value={profile.dmPolicy || 'EVERYONE'}
+            disabled={saving === 'dm'} onChange={(v) => save('dm', { dmPolicy: v })}
+            options={[{ id: 'EVERYONE', label: tp.dmEveryone }, { id: 'FOLLOWING', label: tp.dmFollowing }]} />
+        </Card>
+
+        <Card title={tp.notifications}>
+          <div className="pf-opt-field">
+            <Label text={tp.notifyLabel} />
+            <div className="pf-chips" role="group" aria-label={tp.notifyLabel}>
+              {NOTIFICATION_GROUPS.map((group) => (
+                <button key={group} type="button" className={`pf-chip${muted.has(group) ? '' : ' is-on'}`}
+                  aria-pressed={!muted.has(group)} title={tp.notif[group].desc} disabled={saving === 'notif'}
+                  onClick={() => toggleGroup(group)}>
+                  {tp.notif[group].label}
                 </button>
               ))}
             </div>
-          </Row>
-          <Row label={tp.deleteAccount} desc={tp.deleteAccountDesc}>
-            <button type="button" className="mr-btn mr-btn-sm mr-btn-danger-text" onClick={() => setModal('delete')}>
-              {tp.deleteAccount}
-            </button>
-          </Row>
-        </Section>
+            <p className="pf-opt-hint">{tp.notifyDesc}</p>
+          </div>
+        </Card>
       </div>
 
+      {/* rodapé: exportar à esquerda, excluir sozinho à direita */}
+      <div className="pf-set-footer">
+        <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setModal('export')}>
+          <Download size={14} strokeWidth={2} aria-hidden="true" />
+          {tp.exportWorks}
+        </button>
+        <button type="button" className="pf-set-delete" onClick={() => setModal('delete')}>{tp.deleteAccount}</button>
+      </div>
+
+      {modal === 'export' && <ExportWorksModal onClose={() => setModal(null)} />}
       {modal === 'delete' && <DeleteAccountModal user={profile} onClose={() => setModal(null)} />}
       {modal === 'password' && (
         <ChangePasswordModal email={profile.email} onClose={() => setModal(null)}
           onDone={() => { setModal(null); setError(''); setNotice(tp.passwordDone); }} />
-      )}
-      {modal === 'sessions' && (
-        <ConfirmModal title={tp.sessions} message={tp.sessionsConfirm} confirmLabel={tp.sessionsButton}
-          busyLabel={tp.sessionsBusy}
-          onClose={() => setModal(null)}
-          onConfirm={async () => {
-            try {
-              await revokeOtherSessions();
-              setError('');
-              setNotice(tp.sessionsDone);
-              return true;
-            } catch {
-              setError(tp.settingsError);
-              return true;
-            }
-          }} />
       )}
     </div>
   );

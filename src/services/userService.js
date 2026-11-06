@@ -27,11 +27,10 @@ export const deleteMe = async ({ confirmUsername, deletionCode }) => {
 export const avatarUrlFor = (user) => user?.avatarUrl || null;
 
 /**
- * "Sair dos outros aparelhos": invalida todos os tokens da conta. Este aparelho
- * continua logado com o token novo que vem na resposta.
+ * Invalida todos os tokens da conta (todos os aparelhos). Usado pelo "Sair" das
+ * configurações, que em seguida faz o logout deste aparelho também.
  */
-export const revokeOtherSessions = async () => {
+export const revokeSessions = async () => {
   const { data } = await api.post("/users/me/sessions/revoke");
-  localStorage.setItem("myrank_token", data.token);
   return data;
 };

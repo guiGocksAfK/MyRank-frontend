@@ -668,25 +668,177 @@
   background: var(--mr-gold);
 }
 
-/* ---- configurações ---- */
-/* pares lado a lado com a mesma altura: Aparência|Privacidade, Notificações|Conta,
-   Rankings|Seus dados (tamanhos parecidos, então sobra pouco espaço dentro) */
-.pf-set-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--mr-space-5);
-  align-items: stretch;
+/* ---- configurações ----
+   Faixa da conta no topo, 4 cartões iguais (2×2) e o rodapé com exportar e
+   excluir. Usa a largura toda, como as outras abas: 4 cartões numa fileira
+   (2×2 em tela média, 1 coluna no celular). Cada escolha é um botão que mostra o que faz; a escolhida tem borda
+   dourada. */
+.pf-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-4);
 }
 
-.pf-set-section { display: flex; flex-direction: column; min-width: 0; }
-.pf-set-section .pf-set-panel { flex: 1; }
+.pf-account {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mr-space-3) var(--mr-space-4);
+  padding: var(--mr-space-4);
+}
 
-.pf-set-section.is-appearance { order: 1; }
-.pf-set-section.is-privacy { order: 2; }
-.pf-set-section.is-notifications { order: 3; }
-.pf-set-section.is-account { order: 4; }
-.pf-set-section.is-rankings { order: 5; }
-.pf-set-section.is-data { order: 6; }
+.mr-avatar.pf-account-avatar { flex: none; width: 44px; height: 44px; }
+
+.pf-account-who { display: flex; flex: 1; flex-direction: column; min-width: 180px; }
+
+.pf-account-email {
+  overflow: hidden;
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-account-sub { color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+
+.pf-account-actions { display: flex; flex-wrap: wrap; gap: var(--mr-space-2); }
+
+.pf-set-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--mr-space-4);
+}
+
+.pf-set-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-4);
+  padding: var(--mr-space-4);
+}
+
+.pf-set-card .pf-group-title { margin: 0; }
+
+.pf-opt-field { display: flex; flex-direction: column; gap: var(--mr-space-2); }
+
+.pf-opt-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+}
+
+.pf-opts { display: flex; gap: var(--mr-space-2); }
+
+.pf-opt {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 40px;
+  padding: var(--mr-space-2);
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font: inherit;
+  font-size: var(--mr-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease), background var(--mr-duration-fast) var(--mr-ease);
+}
+
+.pf-opt:hover { border-color: color-mix(in srgb, var(--mr-text) 28%, transparent); color: var(--mr-text); }
+
+.pf-opt.is-on {
+  border-color: var(--mr-gold);
+  background: var(--mr-gold-10);
+  color: var(--mr-text);
+}
+
+.pf-opt:focus-visible { outline: 2px solid var(--mr-gold); outline-offset: 2px; }
+.pf-opt:disabled { cursor: progress; }
+
+.pf-opt-text { display: inline-flex; align-items: center; gap: 6px; }
+
+.pf-opt-big {
+  color: var(--mr-text);
+  font-size: var(--mr-text-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-opt.is-on .pf-opt-big { color: var(--mr-gold); }
+
+/* miniatura do tema: as cores de cada tema, fixas, pra mostrar como fica */
+.pf-theme-mini {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  height: 26px;
+  padding: 5px 6px;
+  border: 1px solid var(--mr-border);
+  border-radius: 4px;
+}
+
+.pf-theme-mini.is-dark { background: #0d0d0d; }
+.pf-theme-mini.is-light { background: #eceef1; }
+.pf-theme-mini i { display: block; width: 40%; height: 4px; border-radius: 2px; }
+.pf-theme-mini.is-dark i { background: #d4af37; }
+.pf-theme-mini.is-light i { background: #9a6b12; }
+
+.pf-opt-hint { margin: 0; color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+
+/* etiquetas liga/desliga: dourada = ligada, apagada = desligada */
+.pf-chips { display: flex; flex-wrap: wrap; gap: var(--mr-space-2); }
+
+.pf-chip {
+  padding: 5px 12px;
+  border: 1px solid var(--mr-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mr-text-muted);
+  font: inherit;
+  font-size: var(--mr-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease), border-color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.pf-chip:hover { border-color: color-mix(in srgb, var(--mr-text) 28%, transparent); color: var(--mr-text); }
+
+.pf-chip.is-on {
+  border-color: var(--mr-gold-20);
+  background: var(--mr-gold-10);
+  color: var(--mr-gold);
+}
+
+.pf-set-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mr-space-3);
+}
+
+/* excluir conta: sozinho, discreto */
+.pf-set-delete {
+  padding: var(--mr-space-2) var(--mr-space-1);
+  border: 0;
+  background: none;
+  color: color-mix(in srgb, var(--mr-red) 80%, var(--mr-text-muted));
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.pf-set-delete:hover,
+.pf-set-delete:focus-visible { outline: none; color: var(--mr-red); }
 
 .pf-set-notice {
   margin: 0;
@@ -703,49 +855,25 @@
   background: color-mix(in srgb, var(--mr-red) 10%, transparent);
 }
 
-.pf-set-buttons { flex-wrap: nowrap; gap: var(--mr-space-2); }
-.pf-set-buttons .mr-btn { gap: 6px; }
+.pf-export-count {
+  margin: 0;
+  color: var(--mr-text-secondary);
+  font-size: var(--mr-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-form-ok {
+  margin: 0 auto 0 0;
+  color: var(--mr-gold);
+  font-size: var(--mr-text-xs);
+  font-weight: 600;
+}
 
 .pf-modal-copy {
   margin: 0 0 var(--mr-space-3);
   color: var(--mr-text-secondary);
   font-size: var(--mr-text-sm);
   line-height: 1.55;
-}
-
-.pf-set-section .pf-group-title { margin-top: var(--mr-space-2); }
-
-.pf-set-panel { padding: 0 var(--mr-space-5); }
-
-.pf-set-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--mr-space-4);
-  padding: var(--mr-space-4) 0;
-}
-
-.pf-set-row + .pf-set-row { border-top: 1px solid rgba(255, 255, 255, 0.06); }
-
-.pf-set-text { min-width: 0; }
-.pf-set-row > :last-child:not(.pf-set-value) { flex: none; }
-
-.pf-set-label { font-weight: 600; }
-
-.pf-set-desc {
-  margin-top: 2px;
-  color: var(--mr-text-muted);
-  font-size: var(--mr-text-sm);
-  line-height: 1.5;
-}
-
-.pf-set-value {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--mr-text-secondary);
-  font-size: var(--mr-text-sm);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* ---- modais (editar perfil, excluir conta) ---- */
@@ -887,14 +1015,13 @@
 }
 
 @media (max-width: 1100px) {
+  .pf-set-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pf-badge-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 768px) {
-  /* celular: uma coluna só, na ordem do código */
-  .pf-set-grid { grid-template-columns: 1fr; }
-  .pf-set-grid > .pf-set-section { order: 0; }
   .pf-stats-grid { grid-template-columns: 1fr; }
+  .pf-set-grid { grid-template-columns: 1fr; }
   /* celular: barra e filtro descem pra uma linha abaixo das abas */
   .pf-tabbar { flex-direction: column; align-items: stretch; gap: var(--mr-space-3); border-bottom: 0; }
   .pf-tabbar .rk-tabs { border-bottom: 1px solid var(--mr-border); }
@@ -921,10 +1048,9 @@
   .pf-meta > span:first-child { flex-basis: 100%; }
   .pf-meta > span:nth-child(2) .pf-dot { display: none; }
   .pf-actions .mr-btn { flex: 1; }
-  .pf-set-panel { padding: 0 var(--mr-space-4); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pf-icon-btn, .pf-photo-pencil, .pf-badge, .pf-split > span, .pf-strip-dot, .pf-types tbody tr { transition: none; }
+  .pf-icon-btn, .pf-photo-pencil, .pf-chip, .pf-opt, .pf-set-delete, .pf-badge, .pf-split > span, .pf-strip-dot, .pf-types tbody tr { transition: none; }
   .pf-dotcard { animation: none; }
 }
