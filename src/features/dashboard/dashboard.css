@@ -953,10 +953,7 @@
 .mr-poster-overlay-time  { font-size: 0.6875rem; color: var(--mr-text-muted); }
 
 /* ============ CARDS ============ */
-.mr-card,
-.mr-info-card-gold,
-.mr-info-card-green,
-.mr-info-card-blue {
+.mr-card {
   background: var(--mr-card);
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius);
@@ -966,22 +963,6 @@
 .mr-card-body { padding: 20px; }
 
 .mr-card:hover { border-color: rgba(212, 175, 55, 0.25); }
-
-/* Info Cards */
-.mr-info-card-gold {
-  border-color: rgba(212, 175, 55, 0.25);
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(17,17,17,0.94));
-}
-
-.mr-info-card-blue {
-  border-color: rgba(74, 144, 217, 0.25);
-  background: linear-gradient(135deg, rgba(74, 144, 217, 0.08), rgba(17,17,17,0.94));
-}
-
-.mr-info-card-green {
-  border-color: rgba(110, 231, 183, 0.2);
-  background: linear-gradient(135deg, rgba(110, 231, 183, 0.06), rgba(17,17,17,0.94));
-}
 
 /* ============ DOT INDICATORS ============ */
 .mr-dot-green {
@@ -994,26 +975,6 @@
 }
 
 /* Botões (.mr-btn e variantes): src/styles/base.css */
-
-/* ============ BADGES ============ */
-.mr-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-family: var(--mr-font);
-}
-
-.mr-badge-outline {
-  background: transparent;
-  border: 1px solid var(--mr-border);
-  color: var(--mr-text-secondary);
-}
-
-.mr-badge-green  { background: rgba(110, 231, 183, 0.12); color: var(--mr-green); }
-.mr-badge-gold   { background: var(--mr-gold-10); color: var(--mr-gold); }
 
 /* ============ PROGRESS BARS ============ */
 .mr-progress {
@@ -1292,11 +1253,6 @@
   }
 
   /* selo da tabela ("Filmes", "Jogos"…) no ranking unificado */
-  .mr-table-row > .mr-badge {
-    max-width: 78px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
 
   /* o "+bônus" some no mobile — fica só nota / nota final */
   .mr-table-row .mr-cell-bonus { display: none !important; }
