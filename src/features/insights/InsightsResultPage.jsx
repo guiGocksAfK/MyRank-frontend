@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { generateInsights, getLatestInsights, sendInsightChat } from '../../services/insightsService';
-import DashboardFooter from '../dashboard/DashboardFooter';
+import SiteFooter from '../../shared/components/SiteFooter';
 import { BAR_COLORS, relativeFromNow } from './aiInsightsHelpers';
 import '../dashboard/dashboard.css';
 import './insights.css';
@@ -94,7 +94,7 @@ export default function InsightsResult() {
         )}
       </div>
 
-      <DashboardFooter />
+      <SiteFooter />
     </div>
   );
 }
@@ -106,7 +106,9 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult
   const taste = Array.isArray(analysis.tasteProfile) ? analysis.tasteProfile : [];
   // Análises novas trazem média real + nº de obras; as antigas, a % que a IA inventava.
   const maxPercent = Math.max(1, ...taste.map((s) => s.percent || 0));
-  const reco = analysis.recommendation;
+  // até 3 na lista; o back antigo (antes do deploy) ainda manda uma só em `recommendation`
+  const recos = (analysis.recommendations ?? (analysis.recommendation ? [analysis.recommendation] : []))
+    .filter((r) => r?.title);
 
   return (
     <>
@@ -165,7 +167,7 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult
         </section>
       )}
 
-      {(taste.length > 0 || reco) && (
+      {(taste.length > 0 || recos.length > 0) && (
         <div className="insights-bottom-grid">
           {taste.length > 0 && (
             <section className="mr-card insights-enter" style={{ '--d': '120ms' }}>
@@ -198,18 +200,24 @@ function ReadyView({ result, canRegenerate, regenerating, onRegenerate, onResult
             </section>
           )}
 
-          {reco && (
+          {recos.length > 0 && (
             <section className="insights-reco insights-enter" style={{ '--d': '180ms' }}>
-              <span className="insights-hero-eyebrow">💡 Recomendação para você</span>
-              <div className="insights-reco-title">{reco.title}</div>
-              <div className="insights-reco-badges">
-                {reco.year && <span className="mr-badge mr-badge-outline">{reco.year}</span>}
-                {reco.category && <span className="mr-badge mr-badge-green">{reco.category}</span>}
-                {typeof reco.compatPercent === 'number' && (
-                  <span className="mr-badge mr-badge-gold">{reco.compatPercent}% compatível</span>
-                )}
-              </div>
-              <p className="insights-reco-reason">{reco.reason}</p>
+              <span className="insights-hero-eyebrow">
+                💡 {recos.length > 1 ? 'Recomendações para você' : 'Recomendação para você'}
+              </span>
+              {recos.map((reco) => (
+                <div className="insights-reco-item" key={reco.title}>
+                  <div className="insights-reco-title">{reco.title}</div>
+                  <div className="insights-reco-badges">
+                    {reco.year && <span className="mr-badge mr-badge-outline">{reco.year}</span>}
+                    {reco.category && <span className="mr-badge mr-badge-green">{reco.category}</span>}
+                    {typeof reco.compatPercent === 'number' && (
+                      <span className="mr-badge mr-badge-gold">{reco.compatPercent}% compatível</span>
+                    )}
+                  </div>
+                  <p className="insights-reco-reason">{reco.reason}</p>
+                </div>
+              ))}
             </section>
           )}
         </div>

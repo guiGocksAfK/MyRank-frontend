@@ -6,6 +6,7 @@ import { socialApi, typeIconFor } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import ConfirmModal from '../../shared/components/ConfirmModal';
+import BadgeIcon from '../../shared/badgeIcons';
 
 function ScoreChip({ value }) {
   if (value == null) return null;
@@ -44,7 +45,7 @@ function Body({ item }) {
     case 'BADGE':
       return (
         <div className="social-act-line">
-          {a.unlocked} <span style={{ fontSize: '1.15em' }}>{item.badge.icon}</span>{' '}
+          {a.unlocked} <span className="social-badge-icon"><BadgeIcon code={item.badge.code} /></span>{' '}
           <strong>{item.badge.name}</strong>
         </div>
       );

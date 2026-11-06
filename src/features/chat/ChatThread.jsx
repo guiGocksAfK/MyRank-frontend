@@ -20,6 +20,7 @@ import {
   sendTyping,
 } from '../../services/chatService';
 import { socialApi, typeIconFor } from '../social/socialData';
+import BadgeIcon from '../../shared/badgeIcons';
 
 const POLL_MS = 15_000;
 const BODY_MAX = 2000;
@@ -1038,7 +1039,7 @@ function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfi
               <div className="chat-rail-badges">
                 {profile.badges.map((b) => (
                   <span key={b.name} className="chat-rail-badge" title={b.name}>
-                    {b.icon} {b.name}
+                    <BadgeIcon code={b.code} /> {b.name}
                   </span>
                 ))}
               </div>

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import DashboardHeader from './DashboardHeader';
-import HomeOverview from '../home/HomeOverview';
+import DashboardHome from './DashboardHome';
 import RankingsTab from '../rankings/rankings/RankingsTab';
 import CreatorsPanel from '../creators/CreatorsPanel';
 import SocialPanel from '../social/SocialPanel';
 import InsightsPanel from '../insights/InsightsPanel';
 import ProfilePanel from '../profile/ProfilePanel';
-import DashboardFooter from './DashboardFooter';
+import SiteFooter from '../../shared/components/SiteFooter';
 import { UserProvider, useUser } from '../../shared/userContext';
 import { WorksProvider } from '../../shared/worksContext';
 import { BadgeProvider } from '../../shared/badges';
@@ -17,9 +17,13 @@ import './dashboard.css';
 
 const VALID_TABS = ['home', 'rankings', 'social', 'ai', 'profile'];
 
-/** Quem ainda não terminou o tutorial pós-cadastro volta pra ele, na etapa em que parou. */
+/**
+ * Quem ainda não terminou o tutorial pós-cadastro volta pra ele, na etapa em que parou.
+ * Até /users/me responder não mostra nada: senão o dashboard pisca antes do redirect.
+ */
 function OnboardingGate({ children }) {
-  const { user } = useUser();
+  const { user, loading } = useUser();
+  if (loading) return null;
   if (user?.onboardingStep && user.onboardingStep !== 'DONE') {
     return <Navigate to="/bem-vindo" replace />;
   }
@@ -49,7 +53,7 @@ export default function DashboardPage() {
   const renderTab = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeOverview onNavigate={handleTabChange} />;
+        return <DashboardHome onNavigate={handleTabChange} />;
       case 'rankings':
         if (creatorsView) return <CreatorsPanel onBack={() => setCreatorsView(false)} />;
         return <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />;
@@ -66,7 +70,7 @@ export default function DashboardPage() {
       case 'profile':
         return <ProfilePanel isDark={isDark} onThemeToggle={handleThemeToggle} />;
       default:
-        return <HomeOverview onNavigate={handleTabChange} />;
+        return <DashboardHome onNavigate={handleTabChange} />;
     }
   };
 
@@ -84,7 +88,7 @@ export default function DashboardPage() {
       />
       <div className="mr-main">
         <div style={{ display: activeTab === 'home' ? 'block' : 'none' }}>
-          <HomeOverview onNavigate={handleTabChange} />
+          <DashboardHome onNavigate={handleTabChange} />
         </div>
         {rankingsVisited && (
           <div style={{ display: activeTab === 'rankings' && !creatorsView ? 'block' : 'none' }}>
@@ -97,7 +101,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ribbon no fim de todas as abas — stats reais vêm de /works/unified */}
-      <DashboardFooter />
+      <SiteFooter />
     </div>
     </ChatProvider>
     </NotificationsProvider>

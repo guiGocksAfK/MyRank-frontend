@@ -94,7 +94,8 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
     }
     let active = true;
     const id = setTimeout(() => {
-      socialApi.searchUsers(q).then((r) => active && setResults(r)).catch(() => {});
+      // só quem se segue mutuamente entra direto; o resto vem pelo link de convite (o back confere)
+      socialApi.searchUsers(q).then((r) => active && setResults(r.filter((u) => u.following && u.followsYou))).catch(() => {});
     }, 250);
     return () => {
       active = false;
@@ -393,7 +394,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
                 />
                 <div className="chat-modal-results">
                   {query.trim().length >= 2 && results.filter((u) => !memberIds.has(u.id)).length === 0 && (
-                    <div className="chat-hint">{tc.noUsers}</div>
+                    <div className="chat-hint">{tc.noMutuals}</div>
                   )}
                   {results
                     .filter((u) => !memberIds.has(u.id))

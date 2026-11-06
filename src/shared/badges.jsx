@@ -11,6 +11,7 @@ import { getBadges } from '../services/badgeService';
 import { useUser } from './userContext';
 import { useLanguage } from './i18n';
 import { BADGE_I18N } from './badgeI18n';
+import BadgeIcon from './badgeIcons';
 
 /** Sobrepõe nome/descrição traduzidos por `code`; fallback = valor do backend (PT). */
 function localizeBadge(badge, lang) {
@@ -228,7 +229,7 @@ function BadgeToast({ badge: rawBadge, onClose }) {
         transition: 'opacity 0.35s ease, transform 0.35s ease',
       }}
     >
-      <span style={{ fontSize: '1.9rem', lineHeight: 1, flexShrink: 0 }}>{badge.icon}</span>
+      <span style={{ fontSize: '1.9rem', lineHeight: 1, flexShrink: 0, color: 'var(--mr-gold)', display: 'flex' }}><BadgeIcon code={badge.id} /></span>
       <div style={{ minWidth: 0 }}>
         <div
           style={{

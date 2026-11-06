@@ -119,16 +119,11 @@ export default function DeleteAccountModal({ user, onClose }) {
 
         {error && <p className="auth-error" style={{ marginTop: 10 }}>{error}</p>}
 
-        <div className="mr-flex mr-gap-2" style={{ justifyContent: 'flex-end', marginTop: 18 }}>
-          <button className="mr-btn mr-btn-outline mr-btn-sm" type="button" onClick={onClose} disabled={busy}>
+        <div className="mr-actions" style={{ marginTop: 18 }}>
+          <button className="mr-btn mr-btn-ghost" type="button" onClick={onClose} disabled={busy}>
             {tp.cancel}
           </button>
-          <button
-            className="mr-btn mr-btn-sm"
-            type="submit"
-            disabled={busy || !canSubmit}
-            style={{ background: '#e24b4a', color: '#fff', border: '1px solid #e24b4a' }}
-          >
+          <button className="mr-btn mr-btn-danger" type="submit" disabled={busy || !canSubmit}>
             {busy ? tp.deleting : tp.deleteConfirmBtn}
           </button>
         </div>

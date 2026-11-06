@@ -1,3 +1,5 @@
+import { genreKeys } from '../shared/genres';
+import { creatorKey, splitCreators } from '../shared/creatorNames';
 // Formata minutos → "2h 30min" / "45min" / "50h"
 export function formatTime(minutes) {
   if (!minutes || minutes <= 0) return '—';
@@ -45,18 +47,67 @@ export function getMode(sortBy, useTimeWeight) {
   return useTimeWeight ? 'weight' : 'simple';
 }
 
+// Status da API (TMDB / MyAnimeList) agrupados nos dois botões do filtro
+export const STATUS_GROUPS = {
+  ongoing: ['Returning Series', 'In Production', 'currently_airing', 'currently_publishing', 'on_hiatus'],
+  finished: ['Ended', 'Canceled', 'finished_airing', 'finished', 'discontinued'],
+};
+
+export function statusGroup(status) {
+  return Object.keys(STATUS_GROUPS).find(group => STATUS_GROUPS[group].includes(status)) ?? null;
+}
+
+const normalize = (text) => String(text ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+/** Gêneros da obra já juntados numa chave só (ver shared/genres.js). */
+export function itemGenres(item) {
+  return genreKeys(item.details?.genres);
+}
+
+// filtros de faixa contam como um só (de + até)
+const FILTER_GROUPS = [
+  ['search'], ['types'], ['genres'], ['creators'], ['noteMin', 'noteMax'], ['yearMin', 'yearMax'],
+  ['hoursMin', 'hoursMax'], ['addedFrom', 'addedTo'], ['status'], ['subcategory'],
+];
+
+const isSet = (v) => (Array.isArray(v) ? v.length > 0 : v != null && String(v).trim() !== '');
+
+/** Quantos filtros estão ligados (lista vazia e texto em branco não contam). */
+export function activeFilterCount(filters) {
+  return FILTER_GROUPS.filter(keys => keys.some(key => isSet(filters?.[key]))).length;
+}
+
+const outside = (value, min, max) => (min != null && value < min) || (max != null && value > max);
+
+/**
+ * Filtros da barra: busca (título ou criador), tipos, gêneros e criadores
+ * (qualquer um dos marcados), faixas de nota, ano, horas e data em que foi
+ * adicionada, status e subcategoria ('none' = sem subcategoria).
+ */
 export function applyFilters(items, filters) {
-  if (!filters) return items;
+  if (!filters || activeFilterCount(filters) === 0) return items;
+  const query = normalize(filters.search).trim();
   return items.filter(item => {
-    if (filters.releaseYearMin != null || filters.releaseYearMax != null) {
-      const year = getYear(item.releaseDate);
-      if (year == null) return false;
-      if (filters.releaseYearMin != null && year < filters.releaseYearMin) return false;
-      if (filters.releaseYearMax != null && year > filters.releaseYearMax) return false;
+    if (query && !normalize(item.title).includes(query) && !normalize(item.sub).includes(query)) return false;
+    if (filters.types?.length && !filters.types.includes(item.type)) return false;
+    if (filters.genres?.length && !itemGenres(item).some(genre => filters.genres.includes(genre))) return false;
+    if (filters.creators?.length) {
+      const wanted = filters.creators.map(creatorKey);
+      if (!splitCreators(item.sub).some(name => wanted.includes(creatorKey(name)))) return false;
     }
-    const addedDay = item.addedDate?.slice(0, 10);
-    if (filters.addedDateFrom != null && addedDay < filters.addedDateFrom) return false;
-    if (filters.addedDateTo != null && addedDay > filters.addedDateTo) return false;
+    if (outside(item.note ?? 0, filters.noteMin, filters.noteMax)) return false;
+    if (filters.yearMin != null || filters.yearMax != null) {
+      const year = getYear(item.releaseDate);
+      if (year == null || outside(year, filters.yearMin, filters.yearMax)) return false;
+    }
+    if (outside((item.timeMinutes || 0) / 60, filters.hoursMin, filters.hoursMax)) return false;
+    if (filters.addedFrom || filters.addedTo) {
+      const day = item.addedDate?.slice(0, 10);
+      if (!day || (filters.addedFrom && day < filters.addedFrom) || (filters.addedTo && day > filters.addedTo)) return false;
+    }
+    if (filters.status != null && statusGroup(item.details?.status) !== filters.status) return false;
+    if (filters.subcategory === 'none' ? !!item.subcategoryId
+      : filters.subcategory != null && item.subcategoryId !== filters.subcategory) return false;
     return true;
   });
 }

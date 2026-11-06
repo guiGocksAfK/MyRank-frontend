@@ -158,6 +158,8 @@ src/
 
 - [`AGENTS.md`](AGENTS.md): rules for anyone (or any AI tool) working on this
   repository, in Portuguese.
+- [`docs/visual.md`](docs/visual.md): the visual guide (colors, base pieces,
+  motion) that every screen follows, in Portuguese.
 - The feature rules, decisions and roadmap live in the backend's
   [`docs/`](https://github.com/guiGocksAfK/MyRank-backend/tree/master/docs), in
   Portuguese, since the API is where the rules are enforced.

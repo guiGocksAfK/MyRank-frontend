@@ -1,144 +1,56 @@
 import { useState } from 'react';
+import Modal from '../../../shared/components/Modal';
 import { useLanguage } from '../../../shared/i18n';
 import { TABLE_TEMPLATES, needsCustomEmoji, cleanCustomFields } from '../../../shared/tableTemplates';
 import TemplatePicker from './TemplatePicker';
 import CustomFieldsEditor from './CustomFieldsEditor';
-const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
+import SubcategoryEditor from './SubcategoryEditor';
 
-/** Cria/renomeia/remove subcategorias na hora (independe do botão Salvar do nome). */
-function SubcategoryManager({ subcategories, onAdd, onRename, onDelete, inputStyle }) {
-  const { t } = useLanguage();
-  const ts = t.rankings.subcategories;
-  const [newName, setNewName] = useState('');
-  const [drafts, setDrafts] = useState({}); // id → nome sendo editado
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-
-  const clearDraft = (id) => setDrafts(current => {
-    const next = { ...current };
-    delete next[id];
-    return next;
-  });
-
-  async function run(action) {
-    setBusy(true);
-    setError('');
-    try {
-      await action();
-      return true;
-    } catch (err) {
-      setError(err?.response?.data?.message || ts.error);
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleAdd() {
-    const name = newName.trim();
-    if (!name) return;
-    if (await run(() => onAdd(name))) setNewName('');
-  }
-
-  async function handleRename(sub) {
-    const name = (drafts[sub.id] ?? sub.name).trim();
-    if (!name || name === sub.name) {
-      clearDraft(sub.id);
-      return;
-    }
-    if (await run(() => onRename(sub.id, name))) clearDraft(sub.id);
-  }
-
-  async function handleDelete(sub) {
-    if (!window.confirm(fmt(ts.removeConfirm, { name: sub.name }))) return;
-    await run(() => onDelete(sub.id));
-  }
-
-  return (
-    <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--mr-border)' }}>
-      <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{ts.heading}</div>
-      <p style={{ margin: '4px 0 10px', fontSize: '0.72rem', color: 'var(--mr-text-secondary)', lineHeight: 1.45 }}>
-        {ts.hint}
-      </p>
-
-      {subcategories.length === 0 && (
-        <p style={{ margin: '0 0 10px', fontSize: '0.75rem', color: 'var(--mr-text-muted)' }}>{ts.empty}</p>
-      )}
-
-      <div className="mr-space-y-2" style={{ marginBottom: 10 }}>
-        {subcategories.map(sub => (
-          <div key={sub.id} className="mr-flex mr-items-center mr-gap-2">
-            <input
-              aria-label={ts.rename}
-              value={drafts[sub.id] ?? sub.name}
-              onChange={event => setDrafts(current => ({ ...current, [sub.id]: event.target.value }))}
-              onBlur={() => handleRename(sub)}
-              onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }}
-              maxLength={60}
-              style={inputStyle}
-              disabled={busy}
-            />
-            <button
-              type="button"
-              className="mr-btn mr-btn-ghost mr-btn-sm"
-              title={ts.remove}
-              aria-label={`${ts.remove} ${sub.name}`}
-              onClick={() => handleDelete(sub)}
-              disabled={busy}
-            >
-              ✕
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div className="mr-flex mr-items-center mr-gap-2">
-        <input
-          value={newName}
-          placeholder={ts.placeholder}
-          onChange={event => setNewName(event.target.value)}
-          onKeyDown={event => { if (event.key === 'Enter') handleAdd(); }}
-          maxLength={60}
-          style={inputStyle}
-          disabled={busy}
-        />
-        <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={handleAdd} disabled={busy || !newName.trim()}>
-          {ts.add}
-        </button>
-      </div>
-
-      {error && <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#ff6b6b' }} role="alert">{error}</p>}
-    </div>
-  );
-}
-
-export default function EditTableModal({ table, onSave, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory, onClose }) {
+export default function EditTableModal({ table, onSave, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory, onDeleteTable, onClose }) {
   const { t } = useLanguage();
   const tm = t.rankings.editTableModal;
+  const tr = t.rankings;
   const currentTemplates = table.templates ?? ['custom'];
   // Tipo que já tem item na tabela não pode sair (o backend também barra).
   const usedTemplates = [...new Set((table.items ?? []).map(item => item.template))];
   const labelParts = table.label.match(/^(\S+)\s+(.+)$/u);
   const hasEmoji = labelParts && /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(labelParts[1]);
-  const currentEmoji = hasEmoji ? labelParts[1] : TABLE_TEMPLATES[currentTemplates[0]].emoji;
   const [name, setName] = useState(hasEmoji ? labelParts[2] : table.label);
   const [templates, setTemplates] = useState(currentTemplates);
-  const [customEmoji, setCustomEmoji] = useState(needsCustomEmoji(currentTemplates) ? currentEmoji : '');
   const [customFields, setCustomFields] = useState(table.customFields ?? []);
+  const [subs, setSubs] = useState(() => (table.subcategories ?? []).map(sub => ({ key: `id-${sub.id}`, id: sub.id, name: sub.name, removed: false })));
+  const subCounts = {};
+  for (const item of table.items ?? []) {
+    if (item.subcategoryId != null) subCounts[item.subcategoryId] = (subCounts[item.subcategoryId] ?? 0) + 1;
+  }
   const [saving, setSaving] = useState(false);
-  const isOutro = needsCustomEmoji(templates);
-  const defaultEmoji = TABLE_TEMPLATES[templates[0]].emoji;
+
+  // remove antes de criar, pra não esbarrar no limite de 20 à toa
+  async function saveSubcategories() {
+    const original = new Map((table.subcategories ?? []).map(sub => [sub.id, sub.name]));
+    for (const sub of subs) if (sub.id && sub.removed) await onDeleteSubcategory(sub.id);
+    for (const sub of subs) {
+      const name = sub.name.trim();
+      if (sub.id && !sub.removed && name && name !== original.get(sub.id)) await onRenameSubcategory(sub.id, name);
+    }
+    for (const sub of subs) {
+      const name = sub.name.trim();
+      if (!sub.id && name) await onAddSubcategory(name);
+    }
+  }
 
   async function handleSave() {
     const nextName = name.trim();
     if (!nextName) return;
-    const emoji = isOutro ? (customEmoji.trim() || defaultEmoji) : defaultEmoji;
+    // emoji do tipo no nome; tabela "Outro" que já tinha um emoji escolhido mantém o dela
+    const emoji = needsCustomEmoji(templates) && hasEmoji ? labelParts[1] : TABLE_TEMPLATES[templates[0]].emoji;
     const nextFields = cleanCustomFields(customFields);
     const removed = (table.customFields ?? []).filter(field => !nextFields.some(next => next.id === field.id));
     if (templates.includes('custom') && removed.length && !window.confirm(tm.removeFieldsConfirm)) return;
     setSaving(true);
     try {
       await onSave({ name: `${emoji} ${nextName}`, templates, customFields: nextFields });
+      await saveSubcategories();
       onClose();
     } catch (err) {
       alert(err?.response?.data?.message || err.message || tm.renameError);
@@ -147,68 +59,47 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
     }
   }
 
-  const inputStyle = {
-    width: '100%', padding: '8px 10px', borderRadius: 7,
-    border: '1px solid var(--mr-border)', background: 'var(--mr-bg)',
-    color: 'var(--mr-text)', fontSize: '0.875rem',
-  };
-
   return (
-    <div
-      role="presentation"
-      style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
-      onClick={onClose}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="mr-edit-table-title"
-        style={{ width: 400, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', background: 'var(--mr-surface)', border: '1px solid var(--mr-border)', borderRadius: 12, boxShadow: '0 18px 50px rgba(0,0,0,0.5)' }}
-        onClick={event => event.stopPropagation()}
-      >
-        <h2 id="mr-edit-table-title" style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>
-          {tm.title}
-        </h2>
-        <label htmlFor="mr-edit-table-name" style={{ display: 'block', marginBottom: 5, color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>
-          {tm.name}
-        </label>
-        <input
-          id="mr-edit-table-name"
-          autoFocus
-          value={name}
-          onChange={event => setName(event.target.value)}
-          onKeyDown={event => { if (event.key === 'Enter') handleSave(); }}
-          style={inputStyle}
-          disabled={saving}
-        />
-        <div style={{ marginTop: '1rem' }}>
-          <TemplatePicker value={templates} onChange={setTemplates} locked={usedTemplates} disabled={saving} />
-          {templates.includes('custom') && (
-            <CustomFieldsEditor value={customFields} onChange={setCustomFields} disabled={saving} />
+    <Modal
+      title={tm.title}
+      onClose={onClose}
+      busy={saving}
+      width={480}
+      footer={(
+        <>
+          {/* ação perigosa fica aqui dentro, longe do "Adicionar obra"; a confirmação vem depois */}
+          {onDeleteTable && (
+            <button type="button" className="mr-btn mr-btn-danger-text" onClick={onDeleteTable} disabled={saving}>
+              {tr.toolbar.deleteTable}
+            </button>
           )}
-        </div>
-        {isOutro && (
-          <>
-            <label htmlFor="mr-edit-table-emoji" style={{ display: 'block', margin: '1rem 0 5px', color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>
-              {tm.tableEmoji}
-            </label>
-            <input id="mr-edit-table-emoji" value={customEmoji} placeholder={defaultEmoji} onChange={event => setCustomEmoji(event.target.value)} maxLength={4} style={{ ...inputStyle, width: 90, textAlign: 'center', fontSize: '1.1rem' }} disabled={saving} />
-          </>
-        )}
-        <SubcategoryManager
-          subcategories={table.subcategories}
-          onAdd={onAddSubcategory}
-          onRename={onRenameSubcategory}
-          onDelete={onDeleteSubcategory}
-          inputStyle={inputStyle}
-        />
-        <div className="mr-flex mr-gap-2" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={saving}>{tm.cancel}</button>
-          <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleSave} disabled={saving || !name.trim()}>
+          <button type="button" className="mr-btn mr-btn-ghost" onClick={onClose} disabled={saving}>{tm.cancel}</button>
+          <button type="button" className="mr-btn mr-btn-gold" onClick={handleSave} disabled={saving || !name.trim()}>
             {saving ? tm.saving : tm.save}
           </button>
-        </div>
+        </>
+      )}
+    >
+      <div>
+        <label className="mr-field-label" htmlFor="rk-edit-table-name">{tm.name}</label>
+        <input
+          id="rk-edit-table-name"
+          className="mr-input"
+          autoFocus
+          value={name}
+          maxLength={60}
+          onChange={event => setName(event.target.value)}
+          onKeyDown={event => { if (event.key === 'Enter') handleSave(); }}
+          disabled={saving}
+        />
       </div>
-    </div>
+
+      <TemplatePicker value={templates} onChange={setTemplates} locked={usedTemplates} disabled={saving} />
+      {templates.includes('custom') && (
+        <CustomFieldsEditor value={customFields} onChange={setCustomFields} disabled={saving} />
+      )}
+
+      <SubcategoryEditor value={subs} onChange={setSubs} counts={subCounts} disabled={saving} />
+    </Modal>
   );
 }

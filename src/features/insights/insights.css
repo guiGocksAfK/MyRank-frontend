@@ -435,7 +435,13 @@
   margin-bottom: 12px;
 }
 
-.insights-reco-reason { color: var(--mr-text); line-height: 1.7; font-size: 0.95rem; }
+.insights-reco-reason { color: var(--mr-text); line-height: 1.7; font-size: 0.95rem; margin: 0; }
+
+.insights-reco-item + .insights-reco-item {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
 
 /* ---- estados (loading / vazio / erro) ---- */
 .insights-state-card {

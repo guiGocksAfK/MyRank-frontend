@@ -1,9 +1,12 @@
+import { Check, Lock } from 'lucide-react';
 import { useLanguage } from '../../../shared/i18n';
-import { TABLE_TEMPLATES } from '../../../shared/tableTemplates';
+import InfoTip from '../../../shared/components/InfoTip';
+import { TABLE_TEMPLATES, TEMPLATE_ICONS, tableName } from '../../../shared/tableTemplates';
 
 /**
- * Tipos da tabela em chips: marca um ou mais. `locked` são os tipos que não dá
- * pra desmarcar (a tabela já tem itens deles); o último marcado também não sai.
+ * Tipos da tabela numa grade de cartões: marca um ou mais. `locked` são os tipos
+ * que não dá pra desmarcar (a tabela já tem itens deles); o último marcado também
+ * não sai.
  */
 export default function TemplatePicker({ value, onChange, locked = [], disabled = false }) {
   const { t } = useLanguage();
@@ -19,38 +22,47 @@ export default function TemplatePicker({ value, onChange, locked = [], disabled 
   }
 
   return (
-    <div style={{ marginBottom: 12 }}>
-      <span style={{ fontSize: '0.75rem', color: 'var(--mr-text-secondary)', display: 'block', marginBottom: 6 }}>
-        {tp.label}
-      </span>
-      <div role="group" aria-label={tp.label} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+    <div>
+      <div className="rk-label-row">
+        <span className="mr-field-label" id="rk-template-label">{tp.label}</span>
+        <InfoTip label={tp.helpTitle} title={tp.helpTitle}>
+          <span className="mr-infotip-text">{tp.helpIntro}</span>
+          <span className="rk-help-list">
+            {tp.helpSources.map(([types, source]) => (
+              <span key={types}><span>{types}</span><span>{source}</span></span>
+            ))}
+          </span>
+          <span className="mr-infotip-text">{tp.helpOther}</span>
+          <span className="mr-infotip-text">{tp.helpMusic}</span>
+        </InfoTip>
+      </div>
+      <div className="rk-type-grid" role="group" aria-labelledby="rk-template-label">
         {Object.entries(TABLE_TEMPLATES).map(([template, meta]) => {
           const selected = value.includes(template);
           const isLocked = selected && locked.includes(template);
+          const Icon = TEMPLATE_ICONS[template];
           return (
             <button
               key={template}
               type="button"
+              className={`rk-type${selected ? ' is-active' : ''}`}
               aria-pressed={selected}
               title={isLocked ? tp.locked : undefined}
               disabled={disabled}
               onClick={() => toggle(template)}
-              style={{
-                padding: '5px 10px', borderRadius: 999, fontSize: '0.8rem', cursor: disabled ? 'default' : 'pointer',
-                border: `1px solid ${selected ? 'var(--mr-gold)' : 'var(--mr-border)'}`,
-                background: selected ? 'var(--mr-gold-10, rgba(212,175,55,0.1))' : 'transparent',
-                color: selected ? 'var(--mr-text)' : 'var(--mr-text-secondary)',
-              }}
             >
-              {t.rankings.types[meta.type]}{isLocked ? ' 🔒' : ''}
+              <Icon size={20} strokeWidth={1.6} aria-hidden="true" />
+              <span>{tableName(t.rankings.types[meta.type])}</span>
+              {selected && (
+                <span className="rk-type-badge" aria-hidden="true">
+                  {isLocked ? <Lock size={11} strokeWidth={2} /> : <Check size={12} strokeWidth={2.4} />}
+                </span>
+              )}
             </button>
           );
         })}
       </div>
-      <span style={{ fontSize: '0.7rem', color: 'var(--mr-text-secondary)', display: 'block', marginTop: 6 }}>
-        {tp.hint}
-      </span>
+      <p className="mr-field-hint">{tp.hint}</p>
     </div>
   );
 }
-

@@ -32,7 +32,8 @@ export default function NewGroupModal({ onClose, onCreated }) {
     }
     let active = true;
     const id = setTimeout(() => {
-      socialApi.searchUsers(q).then((r) => active && setResults(r)).catch(() => {});
+      // só quem se segue mutuamente entra direto; o resto vem pelo link de convite (o back confere)
+      socialApi.searchUsers(q).then((r) => active && setResults(r.filter((u) => u.following && u.followsYou))).catch(() => {});
     }, 250);
     return () => {
       active = false;
@@ -141,7 +142,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
 
         <div className="chat-modal-results">
           {query.trim().length >= 2 && results.length === 0 && (
-            <div className="chat-hint">{tc.noUsers}</div>
+            <div className="chat-hint">{tc.noMutuals}</div>
           )}
           {results.map((u) => (
             <button
@@ -159,11 +160,11 @@ export default function NewGroupModal({ onClose, onCreated }) {
 
         {error && <div className="chat-error">{error}</div>}
 
-        <div className="chat-modal-actions">
-          <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={busy}>
+        <div className="chat-modal-actions mr-actions">
+          <button type="button" className="mr-btn mr-btn-ghost" onClick={onClose} disabled={busy}>
             {tc.cancel}
           </button>
-          <button className="mr-btn mr-btn-gold mr-btn-sm" onClick={handleCreate} disabled={!canCreate}>
+          <button type="button" className="mr-btn mr-btn-gold" onClick={handleCreate} disabled={!canCreate}>
             {busy ? tc.creating : tc.create}
           </button>
         </div>

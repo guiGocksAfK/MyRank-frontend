@@ -116,29 +116,28 @@ export default function AvatarUrlModal({ currentUser, onClose, onDone }) {
 
         {error && <p className="auth-error" style={{ marginTop: 10 }}>{error}</p>}
 
-        <div className="mr-flex mr-gap-2" style={{ justifyContent: 'space-between', marginTop: 18 }}>
+        <div className="mr-actions" style={{ marginTop: 18 }}>
           <button
-            className="mr-btn mr-btn-outline mr-btn-sm"
+            className="mr-btn mr-btn-danger-text"
             onClick={() => save('')}
             disabled={busy || !currentUser?.avatarUrl}
             type="button"
-            style={{ color: '#ff8d8b', borderColor: 'rgba(226,75,74,0.45)' }}
           >
             {tp.removePhoto}
           </button>
-          <div className="mr-flex mr-gap-2">
-            <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onClose} disabled={busy} type="button">
+          <>
+            <button className="mr-btn mr-btn-ghost" onClick={onClose} disabled={busy} type="button">
               {tp.cancel}
             </button>
             <button
-              className="mr-btn mr-btn-gold mr-btn-sm"
+              className="mr-btn mr-btn-gold"
               onClick={() => save(trimmed)}
               disabled={busy || !looksValid || trimmed === (currentUser?.avatarUrl || '')}
               type="button"
             >
               {busy ? tp.saving : tp.save}
             </button>
-          </div>
+          </>
         </div>
       </div>
     </div>

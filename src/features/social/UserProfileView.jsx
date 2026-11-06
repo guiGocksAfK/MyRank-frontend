@@ -4,6 +4,7 @@ import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
 import { socialApi, computeTasteMatch, typeIconFor } from './socialData';
 import SocialAvatar from './SocialAvatar';
+import BadgeIcon from '../../shared/badgeIcons';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -212,7 +213,7 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
               <div className="mr-flex mr-flex-wrap mr-gap-2">
                 {profile.badges.map((b) => (
                   <span key={b.name} title={b.name} className="social-tag" style={{ fontSize: '0.8rem' }}>
-                    {b.icon} {b.name}
+                    <BadgeIcon code={b.code} /> {b.name}
                   </span>
                 ))}
               </div>

@@ -33,6 +33,8 @@ só mostra.
 
 ## Visual
 
+O guia completo está em [`docs/visual.md`](docs/visual.md). O resumo:
+
 - **A base é `src/styles/base.css`** (tokens, botões `.mr-btn`, painéis
   `.mr-panel`, campos). Use o que existe antes de criar CSS novo, e não deixe
   CSS sem uso para trás.

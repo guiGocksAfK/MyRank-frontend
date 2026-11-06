@@ -1,25 +1,348 @@
-.creators-panel {
-  position: relative;
+/* ============ CRIADORES ============
+   Mesma linguagem da aba Rankings (usa as classes rk-* de lá); aqui só o que é
+   próprio: retrato redondo (pessoa/estúdio), filmografia em capinhas, cartão de
+   perfil do grid, obras abertas e o modal de editar. */
+
+.cr-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--mr-space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mr-text-muted);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--mr-duration-fast) var(--mr-ease);
 }
 
-.creators-toolbar-divider {
-  width: 1px;
-  height: 24px;
-  flex: 0 0 1px;
-  background: var(--mr-border);
+.cr-back:hover { color: var(--mr-text); }
+
+.cr-head {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-3);
+}
+
+.cr-seg-count {
+  margin-left: 4px;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- retrato: redondo = pessoa/estúdio (retângulo fica pras obras) ---- */
+.cr-avatar {
+  --cr-size: 44px;
+  display: inline-flex;
+  flex: none;
+}
+
+.cr-avatar.is-lg { --cr-size: 76px; }
+
+.cr-face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--cr-size);
+  height: var(--cr-size);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--mr-text) 14%, transparent);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1c1c1c, #0d0d0d);
+}
+
+.cr-avatar.is-top .cr-face { border-color: rgba(212, 175, 55, 0.6); }
+
+.cr-face img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* logo de estúdio costuma ser escuro e transparente: fundo claro e inteiro no círculo */
+.cr-face.is-logo { background: #ececec; }
+.cr-face.is-logo img { padding: 18%; object-fit: contain; }
+
+.cr-face-initials {
+  color: var(--mr-text-secondary);
+  font-size: calc(var(--cr-size) * 0.34);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.cr-avatar.is-top .cr-face-initials { color: var(--mr-gold); }
+
+/* dupla: um círculo só, metade pra cada rosto */
+.cr-avatar.is-duo {
+  width: var(--cr-size);
+  height: var(--cr-size);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--mr-text) 14%, transparent);
+  border-radius: 50%;
+}
+
+.cr-avatar.is-duo.is-top { border-color: rgba(212, 175, 55, 0.6); }
+
+.cr-avatar.is-duo .cr-face {
+  width: 50%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+}
+
+.cr-avatar.is-duo .cr-face + .cr-face { border-left: 2px solid var(--mr-bg); }
+.cr-avatar.is-duo .cr-face-initials { font-size: calc(var(--cr-size) * 0.22); }
+
+/* retrato que edita: escurece e mostra o lápis no hover (padrão de foto de perfil) */
+.cr-avatar-btn {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.cr-avatar-btn:focus-visible { outline: 2px solid var(--mr-gold); outline-offset: 2px; }
+
+.cr-avatar-edit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #f5f5f5;
+  opacity: 0;
+  transition: opacity var(--mr-duration-fast) var(--mr-ease);
+}
+
+.cr-avatar-edit svg { width: 16px; height: 16px; }
+.cr-avatar-btn.is-lg .cr-avatar-edit svg { width: 20px; height: 20px; }
+
+.cr-avatar-btn:hover .cr-avatar-edit,
+.cr-avatar-btn:focus-visible .cr-avatar-edit { opacity: 1; }
+
+/* ---- filmografia: capinhas das obras ---- */
+.cr-films {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cr-film {
+  width: 26px;
+  height: 39px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--mr-surface);
+}
+
+.cr-film.is-square { height: 26px; }
+.cr-film img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.cr-films-more {
+  margin-left: 2px;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+  font-weight: 600;
+}
+
+/* ---- lista: a linha inteira abre as obras ---- */
+.cr-row { cursor: pointer; }
+.cr-row:focus-visible { outline: 2px solid var(--mr-gold); outline-offset: -2px; }
+
+.cr-chevron {
+  justify-self: end;
+  color: var(--mr-text-muted);
+  transition: transform var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
+}
+
+.cr-row:hover .cr-chevron { color: var(--mr-text); }
+.cr-row.is-open .cr-chevron { transform: rotate(180deg); }
+
+.cr-works {
+  padding: var(--mr-space-2) var(--mr-space-3) var(--mr-space-4) calc(2.25rem + 48px + var(--mr-space-3) * 2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.015);
+  animation: cr-open var(--mr-duration) var(--mr-ease-out);
+}
+
+.cr-works-note {
+  margin: 0 0 var(--mr-space-2);
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-xs);
+}
+
+.cr-works ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cr-works li {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-3);
+  padding: 6px 0;
+}
+
+.cr-work-cover {
+  flex: none;
+  width: 26px;
+  height: 39px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--mr-surface);
+}
+
+.cr-work-cover.is-square { height: 26px; }
+.cr-work-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.cr-work-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cr-work-title,
+.cr-work-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cr-work-title { color: var(--mr-text); font-size: var(--mr-text-sm); font-weight: 600; }
+.cr-work-sub { color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+
+.cr-work-note {
+  flex: none;
+  color: var(--mr-gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes cr-open {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+/* ---- grid: cartão de perfil (não pôster) ---- */
+.cr-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--mr-space-4);
+}
+
+.cr-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: var(--mr-space-5) var(--mr-space-4) var(--mr-space-4);
+  border: 1px solid color-mix(in srgb, var(--mr-text) 8%, transparent);
+  border-radius: var(--mr-radius);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  text-align: center;
+  transition: border-color var(--mr-duration-fast) var(--mr-ease), transform var(--mr-duration) var(--mr-ease);
+}
+
+.cr-card:hover { border-color: color-mix(in srgb, var(--mr-text) 18%, transparent); transform: translateY(-2px); }
+.cr-card.is-top { border-color: rgba(212, 175, 55, 0.25); }
+
+.cr-card-rank {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-lg);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.cr-card.is-top .cr-card-rank { color: var(--mr-gold); }
+
+.cr-card .cr-avatar-btn,
+.cr-card > .cr-avatar { margin-bottom: var(--mr-space-2); }
+
+.cr-card-name {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--mr-text);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cr-card-sub { color: var(--mr-text-secondary); font-size: var(--mr-text-xs); }
+.cr-card-score { color: var(--mr-gold); font-weight: 700; font-variant-numeric: tabular-nums; }
+.cr-card .cr-films { margin-top: var(--mr-space-2); }
+
+/* ---- modal de editar ---- */
+.cr-edit-head {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-4);
+}
+
+.cr-edit-head strong { font-size: var(--mr-text-lg); font-weight: 800; }
+.cr-edit-field { display: block; }
+
+.cr-edit-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mr-gold);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cr-edit-error {
+  margin: 0 auto 0 0;
+  color: var(--mr-red);
+  font-size: var(--mr-text-xs);
+}
+
+@media (hover: none) {
+  /* sem hover: o lápis aparece pequeno no canto, na linha aberta e nos cartões */
+  .cr-row.is-open .cr-avatar-edit,
+  .cr-card .cr-avatar-edit {
+    inset: auto -2px -2px auto;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--mr-bg);
+    border-radius: 50%;
+    background: #2a2a2a;
+    opacity: 1;
+  }
+  .cr-row.is-open .cr-avatar-edit svg,
+  .cr-card .cr-avatar-edit svg { width: 10px; height: 10px; }
 }
 
 @media (max-width: 640px) {
-  .creators-toolbar-divider {
-    display: none;
-  }
+  .cr-avatar { flex: none; }
+  .cr-chevron { flex: none; }
+  .cr-works { padding-left: var(--mr-space-3); }
+  .cr-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mr-space-3); }
+  .cr-card { padding: var(--mr-space-4) var(--mr-space-3) var(--mr-space-3); }
+  .cr-avatar.is-lg { --cr-size: 64px; }
+}
 
-  .creators-panel .mr-table-header,
-  .creators-panel .mr-table-row {
-    min-width: 680px;
-  }
-
-  .creators-panel .mr-card {
-    overflow-x: auto;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .cr-works { animation: none; }
+  .cr-chevron, .cr-back, .cr-card, .cr-avatar-edit { transition: none; }
+  .cr-card:hover { transform: none; }
 }

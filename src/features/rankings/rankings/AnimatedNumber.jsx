@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
-export default function AnimatedNumber({ value, decimals = 1, prefix = '', suffix = '' }) {
+/** Sem `locale`, mantém o ponto decimal (como as notas nas tabelas); com ele, segue o idioma (9,9). */
+export default function AnimatedNumber({ value, decimals = 1, prefix = '', suffix = '', locale }) {
   const numericValue = Number(value) || 0;
   const [displayValue, setDisplayValue] = useState(0);
 
@@ -20,5 +21,8 @@ export default function AnimatedNumber({ value, decimals = 1, prefix = '', suffi
     return () => cancelAnimationFrame(frameId);
   }, [numericValue]);
 
-  return <>{prefix}{displayValue.toFixed(decimals)}{suffix}</>;
+  const text = locale
+    ? displayValue.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+    : displayValue.toFixed(decimals);
+  return <>{prefix}{text}{suffix}</>;
 }
