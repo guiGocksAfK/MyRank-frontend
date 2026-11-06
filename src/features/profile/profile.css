@@ -669,8 +669,24 @@
 }
 
 /* ---- configurações ---- */
-/* coluna estreita, alinhada embaixo do título: o controle fica perto do texto */
-.pf-settings > * { width: 100%; max-width: 720px; }
+/* pares lado a lado com a mesma altura: Aparência|Privacidade, Notificações|Conta,
+   Rankings|Seus dados (tamanhos parecidos, então sobra pouco espaço dentro) */
+.pf-set-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--mr-space-5);
+  align-items: stretch;
+}
+
+.pf-set-section { display: flex; flex-direction: column; min-width: 0; }
+.pf-set-section .pf-set-panel { flex: 1; }
+
+.pf-set-section.is-appearance { order: 1; }
+.pf-set-section.is-privacy { order: 2; }
+.pf-set-section.is-notifications { order: 3; }
+.pf-set-section.is-account { order: 4; }
+.pf-set-section.is-rankings { order: 5; }
+.pf-set-section.is-data { order: 6; }
 
 .pf-set-notice {
   margin: 0;
@@ -875,6 +891,9 @@
 }
 
 @media (max-width: 768px) {
+  /* celular: uma coluna só, na ordem do código */
+  .pf-set-grid { grid-template-columns: 1fr; }
+  .pf-set-grid > .pf-set-section { order: 0; }
   .pf-stats-grid { grid-template-columns: 1fr; }
   /* celular: barra e filtro descem pra uma linha abaixo das abas */
   .pf-tabbar { flex-direction: column; align-items: stretch; gap: var(--mr-space-3); border-bottom: 0; }

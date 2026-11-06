@@ -96,6 +96,13 @@ export default function RankingsTab({ onNavigateToCreators }) {
     setUseTimeWeight(weightedDefault);
   }
   const [viewMode,         setViewMode]         = useState('list');
+  // "visualização padrão" (Configurações): abre em lista ou grade
+  const viewDefault = user?.rankingsView === 'GRID' ? 'grid' : 'list';
+  const [seenViewDefault, setSeenViewDefault] = useState('list');
+  if (viewDefault !== seenViewDefault) {
+    setSeenViewDefault(viewDefault);
+    setViewMode(viewDefault);
+  }
   const [showFilters,      setShowFilters]      = useState(false);
   const [filters,          setFilters]          = useState({});
   const [selectedTableIds, setSelectedTableIds] = useState([]);
