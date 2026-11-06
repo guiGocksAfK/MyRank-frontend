@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
-import { Check, Pencil, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Check, Link2, Pencil, Trash2, X } from 'lucide-react';
 import { updateMe } from '../../services/userService';
 import Modal from '../../shared/components/Modal';
 import Avatar from '../../shared/components/Avatar';
 import { useLanguage } from '../../shared/i18n';
+import useDismiss from '../../shared/components/useDismiss';
 
 const USERNAME_MAX = 50;
 const BIO_MAX = 500;
 
 /**
  * Editar perfil: foto (link https), nome de usuário e bio, num PUT /users/me só.
- * O campo do link só abre quando a pessoa quer trocar a foto, e diz na hora se
- * o link abriu uma imagem. "Salvar" só acende quando algo mudou.
+ * Foto e nome lado a lado; a foto só se edita pelo lápis (menu: colar link ou
+ * remover). O campo do link diz na hora se abriu uma imagem. Contadores só
+ * aparecem com o campo em foco ou perto do limite. "Salvar" só acende quando
+ * algo mudou.
  */
 export default function EditProfileModal({ profile, onClose, onSaved }) {
   const { t } = useLanguage();
@@ -23,6 +26,12 @@ export default function EditProfileModal({ profile, onClose, onSaved }) {
   const [bio, setBio] = useState(profile.bio || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState({ field: null, text: '' });
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [focus, setFocus] = useState(null); // 'username' | 'bio'
+  const menuBox = useRef(null);
+  const menuButton = useRef(null);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  useDismiss(menuOpen, closeMenu, menuBox, menuButton);
 
   const url = photo.trim();
   const https = url === '' || url.startsWith('https://');
@@ -67,7 +76,15 @@ export default function EditProfileModal({ profile, onClose, onSaved }) {
   const removePhoto = () => {
     setPhoto('');
     setUrlOpen(false);
+    setMenuOpen(false);
   };
+  const openUrl = () => {
+    setUrlOpen(true);
+    setMenuOpen(false);
+  };
+  const nameError = error.field === 'username' ? error.text : name.length > 0 && name.length < 3 ? tp.usernameShort : '';
+  // contador só com o campo em foco ou a partir de 80% do limite
+  const showCount = (field, length, max) => focus === field || length >= max * 0.8;
 
   // a prévia só usa o link novo quando ele abriu; senão fica nas iniciais
   const previewUrl = status === 'ok' ? url : null;
@@ -89,21 +106,43 @@ export default function EditProfileModal({ profile, onClose, onSaved }) {
         </>
       )}
     >
-      <div className="pf-photo">
-        <button type="button" className="pf-photo-btn" onClick={() => setUrlOpen(true)} aria-label={tp.changePhoto}>
+      <div className="pf-identity">
+        <div className="pf-photo-box" ref={menuBox}>
           <Avatar user={{ ...profile, username: name || profile.username, avatarUrl: previewUrl }} className="mr-avatar-lg pf-avatar-md" />
-          <span className="pf-photo-edit" aria-hidden="true"><Pencil size={18} strokeWidth={2} /></span>
-        </button>
-        <div className="pf-photo-actions">
-          <button type="button" className="mr-btn mr-btn-sm mr-btn-outline" onClick={() => setUrlOpen(true)}>
-            {tp.changePhoto}
+          <button ref={menuButton} type="button" className="pf-photo-pencil" onClick={() => setMenuOpen((o) => !o)}
+            aria-label={tp.changePhoto} aria-haspopup="menu" aria-expanded={menuOpen}>
+            <Pencil size={13} strokeWidth={2.2} aria-hidden="true" />
           </button>
-          {url && (
-            <button type="button" className="mr-btn mr-btn-sm mr-btn-danger-text" onClick={removePhoto}>
-              {tp.removePhoto}
-            </button>
+          {menuOpen && (
+            <div className="mr-menu pf-photo-menu" role="menu">
+              <button type="button" role="menuitem" className="mr-menu-item" onClick={openUrl}>
+                <Link2 size={14} strokeWidth={1.8} aria-hidden="true" />{tp.photoPasteLink}
+              </button>
+              {url && (
+                <button type="button" role="menuitem" className="mr-menu-item pf-menu-danger" onClick={removePhoto}>
+                  <Trash2 size={14} strokeWidth={1.8} aria-hidden="true" />{tp.removePhoto}
+                </button>
+              )}
+            </div>
           )}
         </div>
+
+        <label className="pf-field pf-identity-name">
+          <span className="mr-field-label">{tp.usernameLabel}</span>
+          <span className="pf-prefixed">
+            <span aria-hidden="true">@</span>
+            <input className="mr-input" value={username} maxLength={USERNAME_MAX}
+              aria-invalid={error.field === 'username' || undefined}
+              onFocus={() => setFocus('username')} onBlur={() => setFocus(null)}
+              onChange={(e) => { setUsername(e.target.value); if (error.field) setError({ field: null, text: '' }); }} />
+          </span>
+          {(nameError || showCount('username', username.length, USERNAME_MAX)) && (
+            <span className="pf-field-foot">
+              <span className="pf-field-error" role="alert">{nameError}</span>
+              {showCount('username', username.length, USERNAME_MAX) && <span className="pf-count">{username.length}/{USERNAME_MAX}</span>}
+            </span>
+          )}
+        </label>
       </div>
 
       {urlOpen && (
@@ -121,29 +160,16 @@ export default function EditProfileModal({ profile, onClose, onSaved }) {
       )}
 
       <label className="pf-field">
-        <span className="mr-field-label">{tp.usernameLabel}</span>
-        <span className="pf-prefixed">
-          <span aria-hidden="true">@</span>
-          <input className="mr-input" value={username} maxLength={USERNAME_MAX}
-            aria-invalid={error.field === 'username' || undefined}
-            onChange={(e) => { setUsername(e.target.value); if (error.field) setError({ field: null, text: '' }); }} />
-        </span>
-        <span className="pf-field-foot">
-          <span className="pf-field-error" role="alert">
-            {error.field === 'username' ? error.text : name.length > 0 && name.length < 3 ? tp.usernameShort : ''}
-          </span>
-          <span className="pf-count">{username.length}/{USERNAME_MAX}</span>
-        </span>
-      </label>
-
-      <label className="pf-field">
         <span className="mr-field-label">{tp.bioLabel}</span>
         <textarea className="mr-input pf-textarea" rows={3} maxLength={BIO_MAX} value={bio}
-          placeholder={tp.bioPlaceholder} onChange={(e) => setBio(e.target.value)} />
-        <span className="pf-field-foot">
-          <span />
-          <span className="pf-count">{bio.length}/{BIO_MAX}</span>
-        </span>
+          placeholder={tp.bioPlaceholder} onFocus={() => setFocus('bio')} onBlur={() => setFocus(null)}
+          onChange={(e) => setBio(e.target.value)} />
+        {showCount('bio', bio.length, BIO_MAX) && (
+          <span className="pf-field-foot">
+            <span />
+            <span className="pf-count">{bio.length}/{BIO_MAX}</span>
+          </span>
+        )}
       </label>
     </Modal>
   );

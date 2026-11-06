@@ -705,22 +705,16 @@
 }
 
 /* ---- modais (editar perfil, excluir conta) ---- */
-/* editar perfil: foto grande com lápis por cima e as ações do lado */
-.pf-photo {
+/* editar perfil: foto e usuário lado a lado; a foto só se edita pelo lápis */
+.pf-identity {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--mr-space-5);
 }
 
-.pf-photo-btn {
-  position: relative;
-  flex: none;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  cursor: pointer;
-}
+.pf-identity-name { flex: 1; min-width: 0; padding-top: 6px; }
+
+.pf-photo-box { position: relative; flex: none; }
 
 .mr-avatar-lg.pf-avatar-md {
   width: 88px;
@@ -729,22 +723,43 @@
   font-size: 1.5rem;
 }
 
-.pf-photo-edit {
+/* bolinha do lápis sempre visível no canto (no celular não tem "passar o mouse") */
+.pf-photo-pencil {
   position: absolute;
-  inset: 0;
+  right: -2px;
+  bottom: -2px;
   display: grid;
   place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid var(--mr-surface);
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  color: #f5f5f5;
-  opacity: 0;
-  transition: opacity var(--mr-duration-fast) var(--mr-ease);
+  background: #2a2a2a;
+  color: var(--mr-text);
+  cursor: pointer;
+  transition: background var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
 }
 
-.pf-photo-btn:hover .pf-photo-edit,
-.pf-photo-btn:focus-visible .pf-photo-edit { opacity: 1; }
+.pf-photo-pencil:hover,
+.pf-photo-pencil:focus-visible,
+.pf-photo-pencil[aria-expanded="true"] {
+  outline: none;
+  background: var(--mr-gold);
+  color: #111;
+}
 
-.pf-photo-actions { display: flex; flex-wrap: wrap; gap: var(--mr-space-2); }
+.pf-photo-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 5;
+  min-width: 220px;
+}
+
+.pf-menu-danger { color: var(--mr-red); }
+.pf-menu-danger:hover,
+.pf-menu-danger:focus-visible { color: #ff8d8b; }
 
 .pf-photo-status {
   display: flex;
@@ -863,6 +878,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pf-icon-btn, .pf-photo-edit, .pf-badge, .pf-split > span, .pf-strip-dot, .pf-types tbody tr { transition: none; }
+  .pf-icon-btn, .pf-photo-pencil, .pf-badge, .pf-split > span, .pf-strip-dot, .pf-types tbody tr { transition: none; }
   .pf-dotcard { animation: none; }
 }
