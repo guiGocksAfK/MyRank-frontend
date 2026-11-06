@@ -77,6 +77,13 @@ export default function DashboardHome({ onNavigate }) {
   // null = ainda carregando (ou falhou): a seção nem aparece
   const [recos, setRecos] = useState(null);
   const { user } = useUser();
+  // "nota ponderada ligada por padrão" (Configurações): vale ao abrir e quando o ajuste muda
+  const weightedDefault = Boolean(user?.weightedByDefault);
+  const [seenWeightedDefault, setSeenWeightedDefault] = useState(false); // a nota começa desligada
+  if (weightedDefault !== seenWeightedDefault) {
+    setSeenWeightedDefault(weightedDefault);
+    setWeighted(weightedDefault);
+  }
   const { worksVersion } = useWorks();
   const { lang, locale, t } = useLanguage();
   const th = t.dash.home;

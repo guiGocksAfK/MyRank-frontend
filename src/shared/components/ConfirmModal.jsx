@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { TriangleAlert } from 'lucide-react';
 import { useLanguage } from '../i18n';
 
 /**
  * Diálogo de confirmação padrão do site (usado em rankings, takes, grupos…).
  * `onConfirm` pode ser async; se resolver com valor truthy, o modal fecha sozinho.
+ * `busyLabel` troca o "Excluindo…" quando a ação não é uma exclusão.
  */
-export default function ConfirmModal({ title, message, confirmLabel, onConfirm, onClose }) {
+export default function ConfirmModal({ title, message, confirmLabel, busyLabel, onConfirm, onClose }) {
   const { t } = useLanguage();
   const tc = t.rankings.confirm;
   const label = confirmLabel || tc.deleteDefault;
@@ -51,7 +53,7 @@ export default function ConfirmModal({ title, message, confirmLabel, onConfirm, 
         onClick={event => event.stopPropagation()}
       >
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <div style={{ fontSize: '1.5rem', lineHeight: 1 }}>⚠️</div>
+          <TriangleAlert size={22} strokeWidth={1.8} aria-hidden="true" style={{ flex: 'none', color: 'var(--mr-red)' }} />
           <div>
             <h2 id="mr-confirm-title" style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 8 }}>
               {title}
@@ -67,7 +69,7 @@ export default function ConfirmModal({ title, message, confirmLabel, onConfirm, 
             {tc.cancel}
           </button>
           <button type="button" className="mr-btn mr-btn-danger" onClick={handleConfirm} disabled={confirming}>
-            {confirming ? tc.deleting : label}
+            {confirming ? (busyLabel || tc.deleting) : label}
           </button>
         </div>
       </div>
