@@ -149,7 +149,8 @@ export default function EditProfileModal({ profile, onClose, onSaved }) {
         <div className="pf-field">
           <input className="mr-input" type="url" value={photo} placeholder={tp.photoUrlPlaceholder} autoFocus
             aria-label={tp.photoUrlPlaceholder} onChange={(e) => setPhoto(e.target.value)} />
-          {status !== 'empty' && (
+          {/* só fala do link quando ele mudou; a foto atual não precisa de aviso */}
+          {status !== 'empty' && url !== (profile.avatarUrl || '') && (
             <p className={`pf-photo-status is-${status}`} role="status">
               {status === 'ok' && <Check size={14} strokeWidth={2.4} aria-hidden="true" />}
               {(status === 'bad' || status === 'https') && <X size={14} strokeWidth={2.4} aria-hidden="true" />}
