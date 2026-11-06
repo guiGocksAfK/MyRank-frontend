@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Users } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import { socialApi } from './socialData';
 import UserPill from './UserPill';
@@ -42,10 +43,10 @@ export default function ConnectionsView({ initialTab = 'following', onBack, onOp
       </div>
 
       {list === null ? (
-        <SocialEmpty icon="⏳" text={tcn.loading} />
+        <SocialEmpty text={tcn.loading} />
       ) : list.length === 0 ? (
         <SocialEmpty
-          icon={tab === 'followers' ? '👋' : '🔍'}
+          icon={Users}
           text={tab === 'followers' ? tcn.noFollowers : tcn.noFollowing}
         />
       ) : (

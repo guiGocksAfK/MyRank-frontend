@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Scale } from 'lucide-react';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
 import { socialApi, computeTasteMatch, typeIconFor } from './socialData';
@@ -108,7 +109,7 @@ export default function CompareView({ userId, onBack, onOpenUser }) {
             <span className="mr-truncate" style={{ textAlign: 'right' }} title={friend.username}>{firstName}</span>
             <span style={{ textAlign: 'center' }}>Δ</span>
           </div>
-          {rows.length === 0 && <SocialEmpty icon="🤝" text={tc.noData} />}
+          {rows.length === 0 && <SocialEmpty icon={Scale} text={tc.noData} />}
           {rows.map((r) => (
             <div key={r.key} className="mr-table-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) 54px 72px 40px' }}>
               <div className="mr-min-w-0 mr-flex mr-items-center mr-gap-2">

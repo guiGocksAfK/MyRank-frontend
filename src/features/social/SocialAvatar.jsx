@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 
-/** Avatar de usuário: foto quando disponível, senão iniciais coloridas. */
-export default function SocialAvatar({ name = '?', color = 'var(--mr-gold)', initials, src, size = 36 }) {
+/**
+ * Avatar de usuário: foto quando disponível, senão as iniciais num círculo
+ * neutro (preto e dourado; as cores de arco-íris de antes fugiam do visual).
+ */
+export default function SocialAvatar({ name = '?', initials, src, size = 36 }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
 
@@ -43,8 +46,9 @@ export default function SocialAvatar({ name = '?', color = 'var(--mr-gold)', ini
       aria-hidden="true"
       style={{
         ...base,
-        background: color,
-        color: '#fff',
+        background: 'var(--mr-muted-bg)',
+        boxShadow: 'inset 0 0 0 1px var(--mr-border)',
+        color: 'var(--mr-text-secondary)',
         fontWeight: 700,
         fontSize: size * 0.4,
         lineHeight: 1,
