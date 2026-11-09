@@ -83,6 +83,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
   const [tables,           setTables]           = useState([]);
   const [loadingTableIds,  setLoadingTableIds]  = useState([]);
   const [loadError,        setLoadError]        = useState(null);
+  // tabelas cujas obras não carregaram: as outras seguem funcionando
+  const [failedTableIds,   setFailedTableIds]   = useState([]);
+  const [reloadKey,        setReloadKey]        = useState(0);
   const [activeTab,        setActiveTab]        = useState('unified');
   const [useTimeWeight,    setUseTimeWeight]    = useState(false);
   const [sortBy,           setSortBy]           = useState('nota');
@@ -118,6 +121,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
 
     async function loadAll() {
       setLoadError(null);
+      setFailedTableIds([]);
       try {
         const categories = await getCategories();
         const tablesWithoutItems = categories.map(cat => mapCategoryToTable(cat));
@@ -134,6 +138,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
                 ? { ...current, items: orderItems(table.id, works.map(mapWorkToItem)) }
                 : current));
             }
+          } catch {
+            // só esta tabela falhou: marca e segue, em vez de derrubar a aba inteira
+            if (!cancelled) setFailedTableIds(prev => [...prev, table.id]);
           } finally {
             if (!cancelled) {
               setLoadingTableIds(prev => prev.filter(id => id !== table.id));
@@ -165,7 +172,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
 
     loadAll();
     return () => { cancelled = true; };
-  }, []);
+    // tr.loadError fica de fora: trocar o idioma não deve recarregar tudo
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reloadKey]);
 
   // ── Salvar obra (criar ou editar) ──
   async function handleSaveWork(categoryId, payload) {
@@ -250,12 +259,17 @@ export default function RankingsTab({ onNavigateToCreators }) {
     setSelectedTableIds(newSelectedIds);
     setActiveTab(newTable.id);
 
-    if (unifiedGroupId) {
-      try {
+    try {
+      if (unifiedGroupId) {
         await updateGroup(unifiedGroupId, 'Unificado', newSelectedIds);
-      } catch (err) {
-        console.error('Erro ao atualizar grupo unificado:', err);
+      } else {
+        // primeira tabela da conta: o grupo ainda não existia (a carga só cria se já há
+        // tabela). Sem ele, a ordem do Unificado não era salva até recarregar a página.
+        const group = await createGroup('Unificado', newSelectedIds);
+        setUnifiedGroupId(group.id);
       }
+    } catch (err) {
+      console.error('Erro ao atualizar grupo unificado:', err);
     }
   }
 
@@ -339,11 +353,29 @@ export default function RankingsTab({ onNavigateToCreators }) {
     }
   }
 
+  const retryLoad = () => setReloadKey(key => key + 1);
+  const retryButton = (
+    <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={retryLoad}>
+      {t.insights.result.retry}
+    </button>
+  );
+
   if (loadError) {
     return (
-      <p className="rk-empty rk-error" role="alert">{loadError}</p>
+      <div className="rk-empty rk-error" role="alert">
+        <p>{loadError}</p>
+        {retryButton}
+      </div>
     );
   }
+
+  // aviso da(s) tabela(s) que não carregou(aram), no lugar de mostrar "tabela vazia"
+  const failedNotice = (
+    <div className="rk-empty rk-error" role="alert">
+      <p>{tr.loadError}</p>
+      {retryButton}
+    </div>
+  );
 
   const filterCount = activeFilterCount(filters);
   const mode = getMode(sortBy, useTimeWeight);
@@ -469,6 +501,8 @@ export default function RankingsTab({ onNavigateToCreators }) {
         <NewTableModal onSave={handleCreateTable} onClose={() => setShowNewTable(false)} />
       )}
 
+      {activeTab === 'unified' && failedTableIds.length > 0 && failedNotice}
+
       {activeTab === 'unified' ? (
         <UnifiedTable
           tables={tables}
@@ -489,6 +523,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
         (() => {
           const table = tables.find(t => t.id === activeTab);
           if (!table) return null;
+          if (failedTableIds.includes(table.id)) return failedNotice;
           return (
             <IndividualTable
               key={table.id} // zera o filtro de subcategoria ao trocar de tabela
