@@ -1,5 +1,5 @@
 .home-page {
-  background-color: #000000;
+  background-color: var(--mr-bg);
   min-height: 100vh;
   color: #e5e5e5;
   font-family: var(--mr-font);
@@ -89,7 +89,7 @@
 }
 
 .home-title-accent {
-  color: #d4af37;
+  color: var(--mr-gold);
 }
 
 .home-subtitle {

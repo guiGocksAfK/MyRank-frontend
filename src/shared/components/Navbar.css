@@ -29,7 +29,7 @@
 }
 
 .navbar-logo span:last-child {
-  color: #d4af37;
+  color: var(--mr-gold);
 }
 
 .navbar-actions {
