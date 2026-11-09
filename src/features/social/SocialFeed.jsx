@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Rss } from 'lucide-react';
-import { socialApi } from './socialData';
+import { socialApi, normTitle } from './socialData';
 import { useLanguage } from '../../shared/i18n';
+import { useUnifiedItems } from '../../shared/useUnifiedItems';
+import { useUser } from '../../shared/userContext';
 import TakeComposer from './TakeComposer';
 import ActivityCard from './ActivityCard';
 import SocialEmpty from './SocialEmpty';
@@ -10,6 +12,22 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople }) {
   const { t } = useLanguage();
   const tf = t.social.feed;
   const [items, setItems] = useState(null);
+  const { items: myItems } = useUnifiedItems();
+  const { user } = useUser();
+
+  // suas notas por título, pra mostrar ao lado da nota de quem postou
+  const myScores = useMemo(() => {
+    const map = new Map();
+    (myItems || []).forEach((i) => {
+      const n = Number(i.note);
+      if (i.title && Number.isFinite(n) && n > 0) map.set(normTitle(i.title), n);
+    });
+    return map;
+  }, [myItems]);
+  const myScoreFor = (item) => {
+    if (!item.work?.title || item.actor?.username === user?.username) return null;
+    return myScores.get(normTitle(item.work.title)) ?? null;
+  };
 
   const load = useCallback(() => {
     socialApi.getFeed().then(setItems).catch(() => setItems([]));
@@ -37,7 +55,7 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople }) {
 
   return (
     <div className="social-feed-col">
-      <TakeComposer onPost={handlePost} onNavigate={onNavigate} />
+      <TakeComposer items={myItems} onPost={handlePost} onNavigate={onNavigate} />
 
       {items === null ? (
         <SocialEmpty text={tf.loading} />
@@ -54,6 +72,7 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople }) {
           <ActivityCard
             key={item.id}
             item={item}
+            myScore={myScoreFor(item)}
             onReact={handleReact}
             onOpenUser={onOpenUser}
             onEdited={handleEdited}

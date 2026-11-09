@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { PenLine } from 'lucide-react';
-import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
 import SocialAvatar from './SocialAvatar';
@@ -13,8 +12,9 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
  * e escreve uma opinião curta. `onPost({ work, text })`.
  * Colapsado por padrão; sem obras avaliadas vira um card de onboarding.
  */
-export default function TakeComposer({ onPost, onNavigate }) {
-  const { items, loading } = useUnifiedItems();
+/** `items`: suas obras (null = carregando), vindas do feed pra não buscar duas vezes. */
+export default function TakeComposer({ items, onPost, onNavigate }) {
+  const loading = items === null;
   const { t } = useLanguage();
   const { user } = useUser();
   const tc = t.social.composer;

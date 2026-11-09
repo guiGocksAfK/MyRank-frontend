@@ -62,6 +62,9 @@ export function decorateUser(u) {
       works: u.worksCount ?? u.stats?.works ?? 0,
       avgScore: u.avgScore ?? u.stats?.avgScore ?? 0,
     },
+    // gosto parecido (calculado no backend): obras em comum e a %, que só vem com 3+
+    sharedCount: u.sharedCount ?? 0,
+    matchPct: u.matchPct ?? null,
   };
 }
 
@@ -102,7 +105,7 @@ export function decorateComment(c) {
   };
 }
 
-const normTitle = (t) => (t || '').trim().toLowerCase();
+export const normTitle = (t) => (t || '').trim().toLowerCase();
 
 /** % de afinidade entre "minhas obras" (dados reais) e as de outro usuário. */
 export function computeTasteMatch(myItems = [], theirWorks = []) {

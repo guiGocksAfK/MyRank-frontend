@@ -11,13 +11,20 @@ import BadgeIcon from '../../shared/badgeIcons';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
+/** Diferença de nota a partir da qual o card avisa que vocês discordam. */
+const CLASH_GAP = 2;
+
 /**
  * A obra em destaque: capa, título, tipo e a nota em dourado. É o que a
  * pessoa avaliou, adicionou ou comentou; a capa faz o feed ser lido de relance.
+ * Se você também avaliou a obra, a sua nota aparece embaixo da dela.
  */
-function WorkRow({ work, rankTop }) {
+function WorkRow({ work, rankTop, myScore }) {
   const { t, locale } = useLanguage();
   if (!work?.title) return null;
+  const note = (n) => Number(n).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const hasMine = myScore != null && work.score != null;
+  const clash = hasMine && Math.abs(Number(work.score) - myScore) >= CLASH_GAP;
   return (
     <div className="social-work">
       <span className="social-work-cover">
@@ -31,11 +38,17 @@ function WorkRow({ work, rankTop }) {
           {typeIconFor(work.type, 12)}
           {t.common.mediaTypes[work.type] || work.type}
           {rankTop && <span className="social-work-top">#1</span>}
+          {clash && <span className="social-work-clash">{t.social.act.clash}</span>}
         </span>
       </span>
       {work.score != null && (
-        <span className="social-work-score">
-          {Number(work.score).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+        <span className="social-work-scores">
+          <span className="social-work-score">{note(work.score)}</span>
+          {hasMine && (
+            <span className="social-work-mine">
+              {t.social.act.you} <b>{note(myScore)}</b>
+            </span>
+          )}
         </span>
       )}
     </div>
@@ -43,13 +56,13 @@ function WorkRow({ work, rankTop }) {
 }
 
 /** Conteúdo de cada tipo de atividade, abaixo do cabeçalho com o verbo. */
-function Body({ item }) {
+function Body({ item, myScore }) {
   switch (item.type) {
     case 'RATED':
     case 'ADDED':
-      return <WorkRow work={item.work} />;
+      return <WorkRow work={item.work} myScore={myScore} />;
     case 'MOVED_TOP':
-      return <WorkRow work={item.work} rankTop />;
+      return <WorkRow work={item.work} rankTop myScore={myScore} />;
     case 'BADGE':
       return (
         <div className="social-badge-row">
@@ -60,7 +73,7 @@ function Body({ item }) {
     case 'TAKE':
       return (
         <>
-          <WorkRow work={item.work} />
+          <WorkRow work={item.work} myScore={myScore} />
           <p className="social-take-text">{item.text}</p>
         </>
       );
@@ -69,7 +82,7 @@ function Body({ item }) {
   }
 }
 
-export default function ActivityCard({ item, onReact, onOpenUser, onEdited, onDeleted }) {
+export default function ActivityCard({ item, myScore, onReact, onOpenUser, onEdited, onDeleted }) {
   const { lang, t } = useLanguage();
   const tt = t.social.take;
   const verbs = t.social.act.verbs;
@@ -161,7 +174,7 @@ export default function ActivityCard({ item, onReact, onOpenUser, onEdited, onDe
             </div>
           </form>
         ) : (
-          <Body item={{ ...item, text }} />
+          <Body item={{ ...item, text }} myScore={myScore} />
         )}
       </div>
 
