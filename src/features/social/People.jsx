@@ -4,41 +4,10 @@ import { useLanguage } from '../../shared/i18n';
 import GroupIcon from '../chat/GroupIcon';
 import NewGroupModal from '../chat/NewGroupModal';
 import { socialApi } from './socialData';
-import SocialAvatar from './SocialAvatar';
+import PersonRow from './PersonRow';
 import SocialEmpty from './SocialEmpty';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
-const avg = (n, locale) => Number(n || 0).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-
-/**
- * Pessoa: foto, nome e, embaixo, o gosto parecido com o seu (com 3+ obras em
- * comum) ou as obras e a média; a ação (Comparar / Seguir) à direita.
- */
-function PersonRow({ u, onOpen, children }) {
-  const { t, locale } = useLanguage();
-  return (
-    <li className="social-person">
-      <button type="button" className="social-person-main" onClick={() => onOpen(u.id)}>
-        <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={36} />
-        <span className="social-person-text">
-          <span className="social-person-name">{u.username}</span>
-          <span className="social-person-meta">
-            {u.matchPct != null ? (
-              <>
-                <b className="social-match">{fmt(t.social.people.match, { pct: u.matchPct })}</b>
-                {' · '}
-                {fmt(t.social.people.inCommon, { n: u.sharedCount })}
-              </>
-            ) : (
-              fmt(t.social.people.stats, { works: u.stats.works, avg: avg(u.stats.avgScore, locale) })
-            )}
-          </span>
-        </span>
-      </button>
-      {children}
-    </li>
-  );
-}
 
 function Column({ title, children }) {
   return (

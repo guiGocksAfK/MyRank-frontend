@@ -76,7 +76,7 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
   } else if (view.kind === 'compare') {
     content = <CompareView userId={view.userId} onBack={backToTabs} onOpenUser={openProfile} />;
   } else if (view.kind === 'connections') {
-    content = <ConnectionsView initialTab={view.tab} onBack={backToTabs} onOpenUser={openProfile} />;
+    content = <ConnectionsView initialTab={view.tab} onBack={backToTabs} onOpenUser={openProfile} onCompare={openCompare} />;
   } else {
     content = (
       <>
