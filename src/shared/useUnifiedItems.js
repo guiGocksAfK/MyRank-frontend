@@ -1,39 +1,12 @@
-import { useEffect, useState } from 'react';
-import { getUnifiedWorks } from '../services/WorkService';
-import { mapWorkToItem } from '../utils/mapWork';
 import { useWorks } from './worksContext';
 
 /**
  * Fonte única das obras do usuário (GET /works/unified), já mapeadas pro shape
- * dos componentes visuais. Usado pelo rodapé e pelo perfil — nada de mockData.
+ * dos componentes visuais. A busca mora no WorksProvider; aqui só se lê.
  */
 
 export function useUnifiedItems() {
-  const [items, setItems] = useState(null); // null = carregando
-  const [error, setError] = useState(null);
-  const { worksVersion } = useWorks();
-
-  useEffect(() => {
-    let active = true;
-    getUnifiedWorks()
-      .then((data) => {
-        if (!active) return;
-        const list = (Array.isArray(data) ? data : []).map((w) => ({
-          ...mapWorkToItem(w),
-          categoryName: w.categoryName,
-          creator: (w.creator || '').trim(),
-        }));
-        setItems(list);
-      })
-      .catch((err) => {
-        if (active) {
-          setError(err);
-          setItems([]);
-        }
-      });
-    return () => { active = false; };
-  }, [worksVersion]);
-
+  const { items, error } = useWorks().unified;
   return { items, loading: items === null, error };
 }
 
