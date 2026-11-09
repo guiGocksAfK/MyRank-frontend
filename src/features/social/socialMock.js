@@ -42,6 +42,14 @@ const TAKES = [
   'Bonito de ver, mas a história não se sustenta.',
 ];
 
+// obras que as pessoas inventadas têm e você (provavelmente) não
+const EXTRA_WORKS = [
+  { title: 'Frieren', type: 'anime' },
+  { title: 'Outer Wilds', type: 'jogo' },
+  { title: 'Duna: Parte Dois', type: 'filme' },
+  { title: 'Arcane', type: 'serie' },
+];
+
 const COMMENTS = [
   'Discordo total, o ritmo é o charme.',
   'Finalmente alguém falou isso.',
@@ -169,7 +177,9 @@ export const mockApi = {
     await wait();
     const u = s.users.get(Number(userId));
     if (!u) throw new Error('not found');
-    const works = s.pool.map((w, k) => ({ ...w, score: s.theirScore(w, k + Number(userId)) }));
+    // as suas obras com outra nota, mais umas que você não tem (pro "recomenda" do Comparar)
+    const extras = EXTRA_WORKS.map((w, k) => ({ ...w, id: -100 - k, imageUrl: null, score: 9 + ((k + Number(userId)) % 10) / 10 }));
+    const works = [...s.pool.map((w, k) => ({ ...w, score: s.theirScore(w, k + Number(userId)) })), ...extras];
     const locked = !u.isPublic && !u.following;
     const breakdown = {};
     works.forEach((w) => { breakdown[w.type] = (breakdown[w.type] || 0) + 1; });
