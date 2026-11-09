@@ -704,7 +704,7 @@
 /* top obras + lado (por tipo, conquistas) */
 .social-prof-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--mr-space-4); align-items: start; }
 .social-prof-side { display: flex; flex-direction: column; gap: var(--mr-space-4); min-width: 0; }
-.social-prof-top, .social-prof-types { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.social-prof-top { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .social-prof-top li { display: flex; align-items: center; gap: var(--mr-space-3); min-width: 0; }
 .social-prof-rank { flex: none; width: 18px; color: var(--mr-text-muted); font-size: var(--mr-text-xs); font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
 .social-prof-cover {
@@ -720,11 +720,12 @@
 }
 .social-prof-cover img { width: 100%; height: 100%; object-fit: cover; }
 .social-prof-title { flex: 1; min-width: 0; overflow: hidden; font-size: var(--mr-text-sm); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-.social-prof-types li { display: grid; grid-template-columns: minmax(0, 7.5rem) 1fr auto; align-items: center; gap: var(--mr-space-2); font-size: var(--mr-text-sm); }
-.social-prof-type { display: inline-flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap; }
-.social-prof-bar { height: 6px; overflow: hidden; border-radius: 999px; background: var(--mr-muted-bg); }
-.social-prof-bar span { display: block; height: 100%; border-radius: inherit; background: var(--mr-gold); }
-.social-prof-n { color: var(--mr-text-muted); font-size: var(--mr-text-xs); font-variant-numeric: tabular-nums; }
+/* por tipo: um bloco por tipo com a quantidade grande e a média embaixo */
+.social-prof-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: var(--mr-space-2); margin: 0; padding: 0; list-style: none; }
+.social-prof-types li { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: var(--mr-space-2) var(--mr-space-3); border-radius: var(--mr-radius-sm); background: var(--mr-muted-bg); }
+.social-prof-type { display: inline-flex; align-items: center; gap: 6px; overflow: hidden; color: var(--mr-text-secondary); font-size: var(--mr-text-xs); white-space: nowrap; }
+.social-prof-n { font-size: 1.35rem; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.social-prof-avg { color: var(--mr-gold); font-size: var(--mr-text-xs); font-weight: 700; font-variant-numeric: tabular-nums; }
 .social-prof-badges { display: flex; flex-wrap: wrap; gap: var(--mr-space-2); }
 .social-prof-badge {
   display: inline-flex;

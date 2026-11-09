@@ -87,8 +87,14 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
 
   const enough = match && match.sharedCount >= MATCH_MIN_SHARED && match.matchPct != null;
   const gap = match?.disagreements[0];
+  // por tipo: quantas obras e a média que a pessoa dá pra aquele tipo
+  const typeAvg = new Map();
+  profile.works.forEach((w) => {
+    if (w.score == null) return;
+    const cur = typeAvg.get(w.type) || { sum: 0, n: 0 };
+    typeAvg.set(w.type, { sum: cur.sum + Number(w.score), n: cur.n + 1 });
+  });
   const breakdown = Object.entries(profile.breakdown).sort((a, b) => b[1] - a[1]);
-  const maxType = breakdown[0]?.[1] || 1;
 
   return (
     <div className="social-sub">
@@ -183,18 +189,19 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
           <section className="mr-panel social-col">
             <h2 className="social-rail-title">{tv.distribution}</h2>
             <ul className="social-prof-types">
-              {breakdown.map(([type, n]) => (
-                <li key={type}>
-                  <span className="social-prof-type">
-                    {typeIconFor(type, 14)}
-                    {t.common.mediaTypes[type] || type}
-                  </span>
-                  <span className="social-prof-bar" aria-hidden="true">
-                    <span style={{ width: `${(n / maxType) * 100}%` }} />
-                  </span>
-                  <span className="social-prof-n">{n}</span>
-                </li>
-              ))}
+              {breakdown.map(([type, n]) => {
+                const a = typeAvg.get(type);
+                return (
+                  <li key={type}>
+                    <span className="social-prof-type">
+                      {typeIconFor(type, 13)}
+                      {t.common.mediaTypes[type] || type}
+                    </span>
+                    <b className="social-prof-n">{n}</b>
+                    {a?.n > 0 && <span className="social-prof-avg">{fmt(tv.typeAvg, { avg: note(a.sum / a.n) })}</span>}
+                  </li>
+                );
+              })}
             </ul>
           </section>
 
