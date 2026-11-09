@@ -6,21 +6,20 @@ import "./auth.css";
 export default function DiscordCallbackPage() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
-  // O token e o state só valem uma vez; sem isso o StrictMode (dev) rodaria duas.
+  // O código e o state só valem uma vez; sem isso o StrictMode (dev) rodaria duas.
   const handled = useRef(false);
 
   useEffect(() => {
     if (handled.current) return;
     handled.current = true;
 
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const queryParams = new URLSearchParams(window.location.search);
-    const accessToken = hashParams.get("access_token");
-    const returnedState = hashParams.get("state") || queryParams.get("state");
-    const oauthError = hashParams.get("error") || queryParams.get("error");
-    const errorDescription = hashParams.get("error_description") || queryParams.get("error_description");
+    const code = queryParams.get("code");
+    const returnedState = queryParams.get("state");
+    const oauthError = queryParams.get("error");
+    const errorDescription = queryParams.get("error_description");
 
-    // Tira o token do Discord da barra de endereço (e do histórico do navegador).
+    // Tira o código do Discord da barra de endereço (e do histórico do navegador).
     window.history.replaceState(null, "", window.location.pathname);
 
     if (oauthError) {
@@ -28,8 +27,8 @@ export default function DiscordCallbackPage() {
       return;
     }
 
-    if (!accessToken) {
-      setError("Token do Discord não encontrado. Verifique se a redirect URI cadastrada no Discord bate exatamente com a URL atual.");
+    if (!code) {
+      setError("Código do Discord não encontrado. Verifique se a redirect URI cadastrada no Discord bate exatamente com a URL atual.");
       return;
     }
 
@@ -39,7 +38,7 @@ export default function DiscordCallbackPage() {
       return;
     }
 
-    loginWithDiscord(accessToken)
+    loginWithDiscord(code)
       .then(() => navigate(takePostAuthPath()))
       .catch((err) => {
         setError(err.response?.data?.message || "Erro ao entrar com Discord.");
