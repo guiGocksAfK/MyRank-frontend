@@ -1,57 +1,53 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Scale } from 'lucide-react';
+import { ArrowLeft, Scale } from 'lucide-react';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
-import { socialApi, computeTasteMatch, typeIconFor } from './socialData';
+import { socialApi, computeTasteMatch, normTitle, typeIconFor } from './socialData';
 import SocialAvatar from './SocialAvatar';
 import SocialEmpty from './SocialEmpty';
 
-const norm = (t) => (t || '').trim().toLowerCase();
-
-function ScoreCell({ value, color }) {
-  if (value == null) return <span className="social-muted">—</span>;
-  return (
-    <span style={{ fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>
-      {Number(value).toFixed(1)}
-    </span>
-  );
-}
-
+/**
+ * Você × outra pessoa: o resumo (em comum, gosto parecido, favoritos em comum
+ * e a maior discordância) e a lista lado a lado. Abre só com as obras em
+ * comum, que é o que interessa; "Todas" mostra também as que só um avaliou.
+ */
 export default function CompareView({ userId, onBack, onOpenUser }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const tc = t.social.compare;
   const [friend, setFriend] = useState(null);
+  const [onlyShared, setOnlyShared] = useState(true);
   const { items: myItems, loading } = useUnifiedItems();
 
   useEffect(() => {
-    socialApi.getProfile(userId).then(setFriend).catch(() => setFriend(false));
+    let alive = true;
+    socialApi.getProfile(userId)
+      .then((p) => { if (alive) setFriend(p); })
+      .catch(() => { if (alive) setFriend(false); });
+    return () => { alive = false; };
   }, [userId]);
 
   const rows = useMemo(() => {
     if (!friend || !myItems) return [];
-    const mineMap = new Map(myItems.map((i) => [norm(i.title), Number(i.note)]));
-    const theirMap = new Map(friend.works.map((w) => [norm(w.title), w]));
-    const titles = new Set([...mineMap.keys(), ...theirMap.keys()]);
-    return [...titles]
+    const mine = new Map(myItems.map((i) => [normTitle(i.title), i]));
+    const theirs = new Map(friend.works.map((w) => [normTitle(w.title), w]));
+    return [...new Set([...mine.keys(), ...theirs.keys()])]
       .map((key) => {
-        const theirs = theirMap.get(key);
-        const mine = mineMap.get(key);
-        const label =
-          theirs?.title ||
-          myItems.find((i) => norm(i.title) === key)?.title ||
-          key;
-        const type = theirs?.type || myItems.find((i) => norm(i.title) === key)?.type || 'outro';
+        const m = mine.get(key);
+        const th = theirs.get(key);
+        const myScore = m ? Number(m.note) : null;
+        const theirScore = th ? Number(th.score) : null;
         return {
           key,
-          label,
-          type,
-          mine: mine ?? null,
-          theirs: theirs ? theirs.score : null,
-          diff: mine != null && theirs ? +(mine - theirs.score).toFixed(1) : null,
+          title: th?.title || m?.title || key,
+          type: th?.type || m?.type || 'outro',
+          imageUrl: th?.imageUrl || null,
+          mine: myScore,
+          theirs: theirScore,
+          diff: myScore != null && theirScore != null ? +(myScore - theirScore).toFixed(1) : null,
         };
       })
       .sort((a, b) => {
-        const shared = (r) => (r.mine != null && r.theirs != null ? 0 : 1);
+        const shared = (r) => (r.diff != null ? 0 : 1);
         return shared(a) - shared(b) || (b.theirs ?? b.mine ?? 0) - (a.theirs ?? a.mine ?? 0);
       });
   }, [friend, myItems]);
@@ -61,86 +57,90 @@ export default function CompareView({ userId, onBack, onOpenUser }) {
     [friend, myItems],
   );
 
-  if (friend === false) return <div className="social-empty">{tc.notFound}</div>;
-  if (!friend || loading) return <div className="social-empty">{tc.loading}</div>;
+  const note = (n) => Number(n).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const back = (
+    <button type="button" className="social-back" onClick={onBack}>
+      <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
+      {tc.back}
+    </button>
+  );
 
-  const firstName = friend.username.split(' ')[0];
+  if (friend === false) return <div className="social-sub">{back}<p className="social-rail-empty">{tc.notFound}</p></div>;
+  if (!friend || loading || friend.id !== Number(userId)) {
+    return <div className="social-sub">{back}<p className="social-rail-empty">{tc.loading}</p></div>;
+  }
+
+  const gap = match.disagreements[0];
+  const shown = onlyShared ? rows.filter((r) => r.diff != null) : rows;
+  const stats = [
+    { value: match.sharedCount, label: tc.sharedWorks },
+    { value: match.matchPct == null ? '—' : `${match.matchPct}%`, label: tc.affinity, gold: match.matchPct != null },
+    { value: match.favorites.length, label: tc.sharedFavs },
+    { value: gap ? note(Math.abs(gap.diff)) : '—', label: tc.biggestGap, hint: gap?.title },
+  ];
 
   return (
-    <div className="mr-space-y-4">
-      <div className="mr-flex mr-items-center mr-gap-3 mr-flex-wrap">
-        <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onBack}>{tc.back}</button>
-        <span style={{ fontWeight: 700 }}>{tc.you}</span>
-        <span className="social-muted">{tc.vs}</span>
-        <button className="social-link" onClick={() => onOpenUser?.(friend.id)} title={friend.username}>
-          <SocialAvatar name={friend.username} initials={friend.initials} color={friend.color} src={friend.avatarSrc} size={22} />
-          <span className="mr-truncate" style={{ marginLeft: 6, fontWeight: 700, maxWidth: 160 }}>{friend.username}</span>
+    <div className="social-sub">
+      {back}
+
+      <div className="social-cmp-head">
+        <span className="social-cmp-you">{tc.you}</span>
+        <span className="social-muted">×</span>
+        <button type="button" className="social-cmp-friend" onClick={() => onOpenUser?.(friend.id)}>
+          <SocialAvatar name={friend.username} initials={friend.initials} src={friend.avatarSrc} size={28} />
+          <span>{friend.username}</span>
         </button>
       </div>
 
-      {/* Resumo */}
-      <div className="mr-stats-grid">
-        <div className="mr-stat-card">
-          <div className="mr-stat-value">{match.sharedCount}</div>
-          <div className="mr-stat-label">{tc.sharedWorks}</div>
-        </div>
-        <div className="mr-stat-card">
-          <div className="mr-stat-value">{match.matchPct == null ? '—' : `${match.matchPct}%`}</div>
-          <div className="mr-stat-label">{tc.affinity}</div>
-        </div>
-        <div className="mr-stat-card">
-          <div className="mr-stat-value">{match.favorites.length}</div>
-          <div className="mr-stat-label">{tc.sharedFavs}</div>
-        </div>
-        <div className="mr-stat-card">
-          <div className="mr-stat-value">
-            {match.disagreements[0] ? Math.abs(match.disagreements[0].diff).toFixed(1) : '—'}
+      <div className="social-cmp-stats">
+        {stats.map((s) => (
+          <div key={s.label} className="mr-panel social-cmp-stat">
+            <b className={s.gold ? 'is-gold' : undefined}>{s.value}</b>
+            <span>{s.label}</span>
+            {s.hint && <small title={s.hint}>{s.hint}</small>}
           </div>
-          <div className="mr-stat-label">{tc.biggestGap}</div>
-        </div>
+        ))}
       </div>
 
-      {/* Tabela lado a lado */}
-      <div className="mr-card">
-        <div className="mr-card-body mr-space-y-2">
-          <div className="mr-table-header" style={{ gridTemplateColumns: 'minmax(0, 1fr) 54px 72px 40px' }}>
-            <span>{tc.colWork}</span>
-            <span style={{ textAlign: 'right' }}>{tc.you}</span>
-            <span className="mr-truncate" style={{ textAlign: 'right' }} title={friend.username}>{firstName}</span>
-            <span style={{ textAlign: 'center' }}>Δ</span>
+      <section className="mr-panel social-col">
+        <div className="social-cmp-bar">
+          <div className="social-cmp-filter" role="group">
+            <button type="button" className={onlyShared ? 'is-active' : ''} aria-pressed={onlyShared} onClick={() => setOnlyShared(true)}>
+              {tc.filterShared}
+            </button>
+            <button type="button" className={onlyShared ? '' : 'is-active'} aria-pressed={!onlyShared} onClick={() => setOnlyShared(false)}>
+              {tc.filterAll}
+            </button>
           </div>
-          {rows.length === 0 && <SocialEmpty icon={Scale} text={tc.noData} />}
-          {rows.map((r) => (
-            <div key={r.key} className="mr-table-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) 54px 72px 40px' }}>
-              <div className="mr-min-w-0 mr-flex mr-items-center mr-gap-2">
-                <span style={{ flexShrink: 0 }}>{typeIconFor(r.type)}</span>
-                <span className="mr-truncate">{r.label}</span>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <ScoreCell value={r.mine} color="var(--mr-gold)" />
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <ScoreCell value={r.theirs} color={friend.color} />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                {r.diff == null ? (
-                  <span className="social-muted">—</span>
-                ) : (
-                  <span
-                    style={{
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      color: r.diff === 0 ? 'var(--mr-text-secondary)' : r.diff > 0 ? 'var(--mr-gold)' : '#e24b4a',
-                    }}
-                  >
-                    {r.diff > 0 ? '+' : ''}{r.diff}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
+          <span className="social-cmp-cols" aria-hidden="true">
+            <span>{tc.you}</span>
+            <span title={friend.username}>{friend.username}</span>
+            <span>Δ</span>
+          </span>
         </div>
-      </div>
+
+        {shown.length === 0 ? (
+          <SocialEmpty compact icon={Scale} text={tc.noData} />
+        ) : (
+          <ul className="social-cmp-list">
+            {shown.map((r) => (
+              <li key={r.key} className="social-cmp-row">
+                <span className="social-prof-cover">
+                  {r.imageUrl
+                    ? <img src={r.imageUrl} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    : typeIconFor(r.type, 14)}
+                </span>
+                <span className="social-prof-title">{r.title}</span>
+                <span className="social-cmp-mine">{r.mine == null ? '—' : note(r.mine)}</span>
+                <span className="social-cmp-theirs">{r.theirs == null ? '—' : note(r.theirs)}</span>
+                <span className={`social-cmp-diff${r.diff > 0 ? ' is-up' : r.diff < 0 ? ' is-down' : ''}`}>
+                  {r.diff == null ? '—' : `${r.diff > 0 ? '+' : ''}${note(r.diff)}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

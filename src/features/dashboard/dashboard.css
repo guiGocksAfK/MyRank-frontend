@@ -378,70 +378,6 @@
   transform: translateX(18px);
 }
 
-/* ============ STAT CARDS ============ */
-.mr-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 768px) {
-  .mr-stats-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-.mr-stat-card {
-  position: relative;
-  overflow: hidden;
-  background: var(--mr-card);
-  border: 1px solid var(--mr-border);
-  border-radius: var(--mr-radius);
-  padding: 18px 20px 20px;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
-  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-}
-
-.mr-stat-card::after {
-  content: '';
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 0;
-  height: 2px;
-  background: var(--stat-accent, var(--mr-gold));
-  opacity: 0.45;
-}
-
-.mr-stat-card:nth-child(1),
-.mr-stat-card:nth-child(2),
-.mr-stat-card:nth-child(3),
-.mr-stat-card:nth-child(4) { --stat-accent: var(--mr-gold); }
-
-.mr-stat-card:hover {
-  border-color: rgba(212, 175, 55, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), 0 0 20px rgba(212, 175, 55, 0.05);
-}
-
-
-
-
-.mr-stat-value {
-  font-size: clamp(1.75rem, 2.3vw, 2.25rem);
-  font-weight: 800;
-  color: var(--stat-accent, var(--mr-gold));
-  line-height: 1;
-  margin-bottom: 7px;
-  font-family: var(--mr-font);
-  animation: mr-countUp 0.6s ease-out;
-}
-
-.mr-stat-label {
-  font-size: 0.75rem;
-  color: var(--mr-text);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
 /* ============ TELA INICIAL DO APP ============ */
 .dash-hello {
   display: flex;
@@ -993,48 +929,9 @@
   font-weight: 700;
 }
 
-/* ============ RANKINGS TABLE ============ */
-.mr-table-header {
-  display: grid;
-  grid-template-columns: 40px 1fr 80px 60px 60px 160px;
-  gap: 8px;
-  padding: 10px 16px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--mr-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-bottom: 1px solid var(--mr-border);
-  font-family: var(--mr-font);
-}
-
-.mr-table-row {
-  display: grid;
-  grid-template-columns: 40px 1fr 80px 60px 60px 160px;
-  gap: 8px;
-  padding: 12px 16px;
-  align-items: center;
-  border-radius: var(--mr-radius-sm);
-  transition: background 0.2s;
-  min-height: 78px;
-  overflow: hidden;
-}
-
 .mr-rankings-enter {
   animation: mr-rankings-rise 0.45s ease-out both;
   animation-delay: var(--rank-delay, 0ms);
-}
-
-.mr-table-row:hover { background: var(--mr-gold-10); }
-
-.mr-poster-image-thumb {
-  width: 36px !important;
-  height: 54px !important;
-  max-width: 36px;
-  max-height: 54px;
-  object-fit: cover;
-  flex: 0 0 36px;
-  display: block;
 }
 
 /* Etiqueta da subcategoria na linha da obra (tabela individual, filtro "Todas") */
@@ -1050,66 +947,12 @@
   vertical-align: middle;
 }
 
-/* ============ MOBILE: tabela compacta + escala geral menor ============ */
+/* ============ MOBILE: escala geral menor (padrões de app mobile) ============ */
 @media (max-width: 640px) {
-  /* cabeçalho de colunas não faz sentido no layout compacto */
-  .mr-table-header { display: none !important; }
-
-  /* linha vira flex: some com o grid de colunas fixas (que estourava no modo
-     "ponderado", com nota + bônus + nota final). O título encolhe, o resto
-     fica compacto e nada quebra pra segunda linha. */
-  .mr-table-row {
-    display: flex !important;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 8px !important;
-    padding: 9px 10px !important;
-    min-height: 0 !important;
-  }
-
-  .mr-table-row > * { flex: 0 0 auto; }
-
-  /* rank */
-  .mr-table-row > span:first-child {
-    flex: 0 0 16px;
-    text-align: center;
-  }
-
-  /* miniatura de pôster (img real ou placeholder 🎬) — 2ª célula da linha */
-  .mr-table-row > .mr-poster-image-thumb,
-  .mr-table-row > div:nth-child(2):not(.mr-min-w-0) {
-    flex: 0 0 34px;
-    width: 34px !important;
-    height: 51px !important;
-    max-width: 34px !important;
-    max-height: 51px !important;
-    min-width: 0 !important;
-    font-size: 0.8rem !important;
-  }
-
-  /* título ocupa o espaço livre e trunca */
-  .mr-table-row > .mr-min-w-0 {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  /* selo da tabela ("Filmes", "Jogos"…) no ranking unificado */
-
-  /* o "+bônus" some no mobile — fica só nota / nota final */
-  .mr-table-row .mr-cell-bonus { display: none !important; }
-
-  /* obra em si um pouco maior — era o que ficava pequeno demais */
-  .mr-table-row { padding: 11px 12px !important; font-size: 0.9rem; }
-  .mr-table-row .mr-truncate { font-size: 0.9rem; }
-  .mr-table-row .mr-min-w-0 > div:last-child { font-size: 0.75rem; }
-  .mr-table-row .mr-flex > span[style*="minWidth"] { min-width: 0 !important; }
-
-  /* ---- escala geral menor (padrões de app mobile) ---- */
   .mr-main { padding: 16px 0 32px; }
   .mr-card-body { padding: 14px; }
   .mr-section-title { font-size: 1rem; }
   .mr-tab-trigger { padding: 7px 10px; font-size: 0.8125rem; }
-
 }
 
 /* ============ AI INSIGHTS ============ */
@@ -1123,29 +966,13 @@
   .mr-grid-3col { grid-template-columns: 1fr; }
 }
 
-/* ============ PROFILE GRID ============ */
-.mr-profile-grid {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 24px;
-}
-
-@media (max-width: 768px) {
-  .mr-profile-grid { grid-template-columns: 1fr; }
-}
-
 /* ============ SCROLLBAR ============ */
 ::-webkit-scrollbar       { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(212,175,55,0.25); }
 
-/* ============ STAT ANIMATION ============ */
-@keyframes mr-countUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
+/* ============ ANIMAÇÃO DAS LINHAS DO RANKING ============ */
 @keyframes mr-rankings-rise {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }

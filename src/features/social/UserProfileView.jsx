@@ -1,231 +1,225 @@
 import { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, Lock, MessageSquare, Scale } from 'lucide-react';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
-import { socialApi, computeTasteMatch, typeIconFor } from './socialData';
-import SocialAvatar from './SocialAvatar';
+import { BADGE_I18N } from '../../shared/badgeI18n';
 import BadgeIcon from '../../shared/badgeIcons';
+import { socialApi, computeTasteMatch, normTitle, typeIconFor } from './socialData';
+import SocialAvatar from './SocialAvatar';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
+/** Mesmo corte do backend: com menos que isso em comum, a % ainda não diz nada. */
+const MATCH_MIN_SHARED = 3;
 
-function MatchRing({ pct }) {
-  const color = pct >= 75 ? 'var(--mr-gold)' : pct >= 50 ? '#f1c40f' : 'var(--mr-text-muted)';
-  return (
-    <div
-      style={{
-        width: 68,
-        height: 68,
-        borderRadius: '50%',
-        display: 'grid',
-        placeItems: 'center',
-        flexShrink: 0,
-        background: `conic-gradient(${color} ${pct * 3.6}deg, var(--mr-border) 0)`,
-      }}
-    >
-      <div
-        style={{
-          width: 54,
-          height: 54,
-          borderRadius: '50%',
-          background: 'var(--mr-surface)',
-          display: 'grid',
-          placeItems: 'center',
-          fontWeight: 800,
-          fontSize: '0.95rem',
-        }}
-      >
-        {pct}%
-      </div>
-    </div>
-  );
-}
-
+/**
+ * Perfil de outra pessoa: cabeçalho com as ações, o gosto parecido com o seu,
+ * as obras do topo (com a sua nota ao lado, quando você também avaliou), a
+ * divisão por tipo e as conquistas. Perfil privado que você não segue mostra
+ * só o cabeçalho.
+ */
 export default function UserProfileView({ userId, onBack, onCompare, onToggleFollow }) {
-  const { t } = useLanguage();
+  const { t, lang, locale } = useLanguage();
   const tv = t.social.profile;
   const { openChatWith } = useChat();
   const [profile, setProfile] = useState(null);
-  const [error, setError] = useState(null);
-  const { items: myItems, loading: loadingMine } = useUnifiedItems();
+  const [error, setError] = useState(false);
+  const { items: myItems } = useUnifiedItems();
 
   useEffect(() => {
-    setProfile(null);
-    socialApi.getProfile(userId).then(setProfile).catch(() => setError(true));
+    let alive = true;
+    socialApi.getProfile(userId)
+      .then((p) => { if (alive) setProfile(p); })
+      .catch(() => { if (alive) setError(true); });
+    return () => { alive = false; };
   }, [userId]);
 
   const match = useMemo(
-    () => (profile ? computeTasteMatch(myItems || [], profile.works) : null),
+    () => (profile && myItems ? computeTasteMatch(myItems, profile.works) : null),
     [profile, myItems],
   );
+  const myScores = useMemo(() => {
+    const map = new Map();
+    (myItems || []).forEach((i) => {
+      const n = Number(i.note);
+      if (i.title && Number.isFinite(n) && n > 0) map.set(normTitle(i.title), n);
+    });
+    return map;
+  }, [myItems]);
 
-  if (error) return <div className="social-empty">{tv.loadError}</div>;
-  if (!profile) return <div className="social-empty">{tv.loading}</div>;
+  const note = (n) => Number(n).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const back = (
+    <button type="button" className="social-back" onClick={onBack}>
+      <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
+      {tv.back}
+    </button>
+  );
 
-  // Perfil privado que você não segue: só cabeçalho + contagens (estilo Instagram).
+  if (error) return <div className="social-sub">{back}<p className="social-rail-empty">{tv.loadError}</p></div>;
+  if (!profile || profile.id !== Number(userId)) {
+    return <div className="social-sub">{back}<p className="social-rail-empty">{tv.loading}</p></div>;
+  }
+
+  const counts = (
+    <span className="social-prof-counts">
+      <span><b>{profile.followerCount ?? 0}</b> {tv.followersWord}</span>
+      <span><b>{profile.followingCount ?? 0}</b> {tv.followingWord}</span>
+    </span>
+  );
+
+  // privado e você não segue: só o cabeçalho e o convite pra seguir
   if (profile.locked) {
     return (
-      <div className="mr-space-y-4">
-        <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onBack}>{tv.back}</button>
-        <div className="mr-card">
-          <div className="mr-card-body" style={{ textAlign: 'center' }}>
-            <div className="mr-flex mr-items-center mr-gap-4 mr-flex-wrap" style={{ justifyContent: 'center' }}>
-              <SocialAvatar name={profile.username} initials={profile.initials} color={profile.color} src={profile.avatarSrc} size={64} />
-            </div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: 10 }}>{profile.username}</div>
-            <div className="social-muted" style={{ fontSize: '0.85rem' }}>@{profile.handle}</div>
-            <div
-              className="mr-flex mr-gap-4"
-              style={{ justifyContent: 'center', margin: '14px 0', fontSize: '0.9rem' }}
-            >
-              <span><b>{profile.followerCount ?? 0}</b> <span className="social-muted">{tv.followersWord}</span></span>
-              <span><b>{profile.followingCount ?? 0}</b> <span className="social-muted">{tv.followingWord}</span></span>
-            </div>
-            <div style={{ fontWeight: 700 }}>🔒 {tv.privateTitle}</div>
-            <p className="social-muted" style={{ fontSize: '0.85rem', margin: '4px auto 14px', maxWidth: 320 }}>
-              {tv.privateText}
-            </p>
-            <div className="mr-flex mr-gap-2" style={{ justifyContent: 'center' }}>
-              <FollowButton profile={profile} onToggleFollow={onToggleFollow} tv={tv} />
-            </div>
-          </div>
-        </div>
+      <div className="social-sub">
+        {back}
+        <section className="mr-panel social-prof-locked">
+          <SocialAvatar name={profile.username} initials={profile.initials} src={profile.avatarSrc} size={72} />
+          <h2 className="social-prof-name">{profile.username}</h2>
+          {counts}
+          <span className="social-prof-lock"><Lock size={18} strokeWidth={1.8} aria-hidden="true" /></span>
+          <strong>{tv.privateTitle}</strong>
+          <p className="social-muted">{tv.privateText}</p>
+          <FollowButton profile={profile} onToggleFollow={onToggleFollow} tv={tv} />
+        </section>
       </div>
     );
   }
 
-  const breakdownRows = Object.entries(profile.breakdown).sort((a, b) => b[1] - a[1]);
+  const enough = match && match.sharedCount >= MATCH_MIN_SHARED && match.matchPct != null;
+  const gap = match?.disagreements[0];
+  const breakdown = Object.entries(profile.breakdown).sort((a, b) => b[1] - a[1]);
+  const maxType = breakdown[0]?.[1] || 1;
 
   return (
-    <div className="mr-space-y-4">
-      <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={onBack}>{tv.back}</button>
+    <div className="social-sub">
+      {back}
 
-      {/* Cabeçalho */}
-      <div className="mr-card">
-        <div className="mr-card-body">
-          <div className="mr-flex mr-items-center mr-gap-4 mr-flex-wrap">
-            <SocialAvatar name={profile.username} initials={profile.initials} color={profile.color} src={profile.avatarSrc} size={64} />
-            <div className="mr-min-w-0" style={{ flex: 1 }}>
-              <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap">
-                <span style={{ fontSize: '1.15rem', fontWeight: 700 }}>{profile.username}</span>
-                {profile.followsYou && <span className="social-tag">{tv.followsYou}</span>}
-              </div>
-              <div className="social-muted" style={{ fontSize: '0.85rem' }}>@{profile.handle}</div>
-              {profile.bio && <p style={{ fontSize: '0.85rem', marginTop: 6 }}>{profile.bio}</p>}
-              <div className="social-muted" style={{ fontSize: '0.8rem', marginTop: 6 }}>
-                {fmt(tv.stats, { works: profile.stats.works, avg: profile.stats.avgScore.toFixed(1) })}
-              </div>
-            </div>
-            <div className="mr-flex mr-gap-2">
-              <FollowButton profile={profile} onToggleFollow={onToggleFollow} tv={tv} />
-              <button className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => onCompare(profile.id)}>
-                {tv.compare}
-              </button>
-              <button
-                className="mr-btn mr-btn-outline mr-btn-sm"
-                onClick={() =>
-                  openChatWith({
-                    id: profile.id,
-                    username: profile.username,
-                    avatarUrl: profile.avatarUrl,
-                  })
-                }
-              >
-                {tv.message}
-              </button>
-            </div>
+      <section className="mr-panel social-prof-head">
+        <SocialAvatar name={profile.username} initials={profile.initials} src={profile.avatarSrc} size={72} />
+        <div className="social-prof-who">
+          <div className="social-prof-line">
+            <h2 className="social-prof-name">{profile.username}</h2>
+            {profile.followsYou && <span className="social-tag">{tv.followsYou}</span>}
           </div>
+          {profile.bio && <p className="social-prof-bio">{profile.bio}</p>}
+          <span className="social-prof-stats">
+            {fmt(tv.stats, { works: profile.stats.works, avg: note(profile.stats.avgScore) })}
+          </span>
+          {counts}
         </div>
-      </div>
-
-      {/* Afinidade de gosto */}
-      <div className="mr-card">
-        <div className="mr-card-body">
-          <h3 style={{ fontWeight: 700, marginBottom: 12 }}>{tv.affinity}</h3>
-          {loadingMine ? (
-            <div className="social-muted">{tv.calculating}</div>
-          ) : match.matchPct == null ? (
-            <div className="social-muted" style={{ fontSize: '0.88rem' }}>
-              {tv.noCommon}
-            </div>
-          ) : (
-            <div className="mr-flex mr-items-center mr-gap-4 mr-flex-wrap">
-              <MatchRing pct={match.matchPct} />
-              <div className="mr-min-w-0" style={{ flex: 1, fontSize: '0.85rem' }}>
-                <div style={{ marginBottom: 4 }}>
-                  <strong>{match.sharedCount}</strong> {tv.sharedCount}
-                </div>
-                {match.agreements[0] && (
-                  <div className="social-muted">
-                    {tv.alignedIn} <strong>{match.agreements[0].title}</strong>
-                  </div>
-                )}
-                {match.disagreements[0] && (
-                  <div className="social-muted">
-                    {tv.disagreeIn} <strong>{match.disagreements[0].title}</strong>{' '}
-                    ({match.disagreements[0].mine.toFixed(1)} vs {match.disagreements[0].theirs.toFixed(1)})
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+        <div className="social-prof-actions">
+          <FollowButton profile={profile} onToggleFollow={onToggleFollow} tv={tv} />
+          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => onCompare(profile.id)}>
+            <Scale size={14} strokeWidth={2} aria-hidden="true" />
+            {tv.compare}
+          </button>
+          <button
+            type="button"
+            className="mr-btn mr-btn-outline mr-btn-sm"
+            onClick={() => openChatWith({ id: profile.id, username: profile.username, avatarUrl: profile.avatarUrl })}
+          >
+            <MessageSquare size={14} strokeWidth={2} aria-hidden="true" />
+            {tv.message}
+          </button>
         </div>
-      </div>
+      </section>
 
-      <div className="mr-profile-grid">
-        {/* Top obras */}
-        <div className="mr-card">
-          <div className="mr-card-body">
-            <h3 style={{ fontWeight: 700, marginBottom: 10 }}>{tv.topWorks}</h3>
-            <div className="mr-space-y-2">
-              {profile.top.slice(0, 10).map((w, i) => (
-                <div key={w.title} className="mr-flex mr-items-center mr-gap-3" style={{ fontSize: '0.85rem' }}>
-                  <span className="social-muted" style={{ width: 18, textAlign: 'right' }}>{i + 1}</span>
-                  <span style={{ flexShrink: 0 }}>{typeIconFor(w.type)}</span>
-                  <span className="mr-truncate" style={{ flex: 1 }}>{w.title}</span>
-                  <strong style={{ color: 'var(--mr-gold)', fontVariantNumeric: 'tabular-nums' }}>
-                    {w.score.toFixed(1)}
-                  </strong>
-                </div>
+      {/* gosto parecido: a % grande em dourado e onde vocês mais concordam/discordam */}
+      <section className="mr-panel social-prof-match">
+        {!match ? (
+          <p className="social-rail-empty">{tv.calculating}</p>
+        ) : !enough ? (
+          <p className="social-rail-empty">
+            {match.sharedCount === 0 ? tv.noCommon : fmt(tv.fewCommon, { n: match.sharedCount })}
+          </p>
+        ) : (
+          <>
+            <div className="social-prof-pct">
+              <b>{match.matchPct}%</b>
+              <span>{tv.match}</span>
+            </div>
+            <div className="social-prof-why">
+              <span className="social-prof-common">{fmt(tv.inCommon, { n: match.sharedCount })}</span>
+              {match.agreements[0] && (
+                <span>{tv.alignedIn} <strong>{match.agreements[0].title}</strong></span>
+              )}
+              {gap && (
+                <span>
+                  {tv.disagreeIn} <strong>{gap.title}</strong>{' '}
+                  <span className="social-muted">({note(gap.mine)} × {note(gap.theirs)})</span>
+                </span>
+              )}
+            </div>
+          </>
+        )}
+      </section>
+
+      <div className="social-prof-grid">
+        <section className="mr-panel social-col">
+          <h2 className="social-rail-title">{tv.topWorks}</h2>
+          <ol className="social-prof-top">
+            {profile.top.slice(0, 10).map((w, i) => {
+              const mine = myScores.get(normTitle(w.title));
+              return (
+                <li key={`${w.title}-${i}`}>
+                  <span className="social-prof-rank">{i + 1}</span>
+                  <span className="social-prof-cover">
+                    {w.imageUrl
+                      ? <img src={w.imageUrl} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                      : typeIconFor(w.type, 14)}
+                  </span>
+                  <span className="social-prof-title">{w.title}</span>
+                  <span className="social-work-scores">
+                    <span className="social-work-score">{note(w.score)}</span>
+                    {mine != null && <span className="social-work-mine">{t.social.act.you} <b>{note(mine)}</b></span>}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+
+        <div className="social-prof-side">
+          <section className="mr-panel social-col">
+            <h2 className="social-rail-title">{tv.distribution}</h2>
+            <ul className="social-prof-types">
+              {breakdown.map(([type, n]) => (
+                <li key={type}>
+                  <span className="social-prof-type">
+                    {typeIconFor(type, 14)}
+                    {t.common.mediaTypes[type] || type}
+                  </span>
+                  <span className="social-prof-bar" aria-hidden="true">
+                    <span style={{ width: `${(n / maxType) * 100}%` }} />
+                  </span>
+                  <span className="social-prof-n">{n}</span>
+                </li>
               ))}
-            </div>
-          </div>
-        </div>
+            </ul>
+          </section>
 
-        {/* Distribuição + badges */}
-        <div className="mr-space-y-4">
-          <div className="mr-card">
-            <div className="mr-card-body">
-              <h3 style={{ fontWeight: 700, marginBottom: 10 }}>{tv.distribution}</h3>
-              <div className="mr-space-y-2">
-                {breakdownRows.map(([type, n]) => (
-                  <div key={type} className="mr-flex mr-items-center mr-justify-between" style={{ fontSize: '0.85rem' }}>
-                    <span>{typeIconFor(type)} {t.common.mediaTypes[type] || type}</span>
-                    <span className="social-muted">{n}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="mr-card">
-            <div className="mr-card-body">
-              <h3 style={{ fontWeight: 700, marginBottom: 10 }}>{tv.achievements}</h3>
-              <div className="mr-flex mr-flex-wrap mr-gap-2">
+          <section className="mr-panel social-col">
+            <h2 className="social-rail-title">{tv.achievements}</h2>
+            {profile.badges.length === 0 ? (
+              <p className="social-rail-empty">{tv.noBadges}</p>
+            ) : (
+              <div className="social-prof-badges">
                 {profile.badges.map((b) => (
-                  <span key={b.name} title={b.name} className="social-tag" style={{ fontSize: '0.8rem' }}>
-                    <BadgeIcon code={b.code} /> {b.name}
+                  <span key={b.code || b.name} className="social-prof-badge">
+                    <BadgeIcon code={b.code} />
+                    {BADGE_I18N[lang]?.[b.code]?.name || b.name}
                   </span>
                 ))}
               </div>
-            </div>
-          </div>
+            )}
+          </section>
         </div>
       </div>
     </div>
   );
 }
 
-/** Botão seguir com 3 estados: Seguindo · Solicitado · Seguir. */
+/** Seguir com 3 estados: Seguindo · Solicitado · Seguir (ou Pedir pra seguir, se for privado). */
 function FollowButton({ profile, onToggleFollow, tv }) {
   const [following, setFollowing] = useState(profile.following);
   const [requested, setRequested] = useState(profile.requested);
@@ -252,15 +246,10 @@ function FollowButton({ profile, onToggleFollow, tv }) {
     }
   }
 
-  const label = following
-    ? tv.following
-    : requested
-      ? tv.requested
-      : profile.isPublic === false
-        ? tv.request
-        : tv.follow;
+  const label = following ? tv.following : requested ? tv.requested : profile.isPublic === false ? tv.request : tv.follow;
   return (
     <button
+      type="button"
       className={`mr-btn mr-btn-sm ${following || requested ? 'mr-btn-outline' : 'mr-btn-gold'}`}
       onClick={toggle}
       disabled={busy}
