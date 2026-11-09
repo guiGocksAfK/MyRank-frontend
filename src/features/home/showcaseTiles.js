@@ -5,7 +5,11 @@ export const POSTER_TILES = 20; // grid 5x4
 const SHOWCASE_WAIT_MS = 600;   // espera curta pelo /showcase antes de decidir a lista
 
 /** Junta os pôsteres ao vivo com o fallback estático, sem repetir, até 20 tiles. */
-export const buildTiles = (live) => [...new Set([...live, ...SHOWCASE_FALLBACK])].slice(0, POSTER_TILES);
+// Cada tile ocupa um quinto da tela e fica escurecido: o pôster de 342px da TMDB
+// basta e pesa bem menos que o de 500px que o /showcase devolve.
+const smaller = (url) => url.replace('image.tmdb.org/t/p/w500/', 'image.tmdb.org/t/p/w342/');
+
+export const buildTiles = (live) => [...new Set([...live.map(smaller), ...SHOWCASE_FALLBACK])].slice(0, POSTER_TILES);
 
 // A lista é decidida uma vez por sessão e reaproveitada: a home e as telas de
 // entrar/cadastrar mostram exatamente os mesmos pôsteres.
