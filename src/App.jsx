@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { LanguageProvider } from './shared/i18n'
@@ -11,6 +12,7 @@ import VerifyEmail from './features/auth/VerifyEmailPage'
 import ForgotPassword from './features/auth/ForgotPasswordPage'
 import ChatInvitePage from './features/chat/ChatInvitePage'
 import Onboarding from './features/onboarding/OnboardingPage'
+import { isAuthenticated } from './services/authService'
 
 
 
@@ -19,6 +21,15 @@ const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
 const isGoogleOauthConfigured = Boolean(googleClientId);
 if (!isGoogleOauthConfigured) {
   console.warn('VITE_GOOGLE_CLIENT_ID não está configurado. O login Google não funcionará.');
+}
+
+/**
+ * Telas de entrar/cadastrar: quem já chega com sessão vai direto pro dashboard.
+ * Olha só na chegada; o login feito na própria tela navega por conta (convite pendente).
+ */
+function GuestOnly({ children }) {
+  const [logged] = useState(isAuthenticated);
+  return logged ? <Navigate to="/dashboard" replace /> : children;
 }
 
 function Layout() {
@@ -41,13 +52,15 @@ function Layout() {
         <Route path="/dashboard" element={<Dashboard />} />
         {/* a análise agora abre dentro da aba IA; o endereço antigo leva pra lá */}
         <Route path="/insights" element={<Navigate to="/dashboard" state={{ tab: 'ai' }} replace />} />
-        <Route path="/entrar" element={<Login />} />
-        <Route path="/cadastrar" element={<Register />} />
+        <Route path="/entrar" element={<GuestOnly><Login /></GuestOnly>} />
+        <Route path="/cadastrar" element={<GuestOnly><Register /></GuestOnly>} />
         <Route path="/auth/discord/callback" element={<DiscordCallback />} />
         <Route path="/confirmar-email" element={<VerifyEmail />} />
         <Route path="/esqueci-senha" element={<ForgotPassword />} />
         <Route path="/bem-vindo" element={<Onboarding />} />
         <Route path="/chat/invite/:token" element={<ChatInvitePage />} />
+        {/* endereço que não existe volta pra home, em vez da tela vazia */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   )
