@@ -55,7 +55,7 @@ export default function ConfirmModal({ title, message, confirmLabel, busyLabel, 
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <TriangleAlert size={22} strokeWidth={1.8} aria-hidden="true" style={{ flex: 'none', color: 'var(--mr-red)' }} />
           <div>
-            <h2 id="mr-confirm-title" style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 8 }}>
+            <h2 id="mr-confirm-title" style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 8, color: 'var(--mr-text)' }}>
               {title}
             </h2>
             <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', lineHeight: 1.5 }}>
