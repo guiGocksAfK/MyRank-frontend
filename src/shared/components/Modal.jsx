@@ -1,7 +1,8 @@
-import { useEffect, useId } from 'react';
+import { useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useLanguage } from '../i18n';
+import useModalBehavior from './useModalBehavior';
 
 /**
  * Moldura padrão de modal: título + ×, corpo com rolagem e rodapé com os botões.
@@ -13,17 +14,14 @@ export default function Modal({ title, onClose, footer, children, width = 440, b
   const { t } = useLanguage();
   const titleId = useId();
 
-  useEffect(() => {
-    function handleKeyDown(event) {
-      if (event.key === 'Escape' && !busy) onClose();
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [busy, onClose]);
+  const dialog = useRef(null);
+  useModalBehavior(dialog, () => { if (!busy) onClose(); });
 
   return createPortal(
     <div className="mr-dialog-backdrop" role="presentation" onClick={() => !busy && closeOnBackdrop && onClose()}>
       <div
+        ref={dialog}
+        tabIndex={-1}
         className="mr-dialog"
         role="dialog"
         aria-modal="true"

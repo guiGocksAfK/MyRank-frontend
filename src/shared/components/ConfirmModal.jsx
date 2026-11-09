@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TriangleAlert } from 'lucide-react';
 import { useLanguage } from '../i18n';
+import useModalBehavior from './useModalBehavior';
 
 /**
  * Diálogo de confirmação padrão do site (usado em rankings, takes, grupos…).
@@ -14,20 +15,20 @@ export default function ConfirmModal({ title, message, confirmLabel, busyLabel, 
   const label = confirmLabel || tc.deleteDefault;
   const [confirming, setConfirming] = useState(false);
 
-  useEffect(() => {
-    function handleKeyDown(event) {
-      if (event.key === 'Escape' && !confirming) onClose();
-    }
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [confirming, onClose]);
+  const titleId = useId();
+  const dialog = useRef(null);
+  useModalBehavior(dialog, () => { if (!confirming) onClose(); });
 
   async function handleConfirm() {
     setConfirming(true);
-    const confirmed = await onConfirm();
-    if (confirmed) onClose();
-    setConfirming(false);
+    try {
+      const confirmed = await onConfirm();
+      if (confirmed) onClose();
+    } catch {
+      // quem chamou não tratou o erro: o modal fica aberto, mas destravado pra tentar de novo ou cancelar
+    } finally {
+      setConfirming(false);
+    }
   }
 
   return createPortal(
@@ -42,9 +43,11 @@ export default function ConfirmModal({ title, message, confirmLabel, busyLabel, 
       onClick={() => !confirming && onClose()}
     >
       <div
+        ref={dialog}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="mr-confirm-title"
+        aria-labelledby={titleId}
         style={{
           width: 390, maxWidth: '100%', padding: '1.5rem',
           background: 'var(--mr-surface)', border: '1px solid var(--mr-border)',
@@ -55,7 +58,7 @@ export default function ConfirmModal({ title, message, confirmLabel, busyLabel, 
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <TriangleAlert size={22} strokeWidth={1.8} aria-hidden="true" style={{ flex: 'none', color: 'var(--mr-red)' }} />
           <div>
-            <h2 id="mr-confirm-title" style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 8, color: 'var(--mr-text)' }}>
+            <h2 id={titleId} style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 8, color: 'var(--mr-text)' }}>
               {title}
             </h2>
             <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', lineHeight: 1.5 }}>
