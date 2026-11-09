@@ -12,6 +12,7 @@
  * Tudo vive na memória: recarregou a página, volta ao começo.
  */
 import { getUnifiedWorks } from '../../services/WorkService';
+import { getMe } from '../../services/userService';
 import { templateType } from '../../shared/tableTemplates';
 import { decorateUser, decorateFeedItem, decorateComment } from './socialData';
 
@@ -48,6 +49,17 @@ const COMMENTS = [
 ];
 
 let state = null;
+
+/** Você, com a sua foto de verdade (o que o backend mandaria como autor). */
+async function meUser() {
+  const fallback = { id: 0, username: localStorage.getItem('myrank_username') || 'você', avatarUrl: null };
+  try {
+    const u = await getMe();
+    return { id: u.id ?? 0, username: u.username || fallback.username, avatarUrl: u.avatarUrl || null };
+  } catch {
+    return fallback;
+  }
+}
 
 /** Monta o mundo falso uma vez, a partir das suas obras. */
 async function world() {
@@ -197,7 +209,7 @@ export const mockApi = {
     await wait();
     const w = s.pool.find((p) => p.id === workId) || s.pool[0];
     const id = s.nextId++;
-    const me = { id: 0, username: localStorage.getItem('myrank_username') || 'você', avatarUrl: null };
+    const me = await meUser();
     const item = {
       id, type: 'TAKE', createdAt: new Date().toISOString(), actor: me, work: w, badge: null, takeText: text,
       takeId: 500 + id, commentCount: 0, takeEdited: false, canManage: true, reactions: { up: 0, agree: 0, disagree: 0, mine: null },
@@ -216,7 +228,7 @@ export const mockApi = {
   async getTakeComments(takeId) { const s = await world(); await wait(); return (s.comments.get(takeId) || []).map(decorateComment); },
   async addTakeComment(takeId, text, parentCommentId = null) {
     const s = await world();
-    const me = { id: 0, username: localStorage.getItem('myrank_username') || 'você', avatarUrl: null };
+    const me = await meUser();
     const c = { id: Date.now(), parentId: parentCommentId, author: me, text, createdAt: new Date().toISOString(), edited: false, canEdit: true, canDelete: true, replies: [] };
     const list = s.comments.get(takeId) || [];
     if (parentCommentId) list.find((x) => x.id === parentCommentId)?.replies.push(c); else list.push(c);
