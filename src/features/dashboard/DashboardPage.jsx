@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import DashboardHeader from './DashboardHeader';
 import DashboardHome from './DashboardHome';
@@ -19,6 +19,11 @@ import { ChatProvider } from '../../shared/chat';
 import './dashboard.css';
 
 const VALID_TABS = ['home', 'rankings', 'social', 'ai', 'profile'];
+const THEME_KEY = 'myrank_theme';
+
+function readStoredTheme() {
+  try { return localStorage.getItem(THEME_KEY) !== 'light'; } catch { return true; }
+}
 
 /**
  * Quem ainda não terminou o tutorial pós-cadastro volta pra ele, na etapa em que parou.
@@ -55,11 +60,20 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState(initialTab);
   // conversa a abrir de cara (veio de /chat/invite/:token). Consumida uma vez.
   const [openConvId, setOpenConvId] = useState(location.state?.openConvId ?? null);
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(readStoredTheme);
   const [creatorsView, setCreatorsView] = useState(false);
   // análise da IA aberta dentro da aba (com a navbar): { workIds } ou null = painel
   const [insightRun, setInsightRun] = useState(null);
-  const [rankingsVisited, setRankingsVisited] = useState(false);
+  // abriu direto em Rankings (vindo do tutorial): já nasce na versão que fica montada
+  const [rankingsVisited, setRankingsVisited] = useState(initialTab === 'rankings');
+
+  // Modais, menus e balões são desenhados no <body>, fora da div do dashboard: o
+  // tema claro vai no <body> também, senão eles continuam escuros. Sai ao deixar o dashboard.
+  useEffect(() => {
+    document.body.classList.toggle('myrank-light', !isDark);
+    try { localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light'); } catch { /* só não lembra */ }
+    return () => document.body.classList.remove('myrank-light');
+  }, [isDark]);
 
   // sem sessão guardada nem adianta pedir /users/me: vai pro login
   if (!isAuthenticated()) return <Navigate to="/entrar" replace />;
@@ -77,11 +91,7 @@ export default function DashboardPage() {
 
   const renderTab = () => {
     switch (activeTab) {
-      case 'home':
-        return <DashboardHome onNavigate={handleTabChange} />;
-      case 'rankings':
-        if (creatorsView) return <CreatorsPanel onBack={() => setCreatorsView(false)} />;
-        return <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />;
+      // home e rankings ficam montadas o tempo todo, lá embaixo; aqui só as outras
       case 'social':
         return (
           <SocialPanel
@@ -97,7 +107,7 @@ export default function DashboardPage() {
       case 'profile':
         return <ProfilePanel isDark={isDark} onThemeToggle={handleThemeToggle} />;
       default:
-        return <DashboardHome onNavigate={handleTabChange} />;
+        return null;
     }
   };
 
