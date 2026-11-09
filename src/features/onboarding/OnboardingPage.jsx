@@ -29,6 +29,8 @@ export default function OnboardingPage() {
   const [tables, setTables] = useState([]);
   const [tableId, setTableId] = useState(null);
   const [adding, setAdding] = useState(false);
+  // a obra já foi criada mas o encerramento falhou: tentar de novo não pode criar outra
+  const [workSaved, setWorkSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -84,6 +86,7 @@ export default function OnboardingPage() {
 
   async function saveFirstWork(payload) {
     await createWork(mapItemToWorkDTO(payload, tableId));
+    setWorkSaved(true);
     await finish();
   }
 
@@ -141,7 +144,7 @@ export default function OnboardingPage() {
                     );
                   })}
                 </div>
-                {error && <p className="auth-error">{error}</p>}
+                {error && <p className="auth-error" role="alert">{error}</p>}
                 <button className="mr-btn mr-btn-gold auth-submit" type="button"
                   onClick={confirmTables} disabled={busy || picked.length === 0}>
                   {picked.length === 0 ? to.pickOne : to.next}
@@ -161,9 +164,9 @@ export default function OnboardingPage() {
                     {tables.map(tb => <option key={tb.id} value={tb.id}>{tb.label}</option>)}
                   </select>
                 )}
-                {error && <p className="auth-error">{error}</p>}
+                {error && <p className="auth-error" role="alert">{error}</p>}
                 <button className="mr-btn mr-btn-gold auth-submit" type="button"
-                  onClick={() => setAdding(true)} disabled={busy || !table}>
+                  onClick={() => (workSaved ? finish() : setAdding(true))} disabled={busy || !table}>
                   {to.addFirst}
                 </button>
                 <button className="auth-text-button" type="button" onClick={finish} disabled={busy}>

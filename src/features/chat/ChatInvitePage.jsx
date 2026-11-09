@@ -20,7 +20,8 @@ export default function ChatInvitePage() {
 
     if (!isAuthenticated()) {
       setPendingInvite(token);
-      navigate('/entrar');
+      // replace: senão o Voltar cai de novo aqui e devolve pro login
+      navigate('/entrar', { replace: true });
       return;
     }
 
@@ -38,7 +39,7 @@ export default function ChatInvitePage() {
       <section className="auth-card mr-panel" style={{ margin: 'auto', textAlign: 'center' }}>
         {error ? (
           <>
-            <p className="auth-error">{error}</p>
+            <p className="auth-error" role="alert">{error}</p>
             <button className="mr-btn mr-btn-gold auth-submit" type="button" onClick={() => navigate('/dashboard')}>
               {ti.goToChat}
             </button>
