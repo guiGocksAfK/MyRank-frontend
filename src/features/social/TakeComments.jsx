@@ -1,19 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
+import { SendHorizontal } from 'lucide-react';
 import SocialAvatar from './SocialAvatar';
 import { socialApi } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { relativeTime } from '../../shared/useUnifiedItems';
-
-const SendIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
-    <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a1 1 0 00-1.4 1.15L4 11l10 1-10 1-2 6.25a1 1 0 001.4 1.15z" />
-  </svg>
-);
+import { useUser } from '../../shared/userContext';
 
 /** Comentários de um take (2 níveis, estilo Instagram). Vive dentro do ActivityCard. */
 export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
   const { t, lang } = useLanguage();
   const tc = t.social.comments;
+  const { user } = useUser();
   const [comments, setComments] = useState(null);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -93,11 +90,10 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
 
   return (
     <div className="social-comments">
+      {/* sem comentários não tem aviso: o convite vira o texto da caixa */}
       {comments === null ? (
         <div className="social-comments-hint">{tc.loading}</div>
-      ) : comments.length === 0 ? (
-        <div className="social-comments-hint">{tc.empty}</div>
-      ) : (
+      ) : comments.length === 0 ? null : (
         <ul className="social-comment-list">
           {comments.map((c) => (
             <CommentNode
@@ -117,6 +113,7 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
       )}
 
       <form className="social-comment-form" onSubmit={submit}>
+        <SocialAvatar name={user?.username || '?'} src={user?.avatarUrl} size={28} />
         {replyTo && (
           <button
             type="button"
@@ -131,16 +128,17 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
           className="social-comment-input"
           value={text}
           maxLength={500}
-          placeholder={tc.placeholder}
+          placeholder={comments?.length === 0 ? tc.empty : tc.placeholder}
           onChange={(e) => setText(e.target.value)}
         />
         <button
           type="submit"
-          className="mr-btn mr-btn-gold mr-btn-sm social-comment-send"
+          className="social-comment-send"
           disabled={busy || !text.trim()}
           aria-label={tc.send}
+          title={tc.send}
         >
-          <SendIcon />
+          <SendHorizontal size={16} strokeWidth={2} aria-hidden="true" />
         </button>
       </form>
     </div>

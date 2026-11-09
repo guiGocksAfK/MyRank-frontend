@@ -36,7 +36,7 @@ const TRANSLATIONS = {
       comments: {
         label: 'Comentar',
         loading: 'Carregando comentários…',
-        empty: 'Nenhum comentário ainda. Seja o primeiro.',
+        empty: 'Seja o primeiro a comentar…',
         placeholder: 'Escreva um comentário…',
         send: 'Enviar',
         reply: 'Responder',
@@ -935,7 +935,7 @@ const TRANSLATIONS = {
       comments: {
         label: 'Comment',
         loading: 'Loading comments…',
-        empty: 'No comments yet. Be the first.',
+        empty: 'Be the first to comment…',
         placeholder: 'Write a comment…',
         send: 'Send',
         reply: 'Reply',
@@ -1826,7 +1826,7 @@ const TRANSLATIONS = {
       comments: {
         label: 'Comentar',
         loading: 'Cargando comentarios…',
-        empty: 'Sin comentarios todavía. Sé el primero.',
+        empty: 'Sé el primero en comentar…',
         placeholder: 'Escribe un comentario…',
         send: 'Enviar',
         reply: 'Responder',

@@ -256,11 +256,8 @@
 }
 
 /* ── Comentários do take ──────────────────────────────────── */
-.social-comments {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--mr-border-light);
-}
+/* a linha das reações já separa: aqui não precisa de outra divisória */
+.social-comments { margin-top: 2px; }
 .social-comments-hint {
   font-size: 0.82rem;
   color: var(--mr-text-muted);
@@ -336,10 +333,11 @@
 .social-comment-form {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 10px;
+  margin-top: 12px;
   flex-wrap: wrap;
 }
+.social-comment-list + .social-comment-form { padding-top: 12px; border-top: 1px solid var(--mr-border-light); }
 .social-comment-input {
   flex: 1;
   min-width: 0;
@@ -361,13 +359,22 @@
   font-weight: 700;
   cursor: pointer;
 }
+/* enviar: discreto até ter texto, aí fica dourado */
 .social-comment-send {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 12px;
-  flex-shrink: 0;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--mr-gold-20);
+  border-radius: 50%;
+  background: var(--mr-gold-10);
+  color: var(--mr-gold);
+  cursor: pointer;
+  transition: background var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
 }
+.social-comment-send:not(:disabled):hover { background: var(--mr-gold); color: var(--mr-bg); }
+.social-comment-send:disabled { border-color: var(--mr-border); background: transparent; color: var(--mr-text-muted); cursor: default; }
 .social-comment-editform {
   display: flex;
   align-items: center;
@@ -824,5 +831,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .social-composer-collapsed, .social-chip-btn, .social-search, .social-react-btn, .social-back { transition: none; }
+  .social-composer-collapsed, .social-chip-btn, .social-search, .social-react-btn, .social-back, .social-comment-send { transition: none; }
 }
