@@ -1,39 +1,54 @@
-import { useEffect, useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Check, UserPlus, X } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
-import { socialApi } from './socialData';
+import { useUser } from '../../shared/userContext';
+import { socialApi, normTitle, typeIconFor } from './socialData';
 import SocialAvatar from './SocialAvatar';
 
-/** Pessoa numa linha: foto + nome (abre o perfil), o gosto parecido e a ação à direita. */
-function Person({ u, onOpen, children }) {
-  const { t } = useLanguage();
-  return (
-    <div className="social-person">
-      <button type="button" className="social-person-main" onClick={() => onOpen?.(u.id)}>
-        <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={32} />
-        <span className="social-person-text">
-          <span className="social-person-name">{u.username}</span>
-          {u.matchPct != null && (
-            <span className="social-person-meta">
-              <b className="social-match">{t.social.people.match.replace('{pct}', u.matchPct)}</b>
-            </span>
-          )}
-        </span>
-      </button>
-      {children}
-    </div>
-  );
+const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
+/** Quantas obras o "Em alta" mostra, e quantas pessoas uma obra precisa pra entrar. */
+const TRENDING_MAX = 3;
+const TRENDING_MIN_PEOPLE = 2;
+
+/**
+ * As obras que mais aparecem no que o feed já carregou (takes e avaliações do
+ * dia), contando pessoas diferentes, com a média das notas delas.
+ */
+function trendingFrom(items, myUsername) {
+  const byTitle = new Map();
+  (items || []).forEach((it) => {
+    if (!it.actor || it.actor.username === myUsername) return;
+    const works = it.type === 'RATED_DAY' ? it.works : it.work ? [it.work] : [];
+    works.forEach((w) => {
+      if (!w?.title || w.score == null) return;
+      const key = normTitle(w.title);
+      const entry = byTitle.get(key) || { work: w, scores: new Map() };
+      // a nota mais recente de cada pessoa (o feed vem do mais novo pro mais velho)
+      if (!entry.scores.has(it.actor.id)) entry.scores.set(it.actor.id, Number(w.score));
+      if (!entry.work.imageUrl && w.imageUrl) entry.work = w;
+      byTitle.set(key, entry);
+    });
+  });
+  return [...byTitle.values()]
+    .map(({ work, scores }) => {
+      const list = [...scores.values()];
+      return { work, people: list.length, avg: list.reduce((a, b) => a + b, 0) / list.length };
+    })
+    .filter((x) => x.people >= TRENDING_MIN_PEOPLE)
+    .sort((a, b) => b.people - a.people || b.avg - a.avg)
+    .slice(0, TRENDING_MAX);
 }
 
 /**
- * Trilho direito do Feed: "Você" (seguindo / seguidores), os pedidos pra te
- * seguir (só quando há) e sugestões pra seguir. Público/privado não mora mais
- * aqui: é ajuste, fica nas Configurações.
+ * Trilho direito do Feed: você numa linha, os pedidos pra te seguir (só quando
+ * há), quem tem o gosto mais parecido com o seu e o que está em alta entre
+ * quem você segue. `feedItems`: o que o feed já carregou.
  */
-export default function SocialRail({ onOpenConnections, onOpenUser, onGoPeople }) {
-  const { t } = useLanguage();
+export default function SocialRail({ feedItems, onOpenConnections, onOpenUser, onGoPeople }) {
+  const { t, locale } = useLanguage();
   const tr = t.social.rail;
   const tp = t.social.people;
+  const { user } = useUser();
   const [summary, setSummary] = useState(null);
   const [suggestions, setSuggestions] = useState(null);
   const [requests, setRequests] = useState([]);
@@ -45,6 +60,9 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoPeople }
     socialApi.getSuggestions().then((r) => setSuggestions(r.slice(0, 3))).catch(() => setSuggestions([]));
     socialApi.getFollowRequests().then(setRequests).catch(() => setRequests([]));
   }, []);
+
+  const trending = useMemo(() => trendingFrom(feedItems, user?.username), [feedItems, user?.username]);
+  const note = (n) => Number(n).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   const resolveRequest = async (id, accept) => {
     setRequests((prev) => prev.filter((r) => r.id !== id));
@@ -73,53 +91,54 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoPeople }
 
   return (
     <aside className="social-rail">
-      <section className="mr-panel social-rail-card is-you">
-        <h2 className="social-rail-title">{tr.you}</h2>
-        <div className="social-rail-stats">
-          <button type="button" onClick={() => onOpenConnections('following')}>
-            <b>{summary?.following ?? '—'}</b>
-            <span>{tr.following}</span>
-          </button>
-          <button type="button" onClick={() => onOpenConnections('followers')}>
-            <b>{summary?.followers ?? '—'}</b>
-            <span>{tr.followers}</span>
-          </button>
+      <section className="mr-panel social-rail-you">
+        <SocialAvatar name={user?.username || '?'} src={user?.avatarUrl} size={40} />
+        <div className="social-rail-you-text">
+          <span className="social-person-name">{user?.username}</span>
+          <span className="social-rail-you-counts">
+            <button type="button" onClick={() => onOpenConnections('following')}>
+              <b>{summary?.following ?? '—'}</b> {tr.followingWord}
+            </button>
+            <span aria-hidden="true">·</span>
+            <button type="button" onClick={() => onOpenConnections('followers')}>
+              <b>{summary?.followers ?? '—'}</b> {tr.followersWord}
+            </button>
+          </span>
         </div>
       </section>
 
-      {requests.length > 0 && (
-        <section className="mr-panel social-rail-card">
-          <h2 className="social-rail-title">{tr.requests} · {requests.length}</h2>
-          <div className="social-rail-list">
-            {requests.map((u) => (
-              <Person key={u.id} u={u} onOpen={onOpenUser}>
-                <span className="social-rail-request-actions">
-                  <button type="button" className="social-icon-btn is-gold" aria-label={tr.accept} title={tr.accept}
-                    onClick={() => resolveRequest(u.id, true)}>
-                    <Check size={16} strokeWidth={2.2} aria-hidden="true" />
-                  </button>
-                  <button type="button" className="social-icon-btn" aria-label={tr.decline} title={tr.decline}
-                    onClick={() => resolveRequest(u.id, false)}>
-                    <X size={16} strokeWidth={2} aria-hidden="true" />
-                  </button>
-                </span>
-              </Person>
-            ))}
-          </div>
+      {requests.map((u) => (
+        <section key={u.id} className="mr-panel social-rail-request">
+          <UserPlus size={16} strokeWidth={1.8} aria-hidden="true" />
+          <span className="social-rail-request-text">
+            <button type="button" className="social-link" onClick={() => onOpenUser?.(u.id)}>{u.username}</button>
+            {' '}{tr.wantsToFollow}
+          </span>
+          <button type="button" className="social-icon-btn is-gold" aria-label={tr.accept} title={tr.accept}
+            onClick={() => resolveRequest(u.id, true)}>
+            <Check size={15} strokeWidth={2.2} aria-hidden="true" />
+          </button>
+          <button type="button" className="social-icon-btn" aria-label={tr.decline} title={tr.decline}
+            onClick={() => resolveRequest(u.id, false)}>
+            <X size={15} strokeWidth={2} aria-hidden="true" />
+          </button>
         </section>
-      )}
+      ))}
 
       {/* no celular some: as sugestões já estão na aba Pessoas */}
-      <section className="mr-panel social-rail-card is-suggest">
-        <h2 className="social-rail-title">{tr.suggestions}</h2>
-        {suggestions === null ? (
-          <p className="social-rail-empty">{tr.loading}</p>
-        ) : suggestions.length === 0 ? (
-          <p className="social-rail-empty">{tr.noSuggestions}</p>
-        ) : (
-          <div className="social-rail-list">
+      {suggestions?.length > 0 && (
+        <section className="mr-panel social-rail-card is-side">
+          <h2 className="social-rail-title">{tr.mostLikeYou}</h2>
+          <ul className="social-rail-list">
             {suggestions.map((u) => (
-              <Person key={u.id} u={u} onOpen={onOpenUser}>
+              <li key={u.id} className="social-rail-match">
+                <button type="button" className="social-rail-match-main" onClick={() => onOpenUser?.(u.id)}>
+                  <b className={`social-rail-pct${u.matchPct == null ? ' is-none' : ''}`}>
+                    {u.matchPct == null ? '—' : `${u.matchPct}%`}
+                  </b>
+                  <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={28} />
+                  <span className="social-person-name">{u.username}</span>
+                </button>
                 <button
                   type="button"
                   className={`social-chip-btn${u.requested ? '' : ' is-gold'}`}
@@ -127,12 +146,36 @@ export default function SocialRail({ onOpenConnections, onOpenUser, onGoPeople }
                 >
                   {u.requested ? tp.requested : u.isPublic === false ? tp.request : tp.follow}
                 </button>
-              </Person>
+                {u.matchPct != null && (
+                  <span className="social-rail-bar" aria-hidden="true"><span style={{ width: `${u.matchPct}%` }} /></span>
+                )}
+              </li>
             ))}
-          </div>
-        )}
-        <button type="button" className="social-rail-more" onClick={onGoPeople}>{tr.seeAll}</button>
-      </section>
+          </ul>
+          <button type="button" className="social-rail-more" onClick={onGoPeople}>{tr.seeAll}</button>
+        </section>
+      )}
+
+      {trending.length > 0 && (
+        <section className="mr-panel social-rail-card is-side">
+          <h2 className="social-rail-title">{tr.trending}</h2>
+          <ul className="social-rail-list">
+            {trending.map(({ work, people, avg }) => (
+              <li key={normTitle(work.title)} className="social-rail-trend">
+                <span className="social-prof-cover">
+                  {work.imageUrl
+                    ? <img src={work.imageUrl} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    : typeIconFor(work.type, 14)}
+                </span>
+                <span className="social-pick-text">
+                  <span className="social-pick-title">{work.title}</span>
+                  <span className="social-pick-type">{fmt(tr.trendingLine, { n: people, avg: note(avg) })}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </aside>
   );
 }

@@ -1,6 +1,7 @@
 /* Aba Social: Feed | Pessoas | Mensagens. Mesma linguagem dos Rankings e
    do Perfil (rk-tabs, mr-panel), preto e dourado, ícones de traço. */
-.social-panel { position: relative; }
+/* a Social inteira numa largura de leitura, no meio: abas, feed e trilho alinhados */
+.social-panel { position: relative; width: 100%; max-width: 1040px; margin-inline: auto; }
 
 /* ── Sub-abas ─────────────────────────────────────────────── */
 .social-tabbar {
@@ -65,17 +66,12 @@
   color: var(--mr-gold);
 }
 
-.social-select {
-  padding: 0.35rem 0.55rem;
-  font-size: 0.85rem;
-}
-
 .social-type-icon { flex: none; color: var(--mr-text-muted); }
 
 /* ── Feed: coluna central + trilho ────────────────────────── */
 .social-feed-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: var(--mr-space-5);
   align-items: start;
 }
@@ -112,6 +108,49 @@
   font-weight: 700;
 }
 .social-composer { padding: var(--mr-space-4); }
+.social-composer-title { margin-bottom: var(--mr-space-2); font-size: var(--mr-text-sm); font-weight: 700; }
+
+/* escolher a obra do take: busca com lista, e a escolhida vira um cartão */
+.social-pick { position: relative; }
+.social-pick-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  max-height: 320px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  background: var(--mr-surface);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+  list-style: none;
+}
+.social-pick-head, .social-pick-empty { padding: 6px 8px; color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+.social-pick-head { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.social-pick-option, .social-pick-chosen { display: flex; align-items: center; gap: var(--mr-space-3); min-width: 0; }
+.social-pick-option { padding: 6px 8px; border-radius: var(--mr-radius-xs); cursor: pointer; }
+.social-pick-option.is-active { background: var(--mr-gold-10); }
+.social-pick-option.is-active .social-pick-title { color: var(--mr-gold); }
+.social-pick-chosen { padding: var(--mr-space-2); border: 1px solid var(--mr-gold-20); border-radius: var(--mr-radius-sm); background: var(--mr-muted-bg); }
+.social-pick-cover {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--mr-muted-bg);
+  color: var(--mr-text-muted);
+}
+.social-pick-cover img { width: 100%; height: 100%; object-fit: cover; }
+.social-pick-text { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.social-pick-title { overflow: hidden; font-size: var(--mr-text-sm); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.social-pick-type { color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+.social-pick-score { flex: none; color: var(--mr-gold); font-size: var(--mr-text-sm); font-weight: 800; font-variant-numeric: tabular-nums; }
 .social-onboard-title { margin-bottom: 6px; font-weight: 800; font-size: 0.95rem; }
 .social-onboard-text { margin: 0 0 12px; color: var(--mr-text-secondary); font-size: 0.85rem; line-height: 1.45; }
 
@@ -380,9 +419,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid var(--mr-border);
+  border: 1px solid transparent;
   background: transparent;
   color: var(--mr-text-secondary);
   font-size: 0.8rem;
@@ -400,7 +439,15 @@
   color: var(--mr-gold);
   font-weight: 700;
 }
-.social-react-label { font-weight: 600; }
+/* o nome da reação fica pro leitor de tela; na tela, o ícone e o número */
+.social-react-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 .social-react-count {
   font-variant-numeric: tabular-nums;
   font-size: 0.76rem;
@@ -450,22 +497,37 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
-.social-rail-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--mr-space-2); }
-.social-rail-stats button {
-  padding: 6px 4px;
-  border: 0;
-  border-radius: var(--mr-radius-sm);
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+/* você numa linha: foto, nome e as contagens (cada uma abre a lista) */
+.social-rail-you { display: flex; align-items: center; gap: var(--mr-space-3); padding: var(--mr-space-3) var(--mr-space-4); }
+.social-rail-you-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.social-rail-you-counts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+.social-rail-you-counts button { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.social-rail-you-counts button:hover { color: var(--mr-gold); }
+.social-rail-you-counts b { color: var(--mr-text); font-weight: 800; font-variant-numeric: tabular-nums; }
+/* pedido pra te seguir: um aviso fino */
+.social-rail-request {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-2);
+  padding: var(--mr-space-2) var(--mr-space-3);
+  border-color: var(--mr-gold-20);
+  color: var(--mr-gold);
+  font-size: var(--mr-text-sm);
 }
-.social-rail-stats button:hover { background: color-mix(in srgb, var(--mr-text) 4%, transparent); }
-.social-rail-stats b { display: block; font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-.social-rail-stats span { color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+.social-rail-request-text { flex: 1; min-width: 0; color: var(--mr-text-secondary); }
+.social-rail-request-text .social-link { font-weight: 700; }
+/* mais parecidos com você: a % na frente, uma barra fina embaixo */
+.social-rail-match { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px var(--mr-space-2); padding: 6px 0; }
+.social-rail-match-main { display: flex; align-items: center; gap: var(--mr-space-2); min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.social-rail-match-main:hover .social-person-name { color: var(--mr-gold); }
+.social-rail-pct { flex: none; width: 2.6rem; color: var(--mr-gold); font-size: var(--mr-text-md); font-weight: 800; font-variant-numeric: tabular-nums; }
+.social-rail-pct.is-none { color: var(--mr-text-muted); }
+.social-rail-bar { grid-column: 1 / -1; height: 3px; overflow: hidden; border-radius: 999px; background: var(--mr-muted-bg); }
+.social-rail-bar span { display: block; height: 100%; border-radius: inherit; background: var(--mr-gold); }
+/* em alta na sua rede */
+.social-rail-trend { display: flex; align-items: center; gap: var(--mr-space-3); padding: 4px 0; min-width: 0; }
 .social-rail-list, .social-list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .social-rail-empty { margin: 0; padding: 6px 0; color: var(--mr-text-muted); font-size: var(--mr-text-sm); }
-.social-rail-request-actions { display: flex; gap: 6px; }
 .social-rail-more {
   display: inline-flex;
   align-items: center;
@@ -737,20 +799,14 @@
 
 @media (max-width: 900px) {
   /* sem trilho do lado: ele sobe pro topo do feed */
-  .social-feed-layout { grid-template-columns: 1fr; }
+  .social-feed-layout { grid-template-columns: minmax(0, 1fr); }
   .social-rail { order: -1; position: static; }
-  /* "Você" vira uma faixa fina; as sugestões ficam só na aba Pessoas */
-  .social-rail-card.is-you { flex-direction: row; align-items: center; padding: var(--mr-space-2) var(--mr-space-4); }
-  .social-rail-card.is-you .social-rail-title { display: none; }
-  .social-rail-card.is-you .social-rail-stats { flex: 1; }
-  .social-rail-stats button { display: flex; align-items: baseline; justify-content: center; gap: 6px; }
-  .social-rail-stats b { display: inline; font-size: 1rem; }
-  .social-rail-card.is-suggest { display: none; }
+  /* em cima do feed fica só você e os pedidos; o resto está na aba Pessoas */
+  .social-rail-card.is-side { display: none; }
   .social-prof-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
-  .social-react-label { display: none; }
   .social-cols, .social-cols.is-two { grid-template-columns: 1fr; }
   /* perfil: as ações descem pra baixo do nome; a % fica em cima do porquê */
   .social-prof-head { flex-wrap: wrap; padding: var(--mr-space-4); }

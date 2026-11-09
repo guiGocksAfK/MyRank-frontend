@@ -8,7 +8,8 @@ import TakeComposer from './TakeComposer';
 import ActivityCard from './ActivityCard';
 import SocialEmpty from './SocialEmpty';
 
-export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople }) {
+/** `onItems`: avisa o que foi carregado, pro trilho montar o "Em alta". */
+export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople, onItems }) {
   const { t } = useLanguage();
   const tf = t.social.feed;
   const [items, setItems] = useState(null);
@@ -35,6 +36,7 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople }) {
   }, []);
 
   useEffect(load, [load]);
+  useEffect(() => { onItems?.(items); }, [items, onItems]);
 
   const handleReact = useCallback(
     (activityId, kind) => socialApi.react(activityId, kind),
