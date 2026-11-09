@@ -150,6 +150,19 @@
 .social-work-title { overflow: hidden; font-size: var(--mr-text-sm); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .social-work-type { display: inline-flex; align-items: center; gap: 5px; color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
 .social-work-top { color: var(--mr-gold); font-weight: 800; }
+/* a nota de quem postou e, se você também avaliou, a sua embaixo */
+.social-work-scores { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: 3px; }
+.social-work-mine { color: var(--mr-text-muted); font-size: var(--mr-text-xs); white-space: nowrap; }
+.social-work-mine b { color: var(--mr-text); font-weight: 700; font-variant-numeric: tabular-nums; }
+.social-work-clash {
+  padding: 0 6px;
+  border: 1px solid color-mix(in srgb, var(--mr-red) 45%, transparent);
+  border-radius: 999px;
+  color: var(--mr-red);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
 .social-work-score {
   flex: none;
   padding: 2px 8px;
@@ -484,6 +497,7 @@
 .social-person-text { display: flex; flex-direction: column; min-width: 0; }
 .social-person-name { overflow: hidden; font-size: var(--mr-text-sm); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .social-person-main:not(.is-static):hover .social-person-name { color: var(--mr-gold); }
+.social-match { color: var(--mr-gold); font-weight: 700; }
 .social-person-meta { overflow: hidden; color: var(--mr-text-muted); font-size: var(--mr-text-xs); text-overflow: ellipsis; white-space: nowrap; }
 .social-group-icon {
   display: grid;

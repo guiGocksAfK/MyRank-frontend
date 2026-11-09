@@ -18,15 +18,18 @@ import { decorateUser, decorateFeedItem, decorateComment } from './socialData';
 const wait = (ms = 250) => new Promise((r) => setTimeout(r, ms));
 const hoursAgo = (h) => new Date(Date.now() - h * 3600_000).toISOString();
 
-// pessoas inventadas
+// pessoas inventadas (sharedCount/matchPct: o gosto parecido que o backend calcularia;
+// pedro tem só 2 em comum, então mostra obras e média; ana é privada)
 const PEOPLE = [
-  { id: 9001, username: 'marina', bio: 'Jogo de tudo, termino quase nada.', worksCount: 84, avgScore: 7.9, isPublic: true },
-  { id: 9002, username: 'lucas', bio: 'Cinéfilo de fim de semana.', worksCount: 41, avgScore: 8.2, isPublic: true },
-  { id: 9003, username: 'pedro', bio: '', worksCount: 23, avgScore: 7.1, isPublic: true },
-  { id: 9004, username: 'julia', bio: 'Anime > tudo', worksCount: 132, avgScore: 8.6, isPublic: true },
-  { id: 9005, username: 'ana', bio: 'Leio mais do que devia.', worksCount: 57, avgScore: 8.0, isPublic: false },
-  { id: 9006, username: 'rafa', bio: 'Dou 10 fácil.', worksCount: 19, avgScore: 9.1, isPublic: true },
+  { id: 9001, username: 'marina', bio: 'Jogo de tudo, termino quase nada.', worksCount: 84, avgScore: 7.9, isPublic: true, sharedCount: 14, matchPct: 82 },
+  { id: 9002, username: 'lucas', bio: 'Cinéfilo de fim de semana.', worksCount: 41, avgScore: 8.2, isPublic: true, sharedCount: 9, matchPct: 91 },
+  { id: 9003, username: 'pedro', bio: '', worksCount: 23, avgScore: 7.1, isPublic: true, sharedCount: 2, matchPct: null },
+  { id: 9004, username: 'julia', bio: 'Anime > tudo', worksCount: 132, avgScore: 8.6, isPublic: true, sharedCount: 31, matchPct: 64 },
+  { id: 9005, username: 'ana', bio: 'Leio mais do que devia.', worksCount: 57, avgScore: 8.0, isPublic: false, sharedCount: 0, matchPct: null },
+  { id: 9006, username: 'rafa', bio: 'Dou 10 fácil.', worksCount: 19, avgScore: 9.1, isPublic: true, sharedCount: 6, matchPct: 73 },
 ];
+// mesma ordem do backend: mais parecido primeiro, sem % no fim
+const byMatch = (a, b) => (b.matchPct ?? -1) - (a.matchPct ?? -1) || b.sharedCount - a.sharedCount;
 
 const TAKES = [
   'Lindo, mas arrastado demais no meio. Quase larguei.',
@@ -127,7 +130,7 @@ export const mockApi = {
   async getSuggestions() {
     const s = await world();
     await wait();
-    return [...s.users.values()].filter((u) => !u.following && !s.requests.includes(u.id)).map(asUser);
+    return [...s.users.values()].filter((u) => !u.following && !s.requests.includes(u.id)).sort(byMatch).map(asUser);
   },
   async searchUsers(q) {
     const s = await world();

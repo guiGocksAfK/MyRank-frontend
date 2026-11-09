@@ -4,13 +4,21 @@ import { useLanguage } from '../../shared/i18n';
 import { socialApi } from './socialData';
 import SocialAvatar from './SocialAvatar';
 
-/** Pessoa numa linha: foto + nome (abre o perfil) e a ação à direita. */
+/** Pessoa numa linha: foto + nome (abre o perfil), o gosto parecido e a ação à direita. */
 function Person({ u, onOpen, children }) {
+  const { t } = useLanguage();
   return (
     <div className="social-person">
       <button type="button" className="social-person-main" onClick={() => onOpen?.(u.id)}>
         <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={32} />
-        <span className="social-person-name">{u.username}</span>
+        <span className="social-person-text">
+          <span className="social-person-name">{u.username}</span>
+          {u.matchPct != null && (
+            <span className="social-person-meta">
+              <b className="social-match">{t.social.people.match.replace('{pct}', u.matchPct)}</b>
+            </span>
+          )}
+        </span>
       </button>
       {children}
     </div>

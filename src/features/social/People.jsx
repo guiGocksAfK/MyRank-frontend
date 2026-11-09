@@ -10,7 +10,10 @@ import SocialEmpty from './SocialEmpty';
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 const avg = (n, locale) => Number(n || 0).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-/** Pessoa: foto, nome, obras e média; a ação (Comparar / Seguir) à direita. */
+/**
+ * Pessoa: foto, nome e, embaixo, o gosto parecido com o seu (com 3+ obras em
+ * comum) ou as obras e a média; a ação (Comparar / Seguir) à direita.
+ */
 function PersonRow({ u, onOpen, children }) {
   const { t, locale } = useLanguage();
   return (
@@ -20,7 +23,15 @@ function PersonRow({ u, onOpen, children }) {
         <span className="social-person-text">
           <span className="social-person-name">{u.username}</span>
           <span className="social-person-meta">
-            {fmt(t.social.people.stats, { works: u.stats.works, avg: avg(u.stats.avgScore, locale) })}
+            {u.matchPct != null ? (
+              <>
+                <b className="social-match">{fmt(t.social.people.match, { pct: u.matchPct })}</b>
+                {' · '}
+                {fmt(t.social.people.inCommon, { n: u.sharedCount })}
+              </>
+            ) : (
+              fmt(t.social.people.stats, { works: u.stats.works, avg: avg(u.stats.avgScore, locale) })
+            )}
           </span>
         </span>
       </button>
