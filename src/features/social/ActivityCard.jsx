@@ -7,7 +7,6 @@ import { socialApi, typeIconFor } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import ConfirmModal from '../../shared/components/ConfirmModal';
-import BadgeIcon from '../../shared/badgeIcons';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -15,11 +14,10 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
 const CLASH_GAP = 2;
 
 /**
- * A obra em destaque: capa, título, tipo e a nota em dourado. É o que a
- * pessoa avaliou, adicionou ou comentou; a capa faz o feed ser lido de relance.
- * Se você também avaliou a obra, a sua nota aparece embaixo da dela.
+ * A obra do take: capa, título, tipo e a nota em dourado; a capa faz o feed ser
+ * lido de relance. Se você também avaliou a obra, a sua nota aparece embaixo.
  */
-function WorkRow({ work, rankTop, myScore }) {
+function WorkRow({ work, myScore }) {
   const { t, locale } = useLanguage();
   if (!work?.title) return null;
   const note = (n) => Number(n).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -37,7 +35,6 @@ function WorkRow({ work, rankTop, myScore }) {
         <span className="social-work-type">
           {typeIconFor(work.type, 12)}
           {t.common.mediaTypes[work.type] || work.type}
-          {rankTop && <span className="social-work-top">#1</span>}
           {clash && <span className="social-work-clash">{t.social.act.clash}</span>}
         </span>
       </span>
@@ -55,34 +52,44 @@ function WorkRow({ work, rankTop, myScore }) {
   );
 }
 
-/** Conteúdo de cada tipo de atividade, abaixo do cabeçalho com o verbo. */
-function Body({ item, myScore }) {
-  switch (item.type) {
-    case 'RATED':
-    case 'ADDED':
-      return <WorkRow work={item.work} myScore={myScore} />;
-    case 'MOVED_TOP':
-      return <WorkRow work={item.work} rankTop myScore={myScore} />;
-    case 'BADGE':
-      return (
-        <div className="social-badge-row">
-          <span className="social-badge-icon"><BadgeIcon code={item.badge?.code} /></span>
-          <strong>{item.badge?.name}</strong>
-        </div>
-      );
-    case 'TAKE':
-      return (
-        <>
-          <WorkRow work={item.work} myScore={myScore} />
-          <p className="social-take-text">{item.text}</p>
-        </>
-      );
-    default:
-      return null;
-  }
+/**
+ * "Avaliou N obras": as capas lado a lado com a nota embaixo, e um "+N" quando
+ * o dia teve mais obras do que as capas que vieram.
+ */
+function RatedDay({ item }) {
+  const { locale } = useLanguage();
+  const works = item.works || [];
+  const more = (item.workCount || works.length) - works.length;
+  return (
+    <ul className="social-day">
+      {works.map((w) => (
+        <li key={w.id} className="social-day-work" title={w.title}>
+          <span className="social-day-cover">
+            {w.imageUrl
+              ? <img src={w.imageUrl} alt={w.title} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              : typeIconFor(w.type, 18)}
+          </span>
+          {w.score != null && (
+            <span className="social-day-score">
+              {Number(w.score).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+            </span>
+          )}
+        </li>
+      ))}
+      {more > 0 && (
+        <li className="social-day-work">
+          <span className="social-day-cover is-more">+{more}</span>
+        </li>
+      )}
+    </ul>
+  );
 }
 
-export default function ActivityCard({ item, myScore, onReact, onOpenUser, onEdited, onDeleted }) {
+/**
+ * Um card do feed: um take (com reações e comentários) ou as avaliações de uma
+ * pessoa num dia, juntas (sem reação: não é um post).
+ */
+export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onEdited, onDeleted }) {
   const { lang, t } = useLanguage();
   const tt = t.social.take;
   const verbs = t.social.act.verbs;
@@ -97,8 +104,9 @@ export default function ActivityCard({ item, myScore, onReact, onOpenUser, onEdi
   const isTake = item.type === 'TAKE' && item.takeId != null;
   const canManage = isTake && item.canManage;
   const openUser = () => onOpenUser?.(item.actor.id);
-  const verb = item.type === 'WEEKLY'
-    ? fmt(verbs.WEEKLY, { n: item.summary?.count ?? 0 })
+  const isDay = item.type === 'RATED_DAY';
+  const verb = isDay
+    ? fmt(item.workCount === 1 ? verbs.RATED_DAY_ONE : verbs.RATED_DAY, { n: item.workCount })
     : verbs[item.type] || '';
 
   async function saveEdit(e) {
@@ -173,14 +181,19 @@ export default function ActivityCard({ item, myScore, onReact, onOpenUser, onEdi
               </button>
             </div>
           </form>
+        ) : isDay ? (
+          <RatedDay item={item} />
         ) : (
-          <Body item={{ ...item, text }} myScore={myScore} />
+          <>
+            <WorkRow work={item.work} myScore={myScoreOf?.(item.work)} />
+            <p className="social-take-text">{text}</p>
+          </>
         )}
       </div>
 
-      <div className="social-card-actions">
-        <ReactionBar reactions={item.reactions} onReact={(kind) => onReact(item.id, kind)} />
-        {isTake && (
+      {isTake && (
+        <div className="social-card-actions">
+          <ReactionBar reactions={item.reactions} onReact={(kind) => onReact(item.id, kind)} />
           <button
             type="button"
             className="social-react-btn"
@@ -193,16 +206,16 @@ export default function ActivityCard({ item, myScore, onReact, onOpenUser, onEdi
             <span className="social-react-label">{t.social.comments.label}</span>
             {commentCount > 0 && <span className="social-react-count">{commentCount}</span>}
           </button>
-        )}
-        {canManage && !editing && (
-          <div className="social-take-manage">
-            <button type="button" onClick={() => { setDraft(text || ''); setEditing(true); }}>
-              {tt.edit}
-            </button>
-            <button type="button" className="is-danger" onClick={() => setConfirmingDelete(true)}>{tt.delete}</button>
-          </div>
-        )}
-      </div>
+          {canManage && !editing && (
+            <div className="social-take-manage">
+              <button type="button" onClick={() => { setDraft(text || ''); setEditing(true); }}>
+                {tt.edit}
+              </button>
+              <button type="button" className="is-danger" onClick={() => setConfirmingDelete(true)}>{tt.delete}</button>
+            </div>
+          )}
+        </div>
+      )}
 
       {isTake && showComments && (
         <TakeComments

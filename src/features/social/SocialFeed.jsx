@@ -24,9 +24,10 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople }) {
     });
     return map;
   }, [myItems]);
-  const myScoreFor = (item) => {
-    if (!item.work?.title || item.actor?.username === user?.username) return null;
-    return myScores.get(normTitle(item.work.title)) ?? null;
+  // nos seus próprios posts não faz sentido comparar
+  const myScoreOf = (item) => (work) => {
+    if (!work?.title || item.actor?.username === user?.username) return null;
+    return myScores.get(normTitle(work.title)) ?? null;
   };
 
   const load = useCallback(() => {
@@ -72,7 +73,7 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople }) {
           <ActivityCard
             key={item.id}
             item={item}
-            myScore={myScoreFor(item)}
+            myScoreOf={myScoreOf(item)}
             onReact={handleReact}
             onOpenUser={onOpenUser}
             onEdited={handleEdited}

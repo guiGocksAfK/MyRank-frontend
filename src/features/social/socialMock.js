@@ -4,7 +4,7 @@
  * Como o site ainda não tem outros usuários, a Social aparece quase toda vazia.
  * Com o interruptor "Dados de teste" ligado (só existe no `npm run dev`), o
  * `socialApi` responde daqui em vez do backend: umas pessoas inventadas, takes,
- * avaliações e grupos. As obras e capas são as SUAS (de /works/unified), com
+ * avaliações do dia e grupos. As obras e capas são as SUAS (de /works/unified), com
  * notas diferentes, pra ficar com cara de verdade.
  *
  * Nada aqui vai pro backend e nada disso entra no build de produção (o
@@ -36,6 +36,9 @@ const TAKES = [
   'Revi ontem e continua impecável. Não tem uma cena sobrando.',
   'Todo mundo fala bem, mas o final me deixou frio.',
   'Subestimado demais. Merecia mais gente falando disso.',
+  'A trilha sonora carrega metade da nota. Sem ela seria um 6.',
+  'Comecei sem expectativa nenhuma e virou um dos meus favoritos.',
+  'Bonito de ver, mas a história não se sustenta.',
 ];
 
 const COMMENTS = [
@@ -73,23 +76,33 @@ async function world() {
 
   let nextId = 1;
   const reactions = (up, agree, disagree, mine = null) => ({ up, agree, disagree, mine });
+  // como o feed de verdade: só takes (avaliar, adicionar e conquistas não entram)
   const feed = [
-    { type: 'TAKE', actor: 9001, h: 2, w: pick(0), k: 0, text: TAKES[0], comments: 2, r: reactions(4, 18, 31) },
-    { type: 'RATED', actor: 9002, h: 5, w: pick(1), k: 1, r: reactions(6, 0, 0) },
-    { type: 'BADGE', actor: 9006, h: 9, badge: { code: 'first_ten', name: 'Primeiro 10' }, r: reactions(3, 0, 0) },
-    { type: 'TAKE', actor: 9002, h: 20, w: pick(2), k: 2, text: TAKES[1], comments: 1, r: reactions(9, 5, 1, 'agree') },
-    { type: 'MOVED_TOP', actor: 9001, h: 30, w: pick(3), k: 3, r: reactions(2, 0, 0) },
-    { type: 'ADDED', actor: 9006, h: 52, w: pick(4), k: 4, r: reactions(0, 0, 0) },
-    { type: 'TAKE', actor: 9006, h: 70, w: pick(5), k: 0, text: TAKES[3], comments: 0, r: reactions(1, 2, 0) },
+    { actor: 9001, h: 2, w: pick(0), k: 0, text: TAKES[0], comments: 2, r: reactions(4, 18, 31) },
+    { actor: 9002, h: 5, w: pick(1), k: 1, text: TAKES[4], comments: 0, r: reactions(6, 2, 0) },
+    { actor: 9004, h: 9, w: pick(6), k: 3, text: TAKES[5], comments: 1, r: reactions(3, 1, 0) },
+    { actor: 9002, h: 20, w: pick(2), k: 2, text: TAKES[1], comments: 1, r: reactions(9, 5, 1, 'agree') },
+    { actor: 9006, h: 52, w: pick(4), k: 4, text: TAKES[6], comments: 0, r: reactions(0, 1, 4) },
+    { actor: 9001, h: 61, w: pick(3), k: 2, text: TAKES[2], comments: 0, r: reactions(2, 0, 3) },
+    { actor: 9006, h: 70, w: pick(5), k: 0, text: TAKES[3], comments: 0, r: reactions(1, 2, 0) },
   ].map((e) => {
     const id = nextId++;
     const work = e.w ? { ...e.w, score: theirScore(e.w, e.k) } : null;
     return {
-      id, type: e.type, createdAt: hoursAgo(e.h), actor: users.get(e.actor), work, badge: e.badge || null,
-      takeText: e.text ?? null, takeId: e.type === 'TAKE' ? 500 + id : null, commentCount: e.comments ?? 0,
+      id, type: 'TAKE', createdAt: hoursAgo(e.h), actor: users.get(e.actor), work, badge: null,
+      takeText: e.text, takeId: 500 + id, commentCount: e.comments,
       takeEdited: false, canManage: false, reactions: e.r,
     };
   });
+
+  // avaliações do dia juntas num card, como o backend manda (id negativo, sem reação)
+  const day = (actor, h, from, n, total) => ({
+    id: -(900 + from), type: 'RATED_DAY', createdAt: hoursAgo(h), actor: users.get(actor),
+    works: Array.from({ length: n }, (_, i) => ({ ...pick(from + i), score: theirScore(pick(from + i), i) })),
+    workCount: total,
+  });
+  feed.push(day(9002, 12, 3, 5, 5), day(9001, 40, 0, 8, 11));
+  feed.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const comments = new Map();
   feed.filter((f) => f.takeId).forEach((f, i) => {

@@ -80,13 +80,15 @@ export function decorateFeedItem(it) {
       : it.score != null
         ? { score: it.score }
         : null,
-    badge: it.badge ? { code: it.badge.code, icon: it.badge.icon, name: it.badge.name } : null,
     text: it.takeText ?? null,
     takeId: it.takeId ?? null,
     commentCount: it.commentCount ?? 0,
     takeEdited: !!it.takeEdited,
     canManage: !!it.canManage,
     reactions: it.reactions || { up: 0, agree: 0, disagree: 0, mine: null },
+    // RATED_DAY: as obras avaliadas no dia (até 8) e o total
+    works: it.works || [],
+    workCount: it.workCount ?? 0,
   };
 }
 
