@@ -62,22 +62,24 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
     setTab('chat');
   }, [initialConvId]);
 
-  const openProfile = (userId) => setView({ kind: 'profile', userId });
-  const openCompare = (userId) => setView({ kind: 'compare', userId });
-  const openConnections = (which) => setView({ kind: 'connections', tab: which });
-  const backToTabs = () => setView({ kind: 'tabs' });
+  // cada tela lembra de onde veio (`from`): o Voltar do Comparar aberto pelo
+  // perfil volta pro perfil, e o do perfil aberto pelos seguidores volta pra lista
+  const openProfile = (userId) => setView((cur) => ({ kind: 'profile', userId, from: cur }));
+  const openCompare = (userId) => setView((cur) => ({ kind: 'compare', userId, from: cur }));
+  const openConnections = (which) => setView((cur) => ({ kind: 'connections', tab: which, from: cur }));
+  const goBack = () => setView((cur) => cur.from || { kind: 'tabs' });
 
   const toggleFollow = async (userId) => socialApi.toggleFollow(userId);
 
   let content;
   if (view.kind === 'profile') {
     content = (
-      <UserProfileView userId={view.userId} onBack={backToTabs} onCompare={openCompare} onToggleFollow={toggleFollow} />
+      <UserProfileView userId={view.userId} onBack={goBack} onCompare={openCompare} onToggleFollow={toggleFollow} />
     );
   } else if (view.kind === 'compare') {
-    content = <CompareView userId={view.userId} onBack={backToTabs} onOpenUser={openProfile} />;
+    content = <CompareView userId={view.userId} onBack={goBack} onOpenUser={openProfile} />;
   } else if (view.kind === 'connections') {
-    content = <ConnectionsView initialTab={view.tab} onBack={backToTabs} onOpenUser={openProfile} onCompare={openCompare} />;
+    content = <ConnectionsView initialTab={view.tab} onBack={goBack} onOpenUser={openProfile} onCompare={openCompare} />;
   } else {
     content = (
       <>
