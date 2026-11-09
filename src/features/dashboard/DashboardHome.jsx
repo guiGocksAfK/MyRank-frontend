@@ -233,6 +233,9 @@ export default function DashboardHome({ onNavigate }) {
             </div>
             <button
               className={`mr-switch ${weighted ? 'checked' : ''}`}
+              type="button"
+              role="switch"
+              aria-checked={weighted}
               onClick={() => setWeighted((prev) => !prev)}
               aria-label="Ativar ponderação por tempo"
             >
