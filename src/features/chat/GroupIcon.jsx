@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 /** Ícone de grupo: foto (URL) quando tem, senão iniciais do nome num círculo. */
 export default function GroupIcon({ name, imageUrl, className = 'chat-conv-avatar' }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [imageUrl]);
+  // guarda QUAL endereço falhou: trocou a foto, o erro antigo deixa de valer sozinho
+  const [failedUrl, setFailedUrl] = useState(null);
+  const failed = failedUrl === imageUrl;
 
   const initials =
     (name || '?')
@@ -17,7 +18,7 @@ export default function GroupIcon({ name, imageUrl, className = 'chat-conv-avata
   if (imageUrl && !failed) {
     return (
       <div className={className} aria-hidden="true">
-        <img src={imageUrl} alt="" onError={() => setFailed(true)} />
+        <img src={imageUrl} alt="" onError={() => setFailedUrl(imageUrl)} />
       </div>
     );
   }

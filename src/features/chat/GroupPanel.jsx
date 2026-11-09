@@ -43,7 +43,9 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
   const [photo, setPhoto] = useState(conversation.imageUrl || '');
   const [access, setAccess] = useState(conversation.access);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
+  const [found, setFound] = useState([]);
+  // busca curta demais não mostra nada (sem precisar limpar o estado)
+  const results = query.trim().length < 2 ? [] : found;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [inviteToken, setInviteToken] = useState(null);
@@ -88,14 +90,11 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
 
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) {
-      setResults([]);
-      return undefined;
-    }
+    if (q.length < 2) return undefined;
     let active = true;
     const id = setTimeout(() => {
       // só quem se segue mutuamente entra direto; o resto vem pelo link de convite (o back confere)
-      socialApi.searchUsers(q).then((r) => active && setResults(r.filter((u) => u.following && u.followsYou))).catch(() => {});
+      socialApi.searchUsers(q).then((r) => active && setFound(r.filter((u) => u.following && u.followsYou))).catch(() => {});
     }, 250);
     return () => {
       active = false;
@@ -407,7 +406,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
                           run(async () => {
                             await addMembers(conversation.id, [u.id]);
                             setQuery('');
-                            setResults([]);
+                            setFound([]);
                           })
                         }
                         disabled={busy}

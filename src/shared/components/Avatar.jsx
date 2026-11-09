@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { avatarUrlFor } from '../../services/userService';
 
 const initialsFrom = (value) =>
@@ -19,16 +19,16 @@ const initialsFrom = (value) =>
  */
 export default function Avatar({ user, cacheKey, className = 'mr-avatar', imgClassName = 'mr-avatar-img' }) {
   const src = avatarUrlFor(user, cacheKey);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => { setFailed(false); }, [src]);
+  // guarda QUAL endereço falhou: trocou a foto, o erro antigo deixa de valer sozinho
+  const [failedSrc, setFailedSrc] = useState(null);
+  const failed = failedSrc === src;
 
   const initials = initialsFrom(user?.username);
 
   return (
     <div className={className} aria-label={user?.username ? `Foto de ${user.username}` : 'Foto de perfil'}>
       {src && !failed
-        ? <img src={src} alt="" className={imgClassName} onError={() => setFailed(true)} />
+        ? <img src={src} alt="" className={imgClassName} onError={() => setFailedSrc(src)} />
         : initials}
     </div>
   );

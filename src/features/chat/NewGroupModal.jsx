@@ -19,21 +19,20 @@ export default function NewGroupModal({ onClose, onCreated }) {
   const [imageUrl, setImageUrl] = useState('');
   const [access, setAccess] = useState('REQUEST');
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
+  const [found, setFound] = useState([]);
+  // busca curta demais não mostra nada (sem precisar limpar o estado)
+  const results = query.trim().length < 2 ? [] : found;
   const [selected, setSelected] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) {
-      setResults([]);
-      return undefined;
-    }
+    if (q.length < 2) return undefined;
     let active = true;
     const id = setTimeout(() => {
       // só quem se segue mutuamente entra direto; o resto vem pelo link de convite (o back confere)
-      socialApi.searchUsers(q).then((r) => active && setResults(r.filter((u) => u.following && u.followsYou))).catch(() => {});
+      socialApi.searchUsers(q).then((r) => active && setFound(r.filter((u) => u.following && u.followsYou))).catch(() => {});
     }, 250);
     return () => {
       active = false;
