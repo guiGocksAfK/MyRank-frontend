@@ -11,6 +11,8 @@ const UserContext = createContext(null);
 export function UserProvider({ children }) {
   const [user, setUserState] = useState(null);
   const [loading, setLoading] = useState(true);
+  // /users/me falhou (rede, servidor fora): não é o mesmo que estar deslogado
+  const [error, setError] = useState(false);
   const { setLang } = useLanguage();
 
   const setUser = useCallback((next) => {
@@ -24,11 +26,13 @@ export function UserProvider({ children }) {
   const refreshUser = useCallback(async () => {
     try {
       const fresh = await getMe();
+      setError(false);
       setUser(fresh);
       // Idioma salvo no banco manda: sincroniza sem re-persistir.
       if (fresh?.language) setLang(fresh.language, { persist: false });
       return fresh;
     } catch {
+      setError(true);
       return null;
     } finally {
       setLoading(false);
@@ -38,7 +42,7 @@ export function UserProvider({ children }) {
   useEffect(() => { refreshUser(); }, [refreshUser]);
 
   return (
-    <UserContext.Provider value={{ user, loading, setUser, refreshUser }}>
+    <UserContext.Provider value={{ user, loading, error, setUser, refreshUser }}>
       {children}
     </UserContext.Provider>
   );
@@ -48,6 +52,7 @@ export function useUser() {
   return useContext(UserContext) ?? {
     user: null,
     loading: false,
+    error: false,
     setUser: () => {},
     refreshUser: async () => null,
   };
