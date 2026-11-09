@@ -64,6 +64,7 @@ const LoginPage = () => {
                 type="email"
                 placeholder={tAuth.emailPlaceholder}
                 autoComplete="email"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -76,13 +77,14 @@ const LoginPage = () => {
                 name="password"
                 placeholder="••••••••"
                 autoComplete="current-password"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </label>
           </div>
 
-          {error && <p className="auth-error">{error}</p>}
+          {error && <p className="auth-error" role="alert">{error}</p>}
           {notVerified && <ResendVerification email={email.trim()} />}
 
           <Link className="auth-forgot" to="/esqueci-senha">

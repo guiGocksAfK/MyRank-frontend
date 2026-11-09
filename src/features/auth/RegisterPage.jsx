@@ -188,7 +188,7 @@ const RegisterPage = () => {
                 />
               </label>
 
-              {error && <p className="auth-error">{error}</p>}
+              {error && <p className="auth-error" role="alert">{error}</p>}
               {notice && <p className="auth-resend-note">{notice}</p>}
 
               <div className="auth-button-row">
@@ -236,7 +236,7 @@ const RegisterPage = () => {
                     />
                   </label>
 
-                  {error && <p className="auth-error">{error}</p>}
+                  {error && <p className="auth-error" role="alert">{error}</p>}
 
                   <button
                     className="mr-btn mr-btn-gold auth-submit auth-submit--compact"
@@ -304,7 +304,7 @@ const RegisterPage = () => {
                 </label>
               </div>
 
-              {error && <p className="auth-error">{error}</p>}
+              {error && <p className="auth-error" role="alert">{error}</p>}
 
               <div className="auth-button-row">
                 <button className="auth-secondary-button" type="button" onClick={backToEmail}>
