@@ -53,7 +53,75 @@
 
 .myrank-light .navbar-logo span:first-child { color: var(--mr-text); }
 .myrank-light .navbar-logo span:last-child { color: var(--mr-gold); }
-.myrank-light .mr-menu { background: rgba(255, 255, 255, 0.95); }
+.myrank-light .mr-menu,
+.myrank-light .rk-fmenu-list,
+.myrank-light .rk-ftype-menu,
+.myrank-light .mr-select-menu {
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.14);
+}
+.myrank-light .mr-panel {
+  background: var(--mr-surface);
+  border-color: var(--mr-border);
+  box-shadow: var(--mr-card-shadow);
+}
+.myrank-light .mr-dialog {
+  background: var(--mr-surface);
+  border-color: var(--mr-border);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+}
+.myrank-light .mr-infotip-pop {
+  background: var(--mr-surface);
+  border-color: var(--mr-border);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+}
+.myrank-light .dash-stat + .dash-stat,
+.myrank-light .dash-row + .dash-row,
+.myrank-light .rk-row,
+.myrank-light .pf-types tbody tr + tr,
+.myrank-light .rk-coll-body,
+.myrank-light .rk-fields li + li,
+.myrank-light .rk-coll .rk-fields li:last-child {
+  border-color: var(--mr-border-light);
+}
+.myrank-light .dash-reco-item {
+  border-color: var(--mr-border);
+}
+.myrank-light .dash-thumb {
+  background: var(--mr-muted-bg);
+}
+.myrank-light .rk-search,
+.myrank-light .rk-range-fields label,
+.myrank-light .rk-coll,
+.myrank-light .rk-fields,
+.myrank-light .rk-chip-input {
+  background: var(--mr-input-bg);
+  border-color: var(--mr-border);
+}
+.myrank-light .rk-range-fields input {
+  color-scheme: light;
+}
+.myrank-light .rk-histo span { background: rgba(15, 23, 42, 0.12); }
+.myrank-light .rk-histo span.is-empty { background: rgba(15, 23, 42, 0.07); }
+.myrank-light .rk-range-slider input::-webkit-slider-thumb { border-color: var(--mr-surface); }
+.myrank-light .rk-range-slider input::-moz-range-thumb { border-color: var(--mr-surface); }
+.myrank-light .ai-bar {
+  background: color-mix(in srgb, var(--mr-surface) 90%, transparent);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+}
+.myrank-light .ir-reco { background: var(--mr-surface); border-color: var(--mr-border); }
+.myrank-light .ir-reco-cover { background: linear-gradient(145deg, #eef0f2, #dcdfe4); }
+.myrank-light .ir-bubble { background: var(--mr-bubble-in); }
+.myrank-light .ir-composer { background: var(--mr-surface); border-color: var(--mr-border); }
+.myrank-light .pf-split-tip,
+.myrank-light .pf-dotcard {
+  background: var(--mr-surface);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+}
+.myrank-light .pf-photo-pencil {
+  background: var(--mr-muted-bg);
+  border-color: var(--mr-surface);
+}
 
 /* Trilhos de toggle/slider — o #1e1e1e some no claro */
 .myrank-light .mr-switch { background: #d3d7dd; }

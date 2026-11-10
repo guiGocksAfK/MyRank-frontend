@@ -278,7 +278,8 @@ function InsightChat({ insightId, initialChat, dailyLimit, dailyRemaining, onRes
   const canSend = remaining > 0 && !sending;
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: reduced ? 'auto' : 'smooth' });
   }, [thread, sending]);
 
   // a caixa cresce com o texto (até um teto), como no chat do Claude
