@@ -20,7 +20,8 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
  * na Dashboard (números, Hall da fama) se repete aqui. Tema, idioma, privacidade
  * e conta ficam numa página própria (o ⚙).
  */
-export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = false }) {
+/** `onSettingsBack`: as Configurações vieram de outra tela (Social); o Voltar delas volta pra lá. */
+export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = false, onSettingsBack }) {
   const { t, locale } = useLanguage();
   const tp = t.profile;
   const { setUser } = useUser();
@@ -54,7 +55,11 @@ export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = 
   const { badges, loading: loadingBadges } = useBadges();
 
   const openSettings = () => { setView('settings'); window.scrollTo({ top: 0 }); };
-  const closeSettings = () => { setView('profile'); window.scrollTo({ top: 0 }); };
+  const closeSettings = () => {
+    if (onSettingsBack) { onSettingsBack(); return; }
+    setView('profile');
+    window.scrollTo({ top: 0 });
+  };
 
   if (loading) return <p className="pf-muted">{tp.loading}</p>;
   if (error || !profile) return <p className="pf-muted">{error || tp.loadError}</p>;
@@ -67,6 +72,7 @@ export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = 
         isDark={isDark}
         onThemeToggle={onThemeToggle}
         onBack={closeSettings}
+        backLabel={onSettingsBack ? t.social.connections.back : undefined}
       />
     );
   }
