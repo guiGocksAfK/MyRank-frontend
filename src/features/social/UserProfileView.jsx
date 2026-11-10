@@ -1,29 +1,35 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Lock, MessageSquare, Scale } from 'lucide-react';
+import { ArrowLeft, Lock, MessageSquare, Pencil, Scale } from 'lucide-react';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
+import { useUser } from '../../shared/userContext';
+import EditProfileModal from '../profile/EditProfileModal';
+import SelfQuickSettings from './SelfQuickSettings';
 import { BADGE_I18N } from '../../shared/badgeI18n';
 import BadgeIcon from '../../shared/badgeIcons';
-import { socialApi, computeTasteMatch, normTitle, typeIconFor } from './socialData';
+import { socialApi, computeTasteMatch, tasteKey, typeIconFor, MATCH_MIN_SHARED } from './socialData';
 import SocialAvatar from './SocialAvatar';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
-/** Mesmo corte do backend: com menos que isso em comum, a % ainda não diz nada. */
-const MATCH_MIN_SHARED = 3;
 
 /**
- * Perfil de outra pessoa: cabeçalho com as ações, o gosto parecido com o seu,
- * as obras do topo (com a sua nota ao lado, quando você também avaliou), a
+ * Perfil de alguém na Social: cabeçalho com as ações, o gosto parecido com o
+ * seu, as obras do topo (com a sua nota ao lado, quando você também avaliou), a
  * divisão por tipo e as conquistas. Perfil privado que você não segue mostra
  * só o cabeçalho.
+ * O seu próprio perfil abre igual, "como os outros veem", com Editar perfil e
+ * os ajustes rápidos no lugar de seguir, comparar e o gosto parecido.
  */
-export default function UserProfileView({ userId, onBack, onCompare, onToggleFollow }) {
+export default function UserProfileView({ userId, onBack, onCompare, onToggleFollow, onNavigate }) {
   const { t, lang, locale } = useLanguage();
   const tv = t.social.profile;
   const { openChatWith } = useChat();
+  const { user, setUser } = useUser();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [reload, setReload] = useState(0); // recarrega depois de editar o seu perfil
   const { items: myItems } = useUnifiedItems();
 
   useEffect(() => {
@@ -32,7 +38,13 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
       .then((p) => { if (alive) setProfile(p); })
       .catch(() => { if (alive) setError(true); });
     return () => { alive = false; };
-  }, [userId]);
+  }, [userId, reload]);
+
+  const isSelf = !!user && profile?.id === user.id;
+  const onSelfSaved = (updated) => {
+    setUser(updated);
+    setReload((n) => n + 1);
+  };
 
   const match = useMemo(
     () => (profile && myItems ? computeTasteMatch(myItems, profile.works) : null),
@@ -42,7 +54,7 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
     const map = new Map();
     (myItems || []).forEach((i) => {
       const n = Number(i.note);
-      if (i.title && Number.isFinite(n) && n > 0) map.set(normTitle(i.title), n);
+      if (i.title && Number.isFinite(n) && n > 0) map.set(tasteKey(i.title, i.type), n);
     });
     return map;
   }, [myItems]);
@@ -105,7 +117,8 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
         <div className="social-prof-who">
           <div className="social-prof-line">
             <h2 className="social-prof-name">{profile.username}</h2>
-            {profile.followsYou && <span className="social-tag">{tv.followsYou}</span>}
+            {isSelf && <span className="social-tag">{tv.selfTag}</span>}
+            {!isSelf && profile.followsYou && <span className="social-tag">{tv.followsYou}</span>}
           </div>
           {profile.bio && <p className="social-prof-bio">{profile.bio}</p>}
           <span className="social-prof-stats">
@@ -113,59 +126,81 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
           </span>
           {counts}
         </div>
-        <div className="social-prof-actions">
-          <FollowButton profile={profile} onToggleFollow={onToggleFollow} tv={tv} />
-          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => onCompare(profile.id)}>
-            <Scale size={14} strokeWidth={2} aria-hidden="true" />
-            {tv.compare}
-          </button>
-          <button
-            type="button"
-            className="mr-btn mr-btn-outline mr-btn-sm"
-            onClick={() => openChatWith({ id: profile.id, username: profile.username, avatarUrl: profile.avatarUrl })}
-          >
-            <MessageSquare size={14} strokeWidth={2} aria-hidden="true" />
-            {tv.message}
-          </button>
-        </div>
-      </section>
-
-      {/* gosto parecido: a % grande em dourado e onde vocês mais concordam/discordam */}
-      <section className="mr-panel social-prof-match">
-        {!match ? (
-          <p className="social-rail-empty">{tv.calculating}</p>
-        ) : !enough ? (
-          <p className="social-rail-empty">
-            {match.sharedCount === 0 ? tv.noCommon : fmt(tv.fewCommon, { n: match.sharedCount })}
-          </p>
+        {isSelf ? (
+          <div className="social-prof-actions">
+            <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setEditing(true)}>
+              <Pencil size={14} strokeWidth={2} aria-hidden="true" />
+              {t.profile.editProfile}
+            </button>
+          </div>
         ) : (
-          <>
-            <div className="social-prof-pct">
-              <b>{match.matchPct}%</b>
-              <span>{tv.match}</span>
-            </div>
-            <div className="social-prof-why">
-              <span className="social-prof-common">{fmt(tv.inCommon, { n: match.sharedCount })}</span>
-              {match.agreements[0] && (
-                <span>{tv.alignedIn} <strong>{match.agreements[0].title}</strong></span>
-              )}
-              {gap && (
-                <span>
-                  {tv.disagreeIn} <strong>{gap.title}</strong>{' '}
-                  <span className="social-muted">({note(gap.mine)} × {note(gap.theirs)})</span>
-                </span>
-              )}
-            </div>
-          </>
+          <div className="social-prof-actions">
+            <FollowButton profile={profile} onToggleFollow={onToggleFollow} tv={tv} />
+            <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => onCompare(profile.id)}>
+              <Scale size={14} strokeWidth={2} aria-hidden="true" />
+              {tv.compare}
+            </button>
+            <button
+              type="button"
+              className="mr-btn mr-btn-outline mr-btn-sm"
+              onClick={() => openChatWith({ id: profile.id, username: profile.username, avatarUrl: profile.avatarUrl })}
+            >
+              <MessageSquare size={14} strokeWidth={2} aria-hidden="true" />
+              {tv.message}
+            </button>
+          </div>
         )}
       </section>
+
+      {isSelf && (
+        <>
+          <p className="social-self-hint">{tv.selfHint}</p>
+          <SelfQuickSettings
+            user={user}
+            onSaved={onSelfSaved}
+            onMore={() => onNavigate?.('profile', { settings: true })}
+          />
+        </>
+      )}
+
+      {/* gosto parecido: a % grande em dourado e onde vocês mais concordam/discordam */}
+      {!isSelf && (
+        <section className="mr-panel social-prof-match">
+          {!match ? (
+            <p className="social-rail-empty">{tv.calculating}</p>
+          ) : !enough ? (
+            <p className="social-rail-empty">
+              {match.sharedCount === 0 ? tv.noCommon : fmt(tv.fewCommon, { n: match.sharedCount })}
+            </p>
+          ) : (
+            <>
+              <div className="social-prof-pct">
+                <b>{match.matchPct}%</b>
+                <span>{tv.match}</span>
+              </div>
+              <div className="social-prof-why">
+                <span className="social-prof-common">{fmt(tv.inCommon, { n: match.sharedCount })}</span>
+                {match.agreements[0] && (
+                  <span>{tv.alignedIn} <strong>{match.agreements[0].title}</strong></span>
+                )}
+                {gap && (
+                  <span>
+                    {tv.disagreeIn} <strong>{gap.title}</strong>{' '}
+                    <span className="social-muted">({note(gap.mine)} × {note(gap.theirs)})</span>
+                  </span>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
       <div className="social-prof-grid">
         <section className="mr-panel social-col">
           <h2 className="social-rail-title">{tv.topWorks}</h2>
           <ol className="social-prof-top">
             {profile.top.slice(0, 10).map((w, i) => {
-              const mine = myScores.get(normTitle(w.title));
+              const mine = isSelf ? null : myScores.get(tasteKey(w.title, w.type));
               return (
                 <li key={`${w.title}-${i}`}>
                   <span className="social-prof-rank">{i + 1}</span>
@@ -222,6 +257,14 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
           </section>
         </div>
       </div>
+
+      {editing && (
+        <EditProfileModal
+          profile={user}
+          onClose={() => setEditing(false)}
+          onSaved={(updated) => { onSelfSaved(updated); setEditing(false); }}
+        />
+      )}
     </div>
   );
 }

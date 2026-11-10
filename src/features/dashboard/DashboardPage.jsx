@@ -58,6 +58,7 @@ export default function DashboardPage() {
   const location = useLocation();
   const initialTab = VALID_TABS.includes(location.state?.tab) ? location.state.tab : 'home';
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [profileOnSettings, setProfileOnSettings] = useState(false);
   // conversa a abrir de cara (veio de /chat/invite/:token). Consumida uma vez.
   const [openConvId, setOpenConvId] = useState(location.state?.openConvId ?? null);
   const [isDark, setIsDark] = useState(readStoredTheme);
@@ -81,7 +82,9 @@ export default function DashboardPage() {
   const handleThemeToggle = () => setIsDark((prev) => !prev);
   const themeClass = isDark ? '' : 'myrank-light';
 
-  const handleTabChange = (tab) => {
+  // opts.settings: abre o Perfil já nas Configurações ("Mais ajustes" da Social)
+  const handleTabChange = (tab, opts = {}) => {
+    setProfileOnSettings(tab === 'profile' && !!opts.settings);
     setActiveTab(tab);
     if (tab === 'rankings') setRankingsVisited(true);
     setCreatorsView(false);
@@ -105,7 +108,7 @@ export default function DashboardPage() {
           ? <InsightsResult workIds={insightRun.workIds} onBack={() => { setInsightRun(null); window.scrollTo({ top: 0 }); }} />
           : <InsightsPanel onGenerate={(workIds) => { setInsightRun({ workIds }); window.scrollTo({ top: 0 }); }} />;
       case 'profile':
-        return <ProfilePanel isDark={isDark} onThemeToggle={handleThemeToggle} />;
+        return <ProfilePanel isDark={isDark} onThemeToggle={handleThemeToggle} startOnSettings={profileOnSettings} />;
       default:
         return null;
     }

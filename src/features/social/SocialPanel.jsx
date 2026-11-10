@@ -75,7 +75,7 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
   let content;
   if (view.kind === 'profile') {
     content = (
-      <UserProfileView userId={view.userId} onBack={goBack} onCompare={openCompare} onToggleFollow={toggleFollow} />
+      <UserProfileView userId={view.userId} onBack={goBack} onCompare={openCompare} onToggleFollow={toggleFollow} onNavigate={onNavigate} />
     );
   } else if (view.kind === 'compare') {
     content = <CompareView userId={view.userId} onBack={goBack} onOpenUser={openProfile} />;

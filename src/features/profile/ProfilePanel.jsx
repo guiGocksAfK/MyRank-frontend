@@ -20,7 +20,7 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
  * na Dashboard (números, Hall da fama) se repete aqui. Tema, idioma, privacidade
  * e conta ficam numa página própria (o ⚙).
  */
-export default function ProfilePanel({ isDark, onThemeToggle }) {
+export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = false }) {
   const { t, locale } = useLanguage();
   const tp = t.profile;
   const { setUser } = useUser();
@@ -32,7 +32,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
   const [summary, setSummary] = useState(null);
   const [tab, setTab] = useState('stats'); // estatísticas primeiro: é a parte mais pessoal do perfil
   const [badgeFilter, setBadgeFilter] = useState('all');
-  const [view, setView] = useState('profile'); // 'profile' | 'settings'
+  const [view, setView] = useState(startOnSettings ? 'settings' : 'profile'); // 'profile' | 'settings'
   const [editing, setEditing] = useState(false);
 
   // atualiza o perfil daqui e o usuário compartilhado (navbar, saudação da home)
