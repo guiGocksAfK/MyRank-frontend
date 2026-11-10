@@ -147,13 +147,15 @@ export function ScoreStrip({ works }) {
 
 /** Cartãozinho em cima do ponto: capinha, nome e nota. Perto das pontas, encosta pro lado de dentro. */
 function DotCard({ work, note, left, bottom }) {
+  const [failedSrc, setFailedSrc] = useState(null);
   const Icon = TEMPLATE_ICONS[work.template] ?? TEMPLATE_ICONS.custom;
   const align = left < 18 ? ' is-start' : left > 82 ? ' is-end' : '';
+  const src = work.image;
   return (
     <div className={`pf-dotcard${align}`} style={{ left: `${left}%`, bottom: `${bottom}px` }} role="status">
       <span className="pf-dotcard-cover">
-        {work.image
-          ? <img src={work.image} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+        {src && failedSrc !== src
+          ? <img src={src} alt="" onError={() => setFailedSrc(src)} />
           : <Icon size={14} strokeWidth={1.6} aria-hidden="true" />}
       </span>
       <span className="pf-dotcard-text">
@@ -174,6 +176,8 @@ function DotCard({ work, note, left, bottom }) {
 export function EraTimeline({ works }) {
   const { t, locale } = useLanguage();
   const tp = t.profile;
+  const [failedUrls, setFailedUrls] = useState(() => new Set());
+  const markFailed = (url) => setFailedUrls((prev) => new Set(prev).add(url));
   const fmtNote = (n) => num(n).toLocaleString(locale || 'pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   const byDecade = new Map();
@@ -222,8 +226,8 @@ export function EraTimeline({ works }) {
           return (
             <div key={d} className={`pf-era-col${d === top?.d ? ' is-top' : ''}${best ? '' : ' is-empty'}`}>
               <span className="pf-era-cover" title={best ? `${best.title} · ${best.year}` : undefined}>
-                {best && (best.image
-                  ? <img src={best.image} alt={best.title} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                {best && (best.image && !failedUrls.has(best.image)
+                  ? <img src={best.image} alt={best.title} loading="lazy" onError={() => markFailed(best.image)} />
                   : <Icon size={18} strokeWidth={1.4} aria-hidden="true" />)}
                 {!best && <span aria-hidden="true">—</span>}
               </span>
