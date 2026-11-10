@@ -26,6 +26,11 @@ const POLL_MS = 15_000;
 const BODY_MAX = 2000;
 const GROUP_GAP_MS = 5 * 60 * 1000; // agrupa mensagens seguidas do mesmo autor
 const PAGE_SIZE = 40;
+const ONLINE_MS = 90_000; // visto há menos que isso conta como online
+const PRESENCE_TICK_MS = 30_000;
+
+const reducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 const sameDay = (a, b) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -175,7 +180,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
   const scrollToBottom = useCallback((smooth = false) => {
     // rola só a lista interna — nunca a página (scrollIntoView arrastava a viewport)
     const el = listRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth && !reducedMotion() ? 'smooth' : 'auto' });
   }, []);
 
   const onListScroll = useCallback(() => {
@@ -187,6 +192,12 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
   const patchMessage = useCallback((updated) => {
     setMessages((prev) => (prev || []).map((m) => (m.id === updated.id ? updated : m)));
   }, []);
+
+  // Com a aba em segundo plano não marca como lida: a mensagem segue nova até a pessoa voltar.
+  const markRead = useCallback(() => {
+    if (document.hidden) return;
+    markConversationRead(conversation.id).then(refreshCount).catch(() => {});
+  }, [conversation.id, refreshCount]);
 
   const load = useCallback(
     async ({ silent = false } = {}) => {
@@ -200,13 +211,13 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
         if (!silent) setHasMore(rows.length === PAGE_SIZE);
         setMessages((prev) => (silent ? mergeRefresh(prev, rows) : rows));
         setError(null);
-        markConversationRead(conversation.id).then(refreshCount).catch(() => {});
+        markRead();
       } catch (err) {
         setError(err?.response?.data?.message || tc.loadError);
         if (!silent) setMessages([]);
       }
     },
-    [conversation.id, refreshCount, tc.loadError],
+    [conversation.id, markRead, tc.loadError],
   );
 
   const loadMore = useCallback(async () => {
@@ -249,9 +260,17 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
     return () => clearInterval(id);
   }, [typers.length]);
 
+  // Poll de fallback só com a aba visível; ao voltar pra aba, busca o que chegou e marca como lida.
   useEffect(() => {
-    const id = setInterval(() => load({ silent: true }), POLL_MS);
-    return () => clearInterval(id);
+    const tick = () => {
+      if (!document.hidden) load({ silent: true });
+    };
+    const id = setInterval(tick, POLL_MS);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', tick);
+    };
   }, [load]);
 
   // Real-time: eventos da conversa aberta via STOMP (o poll acima é só fallback).
@@ -281,7 +300,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
           if (list.some((m) => m.id === msg.id)) return list; // eco da própria mensagem
           return [...list, withMine];
         });
-        markConversationRead(conversation.id).then(refreshCount).catch(() => {});
+        markRead();
       } else if (evt.type === 'edited' || evt.type === 'deleted') {
         setMessages((prev) => (prev || []).map((m) => (m.id === msg.id ? withMine : m)));
       } else if (evt.type === 'reacted') {
@@ -297,7 +316,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
       }
     });
     return off;
-  }, [conversation.id, subscribeConversation, myId, refreshCount]);
+  }, [conversation.id, subscribeConversation, myId, markRead]);
 
   useLayoutEffect(() => {
     const el = listRef.current;
@@ -419,7 +438,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
     const rList = list.getBoundingClientRect();
     list.scrollTo({
       top: list.scrollTop + (rEl.top - rList.top) - list.clientHeight / 2 + rEl.height / 2,
-      behavior: 'smooth',
+      behavior: reducedMotion() ? 'auto' : 'smooth',
     });
     el.classList.add('is-flash');
     setTimeout(() => el.classList.remove('is-flash'), 1200);
@@ -439,14 +458,21 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
     return lastMine != null && peerReadId >= lastMine ? lastMine : null;
   }, [isGroup, peerReadId, messages]);
 
-  // Presença do outro (só DM)
+  // Presença do outro (só DM). O relógio anda a cada 30s pra "online" virar "visto há…" sozinho.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (isGroup || !conversation.peerLastSeenAt) return undefined;
+    const id = setInterval(() => setNow(Date.now()), PRESENCE_TICK_MS);
+    return () => clearInterval(id);
+  }, [isGroup, conversation.peerLastSeenAt]);
+
   const presence = useMemo(() => {
     if (isGroup) return null;
     const ls = conversation.peerLastSeenAt;
     if (!ls) return null;
-    const diff = Date.now() - new Date(ls).getTime();
-    return diff < 90_000 ? tc.online : tc.lastSeen.replace('{t}', relativeTime(ls, lang));
-  }, [isGroup, conversation.peerLastSeenAt, tc, lang]);
+    const diff = now - new Date(ls).getTime();
+    return diff < ONLINE_MS ? tc.online : tc.lastSeen.replace('{t}', relativeTime(ls, lang));
+  }, [isGroup, conversation.peerLastSeenAt, now, tc, lang]);
 
   const activeTypers = typers.filter((tp) => tp.id !== myId);
   let typingLabel = null;

@@ -1205,6 +1205,21 @@ input.chat-modal-input { max-height: none; }
   20% { box-shadow: 0 0 0 3px var(--mr-gold-20); }
 }
 
+/* sem movimento: o destaque da mensagem fica parado pelo tempo do flash */
+@media (prefers-reduced-motion: reduce) {
+  .chat-filter-btn,
+  .chat-conv,
+  .chat-foot-btn,
+  .chat-send-btn,
+  .chat-msg-toolbar {
+    transition: none;
+  }
+  .chat-bubble-row.is-flash .chat-bubble {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--mr-gold-20);
+  }
+}
+
 .chat-pending-dot { color: var(--mr-gold); font-weight: 800; }
 
 /* ── Responsivo ───────────────────────────────────────────────────── */

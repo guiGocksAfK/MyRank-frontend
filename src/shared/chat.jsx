@@ -111,9 +111,17 @@ export function ChatProvider({ children }) {
   // ── Poll de fallback ─────────────────────────────────────────────────
   useEffect(() => {
     if (!userId) return undefined;
-    refreshCount();
-    timerRef.current = setInterval(refreshCount, POLL_MS);
-    return () => clearInterval(timerRef.current);
+    // aba em segundo plano não consulta o servidor; ao voltar, atualiza na hora
+    const tick = () => {
+      if (!document.hidden) refreshCount();
+    };
+    tick();
+    timerRef.current = setInterval(tick, POLL_MS);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(timerRef.current);
+      document.removeEventListener('visibilitychange', tick);
+    };
   }, [userId, refreshCount]);
 
   const value = {
