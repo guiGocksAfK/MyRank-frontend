@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
-import { socialApi, normTitle } from './socialData';
+import { socialApi, normTitle, tasteKey } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useUser } from '../../shared/userContext';
@@ -25,14 +25,14 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople, onItems
     const map = new Map();
     (myItems || []).forEach((i) => {
       const n = Number(i.note);
-      if (i.title && Number.isFinite(n) && n > 0) map.set(normTitle(i.title), n);
+      if (i.title && Number.isFinite(n) && n > 0) map.set(tasteKey(i.title, i.type), n);
     });
     return map;
   }, [myItems]);
   // nos seus próprios posts não faz sentido comparar
   const myScoreOf = (item) => (work) => {
     if (!work?.title || item.actor?.username === user?.username) return null;
-    return myScores.get(normTitle(work.title)) ?? null;
+    return myScores.get(tasteKey(work.title, work.type)) ?? null;
   };
 
   const load = useCallback(() => {

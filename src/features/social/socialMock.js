@@ -28,6 +28,9 @@ const PEOPLE = [
   { id: 9004, username: 'julia', bio: 'Anime > tudo', worksCount: 132, avgScore: 8.6, isPublic: true, sharedCount: 31, matchPct: 64 },
   { id: 9005, username: 'ana', bio: 'Leio mais do que devia.', worksCount: 57, avgScore: 8.0, isPublic: false, sharedCount: 0, matchPct: null },
   { id: 9006, username: 'rafa', bio: 'Dou 10 fácil.', worksCount: 19, avgScore: 9.1, isPublic: true, sharedCount: 6, matchPct: 73 },
+  // gosto bem diferente do seu: aparecem no "Pra debater"
+  { id: 9007, username: 'beto', bio: 'Do contra, mas com argumento.', worksCount: 61, avgScore: 6.4, isPublic: true, sharedCount: 12, matchPct: 31, fightAt: 2 },
+  { id: 9008, username: 'carol', bio: 'Exigente com série.', worksCount: 38, avgScore: 7.0, isPublic: true, sharedCount: 9, matchPct: 44, fightAt: 5 },
 ];
 // mesma ordem do backend: mais parecido primeiro, sem % no fim
 const byMatch = (a, b) => (b.matchPct ?? -1) - (a.matchPct ?? -1) || b.sharedCount - a.sharedCount;
@@ -93,6 +96,12 @@ async function world() {
     followsYou: [9001, 9002, 9005].includes(p.id),
     requested: false,
   }]));
+  // a obra da briga (a que o backend mandaria em fightTitle/fightMine/fightTheirs)
+  users.forEach((u) => {
+    if (u.fightAt == null) return;
+    const w = pick(u.fightAt);
+    Object.assign(u, { fightTitle: w.title, fightMine: w.score, fightTheirs: Math.max(1, Math.round((w.score - 4.6) * 10) / 10) });
+  });
 
   let nextId = 1;
   const reactions = (up, agree, disagree, mine = null) => ({ up, agree, disagree, mine });
@@ -165,6 +174,14 @@ export const mockApi = {
     await wait();
     return [...s.users.values()].filter((u) => !u.following && !s.requests.includes(u.id)).sort(byMatch).map(asUser);
   },
+  async getDebaters() {
+    const s = await world();
+    await wait();
+    return [...s.users.values()]
+      .filter((u) => u.matchPct != null && u.matchPct <= 60 && u.sharedCount >= 8)
+      .sort((a, b) => a.matchPct - b.matchPct)
+      .map(asUser);
+  },
   async searchUsers(q) {
     const s = await world();
     await wait(150);
@@ -176,7 +193,19 @@ export const mockApi = {
     const s = await world();
     await wait();
     const u = s.users.get(Number(userId));
-    if (!u) throw new Error('not found');
+    if (!u) {
+      // o seu próprio perfil: você de verdade, com as suas obras e notas
+      const me = await meUser();
+      if (me.id !== Number(userId)) throw new Error('not found');
+      const breakdown = {};
+      s.pool.forEach((w) => { breakdown[w.type] = (breakdown[w.type] || 0) + 1; });
+      const avg = s.pool.reduce((a, w) => a + w.score, 0) / (s.pool.length || 1);
+      return {
+        ...asUser({ ...me, bio: '', worksCount: s.pool.length, avgScore: Math.round(avg * 10) / 10, isPublic: true }),
+        locked: false, followerCount: followerList(s).length, followingCount: followingList(s).length,
+        badges: [], top: [...s.pool].sort((a, b) => b.score - a.score).slice(0, 10), breakdown, works: s.pool,
+      };
+    }
     // as suas obras com outra nota, mais umas que você não tem (pro "recomenda" do Comparar)
     const extras = EXTRA_WORKS.map((w, k) => ({ ...w, id: -100 - k, imageUrl: null, score: 9 + ((k + Number(userId)) % 10) / 10 }));
     const works = [...s.pool.map((w, k) => ({ ...w, score: s.theirScore(w, k + Number(userId)) })), ...extras];

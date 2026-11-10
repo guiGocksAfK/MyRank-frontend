@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
-import { socialApi } from './socialData';
+import { socialApi, looksLikeMe } from './socialData';
 import SocialAvatar from './SocialAvatar';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
@@ -20,7 +20,7 @@ export default function FeedStart({ onOpenUser, onGoPeople, onFollowed }) {
   useEffect(() => {
     let alive = true;
     socialApi.getSuggestions()
-      .then((list) => { if (alive) setPeople(list.slice(0, SHOWN)); })
+      .then((list) => { if (alive) setPeople(list.filter(looksLikeMe).slice(0, SHOWN)); })
       .catch(() => { if (alive) setPeople([]); });
     return () => { alive = false; };
   }, []);

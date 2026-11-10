@@ -3,7 +3,7 @@ import { ArrowLeft, Scale } from 'lucide-react';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
-import { socialApi, computeTasteMatch, normTitle, typeIconFor } from './socialData';
+import { socialApi, computeTasteMatch, tasteKey, typeIconFor } from './socialData';
 import SocialAvatar from './SocialAvatar';
 import SocialEmpty from './SocialEmpty';
 
@@ -47,8 +47,9 @@ export default function CompareView({ userId, onBack, onOpenUser }) {
   // uma linha por obra (pelo título): as duas notas, ou só uma
   const rows = useMemo(() => {
     if (!friend || !myItems) return [];
-    const mine = new Map(myItems.filter((i) => i.title).map((i) => [normTitle(i.title), i]));
-    const theirs = new Map(friend.works.filter((w) => w.title).map((w) => [normTitle(w.title), w]));
+    // mesma chave da conta: título + tipo
+    const mine = new Map(myItems.filter((i) => i.title).map((i) => [tasteKey(i.title, i.type), i]));
+    const theirs = new Map(friend.works.filter((w) => w.title).map((w) => [tasteKey(w.title, w.type), w]));
     return [...new Set([...mine.keys(), ...theirs.keys()])].map((key) => {
       const m = mine.get(key);
       const th = theirs.get(key);
