@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, UserPlus, X } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
-import { socialApi, normTitle, typeIconFor, looksLikeMe } from './socialData';
+import { socialApi, normTitle, typeIconFor, DEBATE_MAX_PCT } from './socialData';
 import SocialAvatar from './SocialAvatar';
+import YouCard from './YouCard';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 /** Quantas obras o "Em alta" mostra, e quantas pessoas uma obra precisa pra entrar. */
@@ -44,21 +45,19 @@ function trendingFrom(items, myUsername) {
  * há), quem tem o gosto mais parecido com o seu e o que está em alta entre
  * quem você segue. `feedItems`: o que o feed já carregou.
  */
-export default function SocialRail({ feedItems, activeTrend, onPickTrend, onOpenConnections, onOpenUser, onGoPeople }) {
+export default function SocialRail({
+  feedItems, activeTrend, onPickTrend, onOpenConnections, onOpenUser, onGoPeople, youKey, onCountsChanged,
+}) {
   const { t, locale } = useLanguage();
   const tr = t.social.rail;
   const tp = t.social.people;
   const { user } = useUser();
-  const [summary, setSummary] = useState(null);
   const [suggestions, setSuggestions] = useState(null);
   const [requests, setRequests] = useState([]);
   const [debaters, setDebaters] = useState([]);
 
-  const refreshSummary = () => socialApi.getSummary().then(setSummary).catch(() => {});
-
   useEffect(() => {
-    socialApi.getSummary().then(setSummary).catch(() => setSummary({ following: 0, followers: 0 }));
-    socialApi.getSuggestions().then((r) => setSuggestions(r.filter(looksLikeMe).slice(0, 3))).catch(() => setSuggestions([]));
+    socialApi.getSuggestions().then((r) => setSuggestions(r.filter((u) => u.matchPct > DEBATE_MAX_PCT).slice(0, 3))).catch(() => setSuggestions([]));
     socialApi.getFollowRequests().then(setRequests).catch(() => setRequests([]));
     socialApi.getDebaters().then((r) => setDebaters(r.slice(0, 2))).catch(() => setDebaters([]));
   }, []);
@@ -71,7 +70,7 @@ export default function SocialRail({ feedItems, activeTrend, onPickTrend, onOpen
     try {
       if (accept) await socialApi.approveFollowRequest(id);
       else await socialApi.rejectFollowRequest(id);
-      refreshSummary();
+      onCountsChanged?.();
     } catch {
       socialApi.getFollowRequests().then(setRequests).catch(() => {});
     }
@@ -85,7 +84,7 @@ export default function SocialRail({ feedItems, activeTrend, onPickTrend, onOpen
           .filter((s) => s.id !== id || !u.following) // some da lista quando vira "seguindo"
           .map((s) => (s.id === id ? { ...s, requested: u.requested, following: u.following } : s)),
       );
-      refreshSummary();
+      onCountsChanged?.();
     } catch {
       /* silencioso */
     }
@@ -93,27 +92,8 @@ export default function SocialRail({ feedItems, activeTrend, onPickTrend, onOpen
 
   return (
     <aside className="social-rail">
-      <section className="mr-panel social-rail-you">
-        <button type="button" className="social-rail-you-photo" onClick={() => user && onOpenUser?.(user.id)}
-          aria-label={tr.seeMyProfile} title={tr.seeMyProfile}>
-          <SocialAvatar name={user?.username || '?'} src={user?.avatarUrl} size={40} />
-        </button>
-        <div className="social-rail-you-text">
-          <button type="button" className="social-rail-you-name" onClick={() => user && onOpenUser?.(user.id)}>
-            <span className="social-person-name">{user?.username}</span>
-            <span className="social-rail-you-link">{tr.seeMyProfile}</span>
-          </button>
-          <span className="social-rail-you-counts">
-            <button type="button" onClick={() => onOpenConnections('following')}>
-              <b>{summary?.following ?? '—'}</b> {tr.followingWord}
-            </button>
-            <span aria-hidden="true">·</span>
-            <button type="button" onClick={() => onOpenConnections('followers')}>
-              <b>{summary?.followers ?? '—'}</b> {tr.followersWord}
-            </button>
-          </span>
-        </div>
-      </section>
+      {/* em tela grande o "Você" fica na coluna da esquerda */}
+      <YouCard className="is-rail" onOpenUser={onOpenUser} onOpenConnections={onOpenConnections} refreshKey={youKey} />
 
       {requests.map((u) => (
         <section key={u.id} className="mr-panel social-rail-request">
@@ -141,9 +121,7 @@ export default function SocialRail({ feedItems, activeTrend, onPickTrend, onOpen
             {suggestions.map((u) => (
               <li key={u.id} className="social-rail-match">
                 <button type="button" className="social-rail-match-main" onClick={() => onOpenUser?.(u.id)}>
-                  <b className={`social-rail-pct${u.matchPct == null ? ' is-none' : ''}`}>
-                    {u.matchPct == null ? '—' : `${u.matchPct}%`}
-                  </b>
+                  <b className="social-rail-pct">{u.matchPct}%</b>
                   <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={28} />
                   <span className="social-person-name">{u.username}</span>
                 </button>
@@ -154,9 +132,7 @@ export default function SocialRail({ feedItems, activeTrend, onPickTrend, onOpen
                 >
                   {u.requested ? tp.requested : u.isPublic === false ? tp.request : tp.follow}
                 </button>
-                {u.matchPct != null && (
-                  <span className="social-rail-bar" aria-hidden="true"><span style={{ width: `${u.matchPct}%` }} /></span>
-                )}
+                <span className="social-rail-bar" aria-hidden="true"><span style={{ width: `${u.matchPct}%` }} /></span>
               </li>
             ))}
           </ul>

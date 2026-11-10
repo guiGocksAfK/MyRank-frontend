@@ -7,6 +7,7 @@ import { useChat } from '../../shared/chat';
 import { socialApi, socialMock } from './socialData';
 import SocialFeed from './SocialFeed';
 import SocialRail from './SocialRail';
+import SocialNav, { FeedBar } from './SocialNav';
 import ConnectionsView from './ConnectionsView';
 import People from './People';
 import UserProfileView from './UserProfileView';
@@ -32,6 +33,9 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
   const [pendingConvId, setPendingConvId] = useState(null); // grupo aberto a partir do "Pessoas"
   const [feedItems, setFeedItems] = useState(null); // o que o feed carregou, pro "Em alta" do trilho
   const [feedFilter, setFeedFilter] = useState(null); // obra do "Em alta" filtrando o feed
+  const [feedScope, setFeedScope] = useState('all'); // all | following
+  const [feedKind, setFeedKind] = useState('all'); // all | takes | ratings
+  const [youKey, setYouKey] = useState(0); // recarrega as contagens do "Você" (aceitou pedido, seguiu alguém)
   // só no dev: liga/desliga os dados de teste; mudar a chave remonta tudo com os dados novos
   const [mockOn, setMockOn] = useState(() => socialMock.isOn());
 
@@ -115,11 +119,18 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
 
         {tab === 'feed' && (
           <div className="social-feed-layout">
+            <SocialNav
+              onOpenUser={openProfile} onOpenConnections={openConnections} refreshKey={youKey}
+              onGoPeople={() => setTab('people')} onOpenGroup={openGroupConversation}
+            />
             <SocialFeed onOpenUser={openProfile} onNavigate={onNavigate} onGoPeople={() => setTab('people')} onItems={setFeedItems}
-              filter={feedFilter} onClearFilter={() => setFeedFilter(null)} />
+              filter={feedFilter} onClearFilter={() => setFeedFilter(null)}
+              scope={feedScope} kind={feedKind}
+              filters={<FeedBar scope={feedScope} onScope={setFeedScope} kind={feedKind} onKind={setFeedKind} />} />
             <SocialRail feedItems={feedItems} activeTrend={feedFilter?.key}
               onPickTrend={(f) => { setFeedFilter(f); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-              onOpenConnections={openConnections} onOpenUser={openProfile} onGoPeople={() => setTab('people')} />
+              onOpenConnections={openConnections} onOpenUser={openProfile} onGoPeople={() => setTab('people')}
+              youKey={youKey} onCountsChanged={() => setYouKey((n) => n + 1)} />
           </div>
         )}
         {tab === 'people' && (

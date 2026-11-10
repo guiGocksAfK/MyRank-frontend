@@ -12,8 +12,13 @@ import FeedStart from './FeedStart';
 /**
  * `onItems`: avisa o que foi carregado, pro trilho montar o "Em alta".
  * `filter`: { key, title } de uma obra do "Em alta"; o feed mostra só o que fala dela.
+ * `scope`: 'all' | 'following' (vem do backend). `kind`: 'all' | 'takes' | 'ratings'.
+ * `filters`: as abas Todos | Seguindo e o menu de tipo, logo abaixo da caixa de escrever.
  */
-export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople, onItems, filter, onClearFilter }) {
+export default function SocialFeed({
+  onOpenUser, onNavigate, onGoPeople, onItems, filter, onClearFilter,
+  scope = 'all', kind = 'all', filters = null,
+}) {
   const { t } = useLanguage();
   const tf = t.social.feed;
   const [items, setItems] = useState(null);
@@ -36,8 +41,8 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople, onItems
   };
 
   const load = useCallback(() => {
-    socialApi.getFeed().then(setItems).catch(() => setItems([]));
-  }, []);
+    socialApi.getFeed(0, 20, scope).then(setItems).catch(() => setItems([]));
+  }, [scope]);
 
   useEffect(load, [load]);
   useEffect(() => { onItems?.(items); }, [items, onItems]);
@@ -62,11 +67,13 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople, onItems
 
   const mentions = (item, key) => (item.type === 'RATED_DAY' ? item.works : [item.work])
     .some((w) => w?.title && normTitle(w.title) === key);
-  const shown = filter && items ? items.filter((it) => mentions(it, filter.key)) : items;
+  const ofKind = (it) => kind === 'all' || (kind === 'takes' ? it.type === 'TAKE' : it.type === 'RATED_DAY');
+  const shown = items ? items.filter((it) => ofKind(it) && (!filter || mentions(it, filter.key))) : items;
 
   return (
     <div className="social-feed-col">
       <TakeComposer items={myItems} onPost={handlePost} onNavigate={onNavigate} />
+      {filters}
 
       {filter && (
         <div className="social-feed-filter">
@@ -82,7 +89,7 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople, onItems
       ) : items.length === 0 ? (
         <FeedStart onOpenUser={onOpenUser} onGoPeople={onGoPeople} onFollowed={load} />
       ) : shown.length === 0 ? (
-        <SocialEmpty compact text={tf.filterEmpty} />
+        <SocialEmpty compact text={filter ? tf.filterEmpty : tf.kindEmpty} />
       ) : (
         shown.map((item) => (
           <ActivityCard
