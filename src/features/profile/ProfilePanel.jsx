@@ -103,7 +103,22 @@ export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = 
 
       {/* abas à esquerda; nas Conquistas, a barra geral e o filtro à direita */}
       <div className="pf-tabbar">
-        <div className="rk-tabs" role="tablist" aria-label={tp.tabsLabel}>
+        <div
+          className="rk-tabs"
+          role="tablist"
+          aria-label={tp.tabsLabel}
+          onKeyDown={(e) => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+            e.preventDefault();
+            const btns = Array.from(e.currentTarget.querySelectorAll('[role="tab"]'));
+            const cur = btns.indexOf(document.activeElement);
+            if (cur < 0) return;
+            const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1
+              : (cur + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+            setTab(tabs[next].id);
+            btns[next]?.focus();
+          }}
+        >
           <div className="rk-tabs-scroll">
             {tabs.map((x) => (
               <button
@@ -111,6 +126,7 @@ export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = 
                 type="button"
                 role="tab"
                 aria-selected={tab === x.id}
+                tabIndex={tab === x.id ? 0 : -1}
                 className={`rk-tab${tab === x.id ? ' is-active' : ''}`}
                 onClick={() => setTab(x.id)}
               >

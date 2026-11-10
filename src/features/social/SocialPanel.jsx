@@ -116,7 +116,23 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
     content = (
       <>
         <div className="social-tabbar">
-          <div className="rk-tabs" role="tablist" aria-label={ts.tabsLabel}>
+          <div
+            className="rk-tabs"
+            role="tablist"
+            aria-label={ts.tabsLabel}
+            onKeyDown={(e) => {
+              if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+              e.preventDefault();
+              const btns = Array.from(e.currentTarget.querySelectorAll('[role="tab"]'));
+              const cur = btns.indexOf(document.activeElement);
+              if (cur < 0) return;
+              const next = e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1
+                : (cur + (e.key === 'ArrowRight' ? 1 : -1) + TABS.length) % TABS.length;
+              setTab(TABS[next].id);
+              setChatBack(null);
+              btns[next]?.focus();
+            }}
+          >
             <div className="rk-tabs-scroll">
               {TABS.map((tb) => (
                 <button
@@ -124,6 +140,7 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
                   type="button"
                   role="tab"
                   aria-selected={tab === tb.id}
+                  tabIndex={tab === tb.id ? 0 : -1}
                   className={`rk-tab${tab === tb.id ? ' is-active' : ''}`}
                   onClick={() => { setTab(tb.id); setChatBack(null); }}
                 >

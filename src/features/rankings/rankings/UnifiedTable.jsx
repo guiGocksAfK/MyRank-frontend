@@ -162,7 +162,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
               }}
             >
               <span className="rk-rank">{i + 1}</span>
-              <Poster src={item.image} title={item.title} size="thumb" />
+              <Poster src={item.image} title={item.title} template={item.template} size="thumb" />
               <div className="rk-main">
                 <div className="rk-title">{item.title}</div>
                 <div className="rk-sub">{itemSubline(item, tr)}</div>
