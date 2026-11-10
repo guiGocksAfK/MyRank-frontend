@@ -21,7 +21,11 @@ const readFilter = () => {
   }
 };
 
-export default function ChatPanel({ initialConvId = null, onInitialConvConsumed, onOpenProfile }) {
+/**
+ * `onLeave`: a conversa foi aberta de outra tela (perfil, feed); o ← dela volta pra lá.
+ * `onActiveChange(id)`: avisa qual conversa está aberta.
+ */
+export default function ChatPanel({ initialConvId = null, onInitialConvConsumed, onOpenProfile, onLeave, onActiveChange }) {
   const { t, lang } = useLanguage();
   const tc = t.chat;
   const { unreadCount, refreshCount, pendingPeer, consumePendingPeer, touchNonce } = useChat();
@@ -98,6 +102,11 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
       })
       .catch(() => {});
   }, [pendingPeer, consumePendingPeer, loadConversations, loadSuggested]);
+
+  useEffect(() => {
+    onActiveChange?.(activeId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
 
   const active = conversations?.find((c) => c.id === activeId) || null;
 
@@ -261,7 +270,8 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
         ) : active ? (
           <ChatThread
             conversation={active}
-            onBack={closeThread}
+            onBack={onLeave ? () => { closeThread(); onLeave(); } : closeThread}
+            backAlways={!!onLeave}
             onChanged={handleConversationChanged}
             onLeft={closeThread}
             onOpenProfile={onOpenProfile}

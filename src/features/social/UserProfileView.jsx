@@ -21,7 +21,7 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
  * O seu próprio perfil abre igual, "como os outros veem", com Editar perfil e
  * os ajustes rápidos no lugar de seguir, comparar e o gosto parecido.
  */
-export default function UserProfileView({ userId, onBack, onCompare, onToggleFollow, onNavigate }) {
+export default function UserProfileView({ userId, onBack, onCompare, onToggleFollow, onNavigate, onBeforeMessage }) {
   const { t, lang, locale } = useLanguage();
   const tv = t.social.profile;
   const { openChatWith } = useChat();
@@ -143,7 +143,10 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
             <button
               type="button"
               className="mr-btn mr-btn-outline mr-btn-sm"
-              onClick={() => openChatWith({ id: profile.id, username: profile.username, avatarUrl: profile.avatarUrl })}
+              onClick={() => {
+                onBeforeMessage?.();
+                openChatWith({ id: profile.id, username: profile.username, avatarUrl: profile.avatarUrl });
+              }}
             >
               <MessageSquare size={14} strokeWidth={2} aria-hidden="true" />
               {tv.message}

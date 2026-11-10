@@ -59,6 +59,9 @@ export default function DashboardPage() {
   const initialTab = VALID_TABS.includes(location.state?.tab) ? location.state.tab : 'home';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [profileOnSettings, setProfileOnSettings] = useState(false);
+  // Configurações abertas pela Social: pra onde o Voltar delas leva ({ view, tab } da Social)
+  const [settingsBack, setSettingsBack] = useState(null);
+  const [socialResume, setSocialResume] = useState(null);
   // conversa a abrir de cara (veio de /chat/invite/:token). Consumida uma vez.
   const [openConvId, setOpenConvId] = useState(location.state?.openConvId ?? null);
   const [isDark, setIsDark] = useState(readStoredTheme);
@@ -82,9 +85,12 @@ export default function DashboardPage() {
   const handleThemeToggle = () => setIsDark((prev) => !prev);
   const themeClass = isDark ? '' : 'myrank-light';
 
-  // opts.settings: abre o Perfil já nas Configurações ("Mais ajustes" da Social)
+  // opts.settings: abre o Perfil já nas Configurações ("Mais ajustes" da Social);
+  // opts.back: a tela da Social pra onde o Voltar delas leva; opts.resume: reabre essa tela
   const handleTabChange = (tab, opts = {}) => {
     setProfileOnSettings(tab === 'profile' && !!opts.settings);
+    setSettingsBack(tab === 'profile' && opts.settings ? opts.back ?? null : null);
+    setSocialResume(tab === 'social' ? opts.resume ?? null : null);
     setActiveTab(tab);
     if (tab === 'rankings') setRankingsVisited(true);
     setCreatorsView(false);
@@ -101,6 +107,7 @@ export default function DashboardPage() {
             initialConvId={openConvId}
             onInitialConvConsumed={() => setOpenConvId(null)}
             onNavigate={handleTabChange}
+            resume={socialResume}
           />
         );
       case 'ai':
@@ -108,7 +115,10 @@ export default function DashboardPage() {
           ? <InsightsResult workIds={insightRun.workIds} onBack={() => { setInsightRun(null); window.scrollTo({ top: 0 }); }} />
           : <InsightsPanel onGenerate={(workIds) => { setInsightRun({ workIds }); window.scrollTo({ top: 0 }); }} />;
       case 'profile':
-        return <ProfilePanel isDark={isDark} onThemeToggle={handleThemeToggle} startOnSettings={profileOnSettings} />;
+        return (
+          <ProfilePanel isDark={isDark} onThemeToggle={handleThemeToggle} startOnSettings={profileOnSettings}
+            onSettingsBack={settingsBack ? () => handleTabChange('social', { resume: settingsBack }) : undefined} />
+        );
       default:
         return null;
     }

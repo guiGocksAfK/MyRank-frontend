@@ -19,7 +19,11 @@ import ChatPanel from '../chat/ChatPanel';
  * com o Comparar (o Comparar virou botão em cada pessoa que você segue).
  * Perfil de alguém, comparação e seguindo/seguidores abrem por cima das abas.
  */
-export default function SocialPanel({ initialConvId = null, onInitialConvConsumed, onNavigate }) {
+/**
+ * `resume`: { view, tab } pra voltar exatamente onde estava (ex.: o Voltar das
+ * Configurações abertas pelo seu perfil aqui na Social).
+ */
+export default function SocialPanel({ initialConvId = null, onInitialConvConsumed, onNavigate, resume = null }) {
   const { t } = useLanguage();
   const ts = t.social;
   const { unreadCount: chatUnread, openNonce } = useChat();
@@ -28,8 +32,11 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
     { id: 'people', label: ts.tabs.people },
     { id: 'chat', label: ts.tabs.chat },
   ];
-  const [tab, setTab] = useState('feed');
-  const [view, setView] = useState({ kind: 'tabs' }); // tabs | profile | compare | connections
+  const [tab, setTab] = useState(() => resume?.tab || 'feed');
+  const [view, setView] = useState(() => resume?.view || { kind: 'tabs' }); // tabs | profile | compare | connections
+  // conversa aberta de fora (Mensagem no perfil, grupo no feed): o ← dela volta pra cá
+  const [chatBack, setChatBack] = useState(null);
+  const lastConvRef = useRef(null); // conversa aberta, pra voltar nela depois de ver um perfil
   const [pendingConvId, setPendingConvId] = useState(null); // grupo aberto a partir do "Pessoas"
   const [feedItems, setFeedItems] = useState(null); // o que o feed carregou, pro "Em alta" do trilho
   const [feedFilter, setFeedFilter] = useState(null); // obra do "Em alta" filtrando o feed
@@ -45,6 +52,7 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
   };
 
   const openGroupConversation = (id) => {
+    setChatBack({ view, tab });
     setPendingConvId(id);
     setView({ kind: 'tabs' });
     setTab('chat');
@@ -69,22 +77,46 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
 
   // cada tela lembra de onde veio (`from`): o Voltar do Comparar aberto pelo
   // perfil volta pro perfil, e o do perfil aberto pelos seguidores volta pra lista
-  const openProfile = (userId) => setView((cur) => ({ kind: 'profile', userId, from: cur }));
-  const openCompare = (userId) => setView((cur) => ({ kind: 'compare', userId, from: cur }));
-  const openConnections = (which) => setView((cur) => ({ kind: 'connections', tab: which, from: cur }));
-  const goBack = () => setView((cur) => cur.from || { kind: 'tabs' });
+  // (das abas, guarda qual aba estava aberta)
+  const here = (cur) => (cur.kind === 'tabs' ? { kind: 'tabs', tab } : cur);
+  const openProfile = (userId) => setView((cur) => ({ kind: 'profile', userId, from: here(cur) }));
+  const openCompare = (userId) => setView((cur) => ({ kind: 'compare', userId, from: here(cur) }));
+  const openConnections = (which) => setView((cur) => ({ kind: 'connections', tab: which, from: here(cur) }));
+  const goBack = () => {
+    const prev = view.from || { kind: 'tabs' };
+    if (prev.tab && prev.kind === 'tabs') setTab(prev.tab);
+    setView(prev);
+  };
+  // ← da conversa aberta de fora: volta pro perfil / feed / pessoas de onde veio
+  const leaveChat = () => {
+    const b = chatBack;
+    setChatBack(null);
+    setTab(b.tab);
+    setView(b.view);
+  };
+  // abriu um perfil de dentro da conversa: na volta, reabre a mesma conversa
+  const openProfileFromChat = (userId) => {
+    setPendingConvId(lastConvRef.current);
+    openProfile(userId);
+  };
+  // "Mais ajustes" do seu perfil vai pras Configurações; o Voltar de lá volta pra cá
+  const navigateFromProfile = (to, opts) => onNavigate?.(to, to === 'profile' && opts?.settings ? { ...opts, back: { view, tab } } : opts);
 
   const toggleFollow = async (userId) => socialApi.toggleFollow(userId);
 
   let content;
   if (view.kind === 'profile') {
     content = (
-      <UserProfileView userId={view.userId} onBack={goBack} onCompare={openCompare} onToggleFollow={toggleFollow} onNavigate={onNavigate} />
+      <UserProfileView userId={view.userId} onBack={goBack} onCompare={openCompare} onToggleFollow={toggleFollow}
+        onNavigate={navigateFromProfile} onBeforeMessage={() => setChatBack({ view, tab })} />
     );
   } else if (view.kind === 'compare') {
     content = <CompareView userId={view.userId} onBack={goBack} onOpenUser={openProfile} />;
   } else if (view.kind === 'connections') {
-    content = <ConnectionsView initialTab={view.tab} onBack={goBack} onOpenUser={openProfile} onCompare={openCompare} />;
+    content = (
+      <ConnectionsView initialTab={view.tab} onTabChange={(which) => setView((v) => ({ ...v, tab: which }))}
+        onBack={goBack} onOpenUser={openProfile} onCompare={openCompare} />
+    );
   } else {
     content = (
       <>
@@ -98,7 +130,7 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
                   role="tab"
                   aria-selected={tab === tb.id}
                   className={`rk-tab${tab === tb.id ? ' is-active' : ''}`}
-                  onClick={() => setTab(tb.id)}
+                  onClick={() => { setTab(tb.id); setChatBack(null); }}
                 >
                   {tb.label}
                   {tb.id === 'chat' && chatUnread > 0 && (
@@ -143,7 +175,9 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
               setPendingConvId(null);
               onInitialConvConsumed?.();
             }}
-            onOpenProfile={openProfile}
+            onOpenProfile={openProfileFromChat}
+            onActiveChange={(id) => { lastConvRef.current = id; }}
+            onLeave={chatBack ? leaveChat : undefined}
           />
         )}
       </>

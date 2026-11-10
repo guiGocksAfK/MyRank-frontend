@@ -140,7 +140,7 @@ const InfoIcon = () => (
 );
 
 /** Conversa aberta. `conversation` = { id, type, name, imageUrl, peer, memberCount, myRole }. */
-export default function ChatThread({ conversation, onBack, onChanged, onLeft, onOpenProfile }) {
+export default function ChatThread({ conversation, onBack, backAlways = false, onChanged, onLeft, onOpenProfile }) {
   const { t, lang, locale } = useLanguage();
   const tc = t.chat;
   const { refreshCount, subscribeConversation } = useChat();
@@ -477,7 +477,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
     <div className={`chat-thread ${showRail ? 'has-rail' : ''}`}>
       <div className="chat-thread-body">
       <div className="chat-thread-head">
-        <button type="button" className="chat-back" onClick={onBack} aria-label={tc.back}>
+        <button type="button" className={`chat-back${backAlways ? ' is-always' : ''}`} onClick={onBack} aria-label={tc.back}>
           ←
         </button>
         <button
