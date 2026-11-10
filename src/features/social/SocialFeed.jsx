@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Rss } from 'lucide-react';
+import { X } from 'lucide-react';
 import { socialApi, normTitle } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
@@ -7,9 +7,13 @@ import { useUser } from '../../shared/userContext';
 import TakeComposer from './TakeComposer';
 import ActivityCard from './ActivityCard';
 import SocialEmpty from './SocialEmpty';
+import FeedStart from './FeedStart';
 
-/** `onItems`: avisa o que foi carregado, pro trilho montar o "Em alta". */
-export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople, onItems }) {
+/**
+ * `onItems`: avisa o que foi carregado, pro trilho montar o "Em alta".
+ * `filter`: { key, title } de uma obra do "Em alta"; o feed mostra só o que fala dela.
+ */
+export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople, onItems, filter, onClearFilter }) {
   const { t } = useLanguage();
   const tf = t.social.feed;
   const [items, setItems] = useState(null);
@@ -56,22 +60,31 @@ export default function SocialFeed({ onOpenUser, onNavigate, onGoPeople, onItems
     setItems((prev) => (prev || []).filter((i) => i.id !== id));
   }, []);
 
+  const mentions = (item, key) => (item.type === 'RATED_DAY' ? item.works : [item.work])
+    .some((w) => w?.title && normTitle(w.title) === key);
+  const shown = filter && items ? items.filter((it) => mentions(it, filter.key)) : items;
+
   return (
     <div className="social-feed-col">
       <TakeComposer items={myItems} onPost={handlePost} onNavigate={onNavigate} />
 
+      {filter && (
+        <div className="social-feed-filter">
+          <span>{tf.filtering} <b>{filter.title}</b></span>
+          <button type="button" className="social-icon-btn" aria-label={tf.clearFilter} title={tf.clearFilter} onClick={onClearFilter}>
+            <X size={14} strokeWidth={2} aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
       {items === null ? (
         <SocialEmpty text={tf.loading} />
       ) : items.length === 0 ? (
-        <SocialEmpty
-          icon={Rss}
-          title={tf.emptyTitle}
-          text={tf.emptyText}
-          actionLabel={tf.emptyCta}
-          onAction={onGoPeople}
-        />
+        <FeedStart onOpenUser={onOpenUser} onGoPeople={onGoPeople} onFollowed={load} />
+      ) : shown.length === 0 ? (
+        <SocialEmpty compact text={tf.filterEmpty} />
       ) : (
-        items.map((item) => (
+        shown.map((item) => (
           <ActivityCard
             key={item.id}
             item={item}

@@ -31,6 +31,7 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
   const [view, setView] = useState({ kind: 'tabs' }); // tabs | profile | compare | connections
   const [pendingConvId, setPendingConvId] = useState(null); // grupo aberto a partir do "Pessoas"
   const [feedItems, setFeedItems] = useState(null); // o que o feed carregou, pro "Em alta" do trilho
+  const [feedFilter, setFeedFilter] = useState(null); // obra do "Em alta" filtrando o feed
   // só no dev: liga/desliga os dados de teste; mudar a chave remonta tudo com os dados novos
   const [mockOn, setMockOn] = useState(() => socialMock.isOn());
 
@@ -114,8 +115,11 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
 
         {tab === 'feed' && (
           <div className="social-feed-layout">
-            <SocialFeed onOpenUser={openProfile} onNavigate={onNavigate} onGoPeople={() => setTab('people')} onItems={setFeedItems} />
-            <SocialRail feedItems={feedItems} onOpenConnections={openConnections} onOpenUser={openProfile} onGoPeople={() => setTab('people')} />
+            <SocialFeed onOpenUser={openProfile} onNavigate={onNavigate} onGoPeople={() => setTab('people')} onItems={setFeedItems}
+              filter={feedFilter} onClearFilter={() => setFeedFilter(null)} />
+            <SocialRail feedItems={feedItems} activeTrend={feedFilter?.key}
+              onPickTrend={(f) => { setFeedFilter(f); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onOpenConnections={openConnections} onOpenUser={openProfile} onGoPeople={() => setTab('people')} />
           </div>
         )}
         {tab === 'people' && (

@@ -385,22 +385,38 @@
 .social-comment-editform .social-comment-input { flex: 1; min-width: 160px; }
 
 /* editar / excluir take */
-.social-take-manage {
+/* o ⋯ dos seus takes, no canto do card */
+.social-take-menu { position: relative; margin-left: auto; }
+.social-take-menu-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
   display: flex;
-  gap: 12px;
-  margin-left: auto;
+  flex-direction: column;
+  min-width: 150px;
+  padding: 4px;
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  background: var(--mr-surface);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
 }
-.social-take-manage button {
+.social-take-menu-list button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
   border: 0;
+  border-radius: var(--mr-radius-xs);
   background: transparent;
-  padding: 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--mr-text-muted);
+  color: var(--mr-text);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  text-align: left;
   cursor: pointer;
 }
-.social-take-manage button:hover { color: var(--mr-gold); }
-.social-take-manage button.is-danger:hover { color: var(--mr-red); }
+.social-take-menu-list button:hover, .social-take-menu-list button:focus-visible { background: var(--mr-muted-bg); }
+.social-take-menu-list button.is-danger { color: var(--mr-red); }
 .social-take-editform { display: flex; flex-direction: column; gap: 8px; }
 .social-take-editarea {
   width: 100%;
@@ -532,7 +548,60 @@
 .social-rail-bar { grid-column: 1 / -1; height: 3px; overflow: hidden; border-radius: 999px; background: var(--mr-muted-bg); }
 .social-rail-bar span { display: block; height: 100%; border-radius: inherit; background: var(--mr-gold); }
 /* em alta na sua rede */
-.social-rail-trend { display: flex; align-items: center; gap: var(--mr-space-3); padding: 4px 0; min-width: 0; }
+.social-rail-trend {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-3);
+  width: 100%;
+  min-width: 0;
+  padding: 4px 6px;
+  margin: 0 -6px;
+  border: 1px solid transparent;
+  border-radius: var(--mr-radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.social-rail-trend:hover .social-pick-title { color: var(--mr-gold); }
+.social-rail-trend.is-active { border-color: var(--mr-gold-20); background: var(--mr-gold-10); }
+
+/* o feed filtrado por uma obra do "Em alta" */
+.social-feed-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mr-space-2);
+  padding: var(--mr-space-2) var(--mr-space-3);
+  border: 1px solid var(--mr-gold-20);
+  border-radius: var(--mr-radius-sm);
+  background: var(--mr-gold-10);
+  color: var(--mr-text-secondary);
+  font-size: var(--mr-text-sm);
+}
+.social-feed-filter b { color: var(--mr-gold); }
+
+/* feed vazio: já mostra quem seguir */
+.social-start { display: flex; flex-direction: column; gap: var(--mr-space-2); padding: var(--mr-space-5); }
+.social-start-title { margin: 0; font-size: var(--mr-text-lg); font-weight: 800; }
+.social-start-text { margin: 0 0 var(--mr-space-2); color: var(--mr-text-secondary); font-size: var(--mr-text-sm); }
+.social-start-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--mr-space-3); margin: 0; padding: 0; list-style: none; }
+.social-start-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mr-space-3);
+  padding: var(--mr-space-4) var(--mr-space-3);
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  background: var(--mr-muted-bg);
+  text-align: center;
+}
+.social-start-who { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; max-width: 100%; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.social-start-who:hover .social-person-name { color: var(--mr-gold); }
+.social-start-who .social-person-name { max-width: 100%; }
+.social-start-meta { display: flex; flex-direction: column; color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
 .social-rail-list, .social-list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .social-rail-empty { margin: 0; padding: 6px 0; color: var(--mr-text-muted); font-size: var(--mr-text-sm); }
 .social-rail-more {

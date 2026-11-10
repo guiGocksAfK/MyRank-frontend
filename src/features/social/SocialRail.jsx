@@ -44,7 +44,7 @@ function trendingFrom(items, myUsername) {
  * há), quem tem o gosto mais parecido com o seu e o que está em alta entre
  * quem você segue. `feedItems`: o que o feed já carregou.
  */
-export default function SocialRail({ feedItems, onOpenConnections, onOpenUser, onGoPeople }) {
+export default function SocialRail({ feedItems, activeTrend, onPickTrend, onOpenConnections, onOpenUser, onGoPeople }) {
   const { t, locale } = useLanguage();
   const tr = t.social.rail;
   const tp = t.social.people;
@@ -160,19 +160,31 @@ export default function SocialRail({ feedItems, onOpenConnections, onOpenUser, o
         <section className="mr-panel social-rail-card is-side">
           <h2 className="social-rail-title">{tr.trending}</h2>
           <ul className="social-rail-list">
-            {trending.map(({ work, people, avg }) => (
-              <li key={normTitle(work.title)} className="social-rail-trend">
-                <span className="social-prof-cover">
-                  {work.imageUrl
-                    ? <img src={work.imageUrl} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                    : typeIconFor(work.type, 14)}
-                </span>
-                <span className="social-pick-text">
-                  <span className="social-pick-title">{work.title}</span>
-                  <span className="social-pick-type">{fmt(tr.trendingLine, { n: people, avg: note(avg) })}</span>
-                </span>
-              </li>
-            ))}
+            {trending.map(({ work, people, avg }) => {
+              const key = normTitle(work.title);
+              const active = activeTrend === key;
+              return (
+                <li key={key}>
+                  {/* clicar filtra o feed por essa obra; clicar de novo tira o filtro */}
+                  <button
+                    type="button"
+                    className={`social-rail-trend${active ? ' is-active' : ''}`}
+                    aria-pressed={active}
+                    onClick={() => onPickTrend?.(active ? null : { key, title: work.title })}
+                  >
+                    <span className="social-prof-cover">
+                      {work.imageUrl
+                        ? <img src={work.imageUrl} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        : typeIconFor(work.type, 14)}
+                    </span>
+                    <span className="social-pick-text">
+                      <span className="social-pick-title">{work.title}</span>
+                      <span className="social-pick-type">{fmt(tr.trendingLine, { n: people, avg: note(avg) })}</span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
