@@ -415,7 +415,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
                         }
                         disabled={busy}
                       >
-                        <SocialAvatar name={u.username} initials={u.initials} color={u.color} src={u.avatarSrc} size={28} />
+                        <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={28} />
                         <span className="chat-result-name">@{u.username}</span>
                         <span aria-hidden="true">＋</span>
                       </button>
