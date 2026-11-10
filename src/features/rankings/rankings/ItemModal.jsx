@@ -292,7 +292,7 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
       }
       onClose();
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || tm.saveError);
+      setValidationError(err?.response?.data?.message || err.message || tm.saveError);
     } finally {
       setSaving(false);
     }

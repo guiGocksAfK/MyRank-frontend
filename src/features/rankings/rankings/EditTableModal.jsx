@@ -24,6 +24,7 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
     if (item.subcategoryId != null) subCounts[item.subcategoryId] = (subCounts[item.subcategoryId] ?? 0) + 1;
   }
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   // remove antes de criar, pra não esbarrar no limite de 20 à toa
   async function saveSubcategories() {
@@ -48,12 +49,13 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
     const removed = (table.customFields ?? []).filter(field => !nextFields.some(next => next.id === field.id));
     if (templates.includes('custom') && removed.length && !window.confirm(tm.removeFieldsConfirm)) return;
     setSaving(true);
+    setError('');
     try {
       await onSave({ name: `${emoji} ${nextName}`, templates, customFields: nextFields });
       await saveSubcategories();
       onClose();
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || tm.renameError);
+      setError(err?.response?.data?.message || err.message || tm.renameError);
     } finally {
       setSaving(false);
     }
@@ -73,6 +75,7 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
               {tr.toolbar.deleteTable}
             </button>
           )}
+          {error && <p className="ik-error" role="alert">{error}</p>}
           <button type="button" className="mr-btn mr-btn-ghost" onClick={onClose} disabled={saving}>{tm.cancel}</button>
           <button type="button" className="mr-btn mr-btn-gold" onClick={handleSave} disabled={saving || !name.trim()}>
             {saving ? tm.saving : tm.save}

@@ -15,6 +15,7 @@ export default function NewTableModal({ onSave, onClose }) {
   const [customFields, setCustomFields] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [saving,       setSaving]       = useState(false);
+  const [error,        setError]        = useState('');
 
   // "Séries", "Séries & Animes", "Filmes, Séries & Animes" (na ordem da grade)
   const typeNames = Object.keys(TABLE_TEMPLATES)
@@ -29,13 +30,14 @@ export default function NewTableModal({ onSave, onClose }) {
   async function handleSave() {
     if (!name.trim()) return;
     setSaving(true);
+    setError('');
     try {
       // o emoji do tipo continua no nome (o resto do site espera); a aba Rankings só não mostra
       await onSave({ name: `${TABLE_TEMPLATES[templates[0]].emoji} ${name.trim()}`, templates, customFields: cleanCustomFields(customFields),
         subcategories: subcategories.map(sub => sub.name.trim()).filter(Boolean) });
       onClose();
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || tm.createError);
+      setError(err?.response?.data?.message || err.message || tm.createError);
     } finally {
       setSaving(false);
     }
@@ -48,6 +50,7 @@ export default function NewTableModal({ onSave, onClose }) {
       busy={saving}
       footer={(
         <>
+          {error && <p className="ik-error" role="alert">{error}</p>}
           <button type="button" className="mr-btn mr-btn-ghost" onClick={onClose} disabled={saving}>{tm.cancel}</button>
           <button type="button" className="mr-btn mr-btn-gold" onClick={handleSave} disabled={saving || !name.trim()}>
             {saving ? tm.creating : tm.create}
