@@ -2,10 +2,11 @@
  * Estado vazio do Social: um convite, não um pedido de desculpas. Ícone de
  * traço + título + texto + um botão que leva pro lugar certo (opcionais).
  * `compact`: versão sem moldura, pra dentro de uma coluna que já é um cartão.
+ * `role`: 'alert' quando é erro, pro leitor de tela anunciar.
  */
-export default function SocialEmpty({ icon: Icon, title, text, actionLabel, onAction, compact = false }) {
+export default function SocialEmpty({ icon: Icon, title, text, actionLabel, onAction, compact = false, role }) {
   return (
-    <div className={`social-empty${compact ? ' is-compact' : ''}`}>
+    <div className={`social-empty${compact ? ' is-compact' : ''}`} role={role}>
       {Icon && (
         <span className="social-empty-icon" aria-hidden="true">
           <Icon size={compact ? 20 : 26} strokeWidth={1.6} />

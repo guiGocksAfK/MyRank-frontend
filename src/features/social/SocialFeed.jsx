@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { X } from 'lucide-react';
+import { TriangleAlert, X } from 'lucide-react';
 import { socialApi, normTitle, tasteKey } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
@@ -22,6 +22,7 @@ export default function SocialFeed({
   const { t } = useLanguage();
   const tf = t.social.feed;
   const [items, setItems] = useState(null);
+  const [failed, setFailed] = useState(false); // a carga falhou: erro com "Tentar de novo", não feed vazio
   const { items: myItems } = useUnifiedItems();
   const { user } = useUser();
 
@@ -41,8 +42,15 @@ export default function SocialFeed({
   };
 
   const load = useCallback(() => {
-    socialApi.getFeed(0, 20, scope).then(setItems).catch(() => setItems([]));
+    socialApi.getFeed(0, 20, scope)
+      .then((r) => { setItems(r); setFailed(false); })
+      .catch(() => setFailed(true));
   }, [scope]);
+
+  const retry = () => {
+    setFailed(false);
+    load();
+  };
 
   useEffect(load, [load]);
   useEffect(() => { onItems?.(items); }, [items, onItems]);
@@ -84,7 +92,9 @@ export default function SocialFeed({
         </div>
       )}
 
-      {items === null ? (
+      {items === null && failed ? (
+        <SocialEmpty role="alert" icon={TriangleAlert} text={tf.loadError} actionLabel={tf.retry} onAction={retry} />
+      ) : items === null ? (
         <SocialEmpty text={tf.loading} />
       ) : items.length === 0 ? (
         <FeedStart onOpenUser={onOpenUser} onGoPeople={onGoPeople} onFollowed={load} />

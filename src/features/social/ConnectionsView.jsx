@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Scale, Search, UserPlus, Users } from 'lucide-react';
+import { ArrowLeft, Scale, Search, TriangleAlert, UserPlus, Users } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import { socialApi } from './socialData';
 import PersonRow from './PersonRow';
@@ -23,6 +23,8 @@ export default function ConnectionsView({ initialTab = 'following', onTabChange,
   const [list, setList] = useState(null);
   const [counts, setCounts] = useState(null);
   const [query, setQuery] = useState('');
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0); // "Tentar de novo" busca outra vez
 
   useEffect(() => {
     socialApi.getSummary().then(setCounts).catch(() => {});
@@ -31,13 +33,19 @@ export default function ConnectionsView({ initialTab = 'following', onTabChange,
   useEffect(() => {
     let alive = true;
     const fn = tab === 'followers' ? socialApi.getFollowers : socialApi.getFollowing;
-    fn().then((l) => { if (alive) setList([...l].sort(byMatch)); }).catch(() => { if (alive) setList([]); });
+    fn().then((l) => { if (alive) setList([...l].sort(byMatch)); }).catch(() => { if (alive) setFailed(true); });
     return () => { alive = false; };
-  }, [tab]);
+  }, [tab, attempt]);
+
+  const retry = () => {
+    setFailed(false);
+    setAttempt((n) => n + 1);
+  };
 
   const switchTab = (id) => {
     if (id === tab) return;
     setList(null);
+    setFailed(false);
     setQuery('');
     setTab(id);
     onTabChange?.(id); // o Voltar de um perfil aberto daqui volta nesta aba
@@ -97,7 +105,9 @@ export default function ConnectionsView({ initialTab = 'following', onTabChange,
         )}
       </div>
 
-      {list === null ? (
+      {failed ? (
+        <SocialEmpty role="alert" icon={TriangleAlert} text={tcn.loadError} actionLabel={tcn.retry} onAction={retry} />
+      ) : list === null ? (
         <SocialEmpty text={tcn.loading} />
       ) : list.length === 0 ? (
         <SocialEmpty

@@ -37,6 +37,8 @@ const TRANSLATIONS = {
         filterEmpty: 'Nada sobre essa obra no que o feed carregou.',
         kindEmpty: 'Nada desse tipo no que o feed carregou.',
         emptyCta: 'Encontrar pessoas',
+        loadError: 'Não deu pra carregar o feed.',
+        retry: 'Tentar de novo',
       },
       nav: {
         label: 'Você e seus grupos',
@@ -63,6 +65,8 @@ const TRANSLATIONS = {
         replyingTo: 'Respondendo',
         showReplies: 'Ver {n} respostas',
         hideReplies: 'Ocultar respostas',
+        loadError: 'Não deu pra carregar os comentários.',
+        retry: 'Tentar de novo',
       },
       take: {
         delete: 'Excluir take',
@@ -138,6 +142,8 @@ const TRANSLATIONS = {
         loading: 'Carregando…',
         noFollowing: 'Você ainda não segue ninguém.',
         noFollowers: 'Ninguém te segue ainda.',
+        loadError: 'Não deu pra carregar a lista.',
+        retry: 'Tentar de novo',
         followBack: 'Seguir de volta', search: 'Buscar pelo nome', sortHint: 'Mais parecidos com você primeiro',
       },
       profile: {
@@ -968,6 +974,8 @@ const TRANSLATIONS = {
         filterEmpty: 'Nothing about this title in what the feed loaded.',
         kindEmpty: 'Nothing of this kind in what the feed loaded.',
         emptyCta: 'Find people',
+        loadError: "Couldn't load the feed.",
+        retry: 'Try again',
       },
       nav: {
         label: 'You and your groups',
@@ -994,6 +1002,8 @@ const TRANSLATIONS = {
         replyingTo: 'Replying',
         showReplies: 'View {n} replies',
         hideReplies: 'Hide replies',
+        loadError: "Couldn't load the comments.",
+        retry: 'Try again',
       },
       take: {
         delete: 'Delete take',
@@ -1069,6 +1079,8 @@ const TRANSLATIONS = {
         loading: 'Loading…',
         noFollowing: "You're not following anyone yet.",
         noFollowers: 'Nobody follows you yet.',
+        loadError: "Couldn't load the list.",
+        retry: 'Try again',
         followBack: 'Follow back', search: 'Search by name', sortHint: 'Most similar to you first',
       },
       profile: {
@@ -1891,6 +1903,8 @@ const TRANSLATIONS = {
         filterEmpty: 'Nada sobre esta obra en lo que cargó el feed.',
         kindEmpty: 'Nada de este tipo en lo que cargó el feed.',
         emptyCta: 'Encontrar gente',
+        loadError: 'No se pudo cargar el feed.',
+        retry: 'Intentar de nuevo',
       },
       nav: {
         label: 'Tú y tus grupos',
@@ -1917,6 +1931,8 @@ const TRANSLATIONS = {
         replyingTo: 'Respondiendo',
         showReplies: 'Ver {n} respuestas',
         hideReplies: 'Ocultar respuestas',
+        loadError: 'No se pudieron cargar los comentarios.',
+        retry: 'Intentar de nuevo',
       },
       take: {
         delete: 'Eliminar take',
@@ -1992,6 +2008,8 @@ const TRANSLATIONS = {
         loading: 'Cargando…',
         noFollowing: 'Aún no sigues a nadie.',
         noFollowers: 'Nadie te sigue todavía.',
+        loadError: 'No se pudo cargar la lista.',
+        retry: 'Intentar de nuevo',
         followBack: 'Seguir también', search: 'Buscar por nombre', sortHint: 'Los más parecidos a ti primero',
       },
       profile: {

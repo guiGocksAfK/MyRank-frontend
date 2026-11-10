@@ -13,6 +13,8 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
   const tc = t.social.comments;
   const { user } = useUser();
   const [comments, setComments] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0); // "Tentar de novo" busca outra vez
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [replyTo, setReplyTo] = useState(null); // id do comentário raiz sendo respondido
@@ -20,8 +22,8 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    socialApi.getTakeComments(takeId).then(setComments).catch(() => setComments([]));
-  }, [takeId]);
+    socialApi.getTakeComments(takeId).then(setComments).catch(() => setFailed(true));
+  }, [takeId, attempt]);
 
   async function submit(e) {
     e?.preventDefault?.();
@@ -93,7 +95,14 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
   return (
     <div className="social-comments">
       {/* sem comentários não tem aviso: o convite vira o texto da caixa */}
-      {comments === null ? (
+      {comments === null && failed ? (
+        <div className="social-comments-hint" role="alert">
+          {tc.loadError}{' '}
+          <button type="button" className="social-link" onClick={() => { setFailed(false); setAttempt((n) => n + 1); }}>
+            {tc.retry}
+          </button>
+        </div>
+      ) : comments === null ? (
         <div className="social-comments-hint">{tc.loading}</div>
       ) : comments.length === 0 ? null : (
         <ul className="social-comment-list">
@@ -228,7 +237,7 @@ function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete, onEdit }) {
   return (
     <div className="social-comment-row">
       <button type="button" className="social-comment-avatar" onClick={() => onOpenUser?.(a.id)}>
-        <SocialAvatar name={a.username} initials={a.initials} color={a.color} src={a.avatarSrc} size={30} />
+        <SocialAvatar name={a.username} initials={a.initials} src={a.avatarSrc} size={30} />
       </button>
       <div className="social-comment-main">
         <div className="social-comment-meta">
