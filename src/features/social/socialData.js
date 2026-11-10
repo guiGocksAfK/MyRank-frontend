@@ -10,7 +10,7 @@
  */
 import { createElement } from 'react';
 import api from '../../services/api';
-import { getDirectory, joinGroup, cancelJoinRequest } from '../../services/chatService';
+import { getDirectory, joinGroup, cancelJoinRequest, getConversations } from '../../services/chatService';
 import { TABLE_TEMPLATES, TEMPLATE_ICONS } from '../../shared/tableTemplates';
 
 // tipo de mídia (filme, jogo...) → o mesmo ícone de traço dos templates
@@ -194,8 +194,9 @@ const realApi = {
     };
   },
 
-  async getFeed(page = 0, size = 20) {
-    const { data } = await api.get('/social/feed', { params: { page, size } });
+  /** `scope`: 'all' (quem você segue + perfis públicos) ou 'following' (só quem você segue). */
+  async getFeed(page = 0, size = 20, scope = 'all') {
+    const { data } = await api.get('/social/feed', { params: { page, size, scope } });
     return (Array.isArray(data) ? data : []).map(decorateFeedItem);
   },
 
@@ -302,6 +303,10 @@ const realApi = {
 
   // grupos (moram no chat, mas a Social lista e entra por aqui)
   getGroups: (q = '', page = 0) => getDirectory(q, page),
+  /** Os grupos em que você está (as conversas de grupo), pro atalho da coluna da esquerda. */
+  async getMyGroups() {
+    return (await getConversations()).filter((c) => c.type === 'GROUP');
+  },
   joinGroup: (convId) => joinGroup(convId),
   cancelJoinRequest: (convId) => cancelJoinRequest(convId),
 };

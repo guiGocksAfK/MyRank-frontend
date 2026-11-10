@@ -144,7 +144,7 @@ async function world() {
   const groups = [
     { id: 7001, name: 'Clube do terror', description: 'Um filme de terror por semana.', imageUrl: null, access: 'OPEN', memberCount: 23, membership: 'NONE' },
     { id: 7002, name: 'Só RPG', description: 'JRPG, CRPG e o que mais tiver ficha.', imageUrl: null, access: 'REQUEST', memberCount: 58, membership: 'NONE' },
-    { id: 7003, name: 'Leitura lenta', description: 'Um livro por mês, sem pressa.', imageUrl: null, access: 'OPEN', memberCount: 12, membership: 'NONE' },
+    { id: 7003, name: 'Leitura lenta', description: 'Um livro por mês, sem pressa.', imageUrl: null, access: 'OPEN', memberCount: 12, membership: 'MEMBER' },
   ];
 
   state = { users, feed, comments, groups, pool, requests: [9005], nextId, theirScore };
@@ -161,10 +161,20 @@ export const mockApi = {
     await wait();
     return { following: followingList(s).length, followers: followerList(s).length, recentActivity: s.feed.length };
   },
-  async getFeed() {
+  // página e tamanho não importam aqui: o feed falso cabe numa página só
+  async getFeed(...args) {
+    const scope = args[2] || 'all';
     const s = await world();
     await wait();
-    return s.feed.map(decorateFeedItem);
+    // "só quem eu sigo": tira os perfis públicos de quem você não segue (você fica)
+    const me = await meUser();
+    const keep = (f) => scope !== 'following' || f.actor?.following || f.actor?.id === me.id || f.actor?.id === 0;
+    return s.feed.filter(keep).map(decorateFeedItem);
+  },
+  async getMyGroups() {
+    const s = await world();
+    await wait();
+    return s.groups.filter((g) => g.membership === 'MEMBER').map((g) => ({ ...g, type: 'GROUP', unread: g.id === 7003 ? 2 : 0 }));
   },
   async getFollowing() { const s = await world(); await wait(); return followingList(s).map(asUser); },
   async getFollowers() { const s = await world(); await wait(); return followerList(s).map(asUser); },

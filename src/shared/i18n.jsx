@@ -35,7 +35,16 @@ const TRANSLATIONS = {
         filtering: 'Mostrando:',
         clearFilter: 'Limpar filtro',
         filterEmpty: 'Nada sobre essa obra no que o feed carregou.',
+        kindEmpty: 'Nada desse tipo no que o feed carregou.',
         emptyCta: 'Encontrar pessoas',
+      },
+      nav: {
+        label: 'Você e seus grupos',
+        show: 'Mostrar', everyone: 'Todos', followingTab: 'Seguindo',
+        kind: 'Tipo', kindAll: 'Tudo', kindTakes: 'Takes', kindRatings: 'Avaliações',
+        groups: 'Seus grupos',
+        noGroups: 'Você ainda não está em nenhum grupo.',
+        findGroups: 'Encontrar grupos',
       },
       comments: {
         deleteTitle: 'Apagar comentário?',
@@ -65,14 +74,13 @@ const TRANSLATIONS = {
       },
       act: {
         verbs: {
-          TAKE: 'escreveu um take',
           RATED_DAY: 'avaliou {n} obras',
           RATED_DAY_ONE: 'avaliou 1 obra',
         },
         you: 'você',
         clash: 'vocês discordam',
       },
-      react: { up: 'Curti', agree: 'Concordo', disagree: 'Discordo' },
+      react: { up: 'Curti', agree: 'Concordo', disagree: 'Discordo', polemic: 'polêmico' },
       composer: {
         title: 'Escrever um take',
         write: 'Escrever take',
@@ -957,7 +965,16 @@ const TRANSLATIONS = {
         filtering: 'Showing:',
         clearFilter: 'Clear filter',
         filterEmpty: 'Nothing about this title in what the feed loaded.',
+        kindEmpty: 'Nothing of this kind in what the feed loaded.',
         emptyCta: 'Find people',
+      },
+      nav: {
+        label: 'You and your groups',
+        show: 'Show', everyone: 'Everyone', followingTab: 'Following',
+        kind: 'Type', kindAll: 'All', kindTakes: 'Takes', kindRatings: 'Ratings',
+        groups: 'Your groups',
+        noGroups: "You're not in any group yet.",
+        findGroups: 'Find groups',
       },
       comments: {
         deleteTitle: 'Delete comment?',
@@ -987,14 +1004,13 @@ const TRANSLATIONS = {
       },
       act: {
         verbs: {
-          TAKE: 'wrote a take',
           RATED_DAY: 'rated {n} titles',
           RATED_DAY_ONE: 'rated 1 title',
         },
         you: 'you',
         clash: 'you disagree',
       },
-      react: { up: 'Like', agree: 'Agree', disagree: 'Disagree' },
+      react: { up: 'Like', agree: 'Agree', disagree: 'Disagree', polemic: 'controversial' },
       composer: {
         title: 'Write a take',
         write: 'Write take',
@@ -1871,7 +1887,16 @@ const TRANSLATIONS = {
         filtering: 'Mostrando:',
         clearFilter: 'Quitar filtro',
         filterEmpty: 'Nada sobre esta obra en lo que cargó el feed.',
+        kindEmpty: 'Nada de este tipo en lo que cargó el feed.',
         emptyCta: 'Encontrar gente',
+      },
+      nav: {
+        label: 'Tú y tus grupos',
+        show: 'Mostrar', everyone: 'Todos', followingTab: 'Siguiendo',
+        kind: 'Tipo', kindAll: 'Todo', kindTakes: 'Takes', kindRatings: 'Valoraciones',
+        groups: 'Tus grupos',
+        noGroups: 'Aún no estás en ningún grupo.',
+        findGroups: 'Encontrar grupos',
       },
       comments: {
         deleteTitle: '¿Eliminar comentario?',
@@ -1901,14 +1926,13 @@ const TRANSLATIONS = {
       },
       act: {
         verbs: {
-          TAKE: 'escribió un take',
           RATED_DAY: 'valoró {n} obras',
           RATED_DAY_ONE: 'valoró 1 obra',
         },
         you: 'tú',
         clash: 'no coinciden',
       },
-      react: { up: 'Me gusta', agree: 'De acuerdo', disagree: 'En desacuerdo' },
+      react: { up: 'Me gusta', agree: 'De acuerdo', disagree: 'En desacuerdo', polemic: 'polémico' },
       composer: {
         title: 'Escribir un take',
         write: 'Escribir take',
