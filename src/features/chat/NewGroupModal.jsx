@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
 import { socialApi } from '../social/socialData';
 import { createGroup } from '../../services/chatService';
 import SocialAvatar from '../social/SocialAvatar';
 import ImagePreview from './ImagePreview';
+import useModalBehavior from '../../shared/components/useModalBehavior';
 
 const NAME_MAX = 80;
 const DESC_MAX = 300;
@@ -25,6 +26,9 @@ export default function NewGroupModal({ onClose, onCreated }) {
   const [selected, setSelected] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+
+  const dialog = useRef(null);
+  useModalBehavior(dialog, () => { if (!busy) onClose(); });
 
   useEffect(() => {
     const q = query.trim();
@@ -72,9 +76,17 @@ export default function NewGroupModal({ onClose, onCreated }) {
   };
 
   return (
-    <div className="chat-modal-overlay" onClick={onClose}>
-      <div className="chat-modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="chat-modal-title">{tc.newGroupTitle}</h3>
+    <div className="chat-modal-overlay" onClick={() => !busy && onClose()}>
+      <div
+        ref={dialog}
+        className="chat-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ng-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="chat-modal-title" id="ng-title">{tc.newGroupTitle}</h3>
 
         <label className="chat-modal-label">{tc.groupName}</label>
         <input

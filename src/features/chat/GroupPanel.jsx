@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
 import { socialApi } from '../social/socialData';
 import SocialAvatar from '../social/SocialAvatar';
 import ConfirmModal from '../../shared/components/ConfirmModal';
+import useModalBehavior from '../../shared/components/useModalBehavior';
 import ImagePreview from './ImagePreview';
 import {
   getMembers,
@@ -61,13 +62,9 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
     };
   }, []);
 
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  // Esc pela pilha de modais: com a confirmação de excluir aberta, fecha só ela.
+  const dialog = useRef(null);
+  useModalBehavior(dialog, onClose);
 
   const loadMembers = useCallback(() => {
     getMembers(conversation.id).then(setMembers).catch(() => setMembers([]));
@@ -185,8 +182,15 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
   };
 
   return (
-    <div className="chat-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="gp-title">
-      <div className="chat-modal chat-modal-lg">
+    <div className="chat-modal-overlay">
+      <div
+        ref={dialog}
+        className="chat-modal chat-modal-lg"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="gp-title"
+        tabIndex={-1}
+      >
         <div className="chat-modal-head">
           <h3 className="chat-modal-title" id="gp-title">{tc.groupSettings}</h3>
           <button type="button" className="chat-modal-x" onClick={onClose} aria-label={tc.close}>
