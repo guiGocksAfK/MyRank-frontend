@@ -50,7 +50,7 @@ export default function DiscordCallbackPage() {
       <section className="auth-card mr-panel" style={{ margin: "auto" }}>
         {error ? (
           <>
-            <p className="auth-error">{error}</p>
+            <p className="auth-error" role="alert">{error}</p>
             <button className="mr-btn mr-btn-gold auth-submit" type="button" onClick={() => navigate("/entrar")}>
               Voltar para login
             </button>
