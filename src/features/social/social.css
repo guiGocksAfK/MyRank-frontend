@@ -510,7 +510,8 @@
 .social-empty .mr-btn { margin-top: 8px; }
 
 /* ── Trilho e listas de pessoas ───────────────────────────── */
-.social-rail { position: sticky; top: 88px; display: flex; flex-direction: column; gap: var(--mr-space-3); }
+/* rola junto com a página: grudado no topo, a parte de baixo ficava fora da tela */
+.social-rail { display: flex; flex-direction: column; gap: var(--mr-space-3); }
 .social-rail-card, .social-col { display: flex; flex-direction: column; gap: var(--mr-space-2); padding: var(--mr-space-4); min-width: 0; }
 .social-rail-title {
   margin: 0 0 var(--mr-space-1);
@@ -899,7 +900,7 @@ button.social-cmp-side:hover .social-cmp-who b { color: var(--mr-gold); }
 @media (max-width: 900px) {
   /* sem trilho do lado: ele sobe pro topo do feed */
   .social-feed-layout { grid-template-columns: minmax(0, 1fr); }
-  .social-rail { order: -1; position: static; }
+  .social-rail { order: -1; }
   /* em cima do feed fica só você e os pedidos; o resto está na aba Pessoas */
   .social-rail-card.is-side { display: none; }
   .social-prof-grid { grid-template-columns: 1fr; }
