@@ -66,10 +66,7 @@ export function ChatProvider({ children }) {
 
   // ── STOMP: conecta enquanto logado ────────────────────────────────────
   useEffect(() => {
-    if (!userId) {
-      setUnreadCount(0);
-      return undefined;
-    }
+    if (!userId) return undefined;
 
     const token = localStorage.getItem('myrank_token');
     const client = new Client({
@@ -125,7 +122,7 @@ export function ChatProvider({ children }) {
   }, [userId, refreshCount]);
 
   const value = {
-    unreadCount,
+    unreadCount: userId ? unreadCount : 0,
     refreshCount,
     openChatWith,
     openNonce,

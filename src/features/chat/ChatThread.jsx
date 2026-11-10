@@ -239,7 +239,12 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
     }
   }, [conversation.id, hasMore, loadingMore, tc.loadError]);
 
-  useEffect(() => {
+  // Renderiza com os valores iniciais da conversa; trocar de conversa reseta sem efeito cascata
+  const [convKey, setConvKey] = useState(conversation.id);
+  if (convKey !== conversation.id) {
+    setConvKey(conversation.id);
+    setMessages(null);
+    setError(null);
     setReplyTo(null);
     setEditing(null);
     setMenuFor(null);
@@ -247,9 +252,27 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
     setTypers([]);
     setPeerReadId(conversation.peerLastReadId ?? null);
     setUnreadAnchor(conversation.unread > 0 ? conversation.myLastReadId ?? 0 : 0);
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversation.id]);
+  }
+
+  useEffect(() => {
+    pageRef.current = 0;
+    forceBottomRef.current = true;
+    let active = true;
+    getMessages(conversation.id, 0, PAGE_SIZE)
+      .then((rows) => {
+        if (!active) return;
+        setHasMore(rows.length === PAGE_SIZE);
+        setMessages(rows);
+        setError(null);
+        markRead();
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err?.response?.data?.message || tc.loadError);
+        setMessages([]);
+      });
+    return () => { active = false; };
+  }, [conversation.id, markRead, tc.loadError]);
 
   // some com "digitando…" parado há mais de 4s
   useEffect(() => {
@@ -698,6 +721,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
 
       {showRail && (
         <ContextRail
+          key={conversation.id}
           conversation={conversation}
           isGroup={isGroup}
           tc={tc}
@@ -946,14 +970,17 @@ function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfi
   const peerId = conversation.peer?.id ?? null;
 
   useEffect(() => {
-    setProfile(null);
-    setMembers(null);
-    setFailed(false);
+    let active = true;
     if (isGroup) {
-      getMembers(conversation.id).then(setMembers).catch(() => setMembers([]));
+      getMembers(conversation.id)
+        .then((m) => { if (active) setMembers(m); })
+        .catch(() => { if (active) setMembers([]); });
     } else if (peerId) {
-      socialApi.getProfile(peerId).then(setProfile).catch(() => setFailed(true));
+      socialApi.getProfile(peerId)
+        .then((p) => { if (active) setProfile(p); })
+        .catch(() => { if (active) setFailed(true); });
     }
+    return () => { active = false; };
   }, [conversation.id, isGroup, peerId]);
 
   return (
