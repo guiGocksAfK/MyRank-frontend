@@ -58,7 +58,7 @@ function FilterMenu({ label, value, onClear, clearLabel, wide, children }) {
 
 function Option({ checked, onClick, children, disabled }) {
   return (
-    <button type="button" role="menuitemcheckbox" aria-checked={checked} aria-disabled={disabled} className="mr-menu-item" onClick={onClick}>
+    <button type="button" role="menuitemcheckbox" aria-checked={checked} aria-disabled={disabled} disabled={disabled} className="mr-menu-item" onClick={onClick}>
       <span className="mr-menu-radio" aria-hidden="true" />
       {children}
     </button>

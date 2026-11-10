@@ -81,14 +81,14 @@ export default function ChangePasswordModal({ email, onClose, onDone }) {
       {step === 'send' && <p className="pf-modal-copy">{fmt(tp.passwordIntro, { email })}</p>}
 
       {step === 'code' && (
-        <div className="pf-field">
+        <form className="pf-field" onSubmit={(e) => { e.preventDefault(); if (!action.disabled) checkCode(); }}>
           <p className="pf-modal-copy">{fmt(tp.passwordCodeSent, { email })}</p>
           <CodeInput id="pf-password-code" value={code} onChange={setCode} disabled={busy} autoFocus />
-        </div>
+        </form>
       )}
 
       {step === 'password' && (
-        <>
+        <form className="pf-delete" onSubmit={(e) => { e.preventDefault(); if (!action.disabled) save(); }}>
           <p className="pf-modal-copy">{tp.passwordWarn}</p>
           <label className="pf-field">
             <span className="mr-field-label">{tr.newPasswordLabel}</span>
@@ -98,7 +98,8 @@ export default function ChangePasswordModal({ email, onClose, onDone }) {
             <span className="mr-field-label">{tp.passwordConfirm}</span>
             <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
           </label>
-        </>
+          <button type="submit" hidden />
+        </form>
       )}
     </Modal>
   );

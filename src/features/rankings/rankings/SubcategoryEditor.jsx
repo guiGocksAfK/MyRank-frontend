@@ -83,8 +83,14 @@ export default function SubcategoryEditor({ value, onChange, counts = null, disa
           }
           return (
             <span key={sub.key} className="rk-chip">
-              <span className="rk-chip-name" title={ts.rename}
-                onDoubleClick={() => !disabled && setEditing({ key: sub.key, name: sub.name })}>
+              <span className="rk-chip-name" title={ts.rename} tabIndex={disabled ? undefined : 0}
+                onDoubleClick={() => !disabled && setEditing({ key: sub.key, name: sub.name })}
+                onKeyDown={event => {
+                  if (!disabled && (event.key === 'Enter' || event.key === 'F2')) {
+                    event.preventDefault();
+                    setEditing({ key: sub.key, name: sub.name });
+                  }
+                }}>
                 {sub.name}
                 {n !== null && <em>{(n === 1 ? ts.works[0] : ts.works[1]).replace('{n}', n)}</em>}
               </span>

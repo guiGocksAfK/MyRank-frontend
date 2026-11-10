@@ -123,6 +123,7 @@ export default function GroupDirectory({ onBack, onOpen }) {
           className="chat-input"
           type="text"
           value={query}
+          aria-label={tc.searchGroups}
           placeholder={tc.searchGroups}
           onChange={(e) => setQuery(e.target.value)}
         />
