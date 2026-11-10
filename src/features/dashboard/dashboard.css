@@ -94,9 +94,26 @@
 .myrank-light .rk-range-fields label,
 .myrank-light .rk-coll,
 .myrank-light .rk-fields,
-.myrank-light .rk-chip-input {
+.myrank-light .rk-chip-input,
+.myrank-light .ik-results,
+.myrank-light .ik-score,
+.myrank-light .ik-seg,
+.myrank-light .ik-switch {
   background: var(--mr-input-bg);
   border-color: var(--mr-border);
+}
+.myrank-light .ik-results-head {
+  border-bottom-color: var(--mr-border-light);
+}
+.myrank-light .ik-date {
+  color-scheme: light;
+}
+.myrank-light .mr-switch:not(.checked) {
+  background: var(--mr-input-bg);
+  border-color: var(--mr-border);
+}
+.myrank-light .mr-poster-placeholder {
+  background: linear-gradient(135deg, #eef0f2 0%, #e2e5ea 100%);
 }
 .myrank-light .rk-range-fields input {
   color-scheme: light;
@@ -841,7 +858,10 @@
 
 .mr-poster-placeholder-icon {
   font-size: 2rem;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mr-text-muted);
   margin-bottom: 8px;
 }
 

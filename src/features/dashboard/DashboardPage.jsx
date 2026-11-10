@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import DashboardHeader from './DashboardHeader';
 import DashboardHome from './DashboardHome';
 import SiteFooter from '../../shared/components/SiteFooter';
@@ -57,8 +57,15 @@ function OnboardingGate({ children }) {
 
 export default function DashboardPage() {
   const location = useLocation();
-  const initialTab = VALID_TABS.includes(location.state?.tab) ? location.state.tab : 'home';
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
+  const initialTab = VALID_TABS.includes(urlTab)
+    ? urlTab
+    : VALID_TABS.includes(location.state?.tab)
+      ? location.state.tab
+      : 'home';
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [seenUrlTab, setSeenUrlTab] = useState(urlTab);
   const [profileOnSettings, setProfileOnSettings] = useState(false);
   // Configurações abertas pela Social: pra onde o Voltar delas leva ({ view, tab } da Social)
   const [settingsBack, setSettingsBack] = useState(null);
@@ -72,6 +79,15 @@ export default function DashboardPage() {
   // abriu direto em Rankings (vindo do tutorial): já nasce na versão que fica montada
   const [rankingsVisited, setRankingsVisited] = useState(initialTab === 'rankings');
 
+  if (urlTab !== seenUrlTab) {
+    setSeenUrlTab(urlTab);
+    const nextTab = VALID_TABS.includes(urlTab) ? urlTab : 'home';
+    if (nextTab !== activeTab) {
+      setActiveTab(nextTab);
+      if (nextTab === 'rankings') setRankingsVisited(true);
+    }
+  }
+
   // Modais, menus e balões são desenhados no <body>, fora da div do dashboard: o
   // tema claro vai no <body> também, senão eles continuam escuros. Sai ao deixar o dashboard.
   useEffect(() => {
@@ -79,6 +95,13 @@ export default function DashboardPage() {
     try { localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light'); } catch { /* só não lembra */ }
     return () => document.body.classList.remove('myrank-light');
   }, [isDark]);
+
+  // Se veio por location.state?.tab sem ?tab= na URL, reflete na barra de endereço
+  useEffect(() => {
+    if (!urlTab && activeTab !== 'home') {
+      setSearchParams({ tab: activeTab }, { replace: true });
+    }
+  }, [urlTab, activeTab, setSearchParams]);
 
   // sem sessão guardada nem adianta pedir /users/me: vai pro login
   if (!isAuthenticated()) return <Navigate to="/entrar" replace />;
@@ -93,6 +116,7 @@ export default function DashboardPage() {
     setSettingsBack(tab === 'profile' && opts.settings ? opts.back ?? null : null);
     setSocialResume(tab === 'social' ? opts.resume ?? null : null);
     setActiveTab(tab);
+    setSearchParams(tab === 'home' ? {} : { tab }, { replace: true });
     if (tab === 'rankings') setRankingsVisited(true);
     setCreatorsView(false);
     setInsightRun(null);

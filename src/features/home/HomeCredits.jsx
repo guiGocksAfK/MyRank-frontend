@@ -3,14 +3,13 @@ import { Link } from "react-router-dom";
 import useRevealOnce, { prefersReducedMotion } from "./useRevealOnce";
 import "./homeCredits.css";
 
-const START_MS = 300; // respiro antes do 1º cartão
+const START_MS = 200; // respiro antes do 1º cartão
 
-// Tempo de leitura de cada cartão, calculado pelas palavras dele: ~5 palavras
-// por segundo (leitura um pouco acima da média) + 0,5s pra o olho achar o
-// texto depois do fade. Assim cada idioma ganha o tempo que o próprio texto pede.
-// Em PT a sequência inteira dá ~10s até o botão.
-const REACTION_MS = 500;
-const MS_PER_WORD = 190;
+// Tempo de leitura de cada cartão, calculado pelas palavras dele: ~7 palavras
+// por segundo + ~0,4s pra o olho achar o texto depois do fade.
+// Em PT a sequência inteira dá ~7,5s até o botão.
+const REACTION_MS = 380;
+const MS_PER_WORD = 145;
 const countWords = (...texts) => texts.join(" ").split(/\s+/).filter(Boolean).length;
 const readingMs = (...texts) => REACTION_MS + countWords(...texts) * MS_PER_WORD;
 

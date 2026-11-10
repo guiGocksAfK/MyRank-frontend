@@ -1,7 +1,7 @@
 .home-page {
   background-color: var(--mr-bg);
   min-height: 100vh;
-  color: #e5e5e5;
+  color: var(--mr-text);
   font-family: var(--mr-font);
 }
 
@@ -81,7 +81,7 @@
 .home-title {
   font-size: clamp(30px, 6vw, 72px);
   font-weight: 800;
-  color: #e5e5e5;
+  color: var(--mr-text);
   line-height: 1.08;
   letter-spacing: var(--mr-tracking-tight);
   max-width: 900px;
@@ -94,7 +94,7 @@
 
 .home-subtitle {
   font-size: 16px;
-  color: #aaa;
+  color: var(--mr-text-secondary);
   max-width: 520px;
   line-height: 1.7;
   text-wrap: balance;
