@@ -138,6 +138,7 @@ const TRANSLATIONS = {
         loading: 'Carregando…',
         noFollowing: 'Você ainda não segue ninguém.',
         noFollowers: 'Ninguém te segue ainda.',
+        followBack: 'Seguir de volta', search: 'Buscar pelo nome', sortHint: 'Mais parecidos com você primeiro',
       },
       profile: {
         back: 'Voltar',
@@ -1068,6 +1069,7 @@ const TRANSLATIONS = {
         loading: 'Loading…',
         noFollowing: "You're not following anyone yet.",
         noFollowers: 'Nobody follows you yet.',
+        followBack: 'Follow back', search: 'Search by name', sortHint: 'Most similar to you first',
       },
       profile: {
         back: 'Back',
@@ -1990,6 +1992,7 @@ const TRANSLATIONS = {
         loading: 'Cargando…',
         noFollowing: 'Aún no sigues a nadie.',
         noFollowers: 'Nadie te sigue todavía.',
+        followBack: 'Seguir también', search: 'Buscar por nombre', sortHint: 'Los más parecidos a ti primero',
       },
       profile: {
         back: 'Volver',

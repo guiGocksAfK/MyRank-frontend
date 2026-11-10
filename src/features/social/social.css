@@ -823,7 +823,15 @@
   transition: color var(--mr-duration-fast) var(--mr-ease);
 }
 .social-back:hover, .social-back:focus-visible { color: var(--mr-gold); }
-.social-connections { max-width: 640px; }
+/* seguindo/seguidores: uma coluna só, centralizada, com as abas, a busca e a lista alinhadas */
+.social-sub.social-conn { width: 100%; max-width: 680px; margin-inline: auto; }
+.social-conn-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--mr-space-3); border-bottom: 1px solid var(--mr-border); }
+.social-conn-n { margin-left: 6px; color: var(--mr-text-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.social-conn-search { width: 220px; margin-bottom: 6px; padding: 6px 12px; }
+.social-conn-hint { margin: 0; color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+.social-conn-list { gap: 0; }
+.social-conn-list .social-person { gap: var(--mr-space-3); padding: 12px 0; border-bottom: 1px solid var(--mr-border); }
+.social-conn-list .social-person:last-child { border-bottom: 0; }
 
 /* cabeçalho do perfil */
 .social-prof-head { display: flex; align-items: center; gap: var(--mr-space-4); padding: var(--mr-space-5); }
@@ -995,6 +1003,8 @@ button.social-cmp-side:hover .social-cmp-who b { color: var(--mr-gold); }
 }
 
 @media (max-width: 640px) {
+  .social-conn-bar { flex-wrap: wrap; }
+  .social-conn-search { width: 100%; }
   .social-card { padding: var(--mr-space-3); }
   .social-devtoggle-text { display: none; }
   /* reações numa linha só: o placar fica com ícone, número e a barrinha */
