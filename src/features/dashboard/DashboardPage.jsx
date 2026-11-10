@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import DashboardHeader from './DashboardHeader';
 import DashboardHome from './DashboardHome';
-import RankingsTab from '../rankings/rankings/RankingsTab';
-import CreatorsPanel from '../creators/CreatorsPanel';
-import SocialPanel from '../social/SocialPanel';
-import InsightsPanel from '../insights/InsightsPanel';
-import InsightsResult from '../insights/InsightsResultPage';
-import ProfilePanel from '../profile/ProfilePanel';
 import SiteFooter from '../../shared/components/SiteFooter';
+
+const RankingsTab = lazy(() => import('../rankings/rankings/RankingsTab'));
+const CreatorsPanel = lazy(() => import('../creators/CreatorsPanel'));
+const SocialPanel = lazy(() => import('../social/SocialPanel'));
+const InsightsPanel = lazy(() => import('../insights/InsightsPanel'));
+const InsightsResult = lazy(() => import('../insights/InsightsResultPage'));
+const ProfilePanel = lazy(() => import('../profile/ProfilePanel'));
 import { UserProvider, useUser } from '../../shared/userContext';
 import { WorksProvider } from '../../shared/worksContext';
 import { BadgeProvider } from '../../shared/badges';
@@ -140,14 +141,16 @@ export default function DashboardPage() {
         <div style={{ display: activeTab === 'home' ? 'block' : 'none' }}>
           <DashboardHome onNavigate={handleTabChange} />
         </div>
-        {rankingsVisited && (
-          <div style={{ display: activeTab === 'rankings' && !creatorsView ? 'block' : 'none' }}>
-            <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />
-          </div>
-        )}
-        {activeTab === 'home' || (activeTab === 'rankings' && rankingsVisited)
-          ? creatorsView && <CreatorsPanel onBack={() => setCreatorsView(false)} />
-          : renderTab()}
+        <Suspense fallback={null}>
+          {rankingsVisited && (
+            <div style={{ display: activeTab === 'rankings' && !creatorsView ? 'block' : 'none' }}>
+              <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />
+            </div>
+          )}
+          {activeTab === 'home' || (activeTab === 'rankings' && rankingsVisited)
+            ? creatorsView && <CreatorsPanel onBack={() => setCreatorsView(false)} />
+            : renderTab()}
+        </Suspense>
       </div>
 
       {/* ribbon no fim de todas as abas — stats reais vêm de /works/unified */}

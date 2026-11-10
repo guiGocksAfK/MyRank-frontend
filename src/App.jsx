@@ -1,18 +1,19 @@
-import { useState } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { LanguageProvider } from './shared/i18n'
 import Navbar from './shared/components/Navbar'
-import Home from './features/home/HomePage'
-import Login from './features/auth/LoginPage'
-import Register from './features/auth/RegisterPage'
-import Dashboard from './features/dashboard/DashboardPage'
-import DiscordCallback from './features/auth/DiscordCallbackPage'
-import VerifyEmail from './features/auth/VerifyEmailPage'
-import ForgotPassword from './features/auth/ForgotPasswordPage'
-import ChatInvitePage from './features/chat/ChatInvitePage'
-import Onboarding from './features/onboarding/OnboardingPage'
 import { isAuthenticated } from './services/authService'
+
+const Home = lazy(() => import('./features/home/HomePage'))
+const Login = lazy(() => import('./features/auth/LoginPage'))
+const Register = lazy(() => import('./features/auth/RegisterPage'))
+const Dashboard = lazy(() => import('./features/dashboard/DashboardPage'))
+const DiscordCallback = lazy(() => import('./features/auth/DiscordCallbackPage'))
+const VerifyEmail = lazy(() => import('./features/auth/VerifyEmailPage'))
+const ForgotPassword = lazy(() => import('./features/auth/ForgotPasswordPage'))
+const ChatInvitePage = lazy(() => import('./features/chat/ChatInvitePage'))
+const Onboarding = lazy(() => import('./features/onboarding/OnboardingPage'))
 
 
 
@@ -47,6 +48,7 @@ function Layout() {
   return (
     <div style={{width: '100%', minHeight: '100vh'}}>
       {!hideNavbar && <Navbar />}
+      <Suspense fallback={null}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -62,6 +64,7 @@ function Layout() {
         {/* endereço que não existe volta pra home, em vez da tela vazia */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </div>
   )
 }

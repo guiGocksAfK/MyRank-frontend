@@ -4,12 +4,9 @@ import { useWorks } from '../../shared/worksContext';
 import { getStoredUser } from '../../services/authService';
 import { useUser } from '../../shared/userContext';
 import { useLanguage } from '../../shared/i18n';
-import { relativeTime } from '../../shared/useUnifiedItems';
-import { getCategories } from '../../services/CategoryService';
-import { getWorksByCategory } from '../../services/WorkService';
+import { relativeTime, useUnifiedItems } from '../../shared/useUnifiedItems';
 import { getGroups } from '../../services/masterTableGroupService';
 import { getLatestInsights } from '../../services/insightsService';
-import { mapWorkToItem } from '../../utils/mapWork';
 import { sortItems } from '../../utils/formatters';
 import { hasSquareCover } from '../../shared/tableTemplates';
 import AnimatedNumber from '../rankings/rankings/AnimatedNumber';
@@ -22,29 +19,8 @@ const typeIcons = {
   livro: '📚',
 };
 
-function getTableOrderKey() {
-  const userKey = localStorage.getItem('myrank_username') || 'anonymous';
-  return `myrank_table_order_${userKey}`;
-}
-
-function orderCategories(categories) {
-  const savedOrder = (() => {
-    try {
-      const parsedOrder = JSON.parse(localStorage.getItem(getTableOrderKey()) || '[]');
-      return Array.isArray(parsedOrder) ? parsedOrder : [];
-    } catch {
-      return [];
-    }
-  })();
-
-  const categoryById = new Map(categories.map(category => [String(category.id), category]));
-  const ordered = savedOrder.map(id => categoryById.get(String(id))).filter(Boolean);
-  const orderedIds = new Set(ordered.map(category => String(category.id)));
-  return [...ordered, ...categories.filter(category => !orderedIds.has(String(category.id)))];
-}
-
 function getUnifiedItemKey(item) {
-  return `${item._tableId}:${item.id}`;
+  return `${item._tableId ?? item.categoryId}:${item.id}`;
 }
 
 function applyUnifiedOrder(items, savedOrder = []) {
@@ -56,8 +32,10 @@ function applyUnifiedOrder(items, savedOrder = []) {
 
 /** Capa da obra, ou o título sobre fundo escuro quando não tem imagem. */
 function PosterCover({ item }) {
-  return item.image ? (
-    <img src={item.image} alt={item.title} loading="lazy" className="dash-cover-img" />
+  const [failedSrc, setFailedSrc] = useState(null);
+  const src = item.image;
+  return src && failedSrc !== src ? (
+    <img src={src} alt={item.title} loading="lazy" className="dash-cover-img" onError={() => setFailedSrc(src)} />
   ) : (
     <div className="mr-poster-placeholder">
       <span className="mr-poster-placeholder-icon">{typeIcons[item.type] || '📦'}</span>
@@ -69,9 +47,8 @@ function PosterCover({ item }) {
 export default function DashboardHome({ onNavigate }) {
   const [weighted, setWeighted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [mediaItems, setMediaItems] = useState([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState(null); // null = todas as tabelas
   const [unifiedOrder, setUnifiedOrder] = useState([]);
-  const [loadingItems, setLoadingItems] = useState(true);
   // "agora" fixo na montagem: decide quais conquistas ganham a etiqueta de nova
   const [now] = useState(() => Date.now());
   // null = ainda carregando (ou falhou): a seção nem aparece
@@ -85,6 +62,7 @@ export default function DashboardHome({ onNavigate }) {
     setWeighted(weightedDefault);
   }
   const { worksVersion } = useWorks();
+  const { items: unifiedItems, loading: loadingItems } = useUnifiedItems();
   const { lang, locale, t } = useLanguage();
   const th = t.dash.home;
   const typeLabels = t.common.mediaTypes;
@@ -93,39 +71,28 @@ export default function DashboardHome({ onNavigate }) {
 
   useEffect(() => {
     let cancelled = false;
-
-    async function loadItems() {
-      try {
-        const categories = orderCategories(await getCategories());
-        let selectedCategoryIds = categories.map(category => String(category.id));
-        try {
-          const groups = await getGroups();
-          const unifiedGroup = groups.find(group => group.name === 'Unificado');
-          if (unifiedGroup?.categoryIds?.length) {
-            selectedCategoryIds = unifiedGroup.categoryIds.map(categoryId => String(categoryId));
-          }
-          if (!cancelled) setUnifiedOrder(unifiedGroup?.manualOrder || []);
-        } catch {
-          // A Home continua funcional mesmo se o grupo unificado não estiver disponível.
-        }
-        const itemsByCategory = await Promise.all(categories.map(async category => {
-          const works = await getWorksByCategory(category.id);
-          if (!selectedCategoryIds.includes(String(category.id))) return [];
-          // o tipo vem do template da obra (mapWorkToItem); antes vinha do nome da tabela
-          // e "Shingeki" numa "Séries & Animes" aparecia como série
-          return works.map(work => ({ ...mapWorkToItem(work), _tableId: category.id }));
-        }));
-        if (!cancelled) setMediaItems(itemsByCategory.flat());
-      } catch {
-        if (!cancelled) setMediaItems([]);
-      } finally {
-        if (!cancelled) setLoadingItems(false);
-      }
-    }
-
-    loadItems();
+    getGroups()
+      .then((groups) => {
+        if (cancelled) return;
+        const unifiedGroup = (groups || []).find(group => group.name === 'Unificado');
+        setSelectedCategoryIds(
+          unifiedGroup?.categoryIds?.length
+            ? new Set(unifiedGroup.categoryIds.map(id => String(id)))
+            : null,
+        );
+        setUnifiedOrder(unifiedGroup?.manualOrder || []);
+      })
+      .catch(() => {
+        // A Home continua funcional mesmo se o grupo unificado não estiver disponível.
+      });
     return () => { cancelled = true; };
   }, [worksVersion]);
+
+  const mediaItems = useMemo(() => {
+    const all = (unifiedItems || []).map(item => ({ ...item, _tableId: item.categoryId }));
+    if (!selectedCategoryIds) return all;
+    return all.filter(item => item.categoryId != null && selectedCategoryIds.has(String(item.categoryId)));
+  }, [unifiedItems, selectedCategoryIds]);
 
   useEffect(() => {
     let cancelled = false;

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Settings } from 'lucide-react';
-import { getMe } from '../../services/userService';
 import { socialApi } from '../social/socialData';
 import Avatar from '../../shared/components/Avatar';
 import { useUser } from '../../shared/userContext';
@@ -24,11 +23,8 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
 export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = false, onSettingsBack }) {
   const { t, locale } = useLanguage();
   const tp = t.profile;
-  const { setUser } = useUser();
+  const { user: profile, loading, error, setUser: applyUser } = useUser();
 
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [avatarVersion, setAvatarVersion] = useState(0); // fura o cache do <img> depois de trocar a foto
   const [summary, setSummary] = useState(null);
   const [tab, setTab] = useState('stats'); // estatísticas primeiro: é a parte mais pessoal do perfil
@@ -36,19 +32,8 @@ export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = 
   const [view, setView] = useState(startOnSettings ? 'settings' : 'profile'); // 'profile' | 'settings'
   const [editing, setEditing] = useState(false);
 
-  // atualiza o perfil daqui e o usuário compartilhado (navbar, saudação da home)
-  const applyUser = (user) => {
-    setProfile(user);
-    setUser(user);
-  };
-
   useEffect(() => {
-    getMe()
-      .then(applyUser)
-      .catch(() => setError(tp.loadError))
-      .finally(() => setLoading(false));
     socialApi.getSummary().then(setSummary).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { items, loading: loadingWorks } = useUnifiedItems();
@@ -62,7 +47,7 @@ export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = 
   };
 
   if (loading) return <p className="pf-muted">{tp.loading}</p>;
-  if (error || !profile) return <p className="pf-muted">{error || tp.loadError}</p>;
+  if (error || !profile) return <p className="pf-muted">{tp.loadError}</p>;
 
   if (view === 'settings') {
     return (
