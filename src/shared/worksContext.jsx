@@ -30,7 +30,6 @@ export function WorksProvider({ children }) {
         if (!active) return;
         const items = (Array.isArray(data) ? data : []).map((w) => ({
           ...mapWorkToItem(w),
-          categoryName: w.categoryName,
           creator: (w.creator || '').trim(),
         }));
         setUnified({ items, error: null });
