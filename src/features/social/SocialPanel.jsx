@@ -32,8 +32,8 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
     { id: 'people', label: ts.tabs.people },
     { id: 'chat', label: ts.tabs.chat },
   ];
-  const [tab, setTab] = useState(() => resume?.tab || 'feed');
-  const [view, setView] = useState(() => resume?.view || { kind: 'tabs' }); // tabs | profile | compare | connections
+  const [tab, setTab] = useState(() => (initialConvId != null ? 'chat' : resume?.tab || 'feed'));
+  const [view, setView] = useState(() => (initialConvId != null ? { kind: 'tabs' } : resume?.view || { kind: 'tabs' })); // tabs | profile | compare | connections
   // conversa aberta de fora (Mensagem no perfil, grupo no feed): o ← dela volta pra cá
   const [chatBack, setChatBack] = useState(null);
   const lastConvRef = useRef(null); // conversa aberta, pra voltar nela depois de ver um perfil
@@ -68,12 +68,7 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
     }
   }, [openNonce]);
 
-  // Veio de /chat/invite/:token — abre direto a sub-aba Mensagens na conversa aceita.
-  useEffect(() => {
-    if (initialConvId == null) return;
-    setView({ kind: 'tabs' });
-    setTab('chat');
-  }, [initialConvId]);
+
 
   // cada tela lembra de onde veio (`from`): o Voltar do Comparar aberto pelo
   // perfil volta pro perfil, e o do perfil aberto pelos seguidores volta pra lista

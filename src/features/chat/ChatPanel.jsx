@@ -65,12 +65,29 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
   }, []);
 
   useEffect(() => {
-    loadConversations();
-  }, [loadConversations, unreadCount, touchNonce]);
+    let active = true;
+    getConversations()
+      .then((list) => {
+        if (!active) return;
+        setConversations(list);
+        if (!didAutoOpen.current && list.length > 0 && initialConvId == null && !pendingPeer) {
+          didAutoOpen.current = true;
+          setActiveId((cur) => (cur == null && !showDirectory ? list[0].id : cur));
+        }
+      })
+      .catch(() => {
+        if (active) setConversations([]);
+      });
+    return () => { active = false; };
+  }, [unreadCount, touchNonce, initialConvId, pendingPeer, showDirectory]);
 
   useEffect(() => {
-    loadSuggested();
-  }, [loadSuggested, touchNonce]);
+    let active = true;
+    getSuggestedDirects()
+      .then((list) => { if (active) setSuggested(list); })
+      .catch(() => { if (active) setSuggested([]); });
+    return () => { active = false; };
+  }, [touchNonce]);
 
   // Abre a conversa que veio de /chat/invite/:token (uma vez só).
   useEffect(() => {
@@ -80,15 +97,6 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
     loadConversations();
     onInitialConvConsumed?.();
   }, [initialConvId, loadConversations, onInitialConvConsumed]);
-
-  // Ao abrir Mensagens, já entra na conversa mais recente (uma vez só).
-  useEffect(() => {
-    if (didAutoOpen.current) return;
-    if (!conversations || conversations.length === 0) return;
-    if (initialConvId != null || pendingPeer) return;
-    didAutoOpen.current = true;
-    if (activeId == null && !showDirectory) setActiveId(conversations[0].id);
-  }, [conversations, initialConvId, pendingPeer, activeId, showDirectory]);
 
   // pedido externo: botão "Mensagem" no perfil de alguém → abre/cria o DM
   useEffect(() => {

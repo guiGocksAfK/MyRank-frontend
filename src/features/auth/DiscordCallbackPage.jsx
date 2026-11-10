@@ -22,19 +22,21 @@ export default function DiscordCallbackPage() {
     // Tira o código do Discord da barra de endereço (e do histórico do navegador).
     window.history.replaceState(null, "", window.location.pathname);
 
+    const fail = (msg) => Promise.resolve().then(() => setError(msg));
+
     if (oauthError) {
-      setError(errorDescription || "Autorização cancelada ou negada.");
+      fail(errorDescription || "Autorização cancelada ou negada.");
       return;
     }
 
     if (!code) {
-      setError("Código do Discord não encontrado. Verifique se a redirect URI cadastrada no Discord bate exatamente com a URL atual.");
+      fail("Código do Discord não encontrado. Verifique se a redirect URI cadastrada no Discord bate exatamente com a URL atual.");
       return;
     }
 
     // Login que não foi iniciado por esta aba (link forjado) é descartado.
     if (!consumeDiscordState(returnedState)) {
-      setError("Não foi possível confirmar que este login começou aqui. Tente entrar com o Discord de novo.");
+      fail("Não foi possível confirmar que este login começou aqui. Tente entrar com o Discord de novo.");
       return;
     }
 
