@@ -30,6 +30,8 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
   const [error, setError] = useState(false);
   const [editing, setEditing] = useState(false);
   const [reload, setReload] = useState(0); // recarrega depois de editar o seu perfil
+  const [failedUrls, setFailedUrls] = useState(() => new Set());
+  const markFailed = (url) => setFailedUrls((prev) => new Set(prev).add(url));
   const { items: myItems } = useUnifiedItems();
 
   useEffect(() => {
@@ -208,8 +210,8 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
                 <li key={`${w.title}-${i}`}>
                   <span className="social-prof-rank">{i + 1}</span>
                   <span className="social-prof-cover">
-                    {w.imageUrl
-                      ? <img src={w.imageUrl} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    {w.imageUrl && !failedUrls.has(w.imageUrl)
+                      ? <img src={w.imageUrl} alt="" loading="lazy" onError={() => markFailed(w.imageUrl)} />
                       : typeIconFor(w.type, 14)}
                   </span>
                   <span className="social-prof-title">{w.title}</span>

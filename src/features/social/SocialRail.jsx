@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, UserPlus, X } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
-import { socialApi, normTitle, typeIconFor, DEBATE_MAX_PCT } from './socialData';
+import { socialApi, tasteKey, typeIconFor, DEBATE_MAX_PCT } from './socialData';
 import SocialAvatar from './SocialAvatar';
 import YouCard from './YouCard';
 
@@ -10,6 +10,18 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
 /** Quantas obras o "Em alta" mostra, e quantas pessoas uma obra precisa pra entrar. */
 const TRENDING_MAX = 3;
 const TRENDING_MIN_PEOPLE = 2;
+
+function TrendCover({ work }) {
+  const [failedSrc, setFailedSrc] = useState(null);
+  const src = work?.imageUrl;
+  return (
+    <span className="social-prof-cover">
+      {src && failedSrc !== src
+        ? <img src={src} alt="" loading="lazy" onError={() => setFailedSrc(src)} />
+        : typeIconFor(work?.type, 14)}
+    </span>
+  );
+}
 
 /**
  * As obras que mais aparecem no que o feed já carregou (takes e avaliações do
@@ -22,7 +34,7 @@ function trendingFrom(items, myUsername) {
     const works = it.type === 'RATED_DAY' ? it.works : it.work ? [it.work] : [];
     works.forEach((w) => {
       if (!w?.title || w.score == null) return;
-      const key = normTitle(w.title);
+      const key = tasteKey(w.title, w.type);
       const entry = byTitle.get(key) || { work: w, scores: new Map() };
       // a nota mais recente de cada pessoa (o feed vem do mais novo pro mais velho)
       if (!entry.scores.has(it.actor.id)) entry.scores.set(it.actor.id, Number(w.score));
@@ -166,7 +178,7 @@ export default function SocialRail({
           <h2 className="social-rail-title">{tr.trending}</h2>
           <ul className="social-rail-list">
             {trending.map(({ work, people, avg }) => {
-              const key = normTitle(work.title);
+              const key = tasteKey(work.title, work.type);
               const active = activeTrend === key;
               return (
                 <li key={key}>
@@ -177,11 +189,7 @@ export default function SocialRail({
                     aria-pressed={active}
                     onClick={() => onPickTrend?.(active ? null : { key, title: work.title })}
                   >
-                    <span className="social-prof-cover">
-                      {work.imageUrl
-                        ? <img src={work.imageUrl} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                        : typeIconFor(work.type, 14)}
-                    </span>
+                    <TrendCover work={work} />
                     <span className="social-pick-text">
                       <span className="social-pick-title">{work.title}</span>
                       <span className="social-pick-type">{fmt(tr.trendingLine, { n: people, avg: note(avg) })}</span>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TriangleAlert, X } from 'lucide-react';
-import { socialApi, normTitle, tasteKey } from './socialData';
+import { socialApi, tasteKey } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useUser } from '../../shared/userContext';
@@ -74,7 +74,7 @@ export default function SocialFeed({
   }, []);
 
   const mentions = (item, key) => (item.type === 'RATED_DAY' ? item.works : [item.work])
-    .some((w) => w?.title && normTitle(w.title) === key);
+    .some((w) => w?.title && tasteKey(w.title, w.type) === key);
   const ofKind = (it) => kind === 'all' || (kind === 'takes' ? it.type === 'TAKE' : it.type === 'RATED_DAY');
   const shown = items ? items.filter((it) => ofKind(it) && (!filter || mentions(it, filter.key))) : items;
 

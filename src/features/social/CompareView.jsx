@@ -14,11 +14,13 @@ const CLASH_GAP = 2;
 const REC_MIN = 9;
 
 function Cover({ w, size = 14 }) {
+  const [failedSrc, setFailedSrc] = useState(null);
+  const src = w?.imageUrl;
   return (
     <span className="social-prof-cover">
-      {w.imageUrl
-        ? <img src={w.imageUrl} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-        : typeIconFor(w.type, size)}
+      {src && failedSrc !== src
+        ? <img src={src} alt="" loading="lazy" onError={() => setFailedSrc(src)} />
+        : typeIconFor(w?.type, size)}
     </span>
   );
 }

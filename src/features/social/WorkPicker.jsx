@@ -20,6 +20,8 @@ export default function WorkPicker({ works, value, onChange }) {
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [failedUrls, setFailedUrls] = useState(() => new Set());
+  const markFailed = (url) => setFailedUrls((prev) => new Set(prev).add(url));
 
   const term = fold(q.trim());
   const shown = useMemo(() => {
@@ -56,8 +58,8 @@ export default function WorkPicker({ works, value, onChange }) {
 
   const cover = (w, size) => (
     <span className="social-pick-cover">
-      {w.image
-        ? <img src={w.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+      {w.image && !failedUrls.has(w.image)
+        ? <img src={w.image} alt="" loading="lazy" onError={() => markFailed(w.image)} />
         : typeIconFor(w.type, size)}
     </span>
   );
@@ -93,7 +95,7 @@ export default function WorkPicker({ works, value, onChange }) {
           type="text"
           role="combobox"
           aria-expanded={open}
-          aria-controls={listId}
+          aria-controls={open ? listId : undefined}
           aria-autocomplete="list"
           aria-label={tc.searchWork}
           placeholder={tc.searchWork}
