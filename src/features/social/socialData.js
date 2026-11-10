@@ -2,7 +2,7 @@
  * Camada de dados da aba Social.
  *
  * `socialApi.*` fala com o backend (/api/social/**) e adapta os DTOs pro
- * shape que os componentes esperam (handle/initials/color derivados, etc.).
+ * shape que os componentes esperam (handle/initials derivados, etc.).
  * As assinaturas são as mesmas do mock antigo — os componentes não mudaram.
  *
  * Só no dev: com "Dados de teste" ligado, as chamadas vão pro socialMock.js
@@ -25,16 +25,6 @@ export const typeIconFor = (type, size = 14) => createElement(TYPE_ICON[type] ||
 
 // ─── derivações visuais ─────────────────────────────────────────────────────
 
-const AVATAR_COLORS = [
-  '#3b5bdb', '#0ca678', '#e67700', '#9c36b5', '#1c7ed6',
-  '#e64980', '#2f9e44', '#f08c00', '#7048e8', '#0c8599',
-];
-
-function colorFor(id) {
-  const n = Math.abs(Number(id) || 0);
-  return AVATAR_COLORS[n % AVATAR_COLORS.length];
-}
-
 function initialsFor(username) {
   return (username || '?')
     .trim()
@@ -56,7 +46,6 @@ export function decorateUser(u) {
     ...u,
     handle: u.username,
     initials: initialsFor(u.username),
-    color: colorFor(u.id),
     avatarSrc: avatarSrc(u),
     stats: {
       works: u.worksCount ?? u.stats?.works ?? 0,

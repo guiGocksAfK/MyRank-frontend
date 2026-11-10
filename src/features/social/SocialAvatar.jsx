@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 /**
  * Avatar de usuário: foto quando disponível, senão as iniciais num círculo
  * neutro (preto e dourado; as cores de arco-íris de antes fugiam do visual).
  */
 export default function SocialAvatar({ name = '?', initials, src, size = 36 }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [src]);
+  // guarda qual endereço falhou: trocou a foto, tenta a nova sem precisar de efeito
+  const [failedSrc, setFailedSrc] = useState(null);
+  const failed = failedSrc === src;
 
   const text =
     initials ||
@@ -34,7 +35,7 @@ export default function SocialAvatar({ name = '?', initials, src, size = 36 }) {
         <img
           src={src}
           alt=""
-          onError={() => setFailed(true)}
+          onError={() => setFailedSrc(src)}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       </span>

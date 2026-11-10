@@ -11,6 +11,13 @@ import TakeMenu from './TakeMenu';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
+/** Capa da obra; sem capa, ou se o link quebrar, fica o ícone do tipo. */
+function Cover({ work, alt = '' }) {
+  const [failedSrc, setFailedSrc] = useState(null);
+  if (!work.imageUrl || failedSrc === work.imageUrl) return typeIconFor(work.type, 18);
+  return <img src={work.imageUrl} alt={alt} loading="lazy" onError={() => setFailedSrc(work.imageUrl)} />;
+}
+
 /** Diferença de nota a partir da qual o card avisa que vocês discordam. */
 const CLASH_GAP = 2;
 
@@ -27,9 +34,7 @@ function WorkRow({ work, myScore }) {
   return (
     <div className="social-work">
       <span className="social-work-cover">
-        {work.imageUrl
-          ? <img src={work.imageUrl} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-          : typeIconFor(work.type, 18)}
+        <Cover work={work} />
       </span>
       <span className="social-work-info">
         <span className="social-work-title">{work.title}</span>
@@ -66,9 +71,7 @@ function RatedDay({ item }) {
       {works.map((w) => (
         <li key={w.id} className="social-day-work" title={w.title}>
           <span className="social-day-cover">
-            {w.imageUrl
-              ? <img src={w.imageUrl} alt={w.title} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-              : typeIconFor(w.type, 18)}
+            <Cover work={w} alt={w.title} />
           </span>
           {w.score != null && (
             <span className="social-day-score">
@@ -198,7 +201,7 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
         ) : (
           <>
             {/* a opinião é o conteúdo; a obra vem embaixo, como contexto */}
-            <p className="social-take-text">{text}</p>
+            <p className="social-take-text">{text?.trim()}</p>
             <WorkRow work={item.work} myScore={myScoreOf?.(item.work)} />
           </>
         )}
