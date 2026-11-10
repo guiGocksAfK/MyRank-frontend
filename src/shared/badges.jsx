@@ -20,22 +20,6 @@ function localizeBadge(badge, lang) {
   return { ...badge, name: tr.name || badge.name, description: tr.desc || badge.description };
 }
 
-export const BUCKET_META = {
-  jogo:  { label: 'Jogos',  icon: '🎮' },
-  filme: { label: 'Filmes', icon: '🎬' },
-  serie: { label: 'Séries', icon: '📺' },
-  livro: { label: 'Livros', icon: '📚' },
-  anime: { label: 'Animes', icon: '🌸' },
-  manga: { label: 'Mangás', icon: '📖' },
-  musica: { label: 'Músicas', icon: '🎵' },
-  album: { label: 'Álbuns', icon: '💿' },
-  outro: { label: 'Outros', icon: '📦' },
-  geral: { label: 'Gerais', icon: '🌐' },
-  site:  { label: 'Usar o site', icon: '🚀' },
-};
-
-export const BUCKET_ORDER = ['jogo', 'filme', 'serie', 'livro', 'anime', 'manga', 'musica', 'album', 'outro', 'site', 'geral'];
-
 /** DTO do backend → shape usado pelos componentes de badge. */
 function mapBadge(b) {
   return {
@@ -50,17 +34,6 @@ function mapBadge(b) {
     hasProgress: b.hasProgress,
     unlockedAt: b.unlockedAt,
   };
-}
-
-/** Agrupa as badges por bucket, na ordem canônica. */
-export function groupByBucket(badges = []) {
-  return BUCKET_ORDER
-    .map((key) => ({
-      key,
-      ...BUCKET_META[key],
-      items: badges.filter((b) => b.bucket === key),
-    }))
-    .filter((g) => g.items.length > 0);
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -137,8 +110,20 @@ export function BadgeProvider({ children }) {
   }, [detectNew]);
 
   useEffect(() => {
-    if (userId) load();
-  }, [userId, load]);
+    if (!userId) return undefined;
+    let active = true;
+    getBadges()
+      .then((data) => {
+        if (!active) return;
+        const mapped = (Array.isArray(data) ? data : []).map(mapBadge);
+        setBadges(mapped);
+        detectNew(mapped);
+      })
+      .catch(() => {
+        if (active) setBadges((prev) => prev ?? []);
+      });
+    return () => { active = false; };
+  }, [userId, detectNew]);
 
   const dismissToast = useCallback((key) => {
     setToasts((prev) => prev.filter((t) => t.key !== key));

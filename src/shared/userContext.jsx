@@ -39,7 +39,23 @@ export function UserProvider({ children }) {
     }
   }, [setUser, setLang]);
 
-  useEffect(() => { refreshUser(); }, [refreshUser]);
+  useEffect(() => {
+    let active = true;
+    getMe()
+      .then((fresh) => {
+        if (!active) return;
+        setError(false);
+        setUser(fresh);
+        if (fresh?.language) setLang(fresh.language, { persist: false });
+      })
+      .catch(() => {
+        if (active) setError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, [setUser, setLang]);
 
   return (
     <UserContext.Provider value={{ user, loading, error, setUser, refreshUser }}>
