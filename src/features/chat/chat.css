@@ -563,6 +563,16 @@
 .chat-bubble-row.is-tail:not(.is-mine) .chat-bubble { border-bottom-left-radius: 6px; }
 .chat-bubble-row.is-tail.is-mine .chat-bubble { border-bottom-right-radius: 6px; }
 
+.chat-msg-link {
+  color: var(--mr-gold);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-all;
+}
+.chat-msg-link:hover {
+  opacity: 0.85;
+}
+
 .chat-edited-tag {
   margin-left: 6px;
   font-size: 0.66rem;

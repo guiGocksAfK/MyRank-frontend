@@ -23,6 +23,9 @@ export default function SocialFeed({
   const tf = t.social.feed;
   const [items, setItems] = useState(null);
   const [failed, setFailed] = useState(false); // a carga falhou: erro com "Tentar de novo", não feed vazio
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const { items: myItems } = useUnifiedItems();
   const { user } = useUser();
 
@@ -43,9 +46,32 @@ export default function SocialFeed({
 
   const load = useCallback(() => {
     socialApi.getFeed(0, 20, scope)
-      .then((r) => { setItems(r); setFailed(false); })
+      .then((r) => {
+        setPage(0);
+        setItems(r);
+        setHasMore(r.length >= 20);
+        setFailed(false);
+      })
       .catch(() => setFailed(true));
   }, [scope]);
+
+  const loadMore = () => {
+    if (loadingMore || !hasMore) return;
+    const nextPage = page + 1;
+    setLoadingMore(true);
+    socialApi.getFeed(nextPage, 20, scope)
+      .then((r) => {
+        setPage(nextPage);
+        setHasMore(r.length >= 20);
+        setItems((prev) => {
+          const list = prev || [];
+          const seen = new Set(list.map((i) => i.id));
+          return [...list, ...r.filter((i) => !seen.has(i.id))];
+        });
+      })
+      .catch(() => {})
+      .finally(() => setLoadingMore(false));
+  };
 
   const retry = () => {
     setFailed(false);
@@ -101,17 +127,30 @@ export default function SocialFeed({
       ) : shown.length === 0 ? (
         <SocialEmpty compact text={filter ? tf.filterEmpty : tf.kindEmpty} />
       ) : (
-        shown.map((item) => (
-          <ActivityCard
-            key={item.id}
-            item={item}
-            myScoreOf={myScoreOf(item)}
-            onReact={handleReact}
-            onOpenUser={onOpenUser}
-            onEdited={handleEdited}
-            onDeleted={handleDeleted}
-          />
-        ))
+        <>
+          {shown.map((item) => (
+            <ActivityCard
+              key={item.id}
+              item={item}
+              myScoreOf={myScoreOf(item)}
+              onReact={handleReact}
+              onOpenUser={onOpenUser}
+              onEdited={handleEdited}
+              onDeleted={handleDeleted}
+            />
+          ))}
+          {hasMore && !filter && (
+            <button
+              type="button"
+              className="mr-btn mr-btn-outline mr-btn-sm"
+              style={{ alignSelf: 'center' }}
+              onClick={loadMore}
+              disabled={loadingMore}
+            >
+              {loadingMore ? tf.loadingMore : tf.loadMore}
+            </button>
+          )}
+        </>
       )}
     </div>
   );

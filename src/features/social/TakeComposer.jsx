@@ -24,6 +24,7 @@ export default function TakeComposer({ items, onPost, onNavigate }) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [error, setError] = useState('');
 
   const works = items || [];
   const remaining = MAX - text.length;
@@ -32,6 +33,7 @@ export default function TakeComposer({ items, onPost, onNavigate }) {
   async function submit() {
     if (!canPost) return;
     setBusy(true);
+    setError('');
     try {
       await onPost({
         workId: chosen.id,
@@ -45,6 +47,8 @@ export default function TakeComposer({ items, onPost, onNavigate }) {
       setText('');
       setChosen(null);
       setExpanded(false);
+    } catch (err) {
+      setError(err?.response?.data?.message || tc.postError);
     } finally {
       setBusy(false);
     }
@@ -114,6 +118,12 @@ export default function TakeComposer({ items, onPost, onNavigate }) {
           style={{ width: '100%', resize: 'vertical', marginTop: 8 }}
         />
 
+        {error && (
+          <p className="pf-form-error" role="alert" style={{ marginTop: 8 }}>
+            {error}
+          </p>
+        )}
+
         <div className="mr-flex mr-items-center mr-justify-between" style={{ marginTop: 8 }}>
           <span
             className="social-muted"
@@ -129,6 +139,7 @@ export default function TakeComposer({ items, onPost, onNavigate }) {
                 setExpanded(false);
                 setText('');
                 setChosen(null);
+                setError('');
               }}
             >
               {tc.cancel}

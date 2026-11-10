@@ -5,6 +5,7 @@ import { useChat } from '../../shared/chat';
 import { useUser } from '../../shared/userContext';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import Avatar from '../../shared/components/Avatar';
+import ConfirmModal from '../../shared/components/ConfirmModal';
 import GroupIcon from './GroupIcon';
 import GroupPanel from './GroupPanel';
 import EmojiPicker from './EmojiPicker';
@@ -31,6 +32,31 @@ const PRESENCE_TICK_MS = 30_000;
 
 const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+const URL_SPLIT_RE = /(https?:\/\/[^\s<]+)/g;
+
+function renderBodyWithLinks(text) {
+  if (!text) return text;
+  const parts = String(text).split(URL_SPLIT_RE);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) => {
+    if (i % 2 === 1) {
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="chat-msg-link"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
 
 const sameDay = (a, b) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -163,6 +189,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
   const [replyTo, setReplyTo] = useState(null);
   const [editing, setEditing] = useState(null);
   const [menuFor, setMenuFor] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [typers, setTypers] = useState([]); // [{ id, name, at }] — quem está digitando
@@ -248,6 +275,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
     setReplyTo(null);
     setEditing(null);
     setMenuFor(null);
+    setPendingDelete(null);
     setShowManage(false);
     setTypers([]);
     setPeerReadId(conversation.peerLastReadId ?? null);
@@ -433,13 +461,10 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
 
   const doDelete = async (m) => {
     setMenuFor(null);
-    try {
-      const updated = await deleteMessage(m.id);
-      patchMessage(updated);
-      onChanged?.();
-    } catch (err) {
-      setError(err?.response?.data?.message || tc.actionError);
-    }
+    const updated = await deleteMessage(m.id);
+    patchMessage(updated);
+    onChanged?.();
+    return true;
   };
 
   const doReact = async (m, emoji) => {
@@ -638,7 +663,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
                 onReact={(emoji) => doReact(m, emoji)}
                 onReply={() => startReply(m)}
                 onEdit={() => startEdit(m)}
-                onDelete={() => doDelete(m)}
+                onDelete={() => { setMenuFor(null); setPendingDelete(m); }}
                 onJump={jumpTo}
               />
             );
@@ -740,6 +765,16 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
             setShowManage(false);
             onLeft?.();
           }}
+        />
+      )}
+
+      {pendingDelete && (
+        <ConfirmModal
+          title={tc.deleteMsgTitle}
+          message={tc.deleteMsgConfirm}
+          confirmLabel={tc.delete}
+          onConfirm={() => doDelete(pendingDelete)}
+          onClose={() => setPendingDelete(null)}
         />
       )}
     </div>
@@ -887,7 +922,7 @@ function MessageRow({
           {m.deleted ? (
             <span className="chat-bubble-body is-deleted">🚫 {tc.deletedMsg}</span>
           ) : (
-            <span className="chat-bubble-body">{m.body}</span>
+            <span className="chat-bubble-body">{renderBodyWithLinks(m.body)}</span>
           )}
           {m.edited && !m.deleted && <span className="chat-edited-tag">{tc.editedTag}</span>}
         </div>
