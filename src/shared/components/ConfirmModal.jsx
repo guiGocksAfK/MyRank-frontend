@@ -14,6 +14,7 @@ export default function ConfirmModal({ title, message, confirmLabel, busyLabel, 
   const tc = t.rankings.confirm;
   const label = confirmLabel || tc.deleteDefault;
   const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState('');
 
   const titleId = useId();
   const dialog = useRef(null);
@@ -21,11 +22,12 @@ export default function ConfirmModal({ title, message, confirmLabel, busyLabel, 
 
   async function handleConfirm() {
     setConfirming(true);
+    setError('');
     try {
       const confirmed = await onConfirm();
       if (confirmed) onClose();
-    } catch {
-      // quem chamou não tratou o erro: o modal fica aberto, mas destravado pra tentar de novo ou cancelar
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || t.chat.actionError);
     } finally {
       setConfirming(false);
     }
@@ -34,12 +36,7 @@ export default function ConfirmModal({ title, message, confirmLabel, busyLabel, 
   return createPortal(
     <div
       role="presentation"
-      style={{
-        position: 'fixed', inset: 0, zIndex: 400,
-        background: 'rgba(0, 0, 0, 0.72)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '1rem',
-      }}
+      className="mr-dialog-backdrop mr-confirm-backdrop"
       onClick={() => !confirming && onClose()}
     >
       <div
@@ -48,26 +45,28 @@ export default function ConfirmModal({ title, message, confirmLabel, busyLabel, 
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        style={{
-          width: 390, maxWidth: '100%', padding: '1.5rem',
-          background: 'var(--mr-surface)', border: '1px solid var(--mr-border)',
-          borderRadius: 12, boxShadow: '0 18px 50px rgba(0, 0, 0, 0.5)',
-        }}
+        className="mr-dialog mr-confirm-dialog"
         onClick={event => event.stopPropagation()}
       >
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <TriangleAlert size={22} strokeWidth={1.8} aria-hidden="true" style={{ flex: 'none', color: 'var(--mr-red)' }} />
+        <div className="mr-confirm-row">
+          <TriangleAlert size={22} strokeWidth={1.8} aria-hidden="true" className="mr-confirm-icon" />
           <div>
-            <h2 id={titleId} style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 8, color: 'var(--mr-text)' }}>
+            <h2 id={titleId} className="mr-confirm-title">
               {title}
             </h2>
-            <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', lineHeight: 1.5 }}>
+            <p className="mr-confirm-msg">
               {message}
             </p>
           </div>
         </div>
 
-        <div className="mr-actions" style={{ marginTop: '1.5rem' }}>
+        {error && (
+          <p className="mr-confirm-error" role="alert">
+            {error}
+          </p>
+        )}
+
+        <div className="mr-actions mr-confirm-actions">
           <button type="button" className="mr-btn mr-btn-ghost" onClick={onClose} disabled={confirming}>
             {tc.cancel}
           </button>

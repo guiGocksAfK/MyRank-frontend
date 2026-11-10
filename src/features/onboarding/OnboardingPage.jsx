@@ -123,7 +123,7 @@ export default function OnboardingPage() {
                   <h3>{to.tablesTitle}</h3>
                   <p>{to.tablesCopy}</p>
                 </div>
-                <div role="group" aria-label={to.tablesTitle} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <div role="group" aria-label={to.tablesTitle} className="auth-chip-group">
                   {CHOICES.map(template => {
                     const selected = picked.includes(template);
                     return (
@@ -132,12 +132,7 @@ export default function OnboardingPage() {
                         type="button"
                         aria-pressed={selected}
                         onClick={() => toggle(template)}
-                        style={{
-                          padding: '8px 14px', borderRadius: 999, cursor: 'pointer', font: 'inherit', fontSize: 14,
-                          border: `1px solid ${selected ? 'var(--mr-gold)' : 'rgba(255,255,255,0.14)'}`,
-                          background: selected ? 'var(--mr-gold-10)' : 'transparent',
-                          color: selected ? 'var(--mr-text)' : 'var(--mr-text-secondary)',
-                        }}
+                        className={`auth-chip${selected ? ' is-on' : ''}`}
                       >
                         {t.rankings.types[TABLE_TEMPLATES[template].type]}
                       </button>
@@ -160,7 +155,7 @@ export default function OnboardingPage() {
                 </div>
                 {tables.length > 1 && (
                   <select value={tableId ?? ''} onChange={e => setTableId(Number(e.target.value))}
-                    className="mr-input" style={{ width: '100%' }}>
+                    className="mr-input auth-select">
                     {tables.map(tb => <option key={tb.id} value={tb.id}>{tb.label}</option>)}
                   </select>
                 )}
