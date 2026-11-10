@@ -523,6 +523,18 @@
 /* você numa linha: foto, nome e as contagens (cada uma abre a lista) */
 .social-rail-you { display: flex; align-items: center; gap: var(--mr-space-3); padding: var(--mr-space-3) var(--mr-space-4); }
 .social-rail-you-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.social-rail-you-photo { flex: none; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.social-rail-you-name { display: flex; align-items: baseline; gap: var(--mr-space-2); min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.social-rail-you-name:hover .social-person-name { color: var(--mr-gold); }
+.social-rail-you-link { flex: none; color: var(--mr-gold); font-size: var(--mr-text-xs); font-weight: 700; }
+/* seu perfil pela Social: aviso de "como os outros veem" e os ajustes rápidos */
+.social-self-hint { margin: 0; color: var(--mr-text-muted); font-size: var(--mr-text-sm); text-align: center; }
+.social-self { gap: var(--mr-space-3); }
+.social-self-field { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--mr-space-2); }
+.social-self-label { color: var(--mr-text-secondary); font-size: var(--mr-text-sm); }
+.social-self .social-cmp-filter { margin: 0; }
+.social-self .social-cmp-filter button { display: inline-flex; align-items: center; gap: 6px; }
+.social-self-error { margin: 0; color: var(--mr-red); font-size: var(--mr-text-sm); }
 .social-rail-you-counts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
 .social-rail-you-counts button { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .social-rail-you-counts button:hover { color: var(--mr-gold); }
@@ -545,6 +557,9 @@
 .social-rail-match-main:hover .social-person-name { color: var(--mr-gold); }
 .social-rail-pct { flex: none; width: 2.6rem; color: var(--mr-gold); font-size: var(--mr-text-md); font-weight: 800; font-variant-numeric: tabular-nums; }
 .social-rail-pct.is-none { color: var(--mr-text-muted); }
+/* pra debater: a % em vermelho, porque aqui quanto menor, mais briga */
+.social-rail-pct.is-clash, .social-clash-pct { color: var(--mr-red); }
+.social-clash-pct { font-weight: 700; }
 .social-rail-bar { grid-column: 1 / -1; height: 3px; overflow: hidden; border-radius: 999px; background: var(--mr-muted-bg); }
 .social-rail-bar span { display: block; height: 100%; border-radius: inherit; background: var(--mr-gold); }
 /* em alta na sua rede */
@@ -712,7 +727,8 @@
 .social-search:focus-within { border-color: var(--mr-gold); }
 .social-search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--mr-text); font: inherit; font-size: var(--mr-text-sm); }
 .social-search input:focus { outline: none; }
-.social-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--mr-space-4); align-items: start; }
+/* Pessoas: 4 quadros em 2×2 (quem você segue, sugestões, pra debater, grupos) */
+.social-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mr-space-4); align-items: start; }
 .social-cols.is-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 /* ── Telas por cima das abas: perfil, comparar, seguindo/seguidores ── */
@@ -878,7 +894,6 @@ button.social-cmp-side:hover .social-cmp-who b { color: var(--mr-gold); }
 
 /* ── Celular ──────────────────────────────────────────────── */
 @media (max-width: 1100px) {
-  .social-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 900px) {

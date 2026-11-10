@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, UserPlus, X } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
-import { socialApi, normTitle, typeIconFor } from './socialData';
+import { socialApi, normTitle, typeIconFor, looksLikeMe } from './socialData';
 import SocialAvatar from './SocialAvatar';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
@@ -52,13 +52,15 @@ export default function SocialRail({ feedItems, activeTrend, onPickTrend, onOpen
   const [summary, setSummary] = useState(null);
   const [suggestions, setSuggestions] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [debaters, setDebaters] = useState([]);
 
   const refreshSummary = () => socialApi.getSummary().then(setSummary).catch(() => {});
 
   useEffect(() => {
     socialApi.getSummary().then(setSummary).catch(() => setSummary({ following: 0, followers: 0 }));
-    socialApi.getSuggestions().then((r) => setSuggestions(r.slice(0, 3))).catch(() => setSuggestions([]));
+    socialApi.getSuggestions().then((r) => setSuggestions(r.filter(looksLikeMe).slice(0, 3))).catch(() => setSuggestions([]));
     socialApi.getFollowRequests().then(setRequests).catch(() => setRequests([]));
+    socialApi.getDebaters().then((r) => setDebaters(r.slice(0, 2))).catch(() => setDebaters([]));
   }, []);
 
   const trending = useMemo(() => trendingFrom(feedItems, user?.username), [feedItems, user?.username]);
@@ -92,9 +94,15 @@ export default function SocialRail({ feedItems, activeTrend, onPickTrend, onOpen
   return (
     <aside className="social-rail">
       <section className="mr-panel social-rail-you">
-        <SocialAvatar name={user?.username || '?'} src={user?.avatarUrl} size={40} />
+        <button type="button" className="social-rail-you-photo" onClick={() => user && onOpenUser?.(user.id)}
+          aria-label={tr.seeMyProfile} title={tr.seeMyProfile}>
+          <SocialAvatar name={user?.username || '?'} src={user?.avatarUrl} size={40} />
+        </button>
         <div className="social-rail-you-text">
-          <span className="social-person-name">{user?.username}</span>
+          <button type="button" className="social-rail-you-name" onClick={() => user && onOpenUser?.(user.id)}>
+            <span className="social-person-name">{user?.username}</span>
+            <span className="social-rail-you-link">{tr.seeMyProfile}</span>
+          </button>
           <span className="social-rail-you-counts">
             <button type="button" onClick={() => onOpenConnections('following')}>
               <b>{summary?.following ?? '—'}</b> {tr.followingWord}
@@ -149,6 +157,27 @@ export default function SocialRail({ feedItems, activeTrend, onPickTrend, onOpen
                 {u.matchPct != null && (
                   <span className="social-rail-bar" aria-hidden="true"><span style={{ width: `${u.matchPct}%` }} /></span>
                 )}
+              </li>
+            ))}
+          </ul>
+          <button type="button" className="social-rail-more" onClick={onGoPeople}>{tr.seeAll}</button>
+        </section>
+      )}
+
+      {debaters.length > 0 && (
+        <section className="mr-panel social-rail-card is-side">
+          <h2 className="social-rail-title">{tp.debate}</h2>
+          <ul className="social-rail-list">
+            {debaters.map((u) => (
+              <li key={u.id} className="social-rail-match">
+                <button type="button" className="social-rail-match-main" onClick={() => onOpenUser?.(u.id)}>
+                  <b className="social-rail-pct is-clash">{u.matchPct}%</b>
+                  <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={28} />
+                  <span className="social-person-text">
+                    <span className="social-person-name">{u.username}</span>
+                    {u.fight && <span className="social-person-meta">{fmt(tp.debateShort, { title: u.fight.title })}</span>}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>

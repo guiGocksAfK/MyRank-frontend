@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Scale, Search, UserPlus, Users } from 'lucide-react';
+import { Plus, Scale, Search, Swords, UserPlus, Users } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import GroupIcon from '../chat/GroupIcon';
 import NewGroupModal from '../chat/NewGroupModal';
@@ -29,6 +29,7 @@ export default function People({ onOpenUser, onCompare, onOpenConversation }) {
   const [following, setFollowing] = useState(null);
   const [suggestions, setSuggestions] = useState(null);
   const [groups, setGroups] = useState(null);
+  const [debaters, setDebaters] = useState(null);
   const [q, setQ] = useState('');
   const [found, setFound] = useState(null); // { people, groups } da busca
   const [creating, setCreating] = useState(false);
@@ -37,6 +38,7 @@ export default function People({ onOpenUser, onCompare, onOpenConversation }) {
     socialApi.getFollowing().then(setFollowing).catch(() => setFollowing([]));
     socialApi.getSuggestions().then(setSuggestions).catch(() => setSuggestions([]));
     socialApi.getGroups('').then(setGroups).catch(() => setGroups([]));
+    socialApi.getDebaters().then(setDebaters).catch(() => setDebaters([]));
   }, []);
 
   // busca com uma pausa curta, pra não chamar a API a cada letra
@@ -90,12 +92,22 @@ export default function People({ onOpenUser, onCompare, onOpenConversation }) {
     </button>
   ));
 
-  const peopleList = (list, emptyText, emptyIcon) => {
+  const peopleList = (list, emptyText, emptyIcon, debate = false) => {
     if (list === null) return <p className="social-rail-empty">{tp.loading}</p>;
     if (list.length === 0) return <SocialEmpty compact icon={emptyIcon} text={emptyText} />;
     return (
       <ul className="social-list">
-        {list.map((u) => <PersonRow key={u.id} u={u} onOpen={onOpenUser}>{personAction(u)}</PersonRow>)}
+        {list.map((u) => (
+          <PersonRow key={u.id} u={u} onOpen={onOpenUser} debate={debate}>
+            {/* pra debater, o convite é comparar: é lá que a briga aparece inteira */}
+            {debate ? (
+              <button type="button" className="social-chip-btn" onClick={() => onCompare(u.id)}>
+                <Scale size={13} strokeWidth={2} aria-hidden="true" />
+                {tp.compare}
+              </button>
+            ) : personAction(u)}
+          </PersonRow>
+        ))}
       </ul>
     );
   };
@@ -167,6 +179,7 @@ export default function People({ onOpenUser, onCompare, onOpenConversation }) {
           <Column title={tp.suggestions}>
             {peopleList(suggestions?.filter((u) => !u.following) ?? null, tp.emptySuggestions, Users)}
           </Column>
+          <Column title={tp.debate}>{peopleList(debaters, tp.emptyDebate, Swords, true)}</Column>
           <Column title={tp.groups}>{groupList(groups, tp.emptyGroups)}</Column>
         </div>
       )}
