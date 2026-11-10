@@ -106,9 +106,11 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
   const canManage = isTake && item.canManage;
   const openUser = () => onOpenUser?.(item.actor.id);
   const isDay = item.type === 'RATED_DAY';
+  // só o card agrupado leva verbo ("avaliou 5 obras"): quase tudo é take, e repetir
+  // "escreveu um take" em todo card era ruído
   const verb = isDay
     ? fmt(item.workCount === 1 ? verbs.RATED_DAY_ONE : verbs.RATED_DAY, { n: item.workCount })
-    : verbs[item.type] || '';
+    : null;
 
   async function saveEdit(e) {
     e?.preventDefault?.();
@@ -148,11 +150,11 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
         <div className="social-card-who">
           <span className="social-card-line">
             <button type="button" className="social-link" onClick={openUser}>{item.actor.username}</button>
-            <span className="social-muted">{verb}</span>
-          </span>
-          <span className="social-card-time">
-            {relativeTime(item.createdAt, lang)}
-            {isTake && edited && ` · ${tt.edited}`}
+            {verb && <span className="social-muted">{verb}</span>}
+            <span className="social-card-time">
+              · {relativeTime(item.createdAt, lang)}
+              {isTake && edited && ` · ${tt.edited}`}
+            </span>
           </span>
         </div>
         {canManage && !editing && (
@@ -195,8 +197,9 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
           <RatedDay item={item} />
         ) : (
           <>
-            <WorkRow work={item.work} myScore={myScoreOf?.(item.work)} />
+            {/* a opinião é o conteúdo; a obra vem embaixo, como contexto */}
             <p className="social-take-text">{text}</p>
+            <WorkRow work={item.work} myScore={myScoreOf?.(item.work)} />
           </>
         )}
       </div>

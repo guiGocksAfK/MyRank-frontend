@@ -161,6 +161,7 @@
 .social-card-avatar { flex: none; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .social-card-who { display: flex; flex-direction: column; min-width: 0; }
 .social-card-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: var(--mr-text-sm); }
+.social-card-line .social-link { font-weight: 700; }
 .social-card-time { color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
 
 /* a obra: capa, título, tipo e nota */
@@ -168,7 +169,7 @@
   display: flex;
   align-items: center;
   gap: var(--mr-space-3);
-  padding: var(--mr-space-2);
+  padding: 6px var(--mr-space-2);
   border-radius: var(--mr-radius-sm);
   background: var(--mr-muted-bg);
 }
@@ -176,7 +177,7 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 44px;
+  width: 30px;
   aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: 4px;
@@ -237,13 +238,14 @@
 .social-day-cover.is-more { color: var(--mr-text-secondary); font-size: var(--mr-text-sm); font-weight: 800; }
 .social-day-score { color: var(--mr-gold); font-size: var(--mr-text-xs); font-weight: 800; font-variant-numeric: tabular-nums; }
 
+/* a opinião é o conteúdo do card: letra maior, sem enfeite */
 .social-take-text {
-  margin: var(--mr-space-2) 0 0;
-  padding-left: var(--mr-space-3);
-  border-left: 2px solid var(--mr-gold-20);
+  margin: 0 0 var(--mr-space-1);
   color: var(--mr-text);
-  font-size: var(--mr-text-sm);
+  font-size: var(--mr-text-md);
   line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .social-card-actions {
@@ -476,6 +478,19 @@
   font-size: 0.76rem;
   opacity: 0.85;
 }
+.social-react-btn.has-text { font-weight: 600; }
+/* concordo [barra] discordo: o placar do take */
+.social-verdict { display: inline-flex; align-items: center; gap: 2px; }
+.social-verdict-bar { position: relative; width: 56px; height: 4px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--mr-red) 55%, transparent); }
+.social-verdict-bar span { display: block; height: 100%; background: var(--mr-text-secondary); }
+.social-polemic {
+  padding: 1px 8px;
+  border: 1px solid color-mix(in srgb, var(--mr-red) 45%, transparent);
+  border-radius: 999px;
+  color: var(--mr-red);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
 
 .social-tag {
   display: inline-flex;
@@ -510,36 +525,95 @@
 .social-empty .mr-btn { margin-top: 8px; }
 
 /* ── Trilho e listas de pessoas ───────────────────────────── */
+/* coluna da esquerda (filtros, seus grupos, atalhos): só aparece em tela grande;
+   nas outras, os filtros viram uma faixa em cima do feed */
+.social-nav { display: none; flex-direction: column; gap: var(--mr-space-5); padding-top: var(--mr-space-2); }
+.social-nav-section { display: flex; flex-direction: column; gap: var(--mr-space-1); }
+
+/* em cima do feed: Todos | Seguindo e o menu de tipo */
+.social-feedbar { display: flex; align-items: center; justify-content: space-between; gap: var(--mr-space-3); border-bottom: 1px solid var(--mr-border); }
+.social-feedbar-tabs { display: flex; gap: var(--mr-space-4); }
+.social-feedbar-tab {
+  margin-bottom: -1px;
+  padding: var(--mr-space-2) 2px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--mr-text-muted);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+.social-feedbar-tab:hover { color: var(--mr-text); }
+.social-feedbar-tab.is-active { border-bottom-color: var(--mr-gold); color: var(--mr-text); }
+.social-feedbar-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--mr-radius-xs);
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  cursor: pointer;
+}
+.social-feedbar-kind:hover { background: var(--mr-muted-bg); color: var(--mr-text); }
+.social-take-menu-list button.is-on { color: var(--mr-gold); }
+.social-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-2);
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  margin: 0 -8px;
+  border: 0;
+  border-radius: var(--mr-radius-sm);
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.social-nav-link:hover, .social-nav-link:focus-visible { background: var(--mr-muted-bg); color: var(--mr-text); }
+.social-nav-link .social-pick-title { flex: 1; font-weight: 500; }
+.social-group-icon.is-small { width: 26px; height: 26px; border-radius: 8px; font-size: 0.65rem; }
+@media (min-width: 1400px) {
+  .social-panel { max-width: 1320px; }
+  /* o feed tem teto de leitura: o que sobra fica nas laterais, não no card */
+  .social-feed-layout { grid-template-columns: 240px minmax(0, 680px) 320px; justify-content: space-between; }
+  .social-nav { display: flex; position: sticky; top: 88px; }
+  .social-you.is-rail { display: none; }
+  /* perfil, comparar e listas continuam na largura de leitura */
+  .social-sub { width: 100%; max-width: 1040px; margin-inline: auto; }
+}
+
 /* rola junto com a página: grudado no topo, a parte de baixo ficava fora da tela */
 .social-rail { display: flex; flex-direction: column; gap: var(--mr-space-3); }
 .social-rail-card, .social-col { display: flex; flex-direction: column; gap: var(--mr-space-2); padding: var(--mr-space-4); min-width: 0; }
 .social-rail-title {
   margin: 0 0 var(--mr-space-1);
-  color: var(--mr-text-muted);
-  font-size: var(--mr-text-xs);
+  color: var(--mr-text-secondary);
+  font-size: var(--mr-text-sm);
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 /* você numa linha: foto, nome e as contagens (cada uma abre a lista) */
-.social-rail-you { display: flex; align-items: center; gap: var(--mr-space-3); padding: var(--mr-space-3) var(--mr-space-4); }
-.social-rail-you-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.social-rail-you-photo { flex: none; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
-.social-rail-you-name { display: flex; align-items: baseline; gap: var(--mr-space-2); min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.social-rail-you-name:hover .social-person-name { color: var(--mr-gold); }
-.social-rail-you-link { flex: none; color: var(--mr-gold); font-size: var(--mr-text-xs); font-weight: 700; }
-/* seu perfil pela Social: aviso de "como os outros veem" e os ajustes rápidos */
-.social-self-hint { margin: 0; color: var(--mr-text-muted); font-size: var(--mr-text-sm); text-align: center; }
-.social-self { gap: var(--mr-space-3); }
-.social-self-field { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--mr-space-2); }
-.social-self-label { color: var(--mr-text-secondary); font-size: var(--mr-text-sm); }
-.social-self .social-cmp-filter { margin: 0; }
-.social-self .social-cmp-filter button { display: inline-flex; align-items: center; gap: 6px; }
-.social-self-error { margin: 0; color: var(--mr-red); font-size: var(--mr-text-sm); }
-.social-rail-you-counts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
-.social-rail-you-counts button { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
-.social-rail-you-counts button:hover { color: var(--mr-gold); }
-.social-rail-you-counts b { color: var(--mr-text); font-weight: 800; font-variant-numeric: tabular-nums; }
+.social-you { display: flex; align-items: center; gap: var(--mr-space-3); padding: var(--mr-space-3) var(--mr-space-4); }
+.social-nav .social-you { padding: 0; }
+.social-you-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.social-you-photo { flex: none; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.social-you-name { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--mr-space-2); min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.social-you-name:hover .social-person-name { color: var(--mr-gold); }
+.social-you-link { flex: none; color: var(--mr-text-muted); font-size: var(--mr-text-xs); font-weight: 600; }
+.social-you-name:hover .social-you-link { color: var(--mr-text-secondary); }
+.social-you-counts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+.social-you-counts button { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.social-you-counts button:hover { color: var(--mr-gold); }
+.social-you-counts b { color: var(--mr-text); font-weight: 800; font-variant-numeric: tabular-nums; }
 /* pedido pra te seguir: um aviso fino */
 .social-rail-request {
   display: flex;
@@ -557,7 +631,6 @@
 .social-rail-match-main { display: flex; align-items: center; gap: var(--mr-space-2); min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .social-rail-match-main:hover .social-person-name { color: var(--mr-gold); }
 .social-rail-pct { flex: none; width: 2.6rem; color: var(--mr-gold); font-size: var(--mr-text-md); font-weight: 800; font-variant-numeric: tabular-nums; }
-.social-rail-pct.is-none { color: var(--mr-text-muted); }
 /* pra debater: a % em vermelho, porque aqui quanto menor, mais briga */
 .social-rail-pct.is-clash, .social-clash-pct { color: var(--mr-red); }
 .social-clash-pct { font-weight: 700; }
@@ -629,7 +702,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--mr-gold);
+  color: var(--mr-text-secondary);
   font: inherit;
   font-size: var(--mr-text-xs);
   font-weight: 700;
@@ -693,7 +766,7 @@
   transition: border-color var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
 }
 .social-chip-btn:hover:not(:disabled) { border-color: color-mix(in srgb, var(--mr-text) 28%, transparent); color: var(--mr-text); }
-.social-chip-btn.is-gold { border-color: var(--mr-gold-20); background: var(--mr-gold-10); color: var(--mr-gold); }
+.social-chip-btn.is-gold { border-color: color-mix(in srgb, var(--mr-text) 28%, transparent); color: var(--mr-text); }
 .social-chip-btn.is-gold:hover { border-color: var(--mr-gold); color: var(--mr-gold); }
 .social-chip-btn:disabled { cursor: default; opacity: 0.7; }
 .social-chip-btn:focus-visible, .social-icon-btn:focus-visible { outline: 2px solid var(--mr-gold); outline-offset: 2px; }
@@ -924,6 +997,10 @@ button.social-cmp-side:hover .social-cmp-who b { color: var(--mr-gold); }
 @media (max-width: 640px) {
   .social-card { padding: var(--mr-space-3); }
   .social-devtoggle-text { display: none; }
+  /* reações numa linha só: o placar fica com ícone, número e a barrinha */
+  .social-react-text { display: none; }
+  .social-verdict-bar { width: 36px; }
+  .social-react-btn { padding: 4px 7px; }
   .social-composer-cta { display: none; }
 }
 
