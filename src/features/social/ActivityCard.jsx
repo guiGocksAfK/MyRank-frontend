@@ -7,6 +7,7 @@ import { socialApi, typeIconFor } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import ConfirmModal from '../../shared/components/ConfirmModal';
+import TakeMenu from './TakeMenu';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -154,6 +155,15 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
             {isTake && edited && ` · ${tt.edited}`}
           </span>
         </div>
+        {canManage && !editing && (
+          <TakeMenu
+            label={tt.options}
+            editLabel={tt.menuEdit}
+            deleteLabel={tt.menuDelete}
+            onEdit={() => { setDraft(text || ''); setEditing(true); }}
+            onDelete={() => setConfirmingDelete(true)}
+          />
+        )}
       </header>
 
       <div className="social-card-body">
@@ -206,14 +216,6 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
             <span className="social-react-label">{t.social.comments.label}</span>
             {commentCount > 0 && <span className="social-react-count">{commentCount}</span>}
           </button>
-          {canManage && !editing && (
-            <div className="social-take-manage">
-              <button type="button" onClick={() => { setDraft(text || ''); setEditing(true); }}>
-                {tt.edit}
-              </button>
-              <button type="button" className="is-danger" onClick={() => setConfirmingDelete(true)}>{tt.delete}</button>
-            </div>
-          )}
         </div>
       )}
 

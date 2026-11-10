@@ -5,6 +5,7 @@ import { socialApi } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import { useUser } from '../../shared/userContext';
+import ConfirmModal from '../../shared/components/ConfirmModal';
 
 /** Comentários de um take (2 níveis, estilo Instagram). Vive dentro do ActivityCard. */
 export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
@@ -15,6 +16,7 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [replyTo, setReplyTo] = useState(null); // id do comentário raiz sendo respondido
+  const [pendingDelete, setPendingDelete] = useState(null); // { id, rootId } esperando confirmar
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -103,9 +105,9 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
               tc={tc}
               onOpenUser={onOpenUser}
               onReply={() => startReply(c.id, c.author?.handle || '')}
-              onDelete={() => remove(c.id, null)}
+              onDelete={() => setPendingDelete({ id: c.id, rootId: null })}
               onEdit={(txt) => edit(c.id, null, txt)}
-              onDeleteReply={(rid) => remove(rid, c.id)}
+              onDeleteReply={(rid) => setPendingDelete({ id: rid, rootId: c.id })}
               onEditReply={(rid, txt) => edit(rid, c.id, txt)}
             />
           ))}
@@ -141,6 +143,16 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
           <SendHorizontal size={16} strokeWidth={2} aria-hidden="true" />
         </button>
       </form>
+
+      {pendingDelete && (
+        <ConfirmModal
+          title={tc.deleteTitle}
+          message={tc.confirmDelete}
+          confirmLabel={tc.delete}
+          onConfirm={async () => { await remove(pendingDelete.id, pendingDelete.rootId); return true; }}
+          onClose={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   );
 }
