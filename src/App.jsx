@@ -14,6 +14,7 @@ const VerifyEmail = lazy(() => import('./features/auth/VerifyEmailPage'))
 const ForgotPassword = lazy(() => import('./features/auth/ForgotPasswordPage'))
 const ChatInvitePage = lazy(() => import('./features/chat/ChatInvitePage'))
 const Onboarding = lazy(() => import('./features/onboarding/OnboardingPage'))
+const LegalPage = lazy(() => import('./features/legal/LegalPage'))
 
 
 
@@ -61,6 +62,8 @@ function Layout() {
         <Route path="/esqueci-senha" element={<ForgotPassword />} />
         <Route path="/bem-vindo" element={<Onboarding />} />
         <Route path="/chat/invite/:token" element={<ChatInvitePage />} />
+        <Route path="/termos" element={<LegalPage doc="terms" />} />
+        <Route path="/privacidade" element={<LegalPage doc="privacy" />} />
         {/* endereço que não existe volta pra home, em vez da tela vazia */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

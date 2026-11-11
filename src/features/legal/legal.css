@@ -1,0 +1,108 @@
+/* ── Termos de uso e Privacidade ──
+   Abas em cima, título, e o texto numa coluna de leitura; em tela grande,
+   um índice fixo à esquerda pra pular entre as seções. */
+.legal {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--mr-space-6) var(--mr-space-4) var(--mr-space-8);
+  box-sizing: border-box;
+  font-family: var(--mr-font);
+}
+
+.legal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--mr-text-muted);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--mr-duration-fast) var(--mr-ease);
+}
+.legal-back:hover { color: var(--mr-gold); }
+
+/* Termos | Privacidade: abas sublinhadas, como as da Social */
+.legal-tabs { display: flex; gap: var(--mr-space-5); margin-top: var(--mr-space-5); border-bottom: 1px solid var(--mr-border); }
+.legal-tab {
+  margin-bottom: -1px;
+  padding: var(--mr-space-2) 2px;
+  border-bottom: 2px solid transparent;
+  color: var(--mr-text-muted);
+  font-size: var(--mr-text-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+.legal-tab:hover { color: var(--mr-text); }
+.legal-tab.is-active { border-bottom-color: var(--mr-gold); color: var(--mr-text); }
+
+.legal-head { margin: var(--mr-space-6) 0 var(--mr-space-6); }
+.legal-head h1 { margin: 0; color: var(--mr-text); font-size: var(--mr-text-2xl); font-weight: 800; letter-spacing: var(--mr-tracking-tight); line-height: 1.15; }
+.legal-head p { margin: var(--mr-space-2) 0 0; color: var(--mr-text-muted); font-size: var(--mr-text-sm); }
+
+.legal-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: var(--mr-space-7); align-items: start; }
+
+/* índice: fixo enquanto rola */
+.legal-toc { position: sticky; top: calc(var(--mr-navbar-h) + var(--mr-space-5)); }
+.legal-toc p { margin: 0 0 var(--mr-space-2); color: var(--mr-text-muted); font-size: var(--mr-text-xs); font-weight: 700; }
+.legal-toc ol { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; border-left: 1px solid var(--mr-border); }
+.legal-toc a {
+  display: block;
+  margin-left: -1px;
+  padding: 5px 0 5px var(--mr-space-3);
+  border-left: 1px solid transparent;
+  color: var(--mr-text-secondary);
+  font-size: var(--mr-text-sm);
+  line-height: 1.35;
+  text-decoration: none;
+}
+.legal-toc a:hover { border-left-color: var(--mr-gold); color: var(--mr-text); }
+
+.legal-body { max-width: 680px; color: var(--mr-text-secondary); font-size: var(--mr-text-md); line-height: 1.7; }
+.legal-intro {
+  margin: 0 0 var(--mr-space-6);
+  padding: var(--mr-space-4) var(--mr-space-5);
+  border: 1px solid var(--mr-border);
+  border-left: 2px solid var(--mr-gold);
+  border-radius: var(--mr-radius-sm);
+  background: var(--mr-surface);
+  color: var(--mr-text);
+}
+
+.legal-section { margin-bottom: var(--mr-space-6); scroll-margin-top: calc(var(--mr-navbar-h) + var(--mr-space-5)); }
+.legal-section h2 { display: flex; align-items: center; gap: var(--mr-space-3); margin: 0 0 var(--mr-space-3); color: var(--mr-text); font-size: var(--mr-text-lg); font-weight: 700; }
+.legal-num {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--mr-gold-10);
+  color: var(--mr-gold);
+  font-size: var(--mr-text-sm);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.legal-section p { margin: 0 0 var(--mr-space-3); }
+.legal-section ul { margin: 0 0 var(--mr-space-3); padding-left: 1.2em; }
+.legal-section li { margin-bottom: var(--mr-space-2); }
+.legal-section li::marker { color: var(--mr-gold); }
+.legal-body a { color: var(--mr-gold); text-decoration: none; }
+.legal-body a:hover { text-decoration: underline; }
+
+/* sem espaço pro índice: uma coluna só */
+@media (max-width: 900px) {
+  .legal-layout { grid-template-columns: 1fr; gap: 0; }
+  .legal-toc { display: none; }
+  .legal-head h1 { font-size: var(--mr-text-xl); }
+  .legal-intro { padding: var(--mr-space-3) var(--mr-space-4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legal-back { transition: none; }
+}
