@@ -28,7 +28,7 @@ export default function PersonRow({ u, onOpen, debate = false, children }) {
               </>
             ) : u.matchPct != null ? (
               <>
-                <b className="social-match">{fmt(tp.match, { pct: u.matchPct })}</b>
+                <b className="social-match">{u.matchPct}%</b> {tp.matchWord}
                 {' · '}
                 {fmt(tp.inCommon, { n: u.sharedCount })}
               </>

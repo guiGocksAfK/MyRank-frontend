@@ -178,7 +178,7 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
           </div>
         )}
         {tab === 'people' && (
-          <People onOpenUser={openProfile} onCompare={openCompare} onOpenConversation={openGroupConversation} />
+          <People onOpenUser={openProfile} onCompare={openCompare} onOpenConversation={openGroupConversation} onOpenConnections={openConnections} />
         )}
         {tab === 'chat' && (
           <ChatPanel
