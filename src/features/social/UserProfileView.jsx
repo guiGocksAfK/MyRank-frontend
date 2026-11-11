@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Lock, MessageSquare, Pencil, Scale } from 'lucide-react';
+import { ArrowLeft, Eye, Lock, MessageSquare, Pencil, Scale } from 'lucide-react';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
@@ -119,7 +119,6 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
         <div className="social-prof-who">
           <div className="social-prof-line">
             <h2 className="social-prof-name">{profile.username}</h2>
-            {isSelf && <span className="social-tag">{tv.selfTag}</span>}
             {!isSelf && profile.followsYou && <span className="social-tag">{tv.followsYou}</span>}
           </div>
           {profile.bio && <p className="social-prof-bio">{profile.bio}</p>}
@@ -127,6 +126,13 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
             {fmt(tv.stats, { works: profile.stats.works, avg: note(profile.stats.avgScore) })}
           </span>
           {counts}
+          {/* o seu perfil aqui é a prévia de como os outros te veem */}
+          {isSelf && (
+            <span className="social-self-preview">
+              <Eye size={13} strokeWidth={2} aria-hidden="true" />
+              {tv.selfHint}
+            </span>
+          )}
         </div>
         {isSelf ? (
           <div className="social-prof-actions">
@@ -159,7 +165,6 @@ export default function UserProfileView({ userId, onBack, onCompare, onToggleFol
 
       {isSelf && (
         <>
-          <p className="social-self-hint">{tv.selfHint}</p>
           <SelfQuickSettings
             user={user}
             onSaved={onSelfSaved}

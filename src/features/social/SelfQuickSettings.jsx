@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Globe, Lock, Settings2, UserCheck } from 'lucide-react';
+import { ChevronRight, Globe, Lock, UserCheck } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import { updateMe } from '../../services/userService';
 
 /**
  * No seu próprio perfil pela Social: os ajustes que só fazem sentido aqui
- * (quem vê seu perfil e quem te manda mensagem). Gravam no mesmo lugar das
- * Configurações do Perfil; "Mais ajustes" leva pra lá.
+ * (quem vê seu perfil e quem te manda mensagem), cada um numa linha com a
+ * escolha à direita. Gravam no mesmo lugar das Configurações do Perfil;
+ * "Mais ajustes" leva pra lá.
  */
 export default function SelfQuickSettings({ user, onSaved, onMore }) {
   const { t } = useLanguage();
@@ -27,10 +28,10 @@ export default function SelfQuickSettings({ user, onSaved, onMore }) {
     }
   };
 
-  const group = (label, key, value, options, toPatch) => (
-    <div className="social-self-field">
+  const row = (label, key, value, options, toPatch) => (
+    <div className="social-self-row">
       <span className="social-self-label">{label}</span>
-      <div className="social-cmp-filter" role="group" aria-label={label}>
+      <div className="social-seg" role="group" aria-label={label}>
         {options.map(({ id, text, icon: Icon }) => (
           <button
             key={id}
@@ -49,21 +50,23 @@ export default function SelfQuickSettings({ user, onSaved, onMore }) {
   );
 
   return (
-    <section className="mr-panel social-col social-self">
-      <h2 className="social-rail-title">{tv.quickTitle}</h2>
-      {group(tp.profileLabel, 'public', (user.isPublic ?? true) ? 'public' : 'private', [
+    <section className="mr-panel social-self">
+      <div className="social-self-head">
+        <h2 className="social-rail-title">{tv.quickTitle}</h2>
+        <button type="button" className="social-rail-more" onClick={onMore}>
+          {tv.moreSettings}
+          <ChevronRight size={14} strokeWidth={2} aria-hidden="true" />
+        </button>
+      </div>
+      {row(tp.profileLabel, 'public', (user.isPublic ?? true) ? 'public' : 'private', [
         { id: 'public', text: tp.profilePublic, icon: Globe },
         { id: 'private', text: tp.profilePrivate, icon: Lock },
       ], (id) => ({ isPublic: id === 'public' }))}
-      {group(tp.messagesLabel, 'dm', user.dmPolicy || 'EVERYONE', [
+      {row(tp.messagesLabel, 'dm', user.dmPolicy || 'EVERYONE', [
         { id: 'EVERYONE', text: tp.dmEveryone, icon: Globe },
         { id: 'FOLLOWING', text: tp.dmFollowing, icon: UserCheck },
       ], (id) => ({ dmPolicy: id }))}
       {error && <p className="social-self-error" role="alert">{error}</p>}
-      <button type="button" className="social-rail-more" onClick={onMore}>
-        <Settings2 size={14} strokeWidth={2} aria-hidden="true" />
-        {tv.moreSettings}
-      </button>
     </section>
   );
 }
