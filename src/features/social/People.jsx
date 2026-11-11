@@ -169,9 +169,18 @@ export default function People({ onOpenUser, onCompare, onOpenConversation, onOp
         <p className="social-rail-empty">{tp.loading}</p>
       ) : list.length === 0 && !withCreate ? (
         <SocialEmpty compact icon={Users} text={emptyText} />
+      ) : list.length === 0 ? (
+        // nenhum grupo ainda: uma faixa só, com o convite e o botão de criar
+        <button type="button" className="social-ppl-create is-empty" onClick={() => setCreating(true)}>
+          <span className="social-ppl-create-icon" aria-hidden="true"><Users size={18} strokeWidth={1.8} /></span>
+          <span className="social-ppl-create-text">{emptyText}</span>
+          <span className="social-chip-btn is-gold">
+            <Plus size={13} strokeWidth={2.2} aria-hidden="true" />
+            {tp.createGroup}
+          </span>
+        </button>
       ) : (
         <ul className="social-ppl-groups">
-          {list.length === 0 && <li><SocialEmpty compact icon={Users} text={emptyText} /></li>}
           {/* os seus grupos primeiro */}
           {[...list].sort((x, y) => (y.membership === 'MEMBER') - (x.membership === 'MEMBER')).map((g) => {
             const requested = g.membership === 'PENDING';

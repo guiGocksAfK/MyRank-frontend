@@ -44,6 +44,8 @@
   cursor: pointer;
 }
 .social-devtoggle.is-on { border-color: var(--mr-gold); color: var(--mr-gold); }
+.social-devtools { display: flex; flex: none; gap: var(--mr-space-2); }
+a.social-devtoggle { text-decoration: none; }
 
 /* ── Texto auxiliar / links ───────────────────────────────── */
 .social-muted {
@@ -918,6 +920,11 @@
   cursor: pointer;
 }
 .social-ppl-create:hover { border-color: var(--mr-gold); color: var(--mr-gold); }
+.social-ppl-create.is-empty { flex-direction: row; justify-content: flex-start; gap: var(--mr-space-3); min-height: 0; padding: var(--mr-space-4); text-align: left; }
+.social-ppl-create.is-empty:hover { color: var(--mr-text-secondary); }
+.social-ppl-create.is-empty:hover .social-chip-btn { border-color: var(--mr-gold); color: var(--mr-gold); }
+.social-ppl-create-icon { display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--mr-muted-bg); color: var(--mr-text-secondary); }
+.social-ppl-create-text { flex: 1; color: var(--mr-text-secondary); font-weight: 500; }
 .social-search {
   display: flex;
   align-items: center;
@@ -1143,6 +1150,7 @@ button.social-cmp-side:hover .social-cmp-who b { color: var(--mr-gold); }
 @media (max-width: 720px) {
   .social-ppl-groups { grid-template-columns: 1fr; }
   .social-ppl-create { flex-direction: row; min-height: 56px; }
+  .social-ppl-create.is-empty { flex-wrap: wrap; }
   .social-ppl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .social-ppl-grid.is-duel { grid-template-columns: 1fr; }
   /* perfil: as ações descem pra baixo do nome; a % fica em cima do porquê */

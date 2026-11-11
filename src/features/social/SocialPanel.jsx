@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { FlaskConical } from 'lucide-react';
+import { FlaskConical, GraduationCap } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './social.css';
 import '../rankings/rankings/rankings.css';
 import { useLanguage } from '../../shared/i18n';
@@ -153,11 +154,18 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
             </div>
           </div>
           {socialMock.available && (
-            <button type="button" className={`social-devtoggle${mockOn ? ' is-on' : ''}`} aria-pressed={mockOn} aria-label={ts.devData}
-              title={ts.devDataHint} onClick={toggleMock}>
-              <FlaskConical size={14} strokeWidth={1.8} aria-hidden="true" />
-              <span className="social-devtoggle-text">{ts.devData}</span>
-            </button>
+            <div className="social-devtools">
+              {/* o tutorial do cadastro do começo, sem salvar nada */}
+              <Link to="/bem-vindo?teste" className="social-devtoggle" aria-label={ts.devTutorial} title={ts.devTutorialHint}>
+                <GraduationCap size={14} strokeWidth={1.8} aria-hidden="true" />
+                <span className="social-devtoggle-text">{ts.devTutorial}</span>
+              </Link>
+              <button type="button" className={`social-devtoggle${mockOn ? ' is-on' : ''}`} aria-pressed={mockOn} aria-label={ts.devData}
+                title={ts.devDataHint} onClick={toggleMock}>
+                <FlaskConical size={14} strokeWidth={1.8} aria-hidden="true" />
+                <span className="social-devtoggle-text">{ts.devData}</span>
+              </button>
+            </div>
           )}
         </div>
 
