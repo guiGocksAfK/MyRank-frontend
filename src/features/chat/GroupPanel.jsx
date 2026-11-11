@@ -1,3 +1,4 @@
+import { Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
@@ -194,7 +195,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
         <div className="chat-modal-head">
           <h3 className="chat-modal-title" id="gp-title">{tc.groupSettings}</h3>
           <button type="button" className="chat-modal-x" onClick={onClose} aria-label={tc.close}>
-            ✕
+            <X size={16} strokeWidth={2} />
           </button>
         </div>
 
@@ -417,7 +418,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
                       >
                         <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={28} />
                         <span className="chat-result-name">@{u.username}</span>
-                        <span aria-hidden="true">＋</span>
+                        <Plus size={14} strokeWidth={2.2} aria-hidden="true" />
                       </button>
                     ))}
                 </div>

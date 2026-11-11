@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { ArrowLeft, Ban, Check, Lock, MoreHorizontal, Pencil, Reply, SmilePlus, Trash2, X } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
 import { useUser } from '../../shared/userContext';
@@ -552,7 +553,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
       <div className="chat-thread-body">
       <div className="chat-thread-head">
         <button type="button" className={`chat-back${backAlways ? ' is-always' : ''}`} onClick={onBack} aria-label={tc.back}>
-          ←
+          <ArrowLeft size={18} strokeWidth={2} />
         </button>
         <button
           type="button"
@@ -574,7 +575,6 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
           )}
           <div className="chat-thread-titlewrap">
             <div className="chat-thread-name">
-              {isGroup && <span aria-hidden="true">👥 </span>}
               {headerTitle}
             </div>
             {isGroup ? (
@@ -695,7 +695,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
               if (editing) setDraft('');
             }}
           >
-            ✕
+            <X size={15} strokeWidth={2} />
           </button>
         </div>
       )}
@@ -738,7 +738,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
             disabled={!canSend}
             aria-label={editing ? tc.save : tc.send}
           >
-            {editing ? '✓' : <SendIcon />}
+            {editing ? <Check size={18} strokeWidth={2.4} /> : <SendIcon />}
           </button>
         )}
       </form>
@@ -920,7 +920,7 @@ function MessageRow({
           )}
 
           {m.deleted ? (
-            <span className="chat-bubble-body is-deleted">🚫 {tc.deletedMsg}</span>
+            <span className="chat-bubble-body is-deleted"><Ban size={13} strokeWidth={2} aria-hidden="true" /> {tc.deletedMsg}</span>
           ) : (
             <span className="chat-bubble-body">{renderBodyWithLinks(m.body)}</span>
           )}
@@ -930,13 +930,13 @@ function MessageRow({
         {!m.deleted && (
           <div className="chat-msg-toolbar" ref={toolbarRef}>
             <button type="button" className="chat-msg-tbtn" onClick={onOpenMenu} aria-label={tc.react}>
-              🙂
+              <SmilePlus size={15} strokeWidth={2} />
             </button>
             <button type="button" className="chat-msg-tbtn" onClick={onReply} aria-label={tc.reply}>
-              ↩
+              <Reply size={15} strokeWidth={2} />
             </button>
             <button type="button" className="chat-msg-tbtn" onClick={onOpenMenu} aria-label={tc.messageActions}>
-              ⋯
+              <MoreHorizontal size={15} strokeWidth={2} />
             </button>
           </div>
         )}
@@ -967,9 +967,9 @@ function MessageRow({
                 ))}
               </div>
               <div className="chat-menu-actions">
-                <button type="button" onClick={onReply}>↩ {tc.reply}</button>
-                {canEdit && <button type="button" onClick={onEdit}>✏️ {tc.edit}</button>}
-                {canDelete && <button type="button" className="is-danger" onClick={onDelete}>🗑 {tc.delete}</button>}
+                <button type="button" onClick={onReply}><Reply size={14} strokeWidth={2} aria-hidden="true" />{tc.reply}</button>
+                {canEdit && <button type="button" onClick={onEdit}><Pencil size={14} strokeWidth={2} aria-hidden="true" />{tc.edit}</button>}
+                {canDelete && <button type="button" className="is-danger" onClick={onDelete}><Trash2 size={14} strokeWidth={2} aria-hidden="true" />{tc.delete}</button>}
               </div>
             </div>,
             document.body,
@@ -1021,7 +1021,7 @@ function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfi
   return (
     <aside className="chat-rail">
       <button type="button" className="chat-info-btn chat-rail-close" onClick={onClose} aria-label={tc.back}>
-        ✕
+        <X size={16} strokeWidth={2} />
       </button>
 
       {isGroup ? (
@@ -1093,7 +1093,7 @@ function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfi
           </button>
 
           {profile.locked ? (
-            <div className="chat-rail-hint">🔒 {t.social.profile.privateTitle}</div>
+            <div className="chat-rail-hint"><Lock size={13} strokeWidth={2} aria-hidden="true" /> {t.social.profile.privateTitle}</div>
           ) : (
             <div>
               <div className="chat-rail-section-title">{tc.railStats}</div>

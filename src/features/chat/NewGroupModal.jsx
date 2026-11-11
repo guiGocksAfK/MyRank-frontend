@@ -1,3 +1,4 @@
+import { Check, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
 import { socialApi } from '../social/socialData';
@@ -138,7 +139,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
           <div className="chat-chips">
             {selected.map((u) => (
               <button key={u.id} type="button" className="chat-chip" onClick={() => toggle(u)}>
-                {u.username} ✕
+                {u.username} <X size={12} strokeWidth={2.2} aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -164,7 +165,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
             >
               <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={28} />
               <span className="chat-result-name">@{u.username}</span>
-              {isSelected(u.id) && <span aria-hidden="true">✓</span>}
+              {isSelected(u.id) && <Check size={14} strokeWidth={2.4} aria-hidden="true" />}
             </button>
           ))}
         </div>
