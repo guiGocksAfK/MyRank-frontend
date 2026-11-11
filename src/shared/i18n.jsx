@@ -28,6 +28,8 @@ const TRANSLATIONS = {
       tabsLabel: 'Seções da Social',
       devData: 'Dados de teste',
       devDataHint: 'Só no seu computador: pessoas e takes inventados. Nada vai pro servidor.',
+      devTutorial: 'Tutorial',
+      devTutorialHint: 'Abre o tutorial do cadastro do começo. Nada é salvo.',
       loading: 'Carregando…',
       feed: {
         loading: 'Carregando feed…',
@@ -200,13 +202,200 @@ const TRANSLATIONS = {
         noData: 'Sem obras pra mostrar aqui.',
       },
     },
+    // Termos de uso e Política de privacidade (/termos e /privacidade)
+    legal: {
+      back: "Voltar",
+      docs: "Termos e privacidade",
+      onThisPage: "Nesta página",
+      updated: "Atualizado em 11 de novembro de 2026",
+      terms: {
+        title: "Termos de uso",
+        intro: "Estes termos explicam as regras pra usar o MyRank. Ao criar uma conta ou usar o site, você concorda com eles. Se tiver qualquer dúvida, escreva pra {email}.",
+        sections: [
+          {
+            h: "O que é o MyRank",
+            p: [
+              "O MyRank é um site gratuito pra organizar, avaliar e ranquear os filmes, séries, jogos, livros, animes e músicas que você já consumiu, comparar seu gosto com o de outras pessoas e conversar sobre eles.",
+              "É um projeto pessoal, mantido por Guilherme Gocks. Ele pode mudar, ganhar ou perder funções e, em último caso, sair do ar.",
+            ],
+          },
+          {
+            h: "Sua conta",
+            list: [
+              "Você é responsável pela sua conta e por manter a sua senha em segredo.",
+              "Use um e-mail que seja seu: é por ele que confirmamos a conta, recuperamos a senha e confirmamos a exclusão.",
+              "Não crie contas se passando por outra pessoa.",
+              "Se você tiver menos de 18 anos, use o MyRank com o conhecimento de um responsável.",
+            ],
+          },
+          {
+            h: "O que você publica",
+            p: [
+              "Notas, takes, comentários, reações, mensagens, foto e bio continuam sendo seus. Ao publicar, você nos autoriza a guardar e mostrar esse conteúdo no MyRank, de acordo com as configurações de privacidade que você escolheu.",
+              "Não é permitido publicar:",
+            ],
+            list: [
+              "conteúdo ilegal, discurso de ódio, ameaças ou assédio;",
+              "conteúdo sexual explícito ou violento sem contexto;",
+              "spam, propaganda enganosa ou golpes;",
+              "dados pessoais de outras pessoas sem autorização.",
+            ],
+            after: [
+              "Podemos remover conteúdo e suspender ou excluir contas que desrespeitem essas regras.",
+            ],
+          },
+          {
+            h: "Grupos e mensagens",
+            p: [
+              "Em grupos, o dono, os admins e os moderadores podem apagar mensagens e remover membros. As mensagens ficam guardadas nos nossos servidores e não têm criptografia de ponta a ponta: não mande senhas nem dados sensíveis por elas.",
+            ],
+          },
+          {
+            h: "Dados das obras e IA",
+            p: [
+              "Capas, sinopses e outros detalhes das obras vêm de serviços externos (TMDB, RAWG, MyAnimeList, Google Books, Deezer e iTunes) e pertencem aos seus donos. A lista completa está em \"Fontes dos dados\", no rodapé.",
+              "A IA Insights usa o Google Gemini pra escrever análises sobre o seu gosto. É um texto gerado automaticamente: pode errar e não deve ser levado como verdade.",
+            ],
+          },
+          {
+            h: "Disponibilidade",
+            p: [
+              "O MyRank é oferecido do jeito que está, sem garantia de que vai funcionar sem interrupções ou sem erros. Pra não depender só do site, você pode exportar as suas obras a qualquer momento em Perfil > Configurações.",
+            ],
+          },
+          {
+            h: "Encerrar a conta",
+            p: [
+              "Você pode excluir a sua conta quando quiser em Perfil > Configurações. A exclusão é definitiva e não dá pra desfazer. O que acontece com os seus dados está na Política de privacidade.",
+            ],
+          },
+          {
+            h: "Mudanças nestes termos",
+            p: [
+              "Se estes termos mudarem, a data no topo da página muda junto e avisaremos no site quando a mudança for importante. Continuar usando o MyRank depois disso significa concordar com a versão nova.",
+            ],
+          },
+          {
+            h: "Contato",
+            p: [
+              "Dúvidas, denúncias ou pedidos: {email}. Estes termos seguem as leis do Brasil.",
+            ],
+          },
+        ],
+      },
+      privacy: {
+        title: "Política de privacidade",
+        intro: "Aqui está, sem juridiquês, quais dados o MyRank guarda, por que guarda, com quem compartilha e como você controla tudo isso, de acordo com a Lei Geral de Proteção de Dados (LGPD).",
+        sections: [
+          {
+            h: "Quem cuida dos seus dados",
+            p: [
+              "O responsável pelos dados do MyRank é Guilherme Gocks, que mantém o site. Pra qualquer assunto de privacidade, escreva pra {email}.",
+            ],
+          },
+          {
+            h: "O que guardamos",
+            list: [
+              "Conta: nome de usuário, e-mail e senha. A senha é guardada só como um código embaralhado (hash): ninguém, nem a gente, consegue ler.",
+              "Entrada com Google ou Discord: o identificador da sua conta nesses serviços, pra reconhecer você no próximo login.",
+              "Perfil: foto, bio, idioma, tema e as suas escolhas de privacidade e de notificações.",
+              "O que você cria: obras, notas, tempo dedicado, tabelas, conquistas, takes, comentários, reações, quem você segue, mensagens e grupos.",
+              "Atividade: quando você esteve ativo pela última vez (pra mostrar se está online no chat) e as datas em que as coisas foram criadas.",
+            ],
+            after: [
+              "Não pedimos localização, contatos do celular nem documentos.",
+            ],
+          },
+          {
+            h: "Para que usamos",
+            list: [
+              "Fazer o site funcionar: seus rankings, seu perfil e o seu histórico.",
+              "A parte social: o feed, as notificações e o \"gosto parecido\", calculado comparando as suas notas com as de outras pessoas.",
+              "Mandar e-mails da sua conta: confirmação de cadastro, recuperação de senha e exclusão de conta. Não mandamos propaganda.",
+              "Proteger o site contra abuso e corrigir erros.",
+            ],
+          },
+          {
+            h: "Quem vê o quê",
+            list: [
+              "Perfil público: quem tem conta no MyRank vê o seu perfil, as suas notas e os seus takes.",
+              "Perfil privado: só quem você aprovou como seguidor vê essas coisas; os outros veem só o nome e a foto.",
+              "Mensagens: só quem participa da conversa ou do grupo.",
+            ],
+            after: [
+              "Nunca vendemos os seus dados nem mostramos anúncios.",
+            ],
+          },
+          {
+            h: "Serviços que usamos",
+            p: [
+              "Pra funcionar, o MyRank depende de alguns serviços, que tratam dados só pra fazer o trabalho deles:",
+            ],
+            list: [
+              "Vercel: hospeda o site.",
+              "Oracle Cloud: hospeda o servidor do MyRank.",
+              "Neon: guarda o banco de dados.",
+              "Brevo: envia os e-mails da sua conta.",
+              "Google e Discord: só se você escolher entrar com eles.",
+              "Google Gemini: quando você gera uma análise na IA Insights, mandamos os títulos, os tipos e as notas das obras que você escolheu. Não mandamos o seu nome nem o seu e-mail.",
+              "TMDB, RAWG, MyAnimeList, Google Books, Deezer e iTunes: recebem o que você digita na busca de obras, pra encontrar capas e detalhes.",
+            ],
+            after: [
+              "Alguns desses serviços guardam dados fora do Brasil, como nos Estados Unidos.",
+            ],
+          },
+          {
+            h: "No seu navegador",
+            p: [
+              "Guardamos no seu navegador (localStorage) o acesso à sua conta, pra você não precisar entrar toda vez, além do idioma, do tema e de preferências de tela, como a ordem das tabelas. Não usamos cookies de propaganda nem ferramentas de rastreamento.",
+            ],
+          },
+          {
+            h: "Por quanto tempo",
+            p: [
+              "Guardamos os seus dados enquanto a sua conta existir. Quando você exclui a conta, ela é apagada de verdade: perfil, obras, notas, takes, comentários, seguidores e conversas diretas. Nos grupos, você sai como numa saída normal. Você recebe um e-mail confirmando a exclusão.",
+            ],
+          },
+          {
+            h: "Seus direitos",
+            p: [
+              "Pela LGPD, você pode, a qualquer momento:",
+            ],
+            list: [
+              "ver e corrigir os seus dados, editando o perfil;",
+              "baixar as suas obras em CSV ou JSON, em Perfil > Configurações;",
+              "deixar o perfil privado e escolher quem pode te mandar mensagem;",
+              "excluir a conta, em Perfil > Configurações.",
+            ],
+            after: [
+              "Pra qualquer outro pedido, como saber exatamente o que guardamos sobre você, escreva pra {email}.",
+            ],
+          },
+          {
+            h: "Segurança",
+            p: [
+              "O site usa conexão criptografada (HTTPS), as senhas são guardadas embaralhadas e o acesso aos servidores é restrito. Nenhum sistema é 100% seguro, mas, se algo acontecer com os seus dados, avisaremos você.",
+            ],
+          },
+          {
+            h: "Mudanças nesta política",
+            p: [
+              "Se esta política mudar, a data no topo da página muda junto e avisaremos no site quando a mudança for importante.",
+            ],
+          },
+        ],
+      },
+    },
     chat: {
+      searchPlaceholder: 'Buscar conversa', searchPeople: 'Buscar quem você segue',
+      newMessage: 'Nova mensagem', followingLabel: 'Quem você segue', mutual: 'Vocês se seguem',
+      noMatch: 'Nada com esse nome.',
       title: 'Mensagens',
       loading: 'Carregando…',
       inboxEmpty: 'Nenhuma conversa ainda.',
-      sayHi: 'Diga oi 👋',
+      sayHi: 'Diga oi',
       suggestedTitle: 'Sugestões',
-      threadEmpty: 'Nenhuma mensagem ainda. Diga oi 👋',
+      threadEmpty: 'Nenhuma mensagem ainda. Diga oi',
       noMessages: 'Sem mensagens',
       loadMore: 'Carregar mais',
       loadingMore: 'Carregando…',
@@ -214,7 +403,7 @@ const TRANSLATIONS = {
       noneInFilter: 'Nada aqui neste filtro.',
       pickConversation: 'Escolha uma conversa',
       emptyTitle: 'Suas mensagens',
-      mutualHint: 'Converse com qualquer pessoa. Monte grupos ou ache novos pra entrar.',
+      mutualHint: 'Mande uma mensagem pra quem você segue ou crie um grupo.',
       placeholder: 'Escreva uma mensagem…',
       send: 'Enviar',
       sending: 'Enviando…',
@@ -320,13 +509,6 @@ const TRANSLATIONS = {
       approve: 'Aprovar',
       reject: 'Recusar',
       discover: 'Descobrir',
-      discoverGroups: 'Descobrir grupos',
-      searchGroups: 'Buscar grupos…',
-      noGroups: 'Nenhum grupo encontrado.',
-      open: 'Abrir',
-      pendingCancel: 'Cancelar pedido',
-      join: 'Entrar',
-      requestJoin: 'Pedir p/ entrar',
     },
     insights: {
       panel: {
@@ -831,6 +1013,17 @@ const TRANSLATIONS = {
       },
     },
     onboarding: {
+      step: 'Passo {n} de {total}', back: 'Voltar',
+      feat1Title: 'Ranqueie tudo', feat1: 'Filmes, séries, jogos, livros, animes e músicas, com nota de 0 a 10.',
+      feat2Title: 'Compare seu gosto', feat2: 'Veja quem pensa parecido com você e quem rende um bom debate.',
+      feat3Title: 'Descubra seu perfil', feat3: 'A IA lê as suas notas e conta o que elas dizem sobre você.',
+      firstEmpty: 'Sua primeira obra aparece aqui',
+      savedIn: 'Salva em {table}',
+      whereTitle: 'Por onde começar',
+      rankingsTitle: 'Rankings', rankingsText: 'Suas tabelas, as notas e a ordem de cada uma.',
+      socialTitle: 'Social', socialText: 'Siga pessoas, escreva takes e compare o seu gosto.',
+      aiTitle: 'IA Insights', aiText: 'Uma análise do seu gosto feita a partir das suas notas.',
+      testBanner: 'Modo de teste: nada do que você fizer aqui é salvo.',
       welcomeTitle: 'Bem-vindo ao MyRank!',
       welcomeCopy: 'Aqui você dá nota pro que consome e o MyRank monta seus rankings. Leva menos de um minuto pra começar.',
       start: 'Começar',
@@ -845,8 +1038,6 @@ const TRANSLATIONS = {
       doneTitle: 'Seu ranking começou!',
       doneCopy: 'Continue adicionando obras. Com algumas notas, a IA já consegue traçar o seu perfil.',
       goRankings: 'Ir pros meus rankings',
-      goAi: 'Análise da IA',
-      goSocial: 'Encontrar amigos',
       error: 'Não foi possível salvar agora. Tente de novo.',
     },
 
@@ -952,7 +1143,7 @@ const TRANSLATIONS = {
         cta: 'Criar conta grátis',
         fine: 'Grátis. Sem anúncios.',
       },
-      footer: { terms: 'Termos de uso', privacy: 'Privacidade', contact: 'Contato', madeBy: 'Feito por', sources: 'Fontes dos dados' },
+      footer: { terms: 'Termos de uso', privacy: 'Privacidade', madeBy: 'Feito por', sources: 'Fontes dos dados' },
       sources: {
         title: 'Fontes dos dados',
         intro: 'Capas, sinopses e detalhes das obras vêm destes serviços. A análise da IA Insights é feita pelo Gemini.',
@@ -986,6 +1177,8 @@ const TRANSLATIONS = {
       tabsLabel: 'Social sections',
       devData: 'Test data',
       devDataHint: 'Only on your machine: made-up people and takes. Nothing goes to the server.',
+      devTutorial: 'Tutorial',
+      devTutorialHint: 'Opens the sign-up tutorial from the start. Nothing is saved.',
       loading: 'Loading…',
       feed: {
         loading: 'Loading feed…',
@@ -1158,13 +1351,200 @@ const TRANSLATIONS = {
         noData: 'No titles to show here.',
       },
     },
+    // Termos de uso e Política de privacidade (/termos e /privacidade)
+    legal: {
+      back: "Back",
+      docs: "Terms and privacy",
+      onThisPage: "On this page",
+      updated: "Last updated November 11, 2026",
+      terms: {
+        title: "Terms of use",
+        intro: "These terms explain the rules for using MyRank. By creating an account or using the site, you agree to them. If you have any questions, write to {email}.",
+        sections: [
+          {
+            h: "What MyRank is",
+            p: [
+              "MyRank is a free site to organize, rate and rank the movies, series, games, books, anime and music you've consumed, compare your taste with other people's and talk about them.",
+              "It's a personal project, maintained by Guilherme Gocks. It may change, gain or lose features and, as a last resort, go offline.",
+            ],
+          },
+          {
+            h: "Your account",
+            list: [
+              "You're responsible for your account and for keeping your password secret.",
+              "Use an email that's yours: it's how we confirm your account, recover your password and confirm deletion.",
+              "Don't create accounts pretending to be someone else.",
+              "If you're under 18, use MyRank with the knowledge of a parent or guardian.",
+            ],
+          },
+          {
+            h: "What you post",
+            p: [
+              "Scores, takes, comments, reactions, messages, photo and bio remain yours. By posting, you allow us to store and show that content on MyRank, according to the privacy settings you chose.",
+              "You may not post:",
+            ],
+            list: [
+              "illegal content, hate speech, threats or harassment;",
+              "explicit sexual content or gratuitous violence;",
+              "spam, misleading ads or scams;",
+              "other people's personal data without permission.",
+            ],
+            after: [
+              "We may remove content and suspend or delete accounts that break these rules.",
+            ],
+          },
+          {
+            h: "Groups and messages",
+            p: [
+              "In groups, the owner, admins and moderators can delete messages and remove members. Messages are stored on our servers and are not end-to-end encrypted: don't send passwords or sensitive data through them.",
+            ],
+          },
+          {
+            h: "Title data and AI",
+            p: [
+              "Covers, synopses and other title details come from external services (TMDB, RAWG, MyAnimeList, Google Books, Deezer and iTunes) and belong to their owners. The full list is under \"Data sources\" in the footer.",
+              "AI Insights uses Google Gemini to write analyses of your taste. It's automatically generated text: it can be wrong and shouldn't be taken as fact.",
+            ],
+          },
+          {
+            h: "Availability",
+            p: [
+              "MyRank is provided as is, with no guarantee that it will work without interruptions or errors. So you don't depend only on the site, you can export your titles at any time in Profile > Settings.",
+            ],
+          },
+          {
+            h: "Closing your account",
+            p: [
+              "You can delete your account whenever you want in Profile > Settings. Deletion is permanent and can't be undone. What happens to your data is described in the Privacy policy.",
+            ],
+          },
+          {
+            h: "Changes to these terms",
+            p: [
+              "If these terms change, the date at the top of the page changes too, and we'll let you know on the site when the change is important. Continuing to use MyRank after that means you agree to the new version.",
+            ],
+          },
+          {
+            h: "Contact",
+            p: [
+              "Questions, reports or requests: {email}. These terms are governed by the laws of Brazil.",
+            ],
+          },
+        ],
+      },
+      privacy: {
+        title: "Privacy policy",
+        intro: "Here's, in plain words, what data MyRank keeps, why, who it's shared with and how you control all of it, in line with Brazil's General Data Protection Law (LGPD).",
+        sections: [
+          {
+            h: "Who looks after your data",
+            p: [
+              "The person responsible for MyRank's data is Guilherme Gocks, who maintains the site. For any privacy matter, write to {email}.",
+            ],
+          },
+          {
+            h: "What we keep",
+            list: [
+              "Account: username, email and password. The password is stored only as a scrambled code (hash): nobody, not even us, can read it.",
+              "Sign-in with Google or Discord: your account identifier on those services, to recognize you next time.",
+              "Profile: photo, bio, language, theme and your privacy and notification choices.",
+              "What you create: titles, scores, time spent, tables, achievements, takes, comments, reactions, who you follow, messages and groups.",
+              "Activity: when you were last active (to show whether you're online in chat) and the dates things were created.",
+            ],
+            after: [
+              "We don't ask for your location, phone contacts or documents.",
+            ],
+          },
+          {
+            h: "What we use it for",
+            list: [
+              "Making the site work: your rankings, your profile and your history.",
+              "The social part: the feed, notifications and \"taste match\", calculated by comparing your scores with other people's.",
+              "Sending account emails: sign-up confirmation, password recovery and account deletion. We don't send marketing.",
+              "Protecting the site against abuse and fixing bugs.",
+            ],
+          },
+          {
+            h: "Who sees what",
+            list: [
+              "Public profile: anyone with a MyRank account can see your profile, your scores and your takes.",
+              "Private profile: only followers you approved see those things; everyone else sees only your name and photo.",
+              "Messages: only the people in the conversation or group.",
+            ],
+            after: [
+              "We never sell your data or show ads.",
+            ],
+          },
+          {
+            h: "Services we use",
+            p: [
+              "To work, MyRank relies on a few services, which handle data only to do their job:",
+            ],
+            list: [
+              "Vercel: hosts the site.",
+              "Oracle Cloud: hosts the MyRank server.",
+              "Neon: stores the database.",
+              "Brevo: sends your account emails.",
+              "Google and Discord: only if you choose to sign in with them.",
+              "Google Gemini: when you generate an analysis in AI Insights, we send the titles, types and scores of the titles you picked. We don't send your name or email.",
+              "TMDB, RAWG, MyAnimeList, Google Books, Deezer and iTunes: receive what you type in the title search, to find covers and details.",
+            ],
+            after: [
+              "Some of these services store data outside Brazil, for example in the United States.",
+            ],
+          },
+          {
+            h: "In your browser",
+            p: [
+              "We store in your browser (localStorage) access to your account, so you don't have to sign in every time, plus your language, theme and display preferences such as table order. We don't use advertising cookies or tracking tools.",
+            ],
+          },
+          {
+            h: "How long",
+            p: [
+              "We keep your data while your account exists. When you delete your account, it's really erased: profile, titles, scores, takes, comments, followers and direct conversations. In groups, you leave as in a normal exit. You get an email confirming the deletion.",
+            ],
+          },
+          {
+            h: "Your rights",
+            p: [
+              "Under the LGPD, you can at any time:",
+            ],
+            list: [
+              "see and correct your data by editing your profile;",
+              "download your titles as CSV or JSON in Profile > Settings;",
+              "make your profile private and choose who can message you;",
+              "delete your account in Profile > Settings.",
+            ],
+            after: [
+              "For any other request, such as knowing exactly what we keep about you, write to {email}.",
+            ],
+          },
+          {
+            h: "Security",
+            p: [
+              "The site uses an encrypted connection (HTTPS), passwords are stored scrambled and access to the servers is restricted. No system is 100% secure, but if anything happens to your data, we'll let you know.",
+            ],
+          },
+          {
+            h: "Changes to this policy",
+            p: [
+              "If this policy changes, the date at the top of the page changes too, and we'll let you know on the site when the change is important.",
+            ],
+          },
+        ],
+      },
+    },
     chat: {
+      searchPlaceholder: 'Search conversations', searchPeople: 'Search people you follow',
+      newMessage: 'New message', followingLabel: 'People you follow', mutual: 'You follow each other',
+      noMatch: 'Nothing with that name.',
       title: 'Messages',
       loading: 'Loading…',
-      sayHi: 'Say hi 👋',
+      sayHi: 'Say hi',
       suggestedTitle: 'Suggestions',
       inboxEmpty: 'No conversations yet.',
-      threadEmpty: 'No messages yet. Say hi 👋',
+      threadEmpty: 'No messages yet. Say hi',
       loadMore: 'Load more',
       loadingMore: 'Loading…',
       noMessages: 'No messages',
@@ -1172,7 +1552,7 @@ const TRANSLATIONS = {
       noneInFilter: 'Nothing in this filter.',
       pickConversation: 'Pick a conversation',
       emptyTitle: 'Your messages',
-      mutualHint: 'Message anyone. Create groups or find new ones to join.',
+      mutualHint: 'Message someone you follow or start a group.',
       placeholder: 'Write a message…',
       send: 'Send',
       sending: 'Sending…',
@@ -1278,13 +1658,6 @@ const TRANSLATIONS = {
       approve: 'Approve',
       reject: 'Reject',
       discover: 'Discover',
-      discoverGroups: 'Discover groups',
-      searchGroups: 'Search groups…',
-      noGroups: 'No groups found.',
-      open: 'Open',
-      pendingCancel: 'Cancel request',
-      join: 'Join',
-      requestJoin: 'Ask to join',
     },
     insights: {
       panel: {
@@ -1789,6 +2162,17 @@ const TRANSLATIONS = {
       },
     },
     onboarding: {
+      step: 'Step {n} of {total}', back: 'Back',
+      feat1Title: 'Rank everything', feat1: 'Movies, series, games, books, anime and music, scored from 0 to 10.',
+      feat2Title: 'Compare your taste', feat2: 'See who thinks like you and who makes for a good debate.',
+      feat3Title: 'Discover your profile', feat3: 'The AI reads your scores and tells you what they say about you.',
+      firstEmpty: 'Your first title shows up here',
+      savedIn: 'Saved in {table}',
+      whereTitle: 'Where to start',
+      rankingsTitle: 'Rankings', rankingsText: 'Your tables, your scores and the order of each one.',
+      socialTitle: 'Social', socialText: 'Follow people, write takes and compare your taste.',
+      aiTitle: 'AI Insights', aiText: 'An analysis of your taste based on your scores.',
+      testBanner: 'Test mode: nothing you do here is saved.',
       welcomeTitle: 'Welcome to MyRank!',
       welcomeCopy: 'Rate what you watch, play, read and listen to, and MyRank builds your rankings. Getting started takes less than a minute.',
       start: 'Get started',
@@ -1803,8 +2187,6 @@ const TRANSLATIONS = {
       doneTitle: 'Your ranking has started!',
       doneCopy: 'Keep adding titles. With a few ratings, the AI can already sketch your taste profile.',
       goRankings: 'Go to my rankings',
-      goAi: 'AI analysis',
-      goSocial: 'Find friends',
       error: "Couldn't save right now. Please try again.",
     },
 
@@ -1902,7 +2284,7 @@ const TRANSLATIONS = {
         cta: 'Create free account',
         fine: 'Free. No ads.',
       },
-      footer: { terms: 'Terms of use', privacy: 'Privacy', contact: 'Contact', madeBy: 'Made by', sources: 'Data sources' },
+      footer: { terms: 'Terms of use', privacy: 'Privacy', madeBy: 'Made by', sources: 'Data sources' },
       sources: {
         title: 'Data sources',
         intro: 'Covers, synopses and title details come from these services. The AI Insights analysis is made by Gemini.',
@@ -1936,6 +2318,8 @@ const TRANSLATIONS = {
       tabsLabel: 'Secciones de Social',
       devData: 'Datos de prueba',
       devDataHint: 'Solo en tu equipo: personas y takes inventados. Nada va al servidor.',
+      devTutorial: 'Tutorial',
+      devTutorialHint: 'Abre el tutorial del registro desde el principio. No se guarda nada.',
       loading: 'Cargando…',
       feed: {
         loading: 'Cargando feed…',
@@ -2108,13 +2492,200 @@ const TRANSLATIONS = {
         noData: 'No hay obras para mostrar aquí.',
       },
     },
+    // Termos de uso e Política de privacidade (/termos e /privacidade)
+    legal: {
+      back: "Volver",
+      docs: "Términos y privacidad",
+      onThisPage: "En esta página",
+      updated: "Actualizado el 11 de noviembre de 2026",
+      terms: {
+        title: "Términos de uso",
+        intro: "Estos términos explican las reglas para usar MyRank. Al crear una cuenta o usar el sitio, los aceptas. Si tienes cualquier duda, escribe a {email}.",
+        sections: [
+          {
+            h: "Qué es MyRank",
+            p: [
+              "MyRank es un sitio gratuito para organizar, valorar y rankear las películas, series, juegos, libros, animes y música que ya consumiste, comparar tu gusto con el de otras personas y conversar sobre ellos.",
+              "Es un proyecto personal, mantenido por Guilherme Gocks. Puede cambiar, ganar o perder funciones y, como último recurso, dejar de estar en línea.",
+            ],
+          },
+          {
+            h: "Tu cuenta",
+            list: [
+              "Eres responsable de tu cuenta y de mantener tu contraseña en secreto.",
+              "Usa un correo que sea tuyo: con él confirmamos la cuenta, recuperamos la contraseña y confirmamos la eliminación.",
+              "No crees cuentas haciéndote pasar por otra persona.",
+              "Si tienes menos de 18 años, usa MyRank con el conocimiento de un responsable.",
+            ],
+          },
+          {
+            h: "Lo que publicas",
+            p: [
+              "Notas, takes, comentarios, reacciones, mensajes, foto y bio siguen siendo tuyos. Al publicar, nos autorizas a guardar y mostrar ese contenido en MyRank, según la configuración de privacidad que elegiste.",
+              "No está permitido publicar:",
+            ],
+            list: [
+              "contenido ilegal, discurso de odio, amenazas o acoso;",
+              "contenido sexual explícito o violencia gratuita;",
+              "spam, publicidad engañosa o estafas;",
+              "datos personales de otras personas sin autorización.",
+            ],
+            after: [
+              "Podemos eliminar contenido y suspender o eliminar cuentas que no respeten estas reglas.",
+            ],
+          },
+          {
+            h: "Grupos y mensajes",
+            p: [
+              "En los grupos, el dueño, los admins y los moderadores pueden borrar mensajes y quitar miembros. Los mensajes se guardan en nuestros servidores y no tienen cifrado de extremo a extremo: no envíes contraseñas ni datos sensibles por ellos.",
+            ],
+          },
+          {
+            h: "Datos de las obras e IA",
+            p: [
+              "Portadas, sinopsis y otros detalles de las obras vienen de servicios externos (TMDB, RAWG, MyAnimeList, Google Books, Deezer e iTunes) y pertenecen a sus dueños. La lista completa está en \"Fuentes de los datos\", en el pie de página.",
+              "IA Insights usa Google Gemini para escribir análisis sobre tu gusto. Es un texto generado automáticamente: puede equivocarse y no debe tomarse como verdad.",
+            ],
+          },
+          {
+            h: "Disponibilidad",
+            p: [
+              "MyRank se ofrece tal como está, sin garantía de que funcione sin interrupciones ni errores. Para no depender solo del sitio, puedes exportar tus obras cuando quieras en Perfil > Configuración.",
+            ],
+          },
+          {
+            h: "Cerrar la cuenta",
+            p: [
+              "Puedes eliminar tu cuenta cuando quieras en Perfil > Configuración. La eliminación es definitiva y no se puede deshacer. Qué pasa con tus datos está en la Política de privacidad.",
+            ],
+          },
+          {
+            h: "Cambios en estos términos",
+            p: [
+              "Si estos términos cambian, la fecha al principio de la página cambia también y avisaremos en el sitio cuando el cambio sea importante. Seguir usando MyRank después de eso significa aceptar la nueva versión.",
+            ],
+          },
+          {
+            h: "Contacto",
+            p: [
+              "Dudas, denuncias o pedidos: {email}. Estos términos se rigen por las leyes de Brasil.",
+            ],
+          },
+        ],
+      },
+      privacy: {
+        title: "Política de privacidad",
+        intro: "Aquí está, sin tecnicismos, qué datos guarda MyRank, por qué, con quién los comparte y cómo controlas todo eso, de acuerdo con la Ley General de Protección de Datos de Brasil (LGPD).",
+        sections: [
+          {
+            h: "Quién cuida tus datos",
+            p: [
+              "El responsable de los datos de MyRank es Guilherme Gocks, que mantiene el sitio. Para cualquier tema de privacidad, escribe a {email}.",
+            ],
+          },
+          {
+            h: "Qué guardamos",
+            list: [
+              "Cuenta: nombre de usuario, correo y contraseña. La contraseña se guarda solo como un código mezclado (hash): nadie, ni nosotros, puede leerla.",
+              "Entrada con Google o Discord: el identificador de tu cuenta en esos servicios, para reconocerte la próxima vez.",
+              "Perfil: foto, bio, idioma, tema y tus elecciones de privacidad y de notificaciones.",
+              "Lo que creas: obras, notas, tiempo dedicado, tablas, logros, takes, comentarios, reacciones, a quién sigues, mensajes y grupos.",
+              "Actividad: cuándo estuviste activo por última vez (para mostrar si estás en línea en el chat) y las fechas en que se crearon las cosas.",
+            ],
+            after: [
+              "No pedimos tu ubicación, contactos del celular ni documentos.",
+            ],
+          },
+          {
+            h: "Para qué los usamos",
+            list: [
+              "Hacer funcionar el sitio: tus rankings, tu perfil y tu historial.",
+              "La parte social: el feed, las notificaciones y el \"gusto parecido\", calculado comparando tus notas con las de otras personas.",
+              "Enviar correos de tu cuenta: confirmación de registro, recuperación de contraseña y eliminación de cuenta. No enviamos publicidad.",
+              "Proteger el sitio contra abusos y corregir errores.",
+            ],
+          },
+          {
+            h: "Quién ve qué",
+            list: [
+              "Perfil público: quien tiene cuenta en MyRank ve tu perfil, tus notas y tus takes.",
+              "Perfil privado: solo los seguidores que aprobaste ven esas cosas; los demás ven solo tu nombre y tu foto.",
+              "Mensajes: solo quienes participan en la conversación o el grupo.",
+            ],
+            after: [
+              "Nunca vendemos tus datos ni mostramos anuncios.",
+            ],
+          },
+          {
+            h: "Servicios que usamos",
+            p: [
+              "Para funcionar, MyRank depende de algunos servicios, que tratan datos solo para hacer su trabajo:",
+            ],
+            list: [
+              "Vercel: aloja el sitio.",
+              "Oracle Cloud: aloja el servidor de MyRank.",
+              "Neon: guarda la base de datos.",
+              "Brevo: envía los correos de tu cuenta.",
+              "Google y Discord: solo si eliges entrar con ellos.",
+              "Google Gemini: cuando generas un análisis en IA Insights, enviamos los títulos, los tipos y las notas de las obras que elegiste. No enviamos tu nombre ni tu correo.",
+              "TMDB, RAWG, MyAnimeList, Google Books, Deezer e iTunes: reciben lo que escribes en la búsqueda de obras, para encontrar portadas y detalles.",
+            ],
+            after: [
+              "Algunos de estos servicios guardan datos fuera de Brasil, por ejemplo en Estados Unidos.",
+            ],
+          },
+          {
+            h: "En tu navegador",
+            p: [
+              "Guardamos en tu navegador (localStorage) el acceso a tu cuenta, para que no tengas que entrar cada vez, además del idioma, el tema y preferencias de pantalla, como el orden de las tablas. No usamos cookies de publicidad ni herramientas de rastreo.",
+            ],
+          },
+          {
+            h: "Por cuánto tiempo",
+            p: [
+              "Guardamos tus datos mientras tu cuenta exista. Cuando eliminas la cuenta, se borra de verdad: perfil, obras, notas, takes, comentarios, seguidores y conversaciones directas. En los grupos, sales como en una salida normal. Recibes un correo confirmando la eliminación.",
+            ],
+          },
+          {
+            h: "Tus derechos",
+            p: [
+              "Según la LGPD, puedes en cualquier momento:",
+            ],
+            list: [
+              "ver y corregir tus datos, editando el perfil;",
+              "descargar tus obras en CSV o JSON, en Perfil > Configuración;",
+              "hacer privado tu perfil y elegir quién puede enviarte mensajes;",
+              "eliminar la cuenta, en Perfil > Configuración.",
+            ],
+            after: [
+              "Para cualquier otro pedido, como saber exactamente qué guardamos sobre ti, escribe a {email}.",
+            ],
+          },
+          {
+            h: "Seguridad",
+            p: [
+              "El sitio usa conexión cifrada (HTTPS), las contraseñas se guardan mezcladas y el acceso a los servidores es restringido. Ningún sistema es 100% seguro, pero si algo pasa con tus datos, te avisaremos.",
+            ],
+          },
+          {
+            h: "Cambios en esta política",
+            p: [
+              "Si esta política cambia, la fecha al principio de la página cambia también y avisaremos en el sitio cuando el cambio sea importante.",
+            ],
+          },
+        ],
+      },
+    },
     chat: {
+      searchPlaceholder: 'Buscar conversación', searchPeople: 'Buscar a quien sigues',
+      newMessage: 'Nuevo mensaje', followingLabel: 'A quién sigues', mutual: 'Se siguen mutuamente',
+      noMatch: 'Nada con ese nombre.',
       title: 'Mensajes',
-      sayHi: 'Saluda 👋',
+      sayHi: 'Saluda',
       suggestedTitle: 'Sugerencias',
       loading: 'Cargando…',
       inboxEmpty: 'Aún no hay conversaciones.',
-      threadEmpty: 'Aún no hay mensajes. Saluda 👋',
+      threadEmpty: 'Aún no hay mensajes. Saluda',
       loadMore: 'Cargar más',
       loadingMore: 'Cargando…',
       noMessages: 'Sin mensajes',
@@ -2122,7 +2693,7 @@ const TRANSLATIONS = {
       noneInFilter: 'Nada con este filtro.',
       pickConversation: 'Elige una conversación',
       emptyTitle: 'Tus mensajes',
-      mutualHint: 'Habla con cualquiera. Crea grupos o encuentra nuevos para unirte.',
+      mutualHint: 'Escríbele a alguien que sigues o crea un grupo.',
       placeholder: 'Escribe un mensaje…',
       send: 'Enviar',
       sending: 'Enviando…',
@@ -2228,13 +2799,6 @@ const TRANSLATIONS = {
       approve: 'Aprobar',
       reject: 'Rechazar',
       discover: 'Descubrir',
-      discoverGroups: 'Descubrir grupos',
-      searchGroups: 'Buscar grupos…',
-      noGroups: 'No se encontraron grupos.',
-      open: 'Abrir',
-      pendingCancel: 'Cancelar solicitud',
-      join: 'Entrar',
-      requestJoin: 'Pedir entrar',
     },
     insights: {
       panel: {
@@ -2739,6 +3303,17 @@ const TRANSLATIONS = {
       },
     },
     onboarding: {
+      step: 'Paso {n} de {total}', back: 'Volver',
+      feat1Title: 'Rankea todo', feat1: 'Películas, series, juegos, libros, animes y música, con nota de 0 a 10.',
+      feat2Title: 'Compara tu gusto', feat2: 'Mira quién piensa parecido a ti y quién da para un buen debate.',
+      feat3Title: 'Descubre tu perfil', feat3: 'La IA lee tus notas y te cuenta lo que dicen de ti.',
+      firstEmpty: 'Tu primera obra aparece aquí',
+      savedIn: 'Guardada en {table}',
+      whereTitle: 'Por dónde empezar',
+      rankingsTitle: 'Rankings', rankingsText: 'Tus tablas, tus notas y el orden de cada una.',
+      socialTitle: 'Social', socialText: 'Sigue a personas, escribe takes y compara tu gusto.',
+      aiTitle: 'IA Insights', aiText: 'Un análisis de tu gusto hecho a partir de tus notas.',
+      testBanner: 'Modo de prueba: nada de lo que hagas aquí se guarda.',
       welcomeTitle: '¡Bienvenido a MyRank!',
       welcomeCopy: 'Aquí calificas lo que consumes y MyRank arma tus rankings. Empezar toma menos de un minuto.',
       start: 'Empezar',
@@ -2753,8 +3328,6 @@ const TRANSLATIONS = {
       doneTitle: '¡Tu ranking empezó!',
       doneCopy: 'Sigue agregando obras. Con algunas notas, la IA ya puede trazar tu perfil.',
       goRankings: 'Ir a mis rankings',
-      goAi: 'Análisis de la IA',
-      goSocial: 'Encontrar amigos',
       error: 'No se pudo guardar ahora. Inténtalo de nuevo.',
     },
 
@@ -2852,7 +3425,7 @@ const TRANSLATIONS = {
         cta: 'Crear cuenta gratis',
         fine: 'Gratis. Sin anuncios.',
       },
-      footer: { terms: 'Términos de uso', privacy: 'Privacidad', contact: 'Contacto', madeBy: 'Hecho por', sources: 'Fuentes de datos' },
+      footer: { terms: 'Términos de uso', privacy: 'Privacidad', madeBy: 'Hecho por', sources: 'Fuentes de datos' },
       sources: {
         title: 'Fuentes de datos',
         intro: 'Las portadas, sinopsis y detalles de las obras vienen de estos servicios. El análisis de IA Insights lo hace Gemini.',
