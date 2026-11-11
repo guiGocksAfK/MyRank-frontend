@@ -1,0 +1,164 @@
+/* ── Tutorial pós-cadastro (/bem-vindo): cartão sobre o fundo da tela de entrar ── */
+.ob-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mr-space-4);
+  width: 100%;
+  max-width: 560px;
+  padding: var(--mr-space-6);
+  box-sizing: border-box;
+}
+
+.ob-head { display: flex; align-items: center; justify-content: space-between; gap: var(--mr-space-3); }
+.ob-logo { color: var(--mr-text); font-size: 20px; font-weight: 800; letter-spacing: var(--mr-tracking-tight); }
+.ob-logo span { color: var(--mr-gold); }
+.ob-step { color: var(--mr-text-muted); font-size: var(--mr-text-xs); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* um tracinho por passo: os feitos em dourado */
+.ob-progress { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: calc(var(--mr-space-2) * -1); }
+.ob-progress span { height: 3px; border-radius: 999px; background: var(--mr-muted-bg); transition: background var(--mr-duration-fast) var(--mr-ease); }
+.ob-progress span.is-on { background: var(--mr-gold); }
+
+.ob-test {
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px dashed var(--mr-gold-20);
+  border-radius: var(--mr-radius-sm);
+  color: var(--mr-gold);
+  font-size: var(--mr-text-xs);
+  font-weight: 700;
+}
+
+.ob-body { display: flex; flex-direction: column; gap: var(--mr-space-4); }
+.ob-copy h1 { margin: 0; color: var(--mr-text); font-size: var(--mr-text-xl); font-weight: 800; line-height: 1.25; }
+.ob-copy p { margin: 6px 0 0; color: var(--mr-text-secondary); font-size: var(--mr-text-sm); line-height: 1.55; }
+.ob-label { margin: 0 0 calc(var(--mr-space-2) * -1); color: var(--mr-text-muted); font-size: var(--mr-text-xs); font-weight: 700; }
+
+.ob-main { width: 100%; }
+.ob-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--mr-space-3); }
+.ob-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--mr-text-muted);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.ob-back:hover:not(:disabled) { color: var(--mr-text); }
+.ob-back:disabled { cursor: default; opacity: 0.6; }
+
+/* ícone num quadradinho dourado (o que dá pra fazer / por onde começar) */
+.ob-icon { display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: var(--mr-gold-10); color: var(--mr-gold); }
+
+.ob-features { display: flex; flex-direction: column; gap: var(--mr-space-3); margin: 0; padding: 0; list-style: none; }
+.ob-features li { display: flex; align-items: center; gap: var(--mr-space-3); color: var(--mr-text-secondary); font-size: var(--mr-text-sm); line-height: 1.45; }
+.ob-features b { display: block; color: var(--mr-text); font-weight: 700; }
+
+/* escolher tabelas: um cartão por tipo, com ✓ quando escolhido */
+.ob-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--mr-space-2); }
+.ob-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: var(--mr-space-4) var(--mr-space-2);
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font: inherit;
+  font-size: var(--mr-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
+}
+.ob-tile:hover { border-color: var(--mr-gold-20); color: var(--mr-text); }
+.ob-tile.is-on { border-color: var(--mr-gold); background: var(--mr-gold-10); color: var(--mr-text); }
+.ob-tile.is-on svg { color: var(--mr-gold); }
+.ob-tile-check { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--mr-gold); color: var(--mr-bg); }
+.ob-tile.is-on .ob-tile-check svg { color: var(--mr-bg); }
+
+/* primeira obra: em qual tabela e o lugar dela no ranking */
+.ob-tables { display: flex; flex-wrap: wrap; gap: 6px; }
+.ob-table {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--mr-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mr-text-secondary);
+  font: inherit;
+  font-size: var(--mr-text-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+.ob-table:hover { color: var(--mr-text); }
+.ob-table.is-on { border-color: var(--mr-gold); color: var(--mr-text); }
+.ob-table.is-on svg { color: var(--mr-gold); }
+
+.ob-work {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-3);
+  width: 100%;
+  padding: var(--mr-space-3);
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  background: var(--mr-muted-bg);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.ob-work.is-empty { border-style: dashed; background: transparent; cursor: pointer; }
+.ob-work.is-empty:hover:not(:disabled) { border-color: var(--mr-gold); }
+.ob-work.is-empty:hover:not(:disabled) .ob-work-cover { color: var(--mr-gold); }
+.ob-work.is-empty .ob-work-text b { color: var(--mr-text-muted); font-weight: 600; }
+.ob-work-rank { flex: none; width: 1.4em; color: var(--mr-gold); font-weight: 800; text-align: center; }
+.ob-work-cover { display: grid; flex: none; place-items: center; width: 40px; height: 56px; overflow: hidden; border-radius: 6px; background: var(--mr-card); color: var(--mr-text-muted); }
+.ob-work-cover img { width: 100%; height: 100%; object-fit: cover; }
+.ob-work-text { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.ob-work-text b { overflow: hidden; color: var(--mr-text); text-overflow: ellipsis; white-space: nowrap; }
+.ob-work-text small { color: var(--mr-text-muted); font-size: var(--mr-text-xs); }
+.ob-work-note { flex: none; color: var(--mr-gold); font-size: var(--mr-text-lg); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* por onde começar: três lugares clicáveis */
+.ob-places { display: flex; flex-direction: column; gap: var(--mr-space-2); }
+.ob-place {
+  display: flex;
+  align-items: center;
+  gap: var(--mr-space-3);
+  width: 100%;
+  padding: var(--mr-space-3);
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  background: transparent;
+  color: var(--mr-text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--mr-duration-fast) var(--mr-ease);
+}
+.ob-place:hover { border-color: var(--mr-gold-20); }
+.ob-place:hover > svg { color: var(--mr-gold); }
+.ob-place-text { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; color: var(--mr-text-secondary); font-size: var(--mr-text-sm); line-height: 1.4; }
+.ob-place-text b { color: var(--mr-text); font-weight: 700; }
+
+@media (max-width: 520px) {
+  .ob-card { padding: var(--mr-space-5) var(--mr-space-4); }
+  .ob-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ob-actions { flex-direction: column-reverse; align-items: stretch; }
+  .ob-actions .mr-btn { width: 100%; }
+  .ob-back { justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-progress span, .ob-tile, .ob-place { transition: none; }
+}

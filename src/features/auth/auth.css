@@ -144,39 +144,6 @@
   color: var(--mr-text-secondary);
 }
 
-/* Onboarding: pílulas de escolha de tabelas */
-.auth-chip-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.auth-chip {
-  padding: 8px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  font: inherit;
-  font-size: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: transparent;
-  color: var(--mr-text-secondary);
-  transition: border-color var(--mr-duration-fast) var(--mr-ease), background var(--mr-duration-fast) var(--mr-ease), color var(--mr-duration-fast) var(--mr-ease);
-}
-
-.auth-chip:hover {
-  border-color: var(--mr-gold-20);
-  color: var(--mr-text);
-}
-
-.auth-chip.is-on {
-  border-color: var(--mr-gold);
-  background: var(--mr-gold-10);
-  color: var(--mr-text);
-}
-
-.auth-select {
-  width: 100%;
-}
 
 /* Fields */
 .auth-fields {
