@@ -28,7 +28,7 @@ function Cover({ w, size = 14 }) {
 /**
  * Você × outra pessoa. Em cima, a % entre as duas; depois onde vocês batem,
  * onde brigam e o que ela recomenda (nota alta que você ainda não avaliou); e a
- * lista com uma régua por obra: a sua nota em dourado, a dela em branco.
+ * lista em colunas com nome em cima: a sua nota, a dela e a diferença.
  */
 export default function CompareView({ userId, onBack, onOpenUser }) {
   const { t, locale } = useLanguage();
@@ -104,10 +104,6 @@ export default function CompareView({ userId, onBack, onOpenUser }) {
     mine: rows.filter((r) => r.theirs == null && r.mine != null).sort((a, b) => b.mine - a.mine),
   };
   const shown = lists[view];
-  // a régua começa um pouco abaixo da menor nota (no máximo em 5), pra não espremer tudo no fim
-  const all = shown.flatMap((r) => [r.mine, r.theirs]).filter((n) => n != null);
-  const scaleMin = Math.max(0, Math.min(5, Math.floor(Math.min(...all, 10))));
-  const pos = (n) => `${((n - scaleMin) / (10 - scaleMin)) * 100}%`;
 
   const VIEWS = [
     { id: 'diff', label: tc.sortDiff },
@@ -171,10 +167,11 @@ export default function CompareView({ userId, onBack, onOpenUser }) {
               <span className="social-pick-text">
                 <span className="social-pick-title">{fight.title}</span>
                 <span className="social-cmp-fight-scores">
+                  <small>{tc.youLower}</small>
                   <b className="social-cmp-mine">{note(fight.mine)}</b>
                   <span className="social-muted">×</span>
                   <b>{note(fight.theirs)}</b>
-                  <span className="social-cmp-diff is-down">{note(gapOf(fight))}</span>
+                  <small>{name}</small>
                 </span>
               </span>
             </div>
@@ -196,7 +193,7 @@ export default function CompareView({ userId, onBack, onOpenUser }) {
         </section>
       </div>
 
-      {/* a lista: uma régua por obra */}
+      {/* a lista: colunas com o nome em cima, pra não ter dúvida de quem é quem */}
       <section className="mr-panel social-col">
         <div className="social-cmp-filter" role="group">
           {VIEWS.map((v) => (
@@ -211,45 +208,31 @@ export default function CompareView({ userId, onBack, onOpenUser }) {
           <SocialEmpty compact icon={Scale} text={tc.noData} />
         ) : (
           <>
+            <div className="social-cmp-row is-head">
+              <span className="social-cmp-colwork">{tc.colWork}</span>
+              <span className="social-cmp-col is-mine">{tc.you}</span>
+              <span className="social-cmp-col" title={name}>{name}</span>
+              <span className="social-cmp-col">{tc.colDiff}</span>
+            </div>
             <ul className="social-cmp-list">
               {shown.map((r) => {
                 const both = r.diff != null;
-                const lo = both ? Math.min(r.mine, r.theirs) : null;
-                const hi = both ? Math.max(r.mine, r.theirs) : null;
-                const clash = both && gapOf(r) >= CLASH_GAP;
-                const one = r.mine ?? r.theirs;
+                const gap = both ? gapOf(r) : null;
+                const clash = both && gap >= CLASH_GAP;
                 return (
-                  <li key={r.key} className="social-cmp-row">
+                  <li key={r.key} className="social-cmp-row"
+                    aria-label={both ? `${r.title}: ${fmt(tc.rulerBoth, { you: note(r.mine), name, them: note(r.theirs) })}` : undefined}>
                     <Cover w={r} />
                     <span className="social-prof-title">{r.title}</span>
-                    <span
-                      className="social-cmp-ruler"
-                      role="img"
-                      aria-label={both
-                        ? fmt(tc.rulerBoth, { you: note(r.mine), name, them: note(r.theirs) })
-                        : note(one)}
-                    >
-                      <span className="social-cmp-track" />
-                      {both && (
-                        <span
-                          className={`social-cmp-gap${clash ? ' is-clash' : ''}`}
-                          style={{ left: pos(lo), width: `calc(${pos(hi)} - ${pos(lo)})` }}
-                        />
-                      )}
-                      {r.theirs != null && <span className="social-cmp-dot is-theirs" style={{ left: pos(r.theirs) }} />}
-                      {r.mine != null && <span className="social-cmp-dot is-mine" style={{ left: pos(r.mine) }} />}
-                    </span>
-                    <span className={`social-cmp-diff${clash ? ' is-down' : ''}`}>
-                      {both ? note(gapOf(r)) : note(one)}
+                    <b className="social-cmp-score is-mine">{r.mine != null ? note(r.mine) : '—'}</b>
+                    <b className="social-cmp-score">{r.theirs != null ? note(r.theirs) : '—'}</b>
+                    <span className={`social-cmp-gap-pill${clash ? ' is-clash' : gap === 0 ? ' is-same' : ''}`}>
+                      {!both ? '—' : gap === 0 ? tc.same : note(gap)}
                     </span>
                   </li>
                 );
               })}
             </ul>
-            <p className="social-cmp-legend">
-              <span><i className="social-cmp-key is-mine" />{tc.you}</span>
-              <span><i className="social-cmp-key is-theirs" />{name}</span>
-            </p>
           </>
         )}
       </section>
