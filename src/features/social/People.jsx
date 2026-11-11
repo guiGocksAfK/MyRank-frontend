@@ -167,25 +167,28 @@ export default function People({ onOpenUser, onCompare, onOpenConversation, onOp
       <h2 className="social-rail-title">{tp.groups}</h2>
       {list === null ? (
         <p className="social-rail-empty">{tp.loading}</p>
-      ) : list.length === 0 ? (
+      ) : list.length === 0 && !withCreate ? (
         <SocialEmpty compact icon={Users} text={emptyText} />
       ) : (
         <ul className="social-ppl-groups">
-          {list.map((g) => {
+          {list.length === 0 && <li><SocialEmpty compact icon={Users} text={emptyText} /></li>}
+          {/* os seus grupos primeiro */}
+          {[...list].sort((x, y) => (y.membership === 'MEMBER') - (x.membership === 'MEMBER')).map((g) => {
             const requested = g.membership === 'PENDING';
             const member = g.membership === 'MEMBER';
             return (
-              <li key={g.id} className="social-person">
-                <span className="social-person-main is-static" title={g.description || undefined}>
-                  <GroupIcon name={g.name} imageUrl={g.imageUrl} className="social-group-icon" />
+              <li key={g.id} className="social-ppl-group">
+                <div className="social-ppl-group-top">
+                  <GroupIcon name={g.name} imageUrl={g.imageUrl} className="social-group-icon is-large" />
                   <span className="social-person-text">
                     <span className="social-person-name">{g.name}</span>
                     <span className="social-person-meta">{fmt(tp.members, { n: g.memberCount })}</span>
                   </span>
-                </span>
+                </div>
+                {g.description && <p className="social-ppl-group-desc">{g.description}</p>}
                 <button
                   type="button"
-                  className={`social-chip-btn${requested || member ? '' : ' is-gold'}`}
+                  className={`social-chip-btn is-wide${requested || member ? '' : ' is-gold'}`}
                   disabled={requested}
                   onClick={() => (member ? onOpenConversation?.(g.id) : join(g))}
                 >
@@ -194,13 +197,16 @@ export default function People({ onOpenUser, onCompare, onOpenConversation, onOp
               </li>
             );
           })}
+          {/* o último cartão é o "Criar grupo" */}
+          {withCreate && (
+            <li>
+              <button type="button" className="social-ppl-create" onClick={() => setCreating(true)}>
+                <Plus size={18} strokeWidth={2} aria-hidden="true" />
+                {tp.createGroup}
+              </button>
+            </li>
+          )}
         </ul>
-      )}
-      {withCreate && (
-        <button type="button" className="social-rail-more" onClick={() => setCreating(true)}>
-          <Plus size={14} strokeWidth={2.2} aria-hidden="true" />
-          {tp.createGroup}
-        </button>
       )}
     </section>
   );
