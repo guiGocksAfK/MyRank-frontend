@@ -72,8 +72,8 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
     setShowProfileMenu((open) => !open);
   };
 
-  const signOut = () => {
-    logout();
+  const signOut = async () => {
+    await logout();
     // recarrega do zero: nenhum contexto do usuário anterior sobra na memória
     window.location.assign('/');
   };

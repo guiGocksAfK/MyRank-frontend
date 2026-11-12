@@ -45,7 +45,7 @@ export default function DeleteAccountModal({ user, onClose }) {
         confirmUsername: confirmUsername.trim(),
         deletionCode: deletionCode.trim(),
       });
-      logout();
+      await logout();
       // Recarrega do zero: derruba o chat em tempo real e qualquer estado da sessão antiga.
       window.location.replace('/');
     } catch (err) {
