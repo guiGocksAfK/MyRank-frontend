@@ -1107,10 +1107,8 @@
   .pf-era-row.is-dense { --era-gap: 4px; gap: var(--era-gap); }
   .pf-era-row.is-dense .pf-era-year { font-size: 0.625rem; }
   .pf-era-row.is-dense .pf-era-info, .pf-era-row.is-dense .pf-era-avg { display: none; }
-  .pf-hl-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--mr-space-2); }
-  .pf-hl-label { font-size: 0.625rem; letter-spacing: 0.06em; }
-  .pf-hl-title { font-size: var(--mr-text-xs); }
-  .pf-hl-meta { font-size: var(--mr-text-xs); }
+  /* destaques em 2×2: quatro numa linha deixava capa e rótulo espremidos */
+  .pf-stats-grid.is-top .pf-hl-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mr-space-5) var(--mr-space-4); }
   /* os três números das notas cabem lado a lado: menos espaço entre eles e letra menor */
   .pf-card { padding: var(--mr-space-4); }
   .pf-strip-stats { flex-wrap: wrap; gap: var(--mr-space-2) var(--mr-space-4); }
