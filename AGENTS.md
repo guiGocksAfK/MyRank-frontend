@@ -27,7 +27,9 @@ só mostra.
 ## Textos e idiomas
 
 - **Todo texto visível passa pelo `src/shared/i18n.jsx`, em PT, EN e ES.** Nada
-  de string solta no componente. Texto novo entra nos três idiomas.
+  de string solta no componente. Texto novo entra nos três idiomas. Os textos
+  em si ficam um arquivo por idioma em `src/shared/locales/` (`pt.js`, `en.js`,
+  `es.js`); inglês e espanhol só são baixados por quem usa.
 - Os textos das conquistas ficam em `src/shared/badgeI18n.js` (o back manda PT).
 - Mudou texto para o usuário? Mostre ao Guilherme antes.
 
