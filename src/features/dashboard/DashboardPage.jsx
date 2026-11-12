@@ -4,12 +4,38 @@ import DashboardHeader from './DashboardHeader';
 import DashboardHome from './DashboardHome';
 import SiteFooter from '../../shared/components/SiteFooter';
 
-const RankingsTab = lazy(() => import('../rankings/rankings/RankingsTab'));
-const CreatorsPanel = lazy(() => import('../creators/CreatorsPanel'));
-const SocialPanel = lazy(() => import('../social/SocialPanel'));
-const InsightsPanel = lazy(() => import('../insights/InsightsPanel'));
-const InsightsResult = lazy(() => import('../insights/InsightsResultPage'));
-const ProfilePanel = lazy(() => import('../profile/ProfilePanel'));
+// o código de cada aba fica num arquivo separado, baixado só quando precisa
+const TAB_CHUNKS = {
+  rankings: () => import('../rankings/rankings/RankingsTab'),
+  creators: () => import('../creators/CreatorsPanel'),
+  social: () => import('../social/SocialPanel'),
+  ai: () => import('../insights/InsightsPanel'),
+  aiResult: () => import('../insights/InsightsResultPage'),
+  profile: () => import('../profile/ProfilePanel'),
+};
+
+const RankingsTab = lazy(TAB_CHUNKS.rankings);
+const CreatorsPanel = lazy(TAB_CHUNKS.creators);
+const SocialPanel = lazy(TAB_CHUNKS.social);
+const InsightsPanel = lazy(TAB_CHUNKS.ai);
+const InsightsResult = lazy(TAB_CHUNKS.aiResult);
+const ProfilePanel = lazy(TAB_CHUNKS.profile);
+
+/**
+ * Com o dashboard já na tela e o navegador ocioso, adianta o download das
+ * outras abas: o primeiro clique em cada uma abre na hora, sem tela vazia.
+ * Quem pediu economia de dados fica de fora.
+ */
+function preloadTabs() {
+  if (navigator.connection?.saveData) return undefined;
+  const run = () => Object.values(TAB_CHUNKS).forEach((load) => load().catch(() => {}));
+  if ('requestIdleCallback' in window) {
+    const id = window.requestIdleCallback(run, { timeout: 4000 });
+    return () => window.cancelIdleCallback(id);
+  }
+  const id = setTimeout(run, 2000); // Safari não tem requestIdleCallback
+  return () => clearTimeout(id);
+}
 import { UserProvider, useUser } from '../../shared/userContext';
 import { WorksProvider } from '../../shared/worksContext';
 import { BadgeProvider } from '../../shared/badges';
@@ -95,6 +121,8 @@ export default function DashboardPage() {
     try { localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light'); } catch { /* só não lembra */ }
     return () => document.body.classList.remove('myrank-light');
   }, [isDark]);
+
+  useEffect(() => (isAuthenticated() ? preloadTabs() : undefined), []);
 
   // Se veio por location.state?.tab sem ?tab= na URL, reflete na barra de endereço
   useEffect(() => {
