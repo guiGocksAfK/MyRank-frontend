@@ -318,17 +318,72 @@ export const socialMock = {
   },
 };
 
+// ─── última resposta guardada ───────────────────────────────────────────────
+// A Social é desmontada ao trocar de aba. Sem isto, cada volta mostrava
+// "carregando" de novo; com isto a tela abre com o que já tinha e se atualiza
+// quando a resposta nova chega. Fica só na memória: some no F5.
+
+const REMEMBERED = new Set([
+  'getSummary', 'getFeed', 'getSuggestions', 'getDebaters', 'getFollowRequests',
+  'getMyGroups', 'getFollowing', 'getGroups',
+]);
+const lastAnswers = new Map();
+const inFlight = new Map(); // buscas que ainda não responderam, pra não repetir a mesma
+let lastOwner = null;
+
+// de quem são as respostas guardadas: trocou de conta (ou ligou os dados de teste), zera
+function ownerKey() {
+  try { return `${localStorage.getItem('myrank_token') || ''}|${socialMock.isOn()}`; } catch { return ''; }
+}
+function answers() {
+  const owner = ownerKey();
+  if (owner !== lastOwner) {
+    lastAnswers.clear();
+    lastOwner = owner;
+  }
+  return lastAnswers;
+}
+const answerKey = (name, args) => `${name}:${JSON.stringify(args)}`;
+
+/** Última resposta de `socialApi[name](...args)`, se já houve uma; senão `undefined`. */
+export function lastSocial(name, ...args) {
+  return answers().get(answerKey(name, args));
+}
+
+async function call(name, args) {
+  if (import.meta.env.DEV && socialMock.isOn()) {
+    const { mockApi } = await import('./socialMock');
+    return mockApi[name](...args);
+  }
+  return realApi[name](...args);
+}
+
 /**
  * Mesmas funções do realApi. No dev com o interruptor ligado, responde o
  * socialMock.js; no build de produção esse caminho nem existe.
  */
 export const socialApi = Object.fromEntries(Object.keys(realApi).map((name) => [
   name,
-  async (...args) => {
-    if (import.meta.env.DEV && socialMock.isOn()) {
-      const { mockApi } = await import('./socialMock');
-      return mockApi[name](...args);
+  (...args) => {
+    // qualquer ação que muda algo (seguir, postar...) invalida as buscas em andamento
+    if (!REMEMBERED.has(name)) {
+      inFlight.clear();
+      return call(name, args);
     }
-    return realApi[name](...args);
+    // duas telas pedindo a mesma coisa ao mesmo tempo (o cartão "Você" aparece
+    // em dois lugares) dividem uma chamada só
+    const owner = ownerKey();
+    const key = `${owner}|${answerKey(name, args)}`;
+    const running = inFlight.get(key);
+    if (running) return running;
+    const request = call(name, args)
+      .then((result) => {
+        // só guarda se a conta ainda é a mesma de quando a chamada saiu
+        if (owner === ownerKey()) answers().set(answerKey(name, args), result);
+        return result;
+      })
+      .finally(() => { if (inFlight.get(key) === request) inFlight.delete(key); });
+    inFlight.set(key, request);
+    return request;
   },
 ]));
