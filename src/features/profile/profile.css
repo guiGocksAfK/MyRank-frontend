@@ -1079,7 +1079,8 @@
 /* ---- celular ---- */
 @media (max-width: 1280px) {
   /* destaques e notas precisam de largura: um embaixo do outro */
-  .pf-stats-grid.is-top { grid-template-columns: 1fr; }
+  /* minmax(0, …): sem isso o cartão cresce até caber o conteúdo e vaza da tela */
+  .pf-stats-grid.is-top { grid-template-columns: minmax(0, 1fr); }
   .pf-stats-grid.is-top .pf-hl-row { grid-template-columns: repeat(4, minmax(0, 200px)); }
 }
 
@@ -1089,7 +1090,7 @@
 }
 
 @media (max-width: 768px) {
-  .pf-stats-grid { grid-template-columns: 1fr; }
+  .pf-stats-grid { grid-template-columns: minmax(0, 1fr); }
   .pf-set-grid { grid-template-columns: 1fr; }
   /* celular: barra e filtro descem pra uma linha abaixo das abas */
   .pf-tabbar { flex-direction: column; align-items: stretch; gap: var(--mr-space-3); border-bottom: 0; }
@@ -1110,6 +1111,11 @@
   .pf-hl-label { font-size: 0.625rem; letter-spacing: 0.06em; }
   .pf-hl-title { font-size: var(--mr-text-xs); }
   .pf-hl-meta { font-size: var(--mr-text-xs); }
+  /* os três números das notas cabem lado a lado: menos espaço entre eles e letra menor */
+  .pf-card { padding: var(--mr-space-4); }
+  .pf-strip-stats { flex-wrap: wrap; gap: var(--mr-space-2) var(--mr-space-4); }
+  .pf-strip-stats dt { letter-spacing: 0.08em; }
+  .pf-strip-stats dd { font-size: var(--mr-text-xl); }
   .pf-badge-groups { grid-template-columns: 1fr; }
   .pf-badge-card.is-wide { grid-column: auto; }
   .pf-badge-card.is-wide .pf-badge-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
