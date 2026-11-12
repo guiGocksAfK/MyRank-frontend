@@ -558,49 +558,36 @@
 
 .pf-strip-tick.is-major::before { height: 7px; }
 
-.pf-strip-mean {
-  position: absolute;
-  top: 26px;
-  color: var(--mr-gold);
-  font-size: var(--mr-text-xs);
-  font-weight: 700;
-  white-space: nowrap;
-  transform: translateX(-50%);
-}
-
-.pf-strip-mean::before { content: '▲ '; font-size: 0.5rem; vertical-align: 1px; }
-
-/* de que época: uma capa por década (a de maior nota), com obras e média */
+/* de que época: uma capa por década (a de maior nota), com obras e média.
+   Todas as décadas cabem na largura, até no celular: as colunas dividem o
+   espaço e encolhem. */
 .pf-era { display: flex; flex-direction: column; }
 
 .pf-era-row {
+  container-type: inline-size;
   display: flex;
-  gap: var(--mr-space-3);
+  gap: var(--mr-space-2);
   margin-top: var(--mr-space-4);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
 }
-
-.pf-era-row::-webkit-scrollbar { display: none; }
 
 .pf-era-col {
   display: flex;
-  flex: 1 0 84px;
+  flex: 1 1 0;
   flex-direction: column;
   align-items: center;
   min-width: 0;
-  scroll-snap-align: start;
   text-align: center;
 }
 
 /* buraco no tempo: marquinha fina na altura das capas */
 .pf-era-gap {
   display: flex;
-  flex: none;
+  flex: 0 0 28px;
   align-items: center;
+  justify-content: center;
   align-self: flex-start;
-  height: 136px; /* mais ou menos a altura das capas, pra ficar no meio delas */
+  /* mesma altura das capas: largura de uma coluna × 1,5 (capa 2:3), no máximo 144px */
+  height: min(144px, calc((100cqw - (var(--n) + var(--g) - 1) * var(--era-gap, var(--mr-space-2)) - var(--g) * 28px) / var(--n) * 1.5));
   color: var(--mr-text-muted);
   font-size: var(--mr-text-sm);
   letter-spacing: 0.1em;
@@ -641,9 +628,12 @@
 
 .pf-era-info,
 .pf-era-avg {
+  max-width: 100%;
+  overflow: hidden;
   color: var(--mr-text-muted);
   font-size: var(--mr-text-xs);
   font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -1089,7 +1079,8 @@
 /* ---- celular ---- */
 @media (max-width: 1280px) {
   /* destaques e notas precisam de largura: um embaixo do outro */
-  .pf-stats-grid.is-top { grid-template-columns: 1fr; }
+  /* minmax(0, …): sem isso o cartão cresce até caber o conteúdo e vaza da tela */
+  .pf-stats-grid.is-top { grid-template-columns: minmax(0, 1fr); }
   .pf-stats-grid.is-top .pf-hl-row { grid-template-columns: repeat(4, minmax(0, 200px)); }
 }
 
@@ -1099,7 +1090,7 @@
 }
 
 @media (max-width: 768px) {
-  .pf-stats-grid { grid-template-columns: 1fr; }
+  .pf-stats-grid { grid-template-columns: minmax(0, 1fr); }
   .pf-set-grid { grid-template-columns: 1fr; }
   /* celular: barra e filtro descem pra uma linha abaixo das abas */
   .pf-tabbar { flex-direction: column; align-items: stretch; gap: var(--mr-space-3); border-bottom: 0; }
@@ -1110,10 +1101,19 @@
 }
 
 @media (max-width: 640px) {
-  .pf-hl-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--mr-space-2); }
-  .pf-hl-label { font-size: 0.625rem; letter-spacing: 0.06em; }
-  .pf-hl-title { font-size: var(--mr-text-xs); }
-  .pf-hl-meta { font-size: var(--mr-text-xs); }
+  /* celular: as décadas continuam numa linha só e encolhem; o texto diminui junto */
+  .pf-era-year { font-size: var(--mr-text-xs); }
+  .pf-era-info, .pf-era-avg { font-size: 0.625rem; }
+  .pf-era-row.is-dense { --era-gap: 4px; gap: var(--era-gap); }
+  .pf-era-row.is-dense .pf-era-year { font-size: 0.625rem; }
+  .pf-era-row.is-dense .pf-era-info, .pf-era-row.is-dense .pf-era-avg { display: none; }
+  /* destaques em 2×2: quatro numa linha deixava capa e rótulo espremidos */
+  .pf-stats-grid.is-top .pf-hl-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mr-space-5) var(--mr-space-4); }
+  /* os três números das notas cabem lado a lado: menos espaço entre eles e letra menor */
+  .pf-card { padding: var(--mr-space-4); }
+  .pf-strip-stats { flex-wrap: wrap; gap: var(--mr-space-2) var(--mr-space-4); }
+  .pf-strip-stats dt { letter-spacing: 0.08em; }
+  .pf-strip-stats dd { font-size: var(--mr-text-xl); }
   .pf-badge-groups { grid-template-columns: 1fr; }
   .pf-badge-card.is-wide { grid-column: auto; }
   .pf-badge-card.is-wide .pf-badge-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }

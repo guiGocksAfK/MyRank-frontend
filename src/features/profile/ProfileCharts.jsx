@@ -140,9 +140,6 @@ export function ScoreStrip({ works }) {
             {label ? fmtNote(v) : ''}
           </span>
         ))}
-        <span className="pf-strip-mean" style={{ left: `${pos(mean)}%` }}>
-          {fmt(tp.scoresMean, { n: fmtNote(mean) })}
-        </span>
       </div>
     </div>
   );
@@ -150,13 +147,15 @@ export function ScoreStrip({ works }) {
 
 /** Cartãozinho em cima do ponto: capinha, nome e nota. Perto das pontas, encosta pro lado de dentro. */
 function DotCard({ work, note, left, bottom }) {
+  const [failedSrc, setFailedSrc] = useState(null);
   const Icon = TEMPLATE_ICONS[work.template] ?? TEMPLATE_ICONS.custom;
   const align = left < 18 ? ' is-start' : left > 82 ? ' is-end' : '';
+  const src = work.image;
   return (
     <div className={`pf-dotcard${align}`} style={{ left: `${left}%`, bottom: `${bottom}px` }} role="status">
       <span className="pf-dotcard-cover">
-        {work.image
-          ? <img src={work.image} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+        {src && failedSrc !== src
+          ? <img src={src} alt="" onError={() => setFailedSrc(src)} />
           : <Icon size={14} strokeWidth={1.6} aria-hidden="true" />}
       </span>
       <span className="pf-dotcard-text">
@@ -170,12 +169,15 @@ function DotCard({ work, note, left, bottom }) {
 /**
  * "De que época": uma coluna por década com uma capa só, a de maior nota
  * daquela época, e embaixo quantas obras e a média. Escala com qualquer
- * quantidade de obras; décadas vazias viram "· · ·" e muitas décadas deslizam
- * pro lado.
+ * quantidade de obras; décadas vazias viram "· · ·" e, quando são muitas
+ * décadas, as capas encolhem pra caber todas numa linha (até no celular).
+ * "Seu forte" é a década com a maior média.
  */
 export function EraTimeline({ works }) {
   const { t, locale } = useLanguage();
   const tp = t.profile;
+  const [failedUrls, setFailedUrls] = useState(() => new Set());
+  const markFailed = (url) => setFailedUrls((prev) => new Set(prev).add(url));
   const fmtNote = (n) => num(n).toLocaleString(locale || 'pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   const byDecade = new Map();
@@ -198,25 +200,34 @@ export function EraTimeline({ works }) {
     columns.push(d);
   });
 
-  // empate: fica com a década mais recente
-  const top = [...byDecade.entries()].reduce((best, e) => (!best || e[1].length >= best[1].length ? e : best), null);
+  // seu forte: a maior média; empate fica com a que tem mais obras, depois a mais recente
+  const avgOf = (list) => {
+    const rated = list.filter((w) => num(w.note) > 0);
+    return rated.length ? rated.reduce((s, w) => s + num(w.note), 0) / rated.length : null;
+  };
+  const top = [...byDecade.entries()]
+    .map(([d, list]) => ({ d, n: list.length, avg: avgOf(list) }))
+    .filter((e) => e.avg !== null)
+    .sort((a, b) => b.avg - a.avg || b.n - a.n || b.d - a.d)[0] || null;
   const decadeName = (y) => fmt(tp.decade, { y, d: y < 2000 ? String(y % 100).padStart(2, '0') : y });
 
   return (
     <div className="pf-era">
-      <div className="pf-era-row">
+      {/* --n/--g: quantas décadas e quantos buracos, pro CSS saber a altura das capas */}
+      {/* is-dense: muitas décadas; no celular fica só capa e ano pra caber */}
+      <div className={`pf-era-row${columns.length >= 7 ? ' is-dense' : ''}`}
+        style={{ '--n': decades.length, '--g': columns.length - decades.length }}>
         {columns.map((d, i) => {
           if (d === 'gap') return <span key={`gap-${i}`} className="pf-era-gap" aria-hidden="true">· · ·</span>;
           const list = byDecade.get(d) || [];
-          const rated = list.filter((w) => num(w.note) > 0);
           const best = [...list].sort((a, b) => num(b.note) - num(a.note))[0];
-          const avg = rated.length ? rated.reduce((s, w) => s + num(w.note), 0) / rated.length : null;
+          const avg = avgOf(list);
           const Icon = best ? (TEMPLATE_ICONS[best.template] ?? TEMPLATE_ICONS.custom) : null;
           return (
-            <div key={d} className={`pf-era-col${d === top[0] ? ' is-top' : ''}${best ? '' : ' is-empty'}`}>
+            <div key={d} className={`pf-era-col${d === top?.d ? ' is-top' : ''}${best ? '' : ' is-empty'}`}>
               <span className="pf-era-cover" title={best ? `${best.title} · ${best.year}` : undefined}>
-                {best && (best.image
-                  ? <img src={best.image} alt={best.title} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                {best && (best.image && !failedUrls.has(best.image)
+                  ? <img src={best.image} alt={best.title} loading="lazy" onError={() => markFailed(best.image)} />
                   : <Icon size={18} strokeWidth={1.4} aria-hidden="true" />)}
                 {!best && <span aria-hidden="true">—</span>}
               </span>
@@ -229,7 +240,7 @@ export function EraTimeline({ works }) {
           );
         })}
       </div>
-      <p className="pf-histo-foot">{fmt(top[1].length === 1 ? tp.eraTopOne : tp.eraTop, { decade: decadeName(top[0]).toLowerCase(), n: top[1].length })}</p>
+      {top && <p className="pf-histo-foot">{fmt(tp.eraTop, { decade: decadeName(top.d).toLowerCase(), n: fmtNote(top.avg) })}</p>}
     </div>
   );
 }

@@ -4,7 +4,7 @@
  * menos itens que o necessário. URLs de CDN da TMDB (estáveis, hotlinkáveis),
  * todas verificadas como 200.
  */
-const TMDB = 'https://image.tmdb.org/t/p/w500';
+const TMDB = 'https://image.tmdb.org/t/p/w342';
 
 export const SHOWCASE_FALLBACK = [
   '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',

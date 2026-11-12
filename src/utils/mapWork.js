@@ -1,21 +1,30 @@
 // Backend (WorkResponseDTO) → shape usado pelos componentes visuais
 import { templateType } from '../shared/tableTemplates';
 
+export function safeImageUrl(url) {
+  const s = (url || '').trim();
+  return /^https?:\/\//i.test(s) ? s : '';
+}
+
 export function mapWorkToItem(work) {
   return {
     id: work.id,
+    categoryId: work.categoryId ?? null,
+    categoryName: work.categoryName ?? null,
     title: work.title,
     template: work.template ?? 'custom',
     type: templateType(work.template),
     details: work.details ?? {},
     sub: work.creator ?? '',
     note: work.score,
+    score: work.score,
     timeMinutes: work.timeMinutes,
     bonusTime: work.timeBonusScore,
     finalNote: work.finalScore,
     addedDate: work.createdAt ?? null,
+    createdAt: work.createdAt ?? null,
     releaseDate: work.releaseDate,
-    image: work.imageUrl ?? '',
+    image: safeImageUrl(work.imageUrl),
     subcategoryId: work.subcategoryId ?? null,
     subcategoryName: work.subcategoryName ?? null,
   };

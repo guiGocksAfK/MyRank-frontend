@@ -29,7 +29,7 @@ export default function ResendVerification({ email }) {
         {status === "sending" ? tVerify.resending : tVerify.resend}
       </button>
       {status === "sent" && <p className="auth-resend-note">{tVerify.resent}</p>}
-      {status === "error" && <p className="auth-error">{tVerify.resendError}</p>}
+      {status === "error" && <p className="auth-error" role="alert">{tVerify.resendError}</p>}
     </div>
   );
 }

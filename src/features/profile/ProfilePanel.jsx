@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Settings } from 'lucide-react';
-import { getMe } from '../../services/userService';
 import { socialApi } from '../social/socialData';
 import Avatar from '../../shared/components/Avatar';
 import { useUser } from '../../shared/userContext';
@@ -20,44 +19,35 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
  * na Dashboard (números, Hall da fama) se repete aqui. Tema, idioma, privacidade
  * e conta ficam numa página própria (o ⚙).
  */
-export default function ProfilePanel({ isDark, onThemeToggle }) {
+/** `onSettingsBack`: as Configurações vieram de outra tela (Social); o Voltar delas volta pra lá. */
+export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = false, onSettingsBack }) {
   const { t, locale } = useLanguage();
   const tp = t.profile;
-  const { setUser } = useUser();
+  const { user: profile, loading, error, setUser: applyUser } = useUser();
 
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [avatarVersion, setAvatarVersion] = useState(0); // fura o cache do <img> depois de trocar a foto
   const [summary, setSummary] = useState(null);
   const [tab, setTab] = useState('stats'); // estatísticas primeiro: é a parte mais pessoal do perfil
   const [badgeFilter, setBadgeFilter] = useState('all');
-  const [view, setView] = useState('profile'); // 'profile' | 'settings'
+  const [view, setView] = useState(startOnSettings ? 'settings' : 'profile'); // 'profile' | 'settings'
   const [editing, setEditing] = useState(false);
 
-  // atualiza o perfil daqui e o usuário compartilhado (navbar, saudação da home)
-  const applyUser = (user) => {
-    setProfile(user);
-    setUser(user);
-  };
-
   useEffect(() => {
-    getMe()
-      .then(applyUser)
-      .catch(() => setError(tp.loadError))
-      .finally(() => setLoading(false));
     socialApi.getSummary().then(setSummary).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { items, loading: loadingWorks } = useUnifiedItems();
   const { badges, loading: loadingBadges } = useBadges();
 
   const openSettings = () => { setView('settings'); window.scrollTo({ top: 0 }); };
-  const closeSettings = () => { setView('profile'); window.scrollTo({ top: 0 }); };
+  const closeSettings = () => {
+    if (onSettingsBack) { onSettingsBack(); return; }
+    setView('profile');
+    window.scrollTo({ top: 0 });
+  };
 
   if (loading) return <p className="pf-muted">{tp.loading}</p>;
-  if (error || !profile) return <p className="pf-muted">{error || tp.loadError}</p>;
+  if (error || !profile) return <p className="pf-muted">{tp.loadError}</p>;
 
   if (view === 'settings') {
     return (
@@ -67,6 +57,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
         isDark={isDark}
         onThemeToggle={onThemeToggle}
         onBack={closeSettings}
+        backLabel={onSettingsBack ? t.social.connections.back : undefined}
       />
     );
   }
@@ -112,7 +103,22 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
 
       {/* abas à esquerda; nas Conquistas, a barra geral e o filtro à direita */}
       <div className="pf-tabbar">
-        <div className="rk-tabs" role="tablist" aria-label={tp.tabsLabel}>
+        <div
+          className="rk-tabs"
+          role="tablist"
+          aria-label={tp.tabsLabel}
+          onKeyDown={(e) => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+            e.preventDefault();
+            const btns = Array.from(e.currentTarget.querySelectorAll('[role="tab"]'));
+            const cur = btns.indexOf(document.activeElement);
+            if (cur < 0) return;
+            const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1
+              : (cur + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+            setTab(tabs[next].id);
+            btns[next]?.focus();
+          }}
+        >
           <div className="rk-tabs-scroll">
             {tabs.map((x) => (
               <button
@@ -120,6 +126,7 @@ export default function ProfilePanel({ isDark, onThemeToggle }) {
                 type="button"
                 role="tab"
                 aria-selected={tab === x.id}
+                tabIndex={tab === x.id ? 0 : -1}
                 className={`rk-tab${tab === x.id ? ' is-active' : ''}`}
                 onClick={() => setTab(x.id)}
               >

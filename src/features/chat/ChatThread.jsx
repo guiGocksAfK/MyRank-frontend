@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { ArrowLeft, Ban, Check, Lock, MoreHorizontal, Pencil, Reply, SmilePlus, Trash2, X } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
 import { useUser } from '../../shared/userContext';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import Avatar from '../../shared/components/Avatar';
+import ConfirmModal from '../../shared/components/ConfirmModal';
 import GroupIcon from './GroupIcon';
 import GroupPanel from './GroupPanel';
 import EmojiPicker from './EmojiPicker';
@@ -26,6 +28,36 @@ const POLL_MS = 15_000;
 const BODY_MAX = 2000;
 const GROUP_GAP_MS = 5 * 60 * 1000; // agrupa mensagens seguidas do mesmo autor
 const PAGE_SIZE = 40;
+const ONLINE_MS = 90_000; // visto há menos que isso conta como online
+const PRESENCE_TICK_MS = 30_000;
+
+const reducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+const URL_SPLIT_RE = /(https?:\/\/[^\s<]+)/g;
+
+function renderBodyWithLinks(text) {
+  if (!text) return text;
+  const parts = String(text).split(URL_SPLIT_RE);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) => {
+    if (i % 2 === 1) {
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="chat-msg-link"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
 
 const sameDay = (a, b) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -140,7 +172,7 @@ const InfoIcon = () => (
 );
 
 /** Conversa aberta. `conversation` = { id, type, name, imageUrl, peer, memberCount, myRole }. */
-export default function ChatThread({ conversation, onBack, onChanged, onLeft, onOpenProfile }) {
+export default function ChatThread({ conversation, onBack, backAlways = false, onChanged, onLeft, onOpenProfile }) {
   const { t, lang, locale } = useLanguage();
   const tc = t.chat;
   const { refreshCount, subscribeConversation } = useChat();
@@ -158,6 +190,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
   const [replyTo, setReplyTo] = useState(null);
   const [editing, setEditing] = useState(null);
   const [menuFor, setMenuFor] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [typers, setTypers] = useState([]); // [{ id, name, at }] — quem está digitando
@@ -175,7 +208,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
   const scrollToBottom = useCallback((smooth = false) => {
     // rola só a lista interna — nunca a página (scrollIntoView arrastava a viewport)
     const el = listRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth && !reducedMotion() ? 'smooth' : 'auto' });
   }, []);
 
   const onListScroll = useCallback(() => {
@@ -187,6 +220,12 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
   const patchMessage = useCallback((updated) => {
     setMessages((prev) => (prev || []).map((m) => (m.id === updated.id ? updated : m)));
   }, []);
+
+  // Com a aba em segundo plano não marca como lida: a mensagem segue nova até a pessoa voltar.
+  const markRead = useCallback(() => {
+    if (document.hidden) return;
+    markConversationRead(conversation.id).then(refreshCount).catch(() => {});
+  }, [conversation.id, refreshCount]);
 
   const load = useCallback(
     async ({ silent = false } = {}) => {
@@ -200,13 +239,13 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
         if (!silent) setHasMore(rows.length === PAGE_SIZE);
         setMessages((prev) => (silent ? mergeRefresh(prev, rows) : rows));
         setError(null);
-        markConversationRead(conversation.id).then(refreshCount).catch(() => {});
+        markRead();
       } catch (err) {
         setError(err?.response?.data?.message || tc.loadError);
         if (!silent) setMessages([]);
       }
     },
-    [conversation.id, refreshCount, tc.loadError],
+    [conversation.id, markRead, tc.loadError],
   );
 
   const loadMore = useCallback(async () => {
@@ -228,17 +267,41 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
     }
   }, [conversation.id, hasMore, loadingMore, tc.loadError]);
 
-  useEffect(() => {
+  // Renderiza com os valores iniciais da conversa; trocar de conversa reseta sem efeito cascata
+  const [convKey, setConvKey] = useState(conversation.id);
+  if (convKey !== conversation.id) {
+    setConvKey(conversation.id);
+    setMessages(null);
+    setError(null);
     setReplyTo(null);
     setEditing(null);
     setMenuFor(null);
+    setPendingDelete(null);
     setShowManage(false);
     setTypers([]);
     setPeerReadId(conversation.peerLastReadId ?? null);
     setUnreadAnchor(conversation.unread > 0 ? conversation.myLastReadId ?? 0 : 0);
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversation.id]);
+  }
+
+  useEffect(() => {
+    pageRef.current = 0;
+    forceBottomRef.current = true;
+    let active = true;
+    getMessages(conversation.id, 0, PAGE_SIZE)
+      .then((rows) => {
+        if (!active) return;
+        setHasMore(rows.length === PAGE_SIZE);
+        setMessages(rows);
+        setError(null);
+        markRead();
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err?.response?.data?.message || tc.loadError);
+        setMessages([]);
+      });
+    return () => { active = false; };
+  }, [conversation.id, markRead, tc.loadError]);
 
   // some com "digitando…" parado há mais de 4s
   useEffect(() => {
@@ -249,9 +312,17 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
     return () => clearInterval(id);
   }, [typers.length]);
 
+  // Poll de fallback só com a aba visível; ao voltar pra aba, busca o que chegou e marca como lida.
   useEffect(() => {
-    const id = setInterval(() => load({ silent: true }), POLL_MS);
-    return () => clearInterval(id);
+    const tick = () => {
+      if (!document.hidden) load({ silent: true });
+    };
+    const id = setInterval(tick, POLL_MS);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', tick);
+    };
   }, [load]);
 
   // Real-time: eventos da conversa aberta via STOMP (o poll acima é só fallback).
@@ -281,7 +352,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
           if (list.some((m) => m.id === msg.id)) return list; // eco da própria mensagem
           return [...list, withMine];
         });
-        markConversationRead(conversation.id).then(refreshCount).catch(() => {});
+        markRead();
       } else if (evt.type === 'edited' || evt.type === 'deleted') {
         setMessages((prev) => (prev || []).map((m) => (m.id === msg.id ? withMine : m)));
       } else if (evt.type === 'reacted') {
@@ -297,7 +368,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
       }
     });
     return off;
-  }, [conversation.id, subscribeConversation, myId, refreshCount]);
+  }, [conversation.id, subscribeConversation, myId, markRead]);
 
   useLayoutEffect(() => {
     const el = listRef.current;
@@ -391,13 +462,10 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
 
   const doDelete = async (m) => {
     setMenuFor(null);
-    try {
-      const updated = await deleteMessage(m.id);
-      patchMessage(updated);
-      onChanged?.();
-    } catch (err) {
-      setError(err?.response?.data?.message || tc.actionError);
-    }
+    const updated = await deleteMessage(m.id);
+    patchMessage(updated);
+    onChanged?.();
+    return true;
   };
 
   const doReact = async (m, emoji) => {
@@ -419,7 +487,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
     const rList = list.getBoundingClientRect();
     list.scrollTo({
       top: list.scrollTop + (rEl.top - rList.top) - list.clientHeight / 2 + rEl.height / 2,
-      behavior: 'smooth',
+      behavior: reducedMotion() ? 'auto' : 'smooth',
     });
     el.classList.add('is-flash');
     setTimeout(() => el.classList.remove('is-flash'), 1200);
@@ -439,14 +507,21 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
     return lastMine != null && peerReadId >= lastMine ? lastMine : null;
   }, [isGroup, peerReadId, messages]);
 
-  // Presença do outro (só DM)
+  // Presença do outro (só DM). O relógio anda a cada 30s pra "online" virar "visto há…" sozinho.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (isGroup || !conversation.peerLastSeenAt) return undefined;
+    const id = setInterval(() => setNow(Date.now()), PRESENCE_TICK_MS);
+    return () => clearInterval(id);
+  }, [isGroup, conversation.peerLastSeenAt]);
+
   const presence = useMemo(() => {
     if (isGroup) return null;
     const ls = conversation.peerLastSeenAt;
     if (!ls) return null;
-    const diff = Date.now() - new Date(ls).getTime();
-    return diff < 90_000 ? tc.online : tc.lastSeen.replace('{t}', relativeTime(ls, lang));
-  }, [isGroup, conversation.peerLastSeenAt, tc, lang]);
+    const diff = now - new Date(ls).getTime();
+    return diff < ONLINE_MS ? tc.online : tc.lastSeen.replace('{t}', relativeTime(ls, lang));
+  }, [isGroup, conversation.peerLastSeenAt, now, tc, lang]);
 
   const activeTypers = typers.filter((tp) => tp.id !== myId);
   let typingLabel = null;
@@ -477,8 +552,8 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
     <div className={`chat-thread ${showRail ? 'has-rail' : ''}`}>
       <div className="chat-thread-body">
       <div className="chat-thread-head">
-        <button type="button" className="chat-back" onClick={onBack} aria-label={tc.back}>
-          ←
+        <button type="button" className={`chat-back${backAlways ? ' is-always' : ''}`} onClick={onBack} aria-label={tc.back}>
+          <ArrowLeft size={18} strokeWidth={2} />
         </button>
         <button
           type="button"
@@ -500,7 +575,6 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
           )}
           <div className="chat-thread-titlewrap">
             <div className="chat-thread-name">
-              {isGroup && <span aria-hidden="true">👥 </span>}
               {headerTitle}
             </div>
             {isGroup ? (
@@ -589,7 +663,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
                 onReact={(emoji) => doReact(m, emoji)}
                 onReply={() => startReply(m)}
                 onEdit={() => startEdit(m)}
-                onDelete={() => doDelete(m)}
+                onDelete={() => { setMenuFor(null); setPendingDelete(m); }}
                 onJump={jumpTo}
               />
             );
@@ -621,7 +695,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
               if (editing) setDraft('');
             }}
           >
-            ✕
+            <X size={15} strokeWidth={2} />
           </button>
         </div>
       )}
@@ -664,7 +738,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
             disabled={!canSend}
             aria-label={editing ? tc.save : tc.send}
           >
-            {editing ? '✓' : <SendIcon />}
+            {editing ? <Check size={18} strokeWidth={2.4} /> : <SendIcon />}
           </button>
         )}
       </form>
@@ -672,6 +746,7 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
 
       {showRail && (
         <ContextRail
+          key={conversation.id}
           conversation={conversation}
           isGroup={isGroup}
           tc={tc}
@@ -690,6 +765,16 @@ export default function ChatThread({ conversation, onBack, onChanged, onLeft, on
             setShowManage(false);
             onLeft?.();
           }}
+        />
+      )}
+
+      {pendingDelete && (
+        <ConfirmModal
+          title={tc.deleteMsgTitle}
+          message={tc.deleteMsgConfirm}
+          confirmLabel={tc.delete}
+          onConfirm={() => doDelete(pendingDelete)}
+          onClose={() => setPendingDelete(null)}
         />
       )}
     </div>
@@ -835,9 +920,9 @@ function MessageRow({
           )}
 
           {m.deleted ? (
-            <span className="chat-bubble-body is-deleted">🚫 {tc.deletedMsg}</span>
+            <span className="chat-bubble-body is-deleted"><Ban size={13} strokeWidth={2} aria-hidden="true" /> {tc.deletedMsg}</span>
           ) : (
-            <span className="chat-bubble-body">{m.body}</span>
+            <span className="chat-bubble-body">{renderBodyWithLinks(m.body)}</span>
           )}
           {m.edited && !m.deleted && <span className="chat-edited-tag">{tc.editedTag}</span>}
         </div>
@@ -845,13 +930,13 @@ function MessageRow({
         {!m.deleted && (
           <div className="chat-msg-toolbar" ref={toolbarRef}>
             <button type="button" className="chat-msg-tbtn" onClick={onOpenMenu} aria-label={tc.react}>
-              🙂
+              <SmilePlus size={15} strokeWidth={2} />
             </button>
             <button type="button" className="chat-msg-tbtn" onClick={onReply} aria-label={tc.reply}>
-              ↩
+              <Reply size={15} strokeWidth={2} />
             </button>
             <button type="button" className="chat-msg-tbtn" onClick={onOpenMenu} aria-label={tc.messageActions}>
-              ⋯
+              <MoreHorizontal size={15} strokeWidth={2} />
             </button>
           </div>
         )}
@@ -882,9 +967,9 @@ function MessageRow({
                 ))}
               </div>
               <div className="chat-menu-actions">
-                <button type="button" onClick={onReply}>↩ {tc.reply}</button>
-                {canEdit && <button type="button" onClick={onEdit}>✏️ {tc.edit}</button>}
-                {canDelete && <button type="button" className="is-danger" onClick={onDelete}>🗑 {tc.delete}</button>}
+                <button type="button" onClick={onReply}><Reply size={14} strokeWidth={2} aria-hidden="true" />{tc.reply}</button>
+                {canEdit && <button type="button" onClick={onEdit}><Pencil size={14} strokeWidth={2} aria-hidden="true" />{tc.edit}</button>}
+                {canDelete && <button type="button" className="is-danger" onClick={onDelete}><Trash2 size={14} strokeWidth={2} aria-hidden="true" />{tc.delete}</button>}
               </div>
             </div>,
             document.body,
@@ -920,20 +1005,23 @@ function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfi
   const peerId = conversation.peer?.id ?? null;
 
   useEffect(() => {
-    setProfile(null);
-    setMembers(null);
-    setFailed(false);
+    let active = true;
     if (isGroup) {
-      getMembers(conversation.id).then(setMembers).catch(() => setMembers([]));
+      getMembers(conversation.id)
+        .then((m) => { if (active) setMembers(m); })
+        .catch(() => { if (active) setMembers([]); });
     } else if (peerId) {
-      socialApi.getProfile(peerId).then(setProfile).catch(() => setFailed(true));
+      socialApi.getProfile(peerId)
+        .then((p) => { if (active) setProfile(p); })
+        .catch(() => { if (active) setFailed(true); });
     }
+    return () => { active = false; };
   }, [conversation.id, isGroup, peerId]);
 
   return (
     <aside className="chat-rail">
       <button type="button" className="chat-info-btn chat-rail-close" onClick={onClose} aria-label={tc.back}>
-        ✕
+        <X size={16} strokeWidth={2} />
       </button>
 
       {isGroup ? (
@@ -1005,7 +1093,7 @@ function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfi
           </button>
 
           {profile.locked ? (
-            <div className="chat-rail-hint">🔒 {t.social.profile.privateTitle}</div>
+            <div className="chat-rail-hint"><Lock size={13} strokeWidth={2} aria-hidden="true" /> {t.social.profile.privateTitle}</div>
           ) : (
             <div>
               <div className="chat-rail-section-title">{tc.railStats}</div>

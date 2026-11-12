@@ -2,9 +2,33 @@ import { useState } from 'react';
 import Modal from '../../shared/components/Modal';
 import BadgeIcon from '../../shared/badgeIcons';
 import { useLanguage } from '../../shared/i18n';
-import { groupByBucket } from '../../shared/badges';
-
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
+
+const BUCKET_META = {
+  jogo:  { label: 'Jogos',  icon: '🎮' },
+  filme: { label: 'Filmes', icon: '🎬' },
+  serie: { label: 'Séries', icon: '📺' },
+  livro: { label: 'Livros', icon: '📚' },
+  anime: { label: 'Animes', icon: '🌸' },
+  manga: { label: 'Mangás', icon: '📖' },
+  musica: { label: 'Músicas', icon: '🎵' },
+  album: { label: 'Álbuns', icon: '💿' },
+  outro: { label: 'Outros', icon: '📦' },
+  geral: { label: 'Gerais', icon: '🌐' },
+  site:  { label: 'Usar o site', icon: '🚀' },
+};
+
+const BUCKET_ORDER = ['jogo', 'filme', 'serie', 'livro', 'anime', 'manga', 'musica', 'album', 'outro', 'site', 'geral'];
+
+function groupByBucket(badges = []) {
+  return BUCKET_ORDER
+    .map((key) => ({
+      key,
+      ...BUCKET_META[key],
+      items: badges.filter((b) => b.bucket === key),
+    }))
+    .filter((g) => g.items.length > 0);
+}
 
 const pctOf = (b) => Math.min(100, Math.round((b.progress / Math.max(b.maxProgress, 1)) * 100));
 

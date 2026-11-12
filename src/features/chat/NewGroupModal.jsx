@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { Check, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
 import { socialApi } from '../social/socialData';
 import { createGroup } from '../../services/chatService';
 import SocialAvatar from '../social/SocialAvatar';
 import ImagePreview from './ImagePreview';
+import useModalBehavior from '../../shared/components/useModalBehavior';
 
 const NAME_MAX = 80;
 const DESC_MAX = 300;
@@ -19,21 +21,23 @@ export default function NewGroupModal({ onClose, onCreated }) {
   const [imageUrl, setImageUrl] = useState('');
   const [access, setAccess] = useState('REQUEST');
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
+  const [found, setFound] = useState([]);
+  // busca curta demais não mostra nada (sem precisar limpar o estado)
+  const results = query.trim().length < 2 ? [] : found;
   const [selected, setSelected] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
+  const dialog = useRef(null);
+  useModalBehavior(dialog, () => { if (!busy) onClose(); });
+
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) {
-      setResults([]);
-      return undefined;
-    }
+    if (q.length < 2) return undefined;
     let active = true;
     const id = setTimeout(() => {
       // só quem se segue mutuamente entra direto; o resto vem pelo link de convite (o back confere)
-      socialApi.searchUsers(q).then((r) => active && setResults(r.filter((u) => u.following && u.followsYou))).catch(() => {});
+      socialApi.searchUsers(q).then((r) => active && setFound(r.filter((u) => u.following && u.followsYou))).catch(() => {});
     }, 250);
     return () => {
       active = false;
@@ -73,9 +77,17 @@ export default function NewGroupModal({ onClose, onCreated }) {
   };
 
   return (
-    <div className="chat-modal-overlay" onClick={onClose}>
-      <div className="chat-modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="chat-modal-title">{tc.newGroupTitle}</h3>
+    <div className="chat-modal-overlay" onClick={() => !busy && onClose()}>
+      <div
+        ref={dialog}
+        className="chat-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ng-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="chat-modal-title" id="ng-title">{tc.newGroupTitle}</h3>
 
         <label className="chat-modal-label">{tc.groupName}</label>
         <input
@@ -127,7 +139,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
           <div className="chat-chips">
             {selected.map((u) => (
               <button key={u.id} type="button" className="chat-chip" onClick={() => toggle(u)}>
-                {u.username} ✕
+                {u.username} <X size={12} strokeWidth={2.2} aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -151,9 +163,9 @@ export default function NewGroupModal({ onClose, onCreated }) {
               className={`chat-result ${isSelected(u.id) ? 'is-selected' : ''}`}
               onClick={() => toggle(u)}
             >
-              <SocialAvatar name={u.username} initials={u.initials} color={u.color} src={u.avatarSrc} size={28} />
+              <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={28} />
               <span className="chat-result-name">@{u.username}</span>
-              {isSelected(u.id) && <span aria-hidden="true">✓</span>}
+              {isSelected(u.id) && <Check size={14} strokeWidth={2.4} aria-hidden="true" />}
             </button>
           ))}
         </div>

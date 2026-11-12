@@ -1,28 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
+import { SendHorizontal } from 'lucide-react';
 import SocialAvatar from './SocialAvatar';
 import { socialApi } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { relativeTime } from '../../shared/useUnifiedItems';
-
-const SendIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
-    <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a1 1 0 00-1.4 1.15L4 11l10 1-10 1-2 6.25a1 1 0 001.4 1.15z" />
-  </svg>
-);
+import { useUser } from '../../shared/userContext';
+import ConfirmModal from '../../shared/components/ConfirmModal';
 
 /** Comentários de um take (2 níveis, estilo Instagram). Vive dentro do ActivityCard. */
 export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
   const { t, lang } = useLanguage();
   const tc = t.social.comments;
+  const { user } = useUser();
   const [comments, setComments] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0); // "Tentar de novo" busca outra vez
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [replyTo, setReplyTo] = useState(null); // id do comentário raiz sendo respondido
+  const [pendingDelete, setPendingDelete] = useState(null); // { id, rootId } esperando confirmar
   const inputRef = useRef(null);
 
   useEffect(() => {
-    socialApi.getTakeComments(takeId).then(setComments).catch(() => setComments([]));
-  }, [takeId]);
+    socialApi.getTakeComments(takeId).then(setComments).catch(() => setFailed(true));
+  }, [takeId, attempt]);
 
   async function submit(e) {
     e?.preventDefault?.();
@@ -93,11 +94,17 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
 
   return (
     <div className="social-comments">
-      {comments === null ? (
+      {/* sem comentários não tem aviso: o convite vira o texto da caixa */}
+      {comments === null && failed ? (
+        <div className="social-comments-hint" role="alert">
+          {tc.loadError}{' '}
+          <button type="button" className="social-link" onClick={() => { setFailed(false); setAttempt((n) => n + 1); }}>
+            {tc.retry}
+          </button>
+        </div>
+      ) : comments === null ? (
         <div className="social-comments-hint">{tc.loading}</div>
-      ) : comments.length === 0 ? (
-        <div className="social-comments-hint">{tc.empty}</div>
-      ) : (
+      ) : comments.length === 0 ? null : (
         <ul className="social-comment-list">
           {comments.map((c) => (
             <CommentNode
@@ -107,9 +114,9 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
               tc={tc}
               onOpenUser={onOpenUser}
               onReply={() => startReply(c.id, c.author?.handle || '')}
-              onDelete={() => remove(c.id, null)}
+              onDelete={() => setPendingDelete({ id: c.id, rootId: null })}
               onEdit={(txt) => edit(c.id, null, txt)}
-              onDeleteReply={(rid) => remove(rid, c.id)}
+              onDeleteReply={(rid) => setPendingDelete({ id: rid, rootId: c.id })}
               onEditReply={(rid, txt) => edit(rid, c.id, txt)}
             />
           ))}
@@ -117,6 +124,7 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
       )}
 
       <form className="social-comment-form" onSubmit={submit}>
+        <SocialAvatar name={user?.username || '?'} src={user?.avatarUrl} size={28} />
         {replyTo && (
           <button
             type="button"
@@ -131,18 +139,29 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
           className="social-comment-input"
           value={text}
           maxLength={500}
-          placeholder={tc.placeholder}
+          placeholder={comments?.length === 0 ? tc.empty : tc.placeholder}
           onChange={(e) => setText(e.target.value)}
         />
         <button
           type="submit"
-          className="mr-btn mr-btn-gold mr-btn-sm social-comment-send"
+          className="social-comment-send"
           disabled={busy || !text.trim()}
           aria-label={tc.send}
+          title={tc.send}
         >
-          <SendIcon />
+          <SendHorizontal size={16} strokeWidth={2} aria-hidden="true" />
         </button>
       </form>
+
+      {pendingDelete && (
+        <ConfirmModal
+          title={tc.deleteTitle}
+          message={tc.confirmDelete}
+          confirmLabel={tc.delete}
+          onConfirm={async () => { await remove(pendingDelete.id, pendingDelete.rootId); return true; }}
+          onClose={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   );
 }
@@ -218,7 +237,7 @@ function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete, onEdit }) {
   return (
     <div className="social-comment-row">
       <button type="button" className="social-comment-avatar" onClick={() => onOpenUser?.(a.id)}>
-        <SocialAvatar name={a.username} initials={a.initials} color={a.color} src={a.avatarSrc} size={30} />
+        <SocialAvatar name={a.username} initials={a.initials} src={a.avatarSrc} size={30} />
       </button>
       <div className="social-comment-main">
         <div className="social-comment-meta">

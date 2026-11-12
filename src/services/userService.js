@@ -24,7 +24,10 @@ export const deleteMe = async ({ confirmUsername, deletionCode }) => {
  * uma URL absoluta (colada pelo usuário ou herdada do avatar do OAuth).
  * Retorna null quando não há foto (o componente cai nas iniciais).
  */
-export const avatarUrlFor = (user) => user?.avatarUrl || null;
+export const avatarUrlFor = (user) => {
+  const url = (user?.avatarUrl || '').trim();
+  return /^https?:\/\//i.test(url) ? url : null;
+};
 
 /**
  * Invalida todos os tokens da conta (todos os aparelhos). Usado pelo "Sair" das

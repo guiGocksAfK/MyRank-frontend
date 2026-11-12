@@ -72,8 +72,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
       await onDeleteWork(table.id, id);
       return true;
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || tr.deleteWorkError);
-      return false;
+      throw new Error(err?.response?.data?.message || err.message || tr.deleteWorkError, { cause: err });
     } finally {
       setDeletingId(null);
     }
@@ -84,8 +83,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
       await onDeleteTable(table.id);
       return true;
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || tr.deleteTableError);
-      return false;
+      throw new Error(err?.response?.data?.message || err.message || tr.deleteTableError, { cause: err });
     }
   }
 
@@ -157,7 +155,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
                 }}
               >
                 <span className="rk-rank">{i + 1}</span>
-                <Poster src={item.image} title={item.title} size="thumb" />
+                <Poster src={item.image} title={item.title} template={item.template} size="thumb" />
                 <div className="rk-main">
                   <div className="rk-title">{item.title}</div>
                   <div className="rk-sub">

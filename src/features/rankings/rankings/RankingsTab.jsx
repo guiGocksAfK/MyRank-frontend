@@ -83,6 +83,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
   const [tables,           setTables]           = useState([]);
   const [loadingTableIds,  setLoadingTableIds]  = useState([]);
   const [loadError,        setLoadError]        = useState(null);
+  // tabelas cujas obras não carregaram: as outras seguem funcionando
+  const [failedTableIds,   setFailedTableIds]   = useState([]);
+  const [reloadKey,        setReloadKey]        = useState(0);
   const [activeTab,        setActiveTab]        = useState('unified');
   const [useTimeWeight,    setUseTimeWeight]    = useState(false);
   const [sortBy,           setSortBy]           = useState('nota');
@@ -111,6 +114,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
   const [unifiedOrder,     setUnifiedOrder]     = useState([]);
   const [draggedTableId,   setDraggedTableId]   = useState(null);
   const [reordering,       setReordering]       = useState(false);
+  const [actionError,      setActionError]      = useState(null);
 
   // ── Carrega categorias + obras + grupo "Unificado" do backend ao montar ──
   useEffect(() => {
@@ -118,6 +122,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
 
     async function loadAll() {
       setLoadError(null);
+      setFailedTableIds([]);
       try {
         const categories = await getCategories();
         const tablesWithoutItems = categories.map(cat => mapCategoryToTable(cat));
@@ -134,6 +139,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
                 ? { ...current, items: orderItems(table.id, works.map(mapWorkToItem)) }
                 : current));
             }
+          } catch {
+            // só esta tabela falhou: marca e segue, em vez de derrubar a aba inteira
+            if (!cancelled) setFailedTableIds(prev => [...prev, table.id]);
           } finally {
             if (!cancelled) {
               setLoadingTableIds(prev => prev.filter(id => id !== table.id));
@@ -165,7 +173,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
 
     loadAll();
     return () => { cancelled = true; };
-  }, []);
+    // tr.loadError fica de fora: trocar o idioma não deve recarregar tudo
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reloadKey]);
 
   // ── Salvar obra (criar ou editar) ──
   async function handleSaveWork(categoryId, payload) {
@@ -222,8 +232,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
   function handleUnifiedReorder(nextOrder) {
     setUnifiedOrder(nextOrder);
     if (!unifiedGroupId) return;
+    setActionError(null);
     updateGroupOrder(unifiedGroupId, nextOrder).catch(err => {
-      console.error('Não foi possível salvar a ordem do ranking unificado', err);
+      setActionError(err?.response?.data?.message || tr.reorderError);
     });
   }
 
@@ -250,12 +261,17 @@ export default function RankingsTab({ onNavigateToCreators }) {
     setSelectedTableIds(newSelectedIds);
     setActiveTab(newTable.id);
 
-    if (unifiedGroupId) {
-      try {
+    try {
+      if (unifiedGroupId) {
         await updateGroup(unifiedGroupId, 'Unificado', newSelectedIds);
-      } catch (err) {
-        console.error('Erro ao atualizar grupo unificado:', err);
+      } else {
+        // primeira tabela da conta: o grupo ainda não existia (a carga só cria se já há
+        // tabela). Sem ele, a ordem do Unificado não era salva até recarregar a página.
+        const group = await createGroup('Unificado', newSelectedIds);
+        setUnifiedGroupId(group.id);
       }
+    } catch (err) {
+      console.error('Erro ao atualizar grupo unificado:', err);
     }
   }
 
@@ -332,18 +348,37 @@ export default function RankingsTab({ onNavigateToCreators }) {
   async function handleChangeSelectedTables(newIds) {
     setSelectedTableIds(newIds); // atualiza a UI na hora
     if (!unifiedGroupId) return;
+    setActionError(null);
     try {
       await updateGroup(unifiedGroupId, 'Unificado', newIds);
     } catch (err) {
-      alert(err?.response?.data?.message || err.message || tr.saveSelectionError);
+      setActionError(err?.response?.data?.message || err.message || tr.saveSelectionError);
     }
   }
 
+  const retryLoad = () => setReloadKey(key => key + 1);
+  const retryButton = (
+    <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={retryLoad}>
+      {t.insights.result.retry}
+    </button>
+  );
+
   if (loadError) {
     return (
-      <p className="rk-empty rk-error" role="alert">{loadError}</p>
+      <div className="rk-empty rk-error" role="alert">
+        <p>{loadError}</p>
+        {retryButton}
+      </div>
     );
   }
+
+  // aviso da(s) tabela(s) que não carregou(aram), no lugar de mostrar "tabela vazia"
+  const failedNotice = (
+    <div className="rk-empty rk-error" role="alert">
+      <p>{tr.loadError}</p>
+      {retryButton}
+    </div>
+  );
 
   const filterCount = activeFilterCount(filters);
   const mode = getMode(sortBy, useTimeWeight);
@@ -355,8 +390,27 @@ export default function RankingsTab({ onNavigateToCreators }) {
   function openTab(id) {
     setActiveTab(id);
     setReordering(false);
+    setActionError(null);
     // subcategoria é de uma tabela só: não vale na próxima
     setFilters(current => ({ ...current, subcategory: null }));
+  }
+
+  function handleTabListKeyDown(event) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    // Alt+Seta ou Shift+Seta em uma tabela reordena a aba em vez de trocar
+    if (event.altKey || event.shiftKey) return;
+    const tabButtons = Array.from(event.currentTarget.querySelectorAll('[role="tab"]'));
+    const currentIndex = tabButtons.indexOf(document.activeElement);
+    if (currentIndex < 0) return;
+    event.preventDefault();
+    const tabIds = ['unified', ...tables.map(tb => tb.id)];
+    let nextIndex = currentIndex;
+    if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabIds.length) % tabIds.length;
+    else if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabIds.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = tabIds.length - 1;
+    openTab(tabIds[nextIndex]);
+    tabButtons[nextIndex]?.focus();
   }
 
   const controls = (
@@ -416,8 +470,8 @@ export default function RankingsTab({ onNavigateToCreators }) {
       </div>
 
       <div className="rk-tabs">
-        <div className="rk-tabs-scroll" role="tablist">
-          <button type="button" role="tab" aria-selected={activeTab === 'unified'} className={`rk-tab${activeTab === 'unified' ? ' is-active' : ''}`} onClick={() => openTab('unified')}>
+        <div className="rk-tabs-scroll" role="tablist" onKeyDown={handleTabListKeyDown}>
+          <button type="button" role="tab" aria-selected={activeTab === 'unified'} tabIndex={activeTab === 'unified' ? 0 : -1} className={`rk-tab${activeTab === 'unified' ? ' is-active' : ''}`} onClick={() => openTab('unified')}>
             {tr.unifiedTab}
           </button>
           {tables.map((t, index) => (
@@ -426,6 +480,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
               type="button"
               role="tab"
               aria-selected={activeTab === t.id}
+              tabIndex={activeTab === t.id ? 0 : -1}
               className={`rk-tab${activeTab === t.id ? ' is-active' : ''}`}
               onClick={() => openTab(t.id)}
               draggable
@@ -437,7 +492,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
                 setDraggedTableId(null);
               }}
               onKeyDown={event => {
-                if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+                if ((event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') || (!event.altKey && !event.shiftKey)) return;
                 event.preventDefault();
                 const targetIndex = event.key === 'ArrowLeft' ? index - 1 : index + 1;
                 if (targetIndex >= 0 && targetIndex < tables.length) {
@@ -469,6 +524,17 @@ export default function RankingsTab({ onNavigateToCreators }) {
         <NewTableModal onSave={handleCreateTable} onClose={() => setShowNewTable(false)} />
       )}
 
+      {actionError && (
+        <div className="rk-hint" role="alert" style={{ borderColor: 'var(--mr-red)', color: 'var(--mr-red)' }}>
+          <span>{actionError}</span>
+          <button type="button" className="mr-btn mr-btn-ghost mr-btn-sm" onClick={() => setActionError(null)}>
+            {t.common.close}
+          </button>
+        </div>
+      )}
+
+      {activeTab === 'unified' && failedTableIds.length > 0 && failedNotice}
+
       {activeTab === 'unified' ? (
         <UnifiedTable
           tables={tables}
@@ -489,6 +555,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
         (() => {
           const table = tables.find(t => t.id === activeTab);
           if (!table) return null;
+          if (failedTableIds.includes(table.id)) return failedNotice;
           return (
             <IndividualTable
               key={table.id} // zera o filtro de subcategoria ao trocar de tabela

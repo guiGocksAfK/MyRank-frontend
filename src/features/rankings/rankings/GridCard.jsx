@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { formatTime } from '../../../utils/formatters';
 import { useLanguage } from '../../../shared/i18n';
@@ -12,8 +13,11 @@ import AnimatedNumber from './AnimatedNumber';
 export default function GridCard({ item, customFields = [], mode, index, unified = false, onEdit, onDelete, onClick, showActions, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragging }) {
   const { t, locale } = useLanguage();
   const tr = t.rankings;
+  const [failedSrc, setFailedSrc] = useState(null);
   const Icon = TEMPLATE_ICONS[item.template] ?? TEMPLATE_ICONS.custom;
   const square = hasSquareCover(item.template);
+  const src = item.image;
+  const hasCover = Boolean(src) && failedSrc !== src;
   const context = unified ? tableName(item._tableLabel) : item.sub?.trim() || itemSubline(item, tr, customFields);
 
   const value = mode === 'time'
@@ -32,18 +36,18 @@ export default function GridCard({ item, customFields = [], mode, index, unified
       onClick={onClick}
     >
       <div className={`rk-gcard-cover${square ? ' is-square' : ''}`}>
-        {item.image ? (
+        {hasCover ? (
           square ? (
             // capa de disco é quadrada: inteira no centro, com ela mesma desfocada de
             // fundo, pra caber no formato dos pôsteres numa tabela mista
             <>
-              <img className="rk-gcard-blur" src={item.image} alt="" aria-hidden="true" loading="lazy" />
-              <img className="rk-gcard-img is-contain" src={item.image} alt={item.title} loading="lazy"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              <img className="rk-gcard-blur" src={src} alt="" aria-hidden="true" loading="lazy" />
+              <img className="rk-gcard-img is-contain" src={src} alt={item.title} loading="lazy"
+                onError={() => setFailedSrc(src)} />
             </>
           ) : (
-            <img className="rk-gcard-img" src={item.image} alt={item.title} loading="lazy"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            <img className="rk-gcard-img" src={src} alt={item.title} loading="lazy"
+              onError={() => setFailedSrc(src)} />
           )
         ) : (
           <span className="rk-gcard-empty"><Icon size={28} strokeWidth={1.4} aria-hidden="true" /></span>

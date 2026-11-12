@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TriangleAlert } from 'lucide-react';
 import { useLanguage } from '../i18n';
+import useModalBehavior from './useModalBehavior';
 
 /**
  * Diálogo de confirmação padrão do site (usado em rankings, takes, grupos…).
@@ -13,58 +14,59 @@ export default function ConfirmModal({ title, message, confirmLabel, busyLabel, 
   const tc = t.rankings.confirm;
   const label = confirmLabel || tc.deleteDefault;
   const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    function handleKeyDown(event) {
-      if (event.key === 'Escape' && !confirming) onClose();
-    }
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [confirming, onClose]);
+  const titleId = useId();
+  const dialog = useRef(null);
+  useModalBehavior(dialog, () => { if (!confirming) onClose(); });
 
   async function handleConfirm() {
     setConfirming(true);
-    const confirmed = await onConfirm();
-    if (confirmed) onClose();
-    setConfirming(false);
+    setError('');
+    try {
+      const confirmed = await onConfirm();
+      if (confirmed) onClose();
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || t.chat.actionError);
+    } finally {
+      setConfirming(false);
+    }
   }
 
   return createPortal(
     <div
       role="presentation"
-      style={{
-        position: 'fixed', inset: 0, zIndex: 400,
-        background: 'rgba(0, 0, 0, 0.72)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '1rem',
-      }}
+      className="mr-dialog-backdrop mr-confirm-backdrop"
       onClick={() => !confirming && onClose()}
     >
       <div
+        ref={dialog}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="mr-confirm-title"
-        style={{
-          width: 390, maxWidth: '100%', padding: '1.5rem',
-          background: 'var(--mr-surface)', border: '1px solid var(--mr-border)',
-          borderRadius: 12, boxShadow: '0 18px 50px rgba(0, 0, 0, 0.5)',
-        }}
+        aria-labelledby={titleId}
+        className="mr-dialog mr-confirm-dialog"
         onClick={event => event.stopPropagation()}
       >
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <TriangleAlert size={22} strokeWidth={1.8} aria-hidden="true" style={{ flex: 'none', color: 'var(--mr-red)' }} />
+        <div className="mr-confirm-row">
+          <TriangleAlert size={22} strokeWidth={1.8} aria-hidden="true" className="mr-confirm-icon" />
           <div>
-            <h2 id="mr-confirm-title" style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 8 }}>
+            <h2 id={titleId} className="mr-confirm-title">
               {title}
             </h2>
-            <p style={{ color: 'var(--mr-text-secondary)', fontSize: '0.875rem', lineHeight: 1.5 }}>
+            <p className="mr-confirm-msg">
               {message}
             </p>
           </div>
         </div>
 
-        <div className="mr-actions" style={{ marginTop: '1.5rem' }}>
+        {error && (
+          <p className="mr-confirm-error" role="alert">
+            {error}
+          </p>
+        )}
+
+        <div className="mr-actions mr-confirm-actions">
           <button type="button" className="mr-btn mr-btn-ghost" onClick={onClose} disabled={confirming}>
             {tc.cancel}
           </button>

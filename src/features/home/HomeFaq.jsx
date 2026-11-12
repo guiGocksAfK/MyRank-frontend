@@ -109,9 +109,11 @@ const HomeFaq = ({ faq }) => {
         {faq.items.map((item, i) => {
           const isOpen = open === i;
           const panelId = `${baseId}-faq-${i}`;
+          const buttonId = `${panelId}-q`;
           return (
             <li key={item.q} className={`faq-item${isOpen ? " is-open" : ""}`}>
               <button
+                id={buttonId}
                 type="button"
                 className="faq-question"
                 aria-expanded={isOpen}
@@ -121,7 +123,7 @@ const HomeFaq = ({ faq }) => {
                 {item.q}
                 <span className="faq-icon" aria-hidden="true" />
               </button>
-              <div id={panelId} className="faq-answer" role="region">
+              <div id={panelId} className="faq-answer" role="region" aria-labelledby={buttonId} inert={!isOpen}>
                 <div>
                   <p>{item.a}</p>
                 </div>

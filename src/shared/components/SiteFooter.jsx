@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useLanguage } from "../i18n";
 import DataSourcesModal from "./DataSourcesModal";
 import "./SiteFooter.css";
 
 // Assinatura do autor no rodapé (não são "redes do MyRank").
-const CONTACT_EMAIL = "guigocksz@gmail.com";
 const AUTHOR = "Guilherme Gocks";
 const AUTHOR_LINKS = [
   {
@@ -43,9 +43,8 @@ const SiteFooter = () => {
         </div>
 
         <nav className="sf-links">
-          <a href="#">{footer.terms}</a>
-          <a href="#">{footer.privacy}</a>
-          <a href={`mailto:${CONTACT_EMAIL}`}>{footer.contact}</a>
+          <Link to="/termos">{footer.terms}</Link>
+          <Link to="/privacidade">{footer.privacy}</Link>
           <button type="button" className="sf-link-btn" onClick={() => setSourcesOpen(true)}>
             {footer.sources}
           </button>

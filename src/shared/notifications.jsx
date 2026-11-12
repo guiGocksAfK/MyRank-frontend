@@ -57,10 +57,19 @@ export function NotificationsProvider({ children }) {
   // poll do contador
   useEffect(() => {
     if (!userId) return undefined;
-    refreshCount();
-    timerRef.current = setInterval(refreshCount, POLL_MS);
-    return () => clearInterval(timerRef.current);
-  }, [userId, refreshCount]);
+    let active = true;
+    const poll = () => {
+      getUnreadCount()
+        .then((n) => { if (active) setUnreadCount(n); })
+        .catch(() => {});
+    };
+    poll();
+    timerRef.current = setInterval(poll, POLL_MS);
+    return () => {
+      active = false;
+      clearInterval(timerRef.current);
+    };
+  }, [userId]);
 
   const value = {
     unreadCount,

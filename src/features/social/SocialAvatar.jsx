@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-/** Avatar de usuário: foto quando disponível, senão iniciais coloridas. */
-export default function SocialAvatar({ name = '?', color = 'var(--mr-gold)', initials, src, size = 36 }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [src]);
+/**
+ * Avatar de usuário: foto quando disponível, senão as iniciais num círculo
+ * neutro (preto e dourado; as cores de arco-íris de antes fugiam do visual).
+ */
+export default function SocialAvatar({ name = '?', initials, src, size = 36 }) {
+  // guarda qual endereço falhou: trocou a foto, tenta a nova sem precisar de efeito
+  const [failedSrc, setFailedSrc] = useState(null);
+  const failed = failedSrc === src;
 
   const text =
     initials ||
@@ -31,7 +35,7 @@ export default function SocialAvatar({ name = '?', color = 'var(--mr-gold)', ini
         <img
           src={src}
           alt=""
-          onError={() => setFailed(true)}
+          onError={() => setFailedSrc(src)}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       </span>
@@ -43,8 +47,9 @@ export default function SocialAvatar({ name = '?', color = 'var(--mr-gold)', ini
       aria-hidden="true"
       style={{
         ...base,
-        background: color,
-        color: '#fff',
+        background: 'var(--mr-muted-bg)',
+        boxShadow: 'inset 0 0 0 1px var(--mr-border)',
+        color: 'var(--mr-text-secondary)',
         fontWeight: 700,
         fontSize: size * 0.4,
         lineHeight: 1,

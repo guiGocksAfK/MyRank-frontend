@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Plus, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
 import { socialApi } from '../social/socialData';
 import SocialAvatar from '../social/SocialAvatar';
 import ConfirmModal from '../../shared/components/ConfirmModal';
+import useModalBehavior from '../../shared/components/useModalBehavior';
 import ImagePreview from './ImagePreview';
 import {
   getMembers,
@@ -43,7 +45,9 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
   const [photo, setPhoto] = useState(conversation.imageUrl || '');
   const [access, setAccess] = useState(conversation.access);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
+  const [found, setFound] = useState([]);
+  // busca curta demais não mostra nada (sem precisar limpar o estado)
+  const results = query.trim().length < 2 ? [] : found;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [inviteToken, setInviteToken] = useState(null);
@@ -59,13 +63,9 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
     };
   }, []);
 
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  // Esc pela pilha de modais: com a confirmação de excluir aberta, fecha só ela.
+  const dialog = useRef(null);
+  useModalBehavior(dialog, onClose);
 
   const loadMembers = useCallback(() => {
     getMembers(conversation.id).then(setMembers).catch(() => setMembers([]));
@@ -88,14 +88,11 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
 
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) {
-      setResults([]);
-      return undefined;
-    }
+    if (q.length < 2) return undefined;
     let active = true;
     const id = setTimeout(() => {
       // só quem se segue mutuamente entra direto; o resto vem pelo link de convite (o back confere)
-      socialApi.searchUsers(q).then((r) => active && setResults(r.filter((u) => u.following && u.followsYou))).catch(() => {});
+      socialApi.searchUsers(q).then((r) => active && setFound(r.filter((u) => u.following && u.followsYou))).catch(() => {});
     }, 250);
     return () => {
       active = false;
@@ -186,12 +183,19 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
   };
 
   return (
-    <div className="chat-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="gp-title">
-      <div className="chat-modal chat-modal-lg">
+    <div className="chat-modal-overlay">
+      <div
+        ref={dialog}
+        className="chat-modal chat-modal-lg"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="gp-title"
+        tabIndex={-1}
+      >
         <div className="chat-modal-head">
           <h3 className="chat-modal-title" id="gp-title">{tc.groupSettings}</h3>
           <button type="button" className="chat-modal-x" onClick={onClose} aria-label={tc.close}>
-            ✕
+            <X size={16} strokeWidth={2} />
           </button>
         </div>
 
@@ -407,14 +411,14 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
                           run(async () => {
                             await addMembers(conversation.id, [u.id]);
                             setQuery('');
-                            setResults([]);
+                            setFound([]);
                           })
                         }
                         disabled={busy}
                       >
-                        <SocialAvatar name={u.username} initials={u.initials} color={u.color} src={u.avatarSrc} size={28} />
+                        <SocialAvatar name={u.username} initials={u.initials} src={u.avatarSrc} size={28} />
                         <span className="chat-result-name">@{u.username}</span>
-                        <span aria-hidden="true">＋</span>
+                        <Plus size={14} strokeWidth={2.2} aria-hidden="true" />
                       </button>
                     ))}
                 </div>

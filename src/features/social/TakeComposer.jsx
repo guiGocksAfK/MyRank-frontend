@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
-import { useUnifiedItems } from '../../shared/useUnifiedItems';
+import { useRef, useState } from 'react';
+import { PenLine } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
-import { typeIconFor } from './socialData';
+import { useUser } from '../../shared/userContext';
+import SocialAvatar from './SocialAvatar';
+import WorkPicker from './WorkPicker';
 
 const MAX = 280;
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
@@ -11,30 +13,27 @@ const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''
  * e escreve uma opinião curta. `onPost({ work, text })`.
  * Colapsado por padrão; sem obras avaliadas vira um card de onboarding.
  */
-export default function TakeComposer({ onPost, onNavigate }) {
-  const { items, loading } = useUnifiedItems();
+/** `items`: suas obras (null = carregando), vindas do feed pra não buscar duas vezes. */
+export default function TakeComposer({ items, onPost, onNavigate }) {
+  const loading = items === null;
   const { t } = useLanguage();
+  const { user } = useUser();
   const tc = t.social.composer;
-  const [workKey, setWorkKey] = useState('');
+  const [chosen, setChosen] = useState(null);
+  const textRef = useRef(null);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [error, setError] = useState('');
 
-  const works = useMemo(
-    () =>
-      (items || [])
-        .slice()
-        .sort((a, b) => (a.title || '').localeCompare(b.title || '')),
-    [items],
-  );
-
-  const chosen = works.find((w) => String(w.id) === workKey);
+  const works = items || [];
   const remaining = MAX - text.length;
   const canPost = chosen && text.trim().length >= 3 && remaining >= 0 && !busy;
 
   async function submit() {
     if (!canPost) return;
     setBusy(true);
+    setError('');
     try {
       await onPost({
         workId: chosen.id,
@@ -46,8 +45,10 @@ export default function TakeComposer({ onPost, onNavigate }) {
         },
       });
       setText('');
-      setWorkKey('');
+      setChosen(null);
       setExpanded(false);
+    } catch (err) {
+      setError(err?.response?.data?.message || tc.postError);
     } finally {
       setBusy(false);
     }
@@ -56,8 +57,8 @@ export default function TakeComposer({ onPost, onNavigate }) {
   // Sem obras avaliadas → onboarding
   if (!loading && works.length === 0) {
     return (
-      <div className="mr-card social-onboard">
-        <div className="mr-card-body">
+      <div className="mr-panel social-composer social-onboard">
+        <div>
           <div className="social-onboard-title">{tc.onboardTitle}</div>
           <p className="social-onboard-text">{tc.onboardText}</p>
           <button
@@ -77,38 +78,36 @@ export default function TakeComposer({ onPost, onNavigate }) {
     return (
       <button
         type="button"
-        className="social-composer-collapsed"
+        className="mr-panel social-composer-collapsed"
         onClick={() => setExpanded(true)}
         disabled={loading}
       >
-        <span aria-hidden="true">✍️</span>
-        {loading ? tc.loadingWorks : tc.collapsedPrompt}
+        <SocialAvatar name={user?.username || '?'} src={user?.avatarUrl} size={32} />
+        <span className="social-composer-prompt">{loading ? tc.loadingWorks : tc.collapsedPrompt}</span>
+        <span className="social-composer-cta">
+          <PenLine size={14} strokeWidth={2} aria-hidden="true" />
+          {tc.write}
+        </span>
       </button>
     );
   }
 
   return (
-    <div className="mr-card">
-      <div className="mr-card-body">
-        <div className="mr-flex mr-items-center mr-gap-2 mr-flex-wrap" style={{ marginBottom: 8 }}>
-          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{tc.title}</span>
-          <select
-            className="mr-input social-select"
-            value={workKey}
-            onChange={(e) => setWorkKey(e.target.value)}
-            disabled={works.length === 0}
-            style={{ maxWidth: 260 }}
-          >
-            <option value="">{works.length === 0 ? tc.noWorks : tc.whichWork}</option>
-            {works.map((w) => (
-              <option key={w.id} value={String(w.id)}>
-                {typeIconFor(w.type)} {w.title}
-              </option>
-            ))}
-          </select>
-        </div>
+    <div className="mr-panel social-composer">
+      <div>
+        <div className="social-composer-title">{tc.title}</div>
+        <WorkPicker
+          works={works}
+          value={chosen}
+          onChange={(w) => {
+            setChosen(w);
+            // escolheu a obra: o cursor já vai pro texto
+            if (w) requestAnimationFrame(() => textRef.current?.focus());
+          }}
+        />
 
         <textarea
+          ref={textRef}
           className="mr-input"
           rows={2}
           maxLength={MAX + 20}
@@ -116,9 +115,14 @@ export default function TakeComposer({ onPost, onNavigate }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={!chosen}
-          autoFocus
-          style={{ width: '100%', resize: 'vertical' }}
+          style={{ width: '100%', resize: 'vertical', marginTop: 8 }}
         />
+
+        {error && (
+          <p className="pf-form-error" role="alert" style={{ marginTop: 8 }}>
+            {error}
+          </p>
+        )}
 
         <div className="mr-flex mr-items-center mr-justify-between" style={{ marginTop: 8 }}>
           <span
@@ -134,7 +138,8 @@ export default function TakeComposer({ onPost, onNavigate }) {
               onClick={() => {
                 setExpanded(false);
                 setText('');
-                setWorkKey('');
+                setChosen(null);
+                setError('');
               }}
             >
               {tc.cancel}

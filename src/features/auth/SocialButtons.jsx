@@ -98,7 +98,7 @@ const SocialButtons = ({ only, disabled = false, onError, onBusy }) => {
           </div>
         </div>
       ) : (
-        <p className="auth-error">{tAuth.errors.googleNotConfigured}</p>
+        <p className="auth-error" role="alert">{tAuth.errors.googleNotConfigured}</p>
       ))}
 
       {showDiscord && (

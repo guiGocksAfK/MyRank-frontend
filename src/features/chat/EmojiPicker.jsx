@@ -1,3 +1,4 @@
+import { Smile } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const EMOJIS = [
@@ -37,7 +38,7 @@ export default function EmojiPicker({ onPick, label }) {
         aria-label={label}
         aria-expanded={open}
       >
-        🙂
+        <Smile size={18} strokeWidth={1.8} />
       </button>
       {open && (
         <div className="chat-emoji-pop">

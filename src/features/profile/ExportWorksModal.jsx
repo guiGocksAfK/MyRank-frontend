@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ClipboardList, Copy, Download, FileJson, Sheet } from 'lucide-react';
 import Modal from '../../shared/components/Modal';
-import { getUnifiedWorks } from '../../services/WorkService';
 import { useLanguage } from '../../shared/i18n';
+import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { groupByTable, toText, toSheet, toJson, download } from './exportWorks';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
@@ -29,18 +29,12 @@ const head = (text, keepLast = false) => {
 export default function ExportWorksModal({ onClose }) {
   const { t, locale } = useLanguage();
   const tx = t.profile.export;
-  const [works, setWorks] = useState(null);
-  const [failed, setFailed] = useState(false);
+  const { items: works, error: loadErr } = useUnifiedItems();
+  const failed = Boolean(loadErr);
   const [picked, setPicked] = useState(() => new Set()); // vazio = todas
   const [format, setFormat] = useState('copy');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    getUnifiedWorks()
-      .then((data) => setWorks(Array.isArray(data) ? data : []))
-      .catch(() => setFailed(true));
-  }, []);
 
   const tables = useMemo(() => groupByTable(works || []), [works]);
   const chosen = picked.size === 0 ? tables : tables.filter((g) => picked.has(g.id));

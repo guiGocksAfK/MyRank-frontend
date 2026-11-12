@@ -4,7 +4,7 @@
   background: color-mix(in srgb, #0f0f0f 82%, transparent);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--mr-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -25,11 +25,11 @@
 .navbar-logo span {
   font-size: 26px;
   font-weight: 800;
-  color: #e5e5e5;
+  color: var(--mr-text);
 }
 
 .navbar-logo span:last-child {
-  color: #d4af37;
+  color: var(--mr-gold);
 }
 
 .navbar-actions {

@@ -33,7 +33,7 @@ export default function VerifyEmailPage() {
         </div>
         {failed ? (
           <>
-            <p className="auth-error">{tVerify.invalid}</p>
+            <p className="auth-error" role="alert">{tVerify.invalid}</p>
             <button className="mr-btn mr-btn-gold auth-submit" type="button" onClick={() => navigate("/entrar")}>
               {tVerify.backToLogin}
             </button>

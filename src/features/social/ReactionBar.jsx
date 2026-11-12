@@ -1,17 +1,20 @@
 import { useState } from 'react';
+import { Handshake, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 
+/** Pra ser "polêmico": votos suficientes e nenhum lado com mais de 65%. */
+const POLEMIC_MIN_VOTES = 6;
+const POLEMIC_MIN_SHARE = 0.35;
+
 /**
- * Linha de reações de um card. `reactions` = { up, agree, disagree, mine }.
- * `onReact(kind)` deve devolver o objeto de reações atualizado (Promise ok).
+ * Reações de um take. `reactions` = { up, agree, disagree, mine }.
+ * O curti fica só com ícone e número; concordo × discordo é o placar do take,
+ * com o nome escrito, uma barrinha de quem está ganhando e o selo "polêmico"
+ * quando está dividido. `onReact(kind)` devolve as reações atualizadas.
  */
 export default function ReactionBar({ reactions, onReact }) {
   const { t } = useLanguage();
-  const KINDS = [
-    { id: 'up', icon: '👍', label: t.social.react.up },
-    { id: 'agree', icon: '🤝', label: t.social.react.agree },
-    { id: 'disagree', icon: '👎', label: t.social.react.disagree },
-  ];
+  const tr = t.social.react;
   const [state, setState] = useState(reactions);
   const [busy, setBusy] = useState(false);
 
@@ -39,25 +42,43 @@ export default function ReactionBar({ reactions, onReact }) {
     }
   }
 
+  const button = (kind, Icon, label, withText) => {
+    const active = state.mine === kind;
+    const count = state[kind] || 0;
+    return (
+      <button
+        type="button"
+        onClick={() => handle(kind)}
+        className={`social-react-btn${withText ? ' has-text' : ''}`}
+        data-active={active ? 'true' : undefined}
+        aria-pressed={active}
+        aria-label={label}
+        title={label}
+      >
+        <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
+        {withText && <span className="social-react-text">{label}</span>}
+        {count > 0 && <span className="social-react-count">{count}</span>}
+      </button>
+    );
+  };
+
+  const votes = (state.agree || 0) + (state.disagree || 0);
+  const agreeShare = votes ? state.agree / votes : 0;
+  const polemic = votes >= POLEMIC_MIN_VOTES && Math.min(agreeShare, 1 - agreeShare) >= POLEMIC_MIN_SHARE;
+
   return (
     <div className="social-reactions">
-      {KINDS.map((k) => {
-        const active = state.mine === k.id;
-        const count = state[k.id] || 0;
-        return (
-          <button
-            key={k.id}
-            type="button"
-            onClick={() => handle(k.id)}
-            className="social-react-btn"
-            data-active={active ? 'true' : undefined}
-          >
-            <span aria-hidden="true">{k.icon}</span>
-            <span className="social-react-label">{k.label}</span>
-            {count > 0 && <span className="social-react-count">{count}</span>}
-          </button>
-        );
-      })}
+      {button('up', ThumbsUp, tr.up, false)}
+      <div className="social-verdict">
+        {button('agree', Handshake, tr.agree, true)}
+        {votes > 0 && (
+          <span className="social-verdict-bar" aria-hidden="true">
+            <span style={{ width: `${Math.round(agreeShare * 100)}%` }} />
+          </span>
+        )}
+        {button('disagree', ThumbsDown, tr.disagree, true)}
+      </div>
+      {polemic && <span className="social-polemic">{tr.polemic}</span>}
     </div>
   );
 }

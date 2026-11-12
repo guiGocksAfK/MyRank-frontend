@@ -3,12 +3,12 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { useUser } from './userContext';
 import { getChatUnreadCount } from '../services/chatService';
+import { API_URL } from '../services/api';
 
 // Fallback lento: o WS empurra em tempo real; o poll cobre reconexões/queda.
 const POLL_MS = 60_000;
 // Deriva do VITE_API_URL (troca /api por /ws) pra não exigir uma 2ª env var;
 // VITE_WS_URL sobrescreve se precisar de um host diferente.
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 const WS_URL = import.meta.env.VITE_WS_URL || API_URL.replace(/\/api\/?$/, '/ws');
 
 const ChatContext = createContext(null);
@@ -66,10 +66,7 @@ export function ChatProvider({ children }) {
 
   // ── STOMP: conecta enquanto logado ────────────────────────────────────
   useEffect(() => {
-    if (!userId) {
-      setUnreadCount(0);
-      return undefined;
-    }
+    if (!userId) return undefined;
 
     const token = localStorage.getItem('myrank_token');
     const client = new Client({
@@ -111,13 +108,21 @@ export function ChatProvider({ children }) {
   // ── Poll de fallback ─────────────────────────────────────────────────
   useEffect(() => {
     if (!userId) return undefined;
-    refreshCount();
-    timerRef.current = setInterval(refreshCount, POLL_MS);
-    return () => clearInterval(timerRef.current);
+    // aba em segundo plano não consulta o servidor; ao voltar, atualiza na hora
+    const tick = () => {
+      if (!document.hidden) refreshCount();
+    };
+    tick();
+    timerRef.current = setInterval(tick, POLL_MS);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(timerRef.current);
+      document.removeEventListener('visibilitychange', tick);
+    };
   }, [userId, refreshCount]);
 
   const value = {
-    unreadCount,
+    unreadCount: userId ? unreadCount : 0,
     refreshCount,
     openChatWith,
     openNonce,

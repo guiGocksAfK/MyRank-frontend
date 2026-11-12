@@ -31,7 +31,11 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
   // obra clicada: o Unificado não edita, então aparece a dica com o atalho pra tabela dela
   const [hint, setHint] = useState(null);
 
-  const selectedTables = tables.filter(t => selectedTableIds.includes(t.id));
+  // memorizado: sem isso a lista nascia nova a cada render e refazia todas as contas abaixo
+  const selectedTables = useMemo(
+    () => tables.filter(table => selectedTableIds.includes(table.id)),
+    [tables, selectedTableIds],
+  );
 
   const allItems = useMemo(() => {
     const uniqueItems = new Map();
@@ -158,7 +162,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
               }}
             >
               <span className="rk-rank">{i + 1}</span>
-              <Poster src={item.image} title={item.title} size="thumb" />
+              <Poster src={item.image} title={item.title} template={item.template} size="thumb" />
               <div className="rk-main">
                 <div className="rk-title">{item.title}</div>
                 <div className="rk-sub">{itemSubline(item, tr)}</div>

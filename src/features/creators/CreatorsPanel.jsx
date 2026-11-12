@@ -1,8 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronDown, LayoutGrid, List } from 'lucide-react';
-import { getUnifiedWorks } from '../../services/WorkService';
 import { getCreatorProfiles } from '../../services/creatorService';
-import { mapWorkToItem } from '../../utils/mapWork';
+import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
 import InfoTip from '../../shared/components/InfoTip';
 import { hasSquareCover, tableName } from '../../shared/tableTemplates';
@@ -77,25 +76,11 @@ export default function CreatorsPanel({ onBack }) {
   const [typeFilter, setTypeFilter] = useState('all');
   const [viewMode, setViewMode] = useState('list');
   const [expanded, setExpanded] = useState([]);
-  const [works, setWorks] = useState(null); // obras mapeadas + creator/categoryName; null = carregando
+  // mesma lista do resto do dashboard (WorksProvider); null = carregando
+  const { items: works, error: loadFailed } = useUnifiedItems();
   const [profiles, setProfiles] = useState({}); // chave da pessoa → { photoUrl, customPhoto, type }
   const [editing, setEditing] = useState(null);
   const weighted = order === 'weighted';
-
-  useEffect(() => {
-    let active = true;
-    getUnifiedWorks()
-      .then((data) => {
-        if (!active) return;
-        setWorks((Array.isArray(data) ? data : []).map((w) => ({
-          ...mapWorkToItem(w),
-          creator: (w.creator || '').trim(),
-          categoryName: w.categoryName,
-        })));
-      })
-      .catch(() => active && setWorks([]));
-    return () => { active = false; };
-  }, []);
 
   const loading = works === null;
   const entries = useMemo(() => (works ? groupCreators(works) : []), [works]);
@@ -151,6 +136,8 @@ export default function CreatorsPanel({ onBack }) {
 
   let body;
   if (loading) body = <p className="rk-empty">{tc.loading}</p>;
+  // falha na busca não pode aparecer como "você não tem obras"
+  else if (loadFailed) body = <p className="rk-empty rk-error" role="alert">{t.insights.panel.loadErrorTitle}. {t.insights.panel.loadErrorText}</p>;
   else if (entries.length === 0) body = <p className="rk-empty">{tc.emptyHint}</p>;
   else if (sorted.length === 0) body = <p className="rk-empty">{tc.noneFiltered}</p>;
   else if (viewMode === 'grid') {

@@ -18,13 +18,6 @@ export function minutesToHHMM(minutes) {
   };
 }
 
-export function getNoteBarColor(note) {
-  if (note >= 10) return 'gold';
-  if (note >= 8) return 'green';
-  if (note >= 6) return 'yellow';
-  return 'red';
-}
-
 export function getYear(isoDate) {
   if (!isoDate) return null;
   return parseInt(isoDate.split('-')[0], 10);
@@ -111,47 +104,3 @@ export function applyFilters(items, filters) {
     return true;
   });
 }
-
-const DEFAULT_COL_LABELS = {
-  rank: '#', title: 'Título', table: 'Tabela', score: 'Nota',
-  bonus: 'Bônus', finalScore: 'Nota Final', time: 'Tempo', actions: 'Ações',
-};
-
-export function getColumnConfig(mode, withActions = false, hasImage = false, labels = DEFAULT_COL_LABELS) {
-  const L = { ...DEFAULT_COL_LABELS, ...labels };
-  const showTableCol = !withActions;
-  const imgCol = hasImage ? ['40px'] : [];
-  const imgHeader = hasImage ? [''] : [];
-
-  if (mode === 'weight') {
-    const grid = ['2rem', ...imgCol, '1fr'];
-    const headers = [L.rank, ...imgHeader, L.title];
-    if (showTableCol) { grid.push('120px'); headers.push(L.table); }
-    grid.push('70px', '70px', '140px');
-    headers.push(L.score, L.bonus, L.finalScore);
-    if (withActions) { grid.push('80px'); headers.push(L.actions); }
-    return { gridTemplate: grid.join(' '), headers };
-  }
-  if (mode === 'time') {
-    const grid = ['2rem', ...imgCol, '1fr'];
-    const headers = [L.rank, ...imgHeader, L.title];
-    if (showTableCol) { grid.push('120px'); headers.push(L.table); }
-    grid.push('70px', '110px');
-    headers.push(L.score, L.time);
-    if (withActions) { grid.push('80px'); headers.push(L.actions); }
-    return { gridTemplate: grid.join(' '), headers };
-  }
-  const grid = ['2rem', ...imgCol, '1fr'];
-  const headers = [L.rank, ...imgHeader, L.title];
-  if (showTableCol) { grid.push('120px'); headers.push(L.table); }
-  grid.push('180px');
-  headers.push(L.score);
-  if (withActions) { grid.push('80px'); headers.push(L.actions); }
-  return { gridTemplate: grid.join(' '), headers };
-}
-
-export const badgeStyle = {
-  fontSize: '0.7rem',
-  width: 'fit-content',
-  whiteSpace: 'nowrap',
-};

@@ -19,15 +19,17 @@ const shade = (i) => `color-mix(in srgb, var(--mr-gold) ${SHADES[Math.min(i, SHA
 
 /** Capa no desenho do grid dos Rankings, com o rótulo do destaque embaixo. */
 function HighlightCard({ label, item, meta }) {
+  const [failedSrc, setFailedSrc] = useState(null);
   const Icon = TEMPLATE_ICONS[item.template] ?? TEMPLATE_ICONS.custom;
   const square = hasSquareCover(item.template);
+  const src = item.image;
   return (
     <div className="pf-hl">
       <span className="pf-hl-label">{label}</span>
       <div className={`rk-gcard-cover${square ? ' is-square' : ''}`}>
-        {item.image ? (
-          <img className={`rk-gcard-img${square ? ' is-contain' : ''}`} src={item.image} alt={item.title} loading="lazy"
-            onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+        {src && failedSrc !== src ? (
+          <img className={`rk-gcard-img${square ? ' is-contain' : ''}`} src={src} alt={item.title} loading="lazy"
+            onError={() => setFailedSrc(src)} />
         ) : (
           <span className="rk-gcard-empty"><Icon size={28} strokeWidth={1.4} aria-hidden="true" /></span>
         )}

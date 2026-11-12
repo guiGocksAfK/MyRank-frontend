@@ -72,7 +72,8 @@ const HomePage = () => {
   }, []);
 
   return (
-    <main className="home-page">
+    <div className="home-page">
+    <main>
 
       <section className="home-hero">
         <div className={`home-poster-grid${revealed ? ' is-revealed' : ''}`}>
@@ -120,9 +121,10 @@ const HomePage = () => {
   <HomeFaq faq={t.home.faq} />
   <HomeCredits credits={t.home.credits} />
 
-  <SiteFooter />
-
     </main>
+
+    <SiteFooter />
+    </div>
   )
 }
 

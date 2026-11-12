@@ -175,7 +175,7 @@ const ForgotPasswordPage = () => {
                   </label>
                 </div>
 
-                {error && <p className="auth-error">{error}</p>}
+                {error && <p className="auth-error" role="alert">{error}</p>}
 
                 <button className="mr-btn mr-btn-gold auth-submit" type="submit" disabled={loading}>
                   {loading ? tForgot.submitting : tForgot.submit}
@@ -204,7 +204,7 @@ const ForgotPasswordPage = () => {
                   />
                 </label>
 
-                {error && <p className="auth-error">{error}</p>}
+                {error && <p className="auth-error" role="alert">{error}</p>}
                 {notice && <p className="auth-resend-note">{notice}</p>}
 
                 <button
@@ -266,7 +266,7 @@ const ForgotPasswordPage = () => {
                   </label>
                 </div>
 
-                {error && <p className="auth-error">{error}</p>}
+                {error && <p className="auth-error" role="alert">{error}</p>}
 
                 <button className="mr-btn mr-btn-gold auth-submit" type="submit" disabled={loading}>
                   {loading ? tReset.submitting : tReset.submit}
@@ -283,7 +283,7 @@ const ForgotPasswordPage = () => {
 
                 <div>
                   <SocialButtons only={provider} disabled={loading} onError={setError} onBusy={setLoading} />
-                  {error && <p className="auth-error">{error}</p>}
+                  {error && <p className="auth-error" role="alert">{error}</p>}
                 </div>
 
                 <button className="auth-text-button" type="button" onClick={changeEmail}>

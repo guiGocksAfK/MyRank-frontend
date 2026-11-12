@@ -637,6 +637,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ir-suggestion, .ir-composer, .ir-send { transition: none; }
   .insights-enter, .insights-skel, .ir-typing span { animation: none; }
   .insights-spinner, .ir-regen .is-spinning { animation-duration: 2.4s; }
 }

@@ -1,118 +1,59 @@
 import { useEffect, useRef, useState } from 'react';
+import { FlaskConical, GraduationCap } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './social.css';
+import '../rankings/rankings/rankings.css';
 import { useLanguage } from '../../shared/i18n';
 import { useChat } from '../../shared/chat';
-import { socialApi } from './socialData';
+import { socialApi, socialMock } from './socialData';
 import SocialFeed from './SocialFeed';
 import SocialRail from './SocialRail';
+import SocialNav, { FeedBar } from './SocialNav';
 import ConnectionsView from './ConnectionsView';
-import SocialEmpty from './SocialEmpty';
-import Discover from './Discover';
-import GroupDiscover from './GroupDiscover';
+import People from './People';
 import UserProfileView from './UserProfileView';
 import CompareView from './CompareView';
-import SocialAvatar from './SocialAvatar';
 import ChatPanel from '../chat/ChatPanel';
 
-const fmtStr = (str, v = {}) => String(str).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
-
-function CompareList({ onPick }) {
-  const { t } = useLanguage();
-  const tcl = t.social.compareList;
-  const [following, setFollowing] = useState(null);
-  const [q, setQ] = useState('');
-
-  useEffect(() => {
-    socialApi.getFollowing().then(setFollowing).catch(() => setFollowing([]));
-  }, []);
-
-  if (following === null) return <SocialEmpty icon="⏳" text={t.social.loading} />;
-  if (following.length === 0) {
-    return (
-      <SocialEmpty
-        icon="⚖️"
-        text={`${tcl.empty1} ${tcl.discoverWord} ${tcl.empty2}`}
-      />
-    );
-  }
-
-  const term = q.trim().toLowerCase();
-  const list = term
-    ? following.filter(
-        (u) =>
-          u.username.toLowerCase().includes(term) ||
-          (u.handle || '').toLowerCase().includes(term),
-      )
-    : following;
-
-  return (
-    <section className="social-disc-card">
-      <div className="social-disc-head">
-        <div className="social-disc-title"><span aria-hidden="true">⚖️</span> {tcl.title}</div>
-      </div>
-      <p className="social-compare-sub">{tcl.subtitle}</p>
-
-      <div className="social-disc-searchwrap">
-        <span aria-hidden="true">🔍</span>
-        <input
-          className="social-disc-search"
-          value={q}
-          placeholder={tcl.search}
-          onChange={(e) => setQ(e.target.value)}
-        />
-      </div>
-
-      <div className="social-disc-body">
-        {list.length === 0 ? (
-          <SocialEmpty icon="🔍" text={tcl.noMatch} />
-        ) : (
-          <ul className="social-compare-list">
-            {list.map((u) => (
-              <li key={u.id}>
-                <button type="button" className="social-compare-row" onClick={() => onPick(u.id)}>
-                  <SocialAvatar
-                    name={u.username}
-                    initials={u.initials}
-                    color={u.color}
-                    src={u.avatarSrc}
-                    size={40}
-                  />
-                  <span className="social-compare-info">
-                    <span className="social-compare-name">{u.username}</span>
-                    <span className="social-compare-meta">
-                      {fmtStr(t.social.pill.stats, {
-                        handle: u.handle,
-                        works: u.stats.works,
-                        avg: u.stats.avgScore.toFixed(1),
-                      })}
-                    </span>
-                  </span>
-                  <span className="social-compare-cta">{tcl.pick} →</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </section>
-  );
-}
-
-export default function SocialPanel({ initialConvId = null, onInitialConvConsumed, onNavigate }) {
+/**
+ * Aba Social: Feed | Pessoas | Mensagens. "Pessoas" juntou o antigo Descobrir
+ * com o Comparar (o Comparar virou botão em cada pessoa que você segue).
+ * Perfil de alguém, comparação e seguindo/seguidores abrem por cima das abas.
+ */
+/**
+ * `resume`: { view, tab } pra voltar exatamente onde estava (ex.: o Voltar das
+ * Configurações abertas pelo seu perfil aqui na Social).
+ */
+export default function SocialPanel({ initialConvId = null, onInitialConvConsumed, onNavigate, resume = null }) {
   const { t } = useLanguage();
   const ts = t.social;
   const { unreadCount: chatUnread, openNonce } = useChat();
   const TABS = [
     { id: 'feed', label: ts.tabs.feed },
-    { id: 'discover', label: ts.tabs.discover },
-    { id: 'compare', label: ts.tabs.compare },
+    { id: 'people', label: ts.tabs.people },
     { id: 'chat', label: ts.tabs.chat },
   ];
-  const [tab, setTab] = useState('feed');
-  const [view, setView] = useState({ kind: 'tabs' }); // tabs | profile | compare
-  const [pendingConvId, setPendingConvId] = useState(null); // grupo aberto a partir do "Descobrir"
+  const [tab, setTab] = useState(() => (initialConvId != null ? 'chat' : resume?.tab || 'feed'));
+  const [view, setView] = useState(() => (initialConvId != null ? { kind: 'tabs' } : resume?.view || { kind: 'tabs' })); // tabs | profile | compare | connections
+  // conversa aberta de fora (Mensagem no perfil, grupo no feed): o ← dela volta pra cá
+  const [chatBack, setChatBack] = useState(null);
+  const lastConvRef = useRef(null); // conversa aberta, pra voltar nela depois de ver um perfil
+  const [pendingConvId, setPendingConvId] = useState(null); // grupo aberto a partir do "Pessoas"
+  const [feedItems, setFeedItems] = useState(null); // o que o feed carregou, pro "Em alta" do trilho
+  const [feedFilter, setFeedFilter] = useState(null); // obra do "Em alta" filtrando o feed
+  const [feedScope, setFeedScope] = useState('all'); // all | following
+  const [feedKind, setFeedKind] = useState('all'); // all | takes | ratings
+  const [youKey, setYouKey] = useState(0); // recarrega as contagens do "Você" (aceitou pedido, seguiu alguém)
+  // só no dev: liga/desliga os dados de teste; mudar a chave remonta tudo com os dados novos
+  const [mockOn, setMockOn] = useState(() => socialMock.isOn());
+
+  const toggleMock = () => {
+    socialMock.set(!mockOn);
+    setMockOn(!mockOn);
+  };
 
   const openGroupConversation = (id) => {
+    setChatBack({ view, tab });
     setPendingConvId(id);
     setView({ kind: 'tabs' });
     setTab('chat');
@@ -128,102 +69,145 @@ export default function SocialPanel({ initialConvId = null, onInitialConvConsume
     }
   }, [openNonce]);
 
-  // Veio de /chat/invite/:token — abre direto a sub-aba Mensagens na conversa aceita.
-  useEffect(() => {
-    if (initialConvId == null) return;
-    setView({ kind: 'tabs' });
-    setTab('chat');
-  }, [initialConvId]);
 
-  const openProfile = (userId) => setView({ kind: 'profile', userId });
-  const openCompare = (userId) => setView({ kind: 'compare', userId });
-  const openConnections = (which) => setView({ kind: 'connections', tab: which });
-  const backToTabs = () => setView({ kind: 'tabs' });
+
+  // cada tela lembra de onde veio (`from`): o Voltar do Comparar aberto pelo
+  // perfil volta pro perfil, e o do perfil aberto pelos seguidores volta pra lista
+  // (das abas, guarda qual aba estava aberta)
+  const here = (cur) => (cur.kind === 'tabs' ? { kind: 'tabs', tab } : cur);
+  const openProfile = (userId) => setView((cur) => ({ kind: 'profile', userId, from: here(cur) }));
+  const openCompare = (userId) => setView((cur) => ({ kind: 'compare', userId, from: here(cur) }));
+  const openConnections = (which) => setView((cur) => ({ kind: 'connections', tab: which, from: here(cur) }));
+  const goBack = () => {
+    const prev = view.from || { kind: 'tabs' };
+    if (prev.tab && prev.kind === 'tabs') setTab(prev.tab);
+    setView(prev);
+  };
+  // ← da conversa aberta de fora: volta pro perfil / feed / pessoas de onde veio
+  const leaveChat = () => {
+    const b = chatBack;
+    setChatBack(null);
+    setTab(b.tab);
+    setView(b.view);
+  };
+  // abriu um perfil de dentro da conversa: na volta, reabre a mesma conversa
+  const openProfileFromChat = (userId) => {
+    setPendingConvId(lastConvRef.current);
+    openProfile(userId);
+  };
+  // "Mais ajustes" do seu perfil vai pras Configurações; o Voltar de lá volta pra cá
+  const navigateFromProfile = (to, opts) => onNavigate?.(to, to === 'profile' && opts?.settings ? { ...opts, back: { view, tab } } : opts);
 
   const toggleFollow = async (userId) => socialApi.toggleFollow(userId);
 
-  // ── Sub-view: perfil de um usuário ──
+  let content;
   if (view.kind === 'profile') {
-    return (
-      <div className="mr-space-y-6 social-panel">
-        <UserProfileView
-          userId={view.userId}
-          onBack={backToTabs}
-          onCompare={openCompare}
-          onToggleFollow={toggleFollow}
-        />
-      </div>
+    content = (
+      <UserProfileView userId={view.userId} onBack={goBack} onCompare={openCompare} onToggleFollow={toggleFollow}
+        onNavigate={navigateFromProfile} onBeforeMessage={() => setChatBack({ view, tab })} />
     );
-  }
-
-  // ── Sub-view: comparação ──
-  if (view.kind === 'compare') {
-    return (
-      <div className="mr-space-y-6 social-panel">
-        <CompareView userId={view.userId} onBack={backToTabs} onOpenUser={openProfile} />
-      </div>
+  } else if (view.kind === 'compare') {
+    content = <CompareView userId={view.userId} onBack={goBack} onOpenUser={openProfile} />;
+  } else if (view.kind === 'connections') {
+    content = (
+      <ConnectionsView initialTab={view.tab} onTabChange={(which) => setView((v) => ({ ...v, tab: which }))}
+        onBack={goBack} onOpenUser={openProfile} onCompare={openCompare} />
     );
-  }
-
-  // ── Sub-view: seguindo / seguidores ──
-  if (view.kind === 'connections') {
-    return (
-      <div className="mr-space-y-6 social-panel">
-        <ConnectionsView initialTab={view.tab} onBack={backToTabs} onOpenUser={openProfile} />
-      </div>
-    );
-  }
-
-  // ── View principal ──
-  return (
-    <div className="mr-space-y-5 social-panel">
-      {/* Sub-abas */}
-      <div className="mr-flex mr-items-center mr-gap-1 social-tabs">
-        {TABS.map((tb) => (
-          <button
-            key={tb.id}
-            className={`mr-tab-trigger social-tab-trigger ${tab === tb.id ? 'active' : ''}`}
-            onClick={() => setTab(tb.id)}
+  } else {
+    content = (
+      <>
+        <div className="social-tabbar">
+          <div
+            className="rk-tabs"
+            role="tablist"
+            aria-label={ts.tabsLabel}
+            onKeyDown={(e) => {
+              if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+              e.preventDefault();
+              const btns = Array.from(e.currentTarget.querySelectorAll('[role="tab"]'));
+              const cur = btns.indexOf(document.activeElement);
+              if (cur < 0) return;
+              const next = e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1
+                : (cur + (e.key === 'ArrowRight' ? 1 : -1) + TABS.length) % TABS.length;
+              setTab(TABS[next].id);
+              setChatBack(null);
+              btns[next]?.focus();
+            }}
           >
-            {tb.label}
-            {tb.id === 'chat' && chatUnread > 0 && (
-              <span className="social-tab-badge">{chatUnread > 9 ? '9+' : chatUnread}</span>
-            )}
-          </button>
-        ))}
-      </div>
+            <div className="rk-tabs-scroll">
+              {TABS.map((tb) => (
+                <button
+                  key={tb.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === tb.id}
+                  tabIndex={tab === tb.id ? 0 : -1}
+                  className={`rk-tab${tab === tb.id ? ' is-active' : ''}`}
+                  onClick={() => { setTab(tb.id); setChatBack(null); }}
+                >
+                  {tb.label}
+                  {tb.id === 'chat' && chatUnread > 0 && (
+                    <span className="social-tab-badge">{chatUnread > 9 ? '9+' : chatUnread}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          {socialMock.available && (
+            <div className="social-devtools">
+              {/* o tutorial do cadastro do começo, sem salvar nada */}
+              <Link to="/bem-vindo?teste" className="social-devtoggle" aria-label={ts.devTutorial} title={ts.devTutorialHint}>
+                <GraduationCap size={14} strokeWidth={1.8} aria-hidden="true" />
+                <span className="social-devtoggle-text">{ts.devTutorial}</span>
+              </Link>
+              <button type="button" className={`social-devtoggle${mockOn ? ' is-on' : ''}`} aria-pressed={mockOn} aria-label={ts.devData}
+                title={ts.devDataHint} onClick={toggleMock}>
+                <FlaskConical size={14} strokeWidth={1.8} aria-hidden="true" />
+                <span className="social-devtoggle-text">{ts.devData}</span>
+              </button>
+            </div>
+          )}
+        </div>
 
-      {tab === 'feed' && (
-        <div className="social-feed-layout">
-          <SocialFeed
-            onOpenUser={openProfile}
-            onNavigate={onNavigate}
-            onGoDiscover={() => setTab('discover')}
+        {tab === 'feed' && (
+          <div className="social-feed-layout">
+            <SocialNav
+              onOpenUser={openProfile} onOpenConnections={openConnections} refreshKey={youKey}
+              onGoPeople={() => setTab('people')} onOpenGroup={openGroupConversation}
+            />
+            <SocialFeed onOpenUser={openProfile} onNavigate={onNavigate} onGoPeople={() => setTab('people')} onItems={setFeedItems}
+              filter={feedFilter} onClearFilter={() => setFeedFilter(null)}
+              scope={feedScope} kind={feedKind}
+              filters={<FeedBar scope={feedScope} onScope={setFeedScope} kind={feedKind} onKind={setFeedKind} />} />
+            <SocialRail feedItems={feedItems} activeTrend={feedFilter?.key}
+              onPickTrend={(f) => { setFeedFilter(f); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onOpenConnections={openConnections} onOpenUser={openProfile} onGoPeople={() => setTab('people')}
+              youKey={youKey} onCountsChanged={() => setYouKey((n) => n + 1)} />
+          </div>
+        )}
+        {tab === 'people' && (
+          <People onOpenUser={openProfile} onCompare={openCompare} onOpenConversation={openGroupConversation} onOpenConnections={openConnections} />
+        )}
+        {tab === 'chat' && (
+          <ChatPanel
+            initialConvId={initialConvId ?? pendingConvId}
+            onInitialConvConsumed={() => {
+              setPendingConvId(null);
+              onInitialConvConsumed?.();
+            }}
+            onOpenProfile={openProfileFromChat}
+            onActiveChange={(id) => { lastConvRef.current = id; }}
+            onLeave={chatBack ? leaveChat : undefined}
           />
-          <SocialRail
-            onOpenConnections={openConnections}
-            onOpenUser={openProfile}
-            onGoDiscover={() => setTab('discover')}
-          />
-        </div>
-      )}
-      {tab === 'discover' && (
-        <div className="social-discover-layout">
-          <Discover onOpenUser={openProfile} />
-          <GroupDiscover onOpenConversation={openGroupConversation} />
-        </div>
-      )}
-      {tab === 'compare' && <CompareList onPick={openCompare} />}
-      {tab === 'chat' && (
-        <ChatPanel
-          initialConvId={initialConvId ?? pendingConvId}
-          onInitialConvConsumed={() => {
-            setPendingConvId(null);
-            onInitialConvConsumed?.();
-          }}
-          onOpenProfile={openProfile}
-        />
-      )}
+        )}
+      </>
+    );
+  }
+
+  // key: trocar os dados de teste remonta tudo e busca de novo
+  return (
+    <div key={mockOn ? 'mock' : 'real'} className="rk-page social-panel">
+      {content}
     </div>
   );
 }

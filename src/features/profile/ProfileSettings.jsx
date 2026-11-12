@@ -80,7 +80,8 @@ function Card({ title, children }) {
  * exportar e excluir. Cada ajuste salva na hora (PUT /users/me); se der erro,
  * volta como estava.
  */
-export default function ProfileSettings({ profile, onUserChange, isDark, onThemeToggle, onBack }) {
+/** `backLabel`: texto do Voltar (vindo da Social é "Voltar", não "Perfil"). */
+export default function ProfileSettings({ profile, onUserChange, isDark, onThemeToggle, onBack, backLabel }) {
   const { t, lang, setLang } = useLanguage();
   const tp = t.profile;
   const [saving, setSaving] = useState(null); // qual ajuste está salvando
@@ -136,7 +137,7 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
       <div>
         <button type="button" className="cr-back" onClick={onBack}>
           <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
-          {tp.backToProfile}
+          {backLabel || tp.backToProfile}
         </button>
         <h1 className="rk-page-title">{tp.settings}</h1>
       </div>

@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { isAuthenticated } from "../../services/authService";
 import { useLanguage, LANGUAGES } from "../i18n";
 import useDismiss from "./useDismiss";
 import "./Navbar.css";
@@ -73,13 +74,21 @@ const Navbar = () => {
         )}
       </div>
 
-      <Link className="mr-btn mr-btn-ghost" to="/entrar">
-        {t.nav.login}
-      </Link>
+      {isAuthenticated() ? (
+        <Link className="mr-btn mr-btn-gold" to="/dashboard">
+          {t.nav.goToApp}
+        </Link>
+      ) : (
+        <>
+          <Link className="mr-btn mr-btn-ghost" to="/entrar">
+            {t.nav.login}
+          </Link>
 
-      <Link className="mr-btn mr-btn-gold" to="/cadastrar">
-        {t.nav.signup}
-      </Link>
+          <Link className="mr-btn mr-btn-gold" to="/cadastrar">
+            {t.nav.signup}
+          </Link>
+        </>
+      )}
     </NavbarShell>
   );
 };

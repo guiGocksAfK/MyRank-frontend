@@ -4,8 +4,12 @@ import { useEffect, useState } from 'react';
 export default function AnimatedNumber({ value, decimals = 1, prefix = '', suffix = '', locale }) {
   const numericValue = Number(value) || 0;
   const [displayValue, setDisplayValue] = useState(0);
+  // "reduzir movimento": mostra o valor pronto, sem contar
+  const reduced = typeof window !== 'undefined'
+    && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   useEffect(() => {
+    if (reduced) return undefined;
     const startTime = performance.now();
     const duration = 550;
     let frameId;
@@ -19,10 +23,12 @@ export default function AnimatedNumber({ value, decimals = 1, prefix = '', suffi
 
     frameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frameId);
-  }, [numericValue]);
+  }, [numericValue, reduced]);
+
+  const shown = reduced ? numericValue : displayValue;
 
   const text = locale
-    ? displayValue.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-    : displayValue.toFixed(decimals);
+    ? shown.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+    : shown.toFixed(decimals);
   return <>{prefix}{text}{suffix}</>;
 }

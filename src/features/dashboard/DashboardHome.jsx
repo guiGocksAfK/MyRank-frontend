@@ -4,47 +4,17 @@ import { useWorks } from '../../shared/worksContext';
 import { getStoredUser } from '../../services/authService';
 import { useUser } from '../../shared/userContext';
 import { useLanguage } from '../../shared/i18n';
-import { relativeTime } from '../../shared/useUnifiedItems';
-import { getCategories } from '../../services/CategoryService';
-import { getWorksByCategory } from '../../services/WorkService';
+import { relativeTime, useUnifiedItems } from '../../shared/useUnifiedItems';
 import { getGroups } from '../../services/masterTableGroupService';
 import { getLatestInsights } from '../../services/insightsService';
-import { mapWorkToItem } from '../../utils/mapWork';
 import { sortItems } from '../../utils/formatters';
-import { hasSquareCover } from '../../shared/tableTemplates';
+import { TEMPLATE_ICONS, hasSquareCover } from '../../shared/tableTemplates';
+import InfoTip from '../../shared/components/InfoTip';
 import AnimatedNumber from '../rankings/rankings/AnimatedNumber';
 import BadgeIcon from '../../shared/badgeIcons';
 
-const typeIcons = {
-  filme: '🎬',
-  jogo: '🎮',
-  serie: '📺',
-  livro: '📚',
-};
-
-function getTableOrderKey() {
-  const userKey = localStorage.getItem('myrank_username') || 'anonymous';
-  return `myrank_table_order_${userKey}`;
-}
-
-function orderCategories(categories) {
-  const savedOrder = (() => {
-    try {
-      const parsedOrder = JSON.parse(localStorage.getItem(getTableOrderKey()) || '[]');
-      return Array.isArray(parsedOrder) ? parsedOrder : [];
-    } catch {
-      return [];
-    }
-  })();
-
-  const categoryById = new Map(categories.map(category => [String(category.id), category]));
-  const ordered = savedOrder.map(id => categoryById.get(String(id))).filter(Boolean);
-  const orderedIds = new Set(ordered.map(category => String(category.id)));
-  return [...ordered, ...categories.filter(category => !orderedIds.has(String(category.id)))];
-}
-
 function getUnifiedItemKey(item) {
-  return `${item._tableId}:${item.id}`;
+  return `${item._tableId ?? item.categoryId}:${item.id}`;
 }
 
 function applyUnifiedOrder(items, savedOrder = []) {
@@ -56,11 +26,16 @@ function applyUnifiedOrder(items, savedOrder = []) {
 
 /** Capa da obra, ou o título sobre fundo escuro quando não tem imagem. */
 function PosterCover({ item }) {
-  return item.image ? (
-    <img src={item.image} alt={item.title} loading="lazy" className="dash-cover-img" />
+  const [failedSrc, setFailedSrc] = useState(null);
+  const src = item.image;
+  const Icon = TEMPLATE_ICONS[item.template] ?? TEMPLATE_ICONS.custom;
+  return src && failedSrc !== src ? (
+    <img src={src} alt={item.title} loading="lazy" className="dash-cover-img" onError={() => setFailedSrc(src)} />
   ) : (
     <div className="mr-poster-placeholder">
-      <span className="mr-poster-placeholder-icon">{typeIcons[item.type] || '📦'}</span>
+      <span className="mr-poster-placeholder-icon" aria-hidden="true">
+        <Icon size={28} strokeWidth={1.5} aria-hidden="true" />
+      </span>
       <span className="mr-poster-placeholder-title">{item.title}</span>
     </div>
   );
@@ -68,10 +43,8 @@ function PosterCover({ item }) {
 
 export default function DashboardHome({ onNavigate }) {
   const [weighted, setWeighted] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [mediaItems, setMediaItems] = useState([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState(null); // null = todas as tabelas
   const [unifiedOrder, setUnifiedOrder] = useState([]);
-  const [loadingItems, setLoadingItems] = useState(true);
   // "agora" fixo na montagem: decide quais conquistas ganham a etiqueta de nova
   const [now] = useState(() => Date.now());
   // null = ainda carregando (ou falhou): a seção nem aparece
@@ -85,6 +58,7 @@ export default function DashboardHome({ onNavigate }) {
     setWeighted(weightedDefault);
   }
   const { worksVersion } = useWorks();
+  const { items: unifiedItems, loading: loadingItems } = useUnifiedItems();
   const { lang, locale, t } = useLanguage();
   const th = t.dash.home;
   const typeLabels = t.common.mediaTypes;
@@ -93,39 +67,28 @@ export default function DashboardHome({ onNavigate }) {
 
   useEffect(() => {
     let cancelled = false;
-
-    async function loadItems() {
-      try {
-        const categories = orderCategories(await getCategories());
-        let selectedCategoryIds = categories.map(category => String(category.id));
-        try {
-          const groups = await getGroups();
-          const unifiedGroup = groups.find(group => group.name === 'Unificado');
-          if (unifiedGroup?.categoryIds?.length) {
-            selectedCategoryIds = unifiedGroup.categoryIds.map(categoryId => String(categoryId));
-          }
-          if (!cancelled) setUnifiedOrder(unifiedGroup?.manualOrder || []);
-        } catch {
-          // A Home continua funcional mesmo se o grupo unificado não estiver disponível.
-        }
-        const itemsByCategory = await Promise.all(categories.map(async category => {
-          const works = await getWorksByCategory(category.id);
-          if (!selectedCategoryIds.includes(String(category.id))) return [];
-          // o tipo vem do template da obra (mapWorkToItem); antes vinha do nome da tabela
-          // e "Shingeki" numa "Séries & Animes" aparecia como série
-          return works.map(work => ({ ...mapWorkToItem(work), _tableId: category.id }));
-        }));
-        if (!cancelled) setMediaItems(itemsByCategory.flat());
-      } catch {
-        if (!cancelled) setMediaItems([]);
-      } finally {
-        if (!cancelled) setLoadingItems(false);
-      }
-    }
-
-    loadItems();
+    getGroups()
+      .then((groups) => {
+        if (cancelled) return;
+        const unifiedGroup = (groups || []).find(group => group.name === 'Unificado');
+        setSelectedCategoryIds(
+          unifiedGroup?.categoryIds?.length
+            ? new Set(unifiedGroup.categoryIds.map(id => String(id)))
+            : null,
+        );
+        setUnifiedOrder(unifiedGroup?.manualOrder || []);
+      })
+      .catch(() => {
+        // A Home continua funcional mesmo se o grupo unificado não estiver disponível.
+      });
     return () => { cancelled = true; };
   }, [worksVersion]);
+
+  const mediaItems = useMemo(() => {
+    const all = (unifiedItems || []).map(item => ({ ...item, _tableId: item.categoryId }));
+    if (!selectedCategoryIds) return all;
+    return all.filter(item => item.categoryId != null && selectedCategoryIds.has(String(item.categoryId)));
+  }, [unifiedItems, selectedCategoryIds]);
 
   useEffect(() => {
     let cancelled = false;
@@ -146,16 +109,19 @@ export default function DashboardHome({ onNavigate }) {
   const totalBadges = badges.length;
   const getNote = (item) => weighted ? item.finalNote : item.note;
 
-  const { totalHours, avgNote, top, recentItems } = useMemo(() => ({
-    totalHours: Math.round(mediaItems.reduce((sum, item) => sum + (item.timeMinutes || 0), 0) / 60),
-    avgNote: mediaItems.length
-      ? (mediaItems.reduce((sum, item) => sum + (item.note || 0), 0) / mediaItems.length).toFixed(1)
-      : '0.0',
-    top: sortItems(applyUnifiedOrder(mediaItems, unifiedOrder), 'nota', weighted).slice(0, 6),
-    recentItems: [...mediaItems]
-      .sort((a, b) => new Date(b.addedDate || 0) - new Date(a.addedDate || 0))
-      .slice(0, 5),
-  }), [mediaItems, weighted, unifiedOrder]);
+  const { totalHours, avgNote, top, recentItems } = useMemo(() => {
+    const rated = mediaItems.filter((item) => Number(item.note) > 0);
+    return {
+      totalHours: Math.round(mediaItems.reduce((sum, item) => sum + (item.timeMinutes || 0), 0) / 60),
+      avgNote: rated.length
+        ? (rated.reduce((sum, item) => sum + Number(item.note), 0) / rated.length).toFixed(1)
+        : '0.0',
+      top: sortItems(applyUnifiedOrder(mediaItems, unifiedOrder), 'nota', weighted).slice(0, 6),
+      recentItems: [...mediaItems]
+        .sort((a, b) => new Date(b.addedDate || 0) - new Date(a.addedDate || 0))
+        .slice(0, 5),
+    };
+  }, [mediaItems, weighted, unifiedOrder]);
 
   const recentBadges = badges
     .filter((b) => b.unlocked)
@@ -201,40 +167,19 @@ export default function DashboardHome({ onNavigate }) {
           <h2 className="mr-section-title">{th.favorites}</h2>
           <div className="mr-flex mr-items-center mr-gap-2">
             <span style={{ color: 'var(--mr-text-secondary)', fontSize: '0.75rem' }}>{th.weighted}</span>
-            <div style={{ position: 'relative' }}>
-              <button
-                onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
-                aria-label={th.weightedTipAria}
-                style={{
-                  width: 18, height: 18, borderRadius: '50%',
-                  border: '1px solid var(--mr-border)', background: 'transparent',
-                  color: 'var(--mr-text-muted)', fontSize: '0.6875rem', fontWeight: 700,
-                  cursor: 'pointer', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', lineHeight: 1, padding: 0,
-                }}
-              >?</button>
-              {showTooltip && (
-                <div style={{
-                  position: 'absolute', right: 0, bottom: 'calc(100% + 8px)', width: 230,
-                  background: '#1a1a1a', border: '1px solid #303030', borderRadius: 10,
-                  padding: '10px 12px', fontSize: '0.75rem', color: 'var(--mr-text-secondary)',
-                  lineHeight: 1.5, zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-                }}>
-                  <span style={{ color: 'var(--mr-gold)', fontWeight: 700, display: 'block', marginBottom: 4 }}>
-                    {th.weightedTitle}
-                  </span>
-                  {th.weightedTip}
-                  <span style={{ color: 'var(--mr-gold)', fontFamily: 'monospace', display: 'block', marginTop: 4 }}>
-                    Nota + log₁₀(Tempo / 60min)
-                  </span>
-                </div>
-              )}
-            </div>
+            <InfoTip label={th.weightedTipAria} title={th.weightedTitle}>
+              <span>{th.weightedTip}</span>
+              <span style={{ color: 'var(--mr-gold)', fontFamily: 'monospace' }}>
+                {th.weightedFormula}
+              </span>
+            </InfoTip>
             <button
               className={`mr-switch ${weighted ? 'checked' : ''}`}
+              type="button"
+              role="switch"
+              aria-checked={weighted}
               onClick={() => setWeighted((prev) => !prev)}
-              aria-label="Ativar ponderação por tempo"
+              aria-label={th.weightedSwitchAria}
             >
               <div className="mr-switch-thumb" />
             </button>

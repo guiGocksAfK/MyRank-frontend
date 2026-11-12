@@ -53,7 +53,92 @@
 
 .myrank-light .navbar-logo span:first-child { color: var(--mr-text); }
 .myrank-light .navbar-logo span:last-child { color: var(--mr-gold); }
-.myrank-light .mr-menu { background: rgba(255, 255, 255, 0.95); }
+.myrank-light .mr-menu,
+.myrank-light .rk-fmenu-list,
+.myrank-light .rk-ftype-menu,
+.myrank-light .mr-select-menu {
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.14);
+}
+.myrank-light .mr-panel {
+  background: var(--mr-surface);
+  border-color: var(--mr-border);
+  box-shadow: var(--mr-card-shadow);
+}
+.myrank-light .mr-dialog {
+  background: var(--mr-surface);
+  border-color: var(--mr-border);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+}
+.myrank-light .mr-infotip-pop {
+  background: var(--mr-surface);
+  border-color: var(--mr-border);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+}
+.myrank-light .dash-stat + .dash-stat,
+.myrank-light .dash-row + .dash-row,
+.myrank-light .rk-row,
+.myrank-light .pf-types tbody tr + tr,
+.myrank-light .rk-coll-body,
+.myrank-light .rk-fields li + li,
+.myrank-light .rk-coll .rk-fields li:last-child {
+  border-color: var(--mr-border-light);
+}
+.myrank-light .dash-reco-item {
+  border-color: var(--mr-border);
+}
+.myrank-light .dash-thumb {
+  background: var(--mr-muted-bg);
+}
+.myrank-light .rk-search,
+.myrank-light .rk-range-fields label,
+.myrank-light .rk-coll,
+.myrank-light .rk-fields,
+.myrank-light .rk-chip-input,
+.myrank-light .ik-results,
+.myrank-light .ik-score,
+.myrank-light .ik-seg,
+.myrank-light .ik-switch {
+  background: var(--mr-input-bg);
+  border-color: var(--mr-border);
+}
+.myrank-light .ik-results-head {
+  border-bottom-color: var(--mr-border-light);
+}
+.myrank-light .ik-date {
+  color-scheme: light;
+}
+.myrank-light .mr-switch:not(.checked) {
+  background: var(--mr-input-bg);
+  border-color: var(--mr-border);
+}
+.myrank-light .mr-poster-placeholder {
+  background: linear-gradient(135deg, #eef0f2 0%, #e2e5ea 100%);
+}
+.myrank-light .rk-range-fields input {
+  color-scheme: light;
+}
+.myrank-light .rk-histo span { background: rgba(15, 23, 42, 0.12); }
+.myrank-light .rk-histo span.is-empty { background: rgba(15, 23, 42, 0.07); }
+.myrank-light .rk-range-slider input::-webkit-slider-thumb { border-color: var(--mr-surface); }
+.myrank-light .rk-range-slider input::-moz-range-thumb { border-color: var(--mr-surface); }
+.myrank-light .ai-bar {
+  background: color-mix(in srgb, var(--mr-surface) 90%, transparent);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+}
+.myrank-light .ir-reco { background: var(--mr-surface); border-color: var(--mr-border); }
+.myrank-light .ir-reco-cover { background: linear-gradient(145deg, #eef0f2, #dcdfe4); }
+.myrank-light .ir-bubble { background: var(--mr-bubble-in); }
+.myrank-light .ir-composer { background: var(--mr-surface); border-color: var(--mr-border); }
+.myrank-light .pf-split-tip,
+.myrank-light .pf-dotcard {
+  background: var(--mr-surface);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+}
+.myrank-light .pf-photo-pencil {
+  background: var(--mr-muted-bg);
+  border-color: var(--mr-surface);
+}
 
 /* Trilhos de toggle/slider — o #1e1e1e some no claro */
 .myrank-light .mr-switch { background: #d3d7dd; }
@@ -93,26 +178,11 @@
 
 /* ============ UTILITY CLASSES ============ */
 .mr-space-y-6 > * + * { margin-top: 1.5rem; }
-.mr-space-y-5 > * + * { margin-top: 1.25rem; }
-.mr-space-y-4 > * + * { margin-top: 1rem; }
-.mr-space-y-3 > * + * { margin-top: 0.75rem; }
-.mr-space-y-2 > * + * { margin-top: 0.5rem; }
 
 .mr-flex { display: flex; }
-.mr-flex-col { flex-direction: column; }
-.mr-flex-wrap { flex-wrap: wrap; }
 .mr-items-center { align-items: center; }
 .mr-justify-between { justify-content: space-between; }
-.mr-justify-center { justify-content: center; }
 .mr-gap-2 { gap: 0.5rem; }
-.mr-gap-3 { gap: 0.75rem; }
-.mr-gap-4 { gap: 1rem; }
-.mr-flex-1 { flex: 1; }
-.mr-min-w-0 { min-width: 0; }
-.mr-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mr-text-center { text-align: center; }
-.mr-mt-2 { margin-top: 0.5rem; }
-.mr-mb-4 { margin-bottom: 1rem; }
 
 /* ============ NAVBAR DO APP ============
    A moldura (altura, fundo, logo, ações) é a mesma da home: NavbarShell em
@@ -299,7 +369,6 @@
   }
 }
 
-
 /* Tamanhos de avatar (usados fora do header) */
 .mr-avatar {
   width: 36px;
@@ -343,7 +412,6 @@
   box-shadow: 0 0 0 1px var(--mr-border);
 }
 
-
 /* ============ SWITCH TOGGLE ============ */
 .mr-switch {
   position: relative;
@@ -376,70 +444,6 @@
 
 .mr-switch.checked .mr-switch-thumb {
   transform: translateX(18px);
-}
-
-/* ============ STAT CARDS ============ */
-.mr-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 768px) {
-  .mr-stats-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-.mr-stat-card {
-  position: relative;
-  overflow: hidden;
-  background: var(--mr-card);
-  border: 1px solid var(--mr-border);
-  border-radius: var(--mr-radius);
-  padding: 18px 20px 20px;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
-  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-}
-
-.mr-stat-card::after {
-  content: '';
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 0;
-  height: 2px;
-  background: var(--stat-accent, var(--mr-gold));
-  opacity: 0.45;
-}
-
-.mr-stat-card:nth-child(1),
-.mr-stat-card:nth-child(2),
-.mr-stat-card:nth-child(3),
-.mr-stat-card:nth-child(4) { --stat-accent: var(--mr-gold); }
-
-.mr-stat-card:hover {
-  border-color: rgba(212, 175, 55, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), 0 0 20px rgba(212, 175, 55, 0.05);
-}
-
-
-
-
-.mr-stat-value {
-  font-size: clamp(1.75rem, 2.3vw, 2.25rem);
-  font-weight: 800;
-  color: var(--stat-accent, var(--mr-gold));
-  line-height: 1;
-  margin-bottom: 7px;
-  font-family: var(--mr-font);
-  animation: mr-countUp 0.6s ease-out;
-}
-
-.mr-stat-label {
-  font-size: 0.75rem;
-  color: var(--mr-text);
-  font-weight: 600;
-  letter-spacing: 0.01em;
 }
 
 /* ============ TELA INICIAL DO APP ============ */
@@ -804,19 +808,6 @@
 }
 
 /* ============ POSTER GRID ============ */
-.mr-poster-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 1024px) {
-  .mr-poster-grid { grid-template-columns: repeat(4, 1fr); }
-}
-
-@media (max-width: 640px) {
-  .mr-poster-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-}
 
 .mr-poster {
   position: relative;
@@ -827,21 +818,6 @@
 .mr-poster:hover {
   transform: scale(1.05);
   box-shadow: 0 8px 30px var(--mr-gold-glow);
-}
-
-.mr-poster-rating {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 10;
-  background: var(--mr-gold);
-  color: #111;
-  font-size: 0.75rem;
-  font-weight: 800;
-  font-family: var(--mr-font);
-  padding: 3px 8px;
-  border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
 .mr-poster-inner {
@@ -882,7 +858,10 @@
 
 .mr-poster-placeholder-icon {
   font-size: 2rem;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mr-text-muted);
   margin-bottom: 8px;
 }
 
@@ -895,68 +874,7 @@
   font-family: var(--mr-font);
 }
 
-.mr-poster-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 14px;
-  border-radius: var(--mr-radius-sm);
-}
-
-.mr-poster:hover .mr-poster-overlay { opacity: 1; }
-
-.mr-poster-overlay-type {
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--mr-text-secondary);
-  margin-bottom: 4px;
-  font-weight: 700;
-}
-
-.mr-poster-overlay-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 8px;
-  line-height: 1.2;
-  font-family: var(--mr-font);
-}
-
-.mr-poster-overlay-badges {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.mr-poster-overlay-note {
-  background: var(--mr-gold);
-  color: #111;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.mr-poster-overlay-time  { font-size: 0.6875rem; color: var(--mr-text-muted); }
-
 /* ============ CARDS ============ */
-.mr-card {
-  background: var(--mr-card);
-  border: 1px solid var(--mr-border);
-  border-radius: var(--mr-radius);
-  box-shadow: var(--mr-card-shadow);
-}
-
-.mr-card-body { padding: 20px; }
-
-.mr-card:hover { border-color: rgba(212, 175, 55, 0.25); }
 
 /* Botões (.mr-btn e variantes): src/styles/base.css */
 
@@ -967,74 +885,9 @@
   border-color: var(--mr-border);
 }
 
-.mr-tab-trigger {
-  padding: 7px 16px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--mr-text-secondary);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  font-family: var(--mr-font);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s;
-}
-
-.mr-tab-trigger:hover {
-  background: var(--mr-gold-10);
-  color: var(--mr-text);
-}
-
-.mr-tab-trigger.active {
-  background: var(--mr-gold-20);
-  color: var(--mr-gold);
-  border-color: rgba(212, 175, 55, 0.2);
-  font-weight: 700;
-}
-
-/* ============ RANKINGS TABLE ============ */
-.mr-table-header {
-  display: grid;
-  grid-template-columns: 40px 1fr 80px 60px 60px 160px;
-  gap: 8px;
-  padding: 10px 16px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--mr-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-bottom: 1px solid var(--mr-border);
-  font-family: var(--mr-font);
-}
-
-.mr-table-row {
-  display: grid;
-  grid-template-columns: 40px 1fr 80px 60px 60px 160px;
-  gap: 8px;
-  padding: 12px 16px;
-  align-items: center;
-  border-radius: var(--mr-radius-sm);
-  transition: background 0.2s;
-  min-height: 78px;
-  overflow: hidden;
-}
-
 .mr-rankings-enter {
   animation: mr-rankings-rise 0.45s ease-out both;
   animation-delay: var(--rank-delay, 0ms);
-}
-
-.mr-table-row:hover { background: var(--mr-gold-10); }
-
-.mr-poster-image-thumb {
-  width: 36px !important;
-  height: 54px !important;
-  max-width: 36px;
-  max-height: 54px;
-  object-fit: cover;
-  flex: 0 0 36px;
-  display: block;
 }
 
 /* Etiqueta da subcategoria na linha da obra (tabela individual, filtro "Todas") */
@@ -1050,89 +903,13 @@
   vertical-align: middle;
 }
 
-/* ============ MOBILE: tabela compacta + escala geral menor ============ */
+/* ============ MOBILE: escala geral menor (padrões de app mobile) ============ */
 @media (max-width: 640px) {
-  /* cabeçalho de colunas não faz sentido no layout compacto */
-  .mr-table-header { display: none !important; }
-
-  /* linha vira flex: some com o grid de colunas fixas (que estourava no modo
-     "ponderado", com nota + bônus + nota final). O título encolhe, o resto
-     fica compacto e nada quebra pra segunda linha. */
-  .mr-table-row {
-    display: flex !important;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 8px !important;
-    padding: 9px 10px !important;
-    min-height: 0 !important;
-  }
-
-  .mr-table-row > * { flex: 0 0 auto; }
-
-  /* rank */
-  .mr-table-row > span:first-child {
-    flex: 0 0 16px;
-    text-align: center;
-  }
-
-  /* miniatura de pôster (img real ou placeholder 🎬) — 2ª célula da linha */
-  .mr-table-row > .mr-poster-image-thumb,
-  .mr-table-row > div:nth-child(2):not(.mr-min-w-0) {
-    flex: 0 0 34px;
-    width: 34px !important;
-    height: 51px !important;
-    max-width: 34px !important;
-    max-height: 51px !important;
-    min-width: 0 !important;
-    font-size: 0.8rem !important;
-  }
-
-  /* título ocupa o espaço livre e trunca */
-  .mr-table-row > .mr-min-w-0 {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  /* selo da tabela ("Filmes", "Jogos"…) no ranking unificado */
-
-  /* o "+bônus" some no mobile — fica só nota / nota final */
-  .mr-table-row .mr-cell-bonus { display: none !important; }
-
-  /* obra em si um pouco maior — era o que ficava pequeno demais */
-  .mr-table-row { padding: 11px 12px !important; font-size: 0.9rem; }
-  .mr-table-row .mr-truncate { font-size: 0.9rem; }
-  .mr-table-row .mr-min-w-0 > div:last-child { font-size: 0.75rem; }
-  .mr-table-row .mr-flex > span[style*="minWidth"] { min-width: 0 !important; }
-
-  /* ---- escala geral menor (padrões de app mobile) ---- */
   .mr-main { padding: 16px 0 32px; }
-  .mr-card-body { padding: 14px; }
   .mr-section-title { font-size: 1rem; }
-  .mr-tab-trigger { padding: 7px 10px; font-size: 0.8125rem; }
-
 }
 
 /* ============ AI INSIGHTS ============ */
-.mr-grid-3col {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-@media (max-width: 640px) {
-  .mr-grid-3col { grid-template-columns: 1fr; }
-}
-
-/* ============ PROFILE GRID ============ */
-.mr-profile-grid {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 24px;
-}
-
-@media (max-width: 768px) {
-  .mr-profile-grid { grid-template-columns: 1fr; }
-}
 
 /* ============ SCROLLBAR ============ */
 ::-webkit-scrollbar       { width: 6px; height: 6px; }
@@ -1140,12 +917,7 @@
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(212,175,55,0.25); }
 
-/* ============ STAT ANIMATION ============ */
-@keyframes mr-countUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
+/* ============ ANIMAÇÃO DAS LINHAS DO RANKING ============ */
 @keyframes mr-rankings-rise {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -1183,59 +955,16 @@
 /* Os modais são renderizados via portal no <body>, fora do .myrank-dashboard,
    então não herdam o `color` do tema — texto sem cor explícita (ex.: o <h3>
    do título) ficava preto. Reforça a cor do tema aqui. */
-.mr-modal-scrim { color: var(--mr-text); }
 
 /* compactos e centralizados no mobile */
 @media (max-width: 640px) {
-  .mr-modal-scrim {
-    /* trava na viewport visível mesmo se a página tiver overflow horizontal
-       (senão o position:fixed se referencia à largura rolável e o modal sai pra direita) */
-    left: 0 !important;
-    right: auto !important;
-    top: 0 !important;
-    bottom: auto !important;
-    width: 100vw !important;
-    height: 100dvh !important;
-    justify-content: center !important;
-    overflow-y: auto !important;
-    padding: 12px 10px !important;
-    gap: 10px !important;
-  }
 
   /* painel nunca passa da tela; margin:auto centra quando cabe
      e deixa rolar a partir do topo quando não cabe */
-  .mr-modal-scrim > div {
-    width: 100% !important;
-    max-width: calc(100vw - 20px) !important;
-    margin: auto !important;
-    padding: 16px !important;
-    border-radius: 10px !important;
-    box-sizing: border-box;
-  }
 
   /* modal simples (Nova tabela): 1 painel, centralizado */
-  .mr-modal-scrim:not(.mr-modal-scrim--wide) {
-    align-items: center !important;
-  }
 
   /* modal de obra (form + sugestões): empilha e alinha ao topo p/ rolar */
-  .mr-modal-scrim--wide {
-    align-items: flex-start !important;
-    align-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .mr-modal-scrim--wide > div {
-    max-height: none !important;
-  }
 
   /* aperta o conteúdo: título, campos e espaçamentos menores */
-  .mr-modal-scrim > div > h3 {
-    margin-bottom: 0.75rem !important;
-    font-size: 1rem !important;
-  }
-
-  .mr-modal-scrim > div > div {
-    margin-bottom: 10px !important;
-  }
 }

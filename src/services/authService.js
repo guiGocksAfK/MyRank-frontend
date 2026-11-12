@@ -17,8 +17,17 @@ export const loginWithGoogle = async (idToken) => {
   return response.data;
 };
 
-export const loginWithDiscord = async (accessToken) => {
-  const response = await api.post("/auth/oauth/discord", { token: accessToken });
+/**
+ * Login com Discord pelo código de autorização: quem troca o código pelo token é
+ * o back (com o client secret), então só vale código emitido pro MyRank. O
+ * fluxo antigo mandava o access_token pronto, e um token tirado em outro site
+ * também servia.
+ */
+export const loginWithDiscord = async (code) => {
+  const response = await api.post("/auth/oauth/discord/callback", {
+    code,
+    redirectUri: getDiscordRedirectUri(),
+  });
   saveAuthResponse(response.data);
   return response.data;
 };
@@ -82,16 +91,10 @@ export const getDiscordAuthUrl = () => {
     throw new Error("VITE_DISCORD_CLIENT_ID não configurado.");
   }
 
-  const currentOrigin = window.location.origin.replace(/\/$/, "");
-  const configuredRedirectUri = import.meta.env.VITE_DISCORD_REDIRECT_URI?.trim();
-  const redirectUri = configuredRedirectUri && !/^(http:\/\/localhost|http:\/\/127\.0\.0\.1)/.test(currentOrigin)
-    ? configuredRedirectUri
-    : `${currentOrigin}/auth/discord/callback`;
-
   const params = new URLSearchParams({
     client_id: clientId,
-    redirect_uri: redirectUri,
-    response_type: "token",
+    redirect_uri: getDiscordRedirectUri(),
+    response_type: "code",
     scope: "identify email",
     state: createDiscordState(),
   });
@@ -99,11 +102,20 @@ export const getDiscordAuthUrl = () => {
   return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
 };
 
+/** Tem que ser a mesma na ida (authorize) e na troca do código, senão o Discord recusa. */
+function getDiscordRedirectUri() {
+  const currentOrigin = window.location.origin.replace(/\/$/, "");
+  const configuredRedirectUri = import.meta.env.VITE_DISCORD_REDIRECT_URI?.trim();
+  return configuredRedirectUri && !/^(http:\/\/localhost|http:\/\/127\.0\.0\.1)/.test(currentOrigin)
+    ? configuredRedirectUri
+    : `${currentOrigin}/auth/discord/callback`;
+}
+
 const DISCORD_STATE_KEY = "myrank_discord_oauth_state";
 
 /**
  * `state` do OAuth: valor aleatório guardado nesta aba e conferido na volta. Sem
- * ele, um link com o access_token da conta de outra pessoa logaria a vítima na
+ * ele, um link com o código da conta de outra pessoa logaria a vítima na
  * conta do atacante (login CSRF).
  */
 function createDiscordState() {
