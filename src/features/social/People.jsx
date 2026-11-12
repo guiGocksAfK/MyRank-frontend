@@ -3,7 +3,7 @@ import { ChevronRight, Plus, Scale, Search, Swords, Users } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import GroupIcon from '../chat/GroupIcon';
 import NewGroupModal from '../chat/NewGroupModal';
-import { socialApi, DEBATE_MAX_PCT } from './socialData';
+import { socialApi, lastSocial, DEBATE_MAX_PCT } from './socialData';
 import PersonRow from './PersonRow';
 import SocialAvatar from './SocialAvatar';
 import SocialEmpty from './SocialEmpty';
@@ -21,10 +21,11 @@ const FACES_SHOWN = 5;
 export default function People({ onOpenUser, onCompare, onOpenConversation, onOpenConnections }) {
   const { t, locale } = useLanguage();
   const tp = t.social.people;
-  const [following, setFollowing] = useState(null);
-  const [suggestions, setSuggestions] = useState(null);
-  const [groups, setGroups] = useState(null);
-  const [debaters, setDebaters] = useState(null);
+  // cada lista abre com a resposta da última visita (se houver) e se atualiza em seguida
+  const [following, setFollowing] = useState(() => lastSocial('getFollowing') ?? null);
+  const [suggestions, setSuggestions] = useState(() => lastSocial('getSuggestions')?.filter((u) => !u.following) ?? null);
+  const [groups, setGroups] = useState(() => lastSocial('getGroups', '') ?? null);
+  const [debaters, setDebaters] = useState(() => lastSocial('getDebaters') ?? null);
   const [q, setQ] = useState('');
   const [found, setFound] = useState(null); // { people, groups } da busca
   const [creating, setCreating] = useState(false);
