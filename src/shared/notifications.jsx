@@ -58,16 +58,20 @@ export function NotificationsProvider({ children }) {
   useEffect(() => {
     if (!userId) return undefined;
     let active = true;
+    // aba em segundo plano não consulta o servidor; ao voltar, atualiza na hora (igual ao chat)
     const poll = () => {
+      if (document.hidden) return;
       getUnreadCount()
         .then((n) => { if (active) setUnreadCount(n); })
         .catch(() => {});
     };
     poll();
     timerRef.current = setInterval(poll, POLL_MS);
+    document.addEventListener('visibilitychange', poll);
     return () => {
       active = false;
       clearInterval(timerRef.current);
+      document.removeEventListener('visibilitychange', poll);
     };
   }, [userId]);
 
