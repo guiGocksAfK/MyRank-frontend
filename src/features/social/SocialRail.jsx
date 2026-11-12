@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, UserPlus, X } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
-import { socialApi, tasteKey, typeIconFor, DEBATE_MAX_PCT } from './socialData';
+import { socialApi, lastSocial, tasteKey, typeIconFor, DEBATE_MAX_PCT } from './socialData';
 import SocialAvatar from './SocialAvatar';
 import YouCard from './YouCard';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 /** Quantas obras o "Em alta" mostra, e quantas pessoas uma obra precisa pra entrar. */
+// sugestões do trilho: só quem tem gosto parecido, as três primeiras
+const topSuggestions = (list) => list.filter((u) => u.matchPct > DEBATE_MAX_PCT).slice(0, 3);
+
 const TRENDING_MAX = 3;
 const TRENDING_MIN_PEOPLE = 2;
 
@@ -64,12 +67,16 @@ export default function SocialRail({
   const tr = t.social.rail;
   const tp = t.social.people;
   const { user } = useUser();
-  const [suggestions, setSuggestions] = useState(null);
-  const [requests, setRequests] = useState([]);
-  const [debaters, setDebaters] = useState([]);
+  // cada lista abre com a resposta da última visita (se houver) e se atualiza em seguida
+  const [suggestions, setSuggestions] = useState(() => {
+    const last = lastSocial('getSuggestions');
+    return last ? topSuggestions(last) : null;
+  });
+  const [requests, setRequests] = useState(() => lastSocial('getFollowRequests') ?? []);
+  const [debaters, setDebaters] = useState(() => (lastSocial('getDebaters') ?? []).slice(0, 2));
 
   useEffect(() => {
-    socialApi.getSuggestions().then((r) => setSuggestions(r.filter((u) => u.matchPct > DEBATE_MAX_PCT).slice(0, 3))).catch(() => setSuggestions([]));
+    socialApi.getSuggestions().then((r) => setSuggestions(topSuggestions(r))).catch(() => setSuggestions([]));
     socialApi.getFollowRequests().then(setRequests).catch(() => setRequests([]));
     socialApi.getDebaters().then((r) => setDebaters(r.slice(0, 2))).catch(() => setDebaters([]));
   }, []);

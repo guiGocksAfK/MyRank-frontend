@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import GroupIcon from '../chat/GroupIcon';
-import { socialApi } from './socialData';
+import { socialApi, lastSocial } from './socialData';
 import YouCard from './YouCard';
 
 const GROUPS_SHOWN = 5;
@@ -68,7 +68,7 @@ export function FeedBar({ scope, onScope, kind, onKind }) {
 export default function SocialNav({ onOpenUser, onOpenConnections, onGoPeople, onOpenGroup, refreshKey }) {
   const { t } = useLanguage();
   const tn = t.social.nav;
-  const [groups, setGroups] = useState(null);
+  const [groups, setGroups] = useState(() => lastSocial('getMyGroups') ?? null);
 
   useEffect(() => {
     let alive = true;

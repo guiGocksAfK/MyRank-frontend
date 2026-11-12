@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TriangleAlert, X } from 'lucide-react';
-import { socialApi, tasteKey } from './socialData';
+import { socialApi, lastSocial, tasteKey } from './socialData';
 import { useLanguage } from '../../shared/i18n';
 import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useUser } from '../../shared/userContext';
@@ -21,10 +21,11 @@ export default function SocialFeed({
 }) {
   const { t } = useLanguage();
   const tf = t.social.feed;
-  const [items, setItems] = useState(null);
+  // abre com o feed da última visita (se houver) enquanto o novo chega
+  const [items, setItems] = useState(() => lastSocial('getFeed', 0, 20, scope) ?? null);
   const [failed, setFailed] = useState(false); // a carga falhou: erro com "Tentar de novo", não feed vazio
   const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
+  const [hasMore, setHasMore] = useState(() => (items?.length ?? 0) >= 20);
   const [loadingMore, setLoadingMore] = useState(false);
   const { items: myItems } = useUnifiedItems();
   const { user } = useUser();

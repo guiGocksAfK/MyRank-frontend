@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
-import { socialApi } from './socialData';
+import { socialApi, lastSocial } from './socialData';
 import SocialAvatar from './SocialAvatar';
 
 /**
@@ -13,7 +13,7 @@ export default function YouCard({ onOpenUser, onOpenConnections, refreshKey = 0,
   const { t } = useLanguage();
   const tr = t.social.rail;
   const { user } = useUser();
-  const [summary, setSummary] = useState(null);
+  const [summary, setSummary] = useState(() => lastSocial('getSummary') ?? null);
 
   useEffect(() => {
     let alive = true;
