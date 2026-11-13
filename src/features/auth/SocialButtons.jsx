@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
-import { getDiscordAuthUrl, loginWithGoogle, takePostAuthPath } from "../../services/authService";
+import { useGoogleLogin } from "@react-oauth/google";
+import { getDiscordAuthUrl, loginWithGoogleCode, takePostAuthPath } from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
-import useIframeFocus from "./useIframeFocus";
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
 
@@ -26,38 +25,67 @@ const DiscordMark = () => (
 );
 
 /**
- * "Continuar com Google/Discord" das telas de entrada. O botão do Google que se
- * vê é só visual: o real é o iframe do Google, invisível por cima dele.
+ * Botão do Google. É um botão nosso, que abre a janela do Google e recebe um
+ * código de autorização; quem troca o código pela sessão é a API. O botão
+ * oficial (um iframe do Google) ficava invisível por cima do nosso e parou de
+ * aceitar clique de mouse. Fica num componente à parte porque o
+ * `useGoogleLogin` só funciona dentro do GoogleOAuthProvider (que só existe
+ * com o client id configurado).
+ */
+const GoogleButton = ({ disabled, onError, onBusy }) => {
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+  const tAuth = t.auth;
+
+  const openGoogle = useGoogleLogin({
+    flow: "auth-code",
+    onSuccess: async ({ code }) => {
+      onBusy?.(true);
+      try {
+        await loginWithGoogleCode(code);
+        navigate(takePostAuthPath());
+      } catch (err) {
+        onError?.(err.response?.data?.message || tAuth.errors.google);
+      } finally {
+        onBusy?.(false);
+      }
+    },
+    onError: () => onError?.(tAuth.errors.googleConfig),
+    // fechar a janela sem escolher conta não é erro; janela bloqueada pelo navegador é
+    onNonOAuthError: (err) => {
+      if (err?.type !== "popup_closed") onError?.(tAuth.errors.googleConfig);
+    },
+  });
+
+  return (
+    <button
+      className="auth-social-button"
+      type="button"
+      disabled={disabled}
+      onClick={() => {
+        onError?.("");
+        openGoogle();
+      }}
+    >
+      <GoogleMark />
+      {tAuth.google}
+    </button>
+  );
+};
+
+/**
+ * "Continuar com Google/Discord" das telas de entrada.
  *
  * @param only     "GOOGLE" | "DISCORD" pra mostrar só um (ex.: conta sem senha)
- * @param disabled trava o Discord enquanto outra ação está em andamento
+ * @param disabled trava os botões enquanto outra ação está em andamento
  * @param onError  recebe a mensagem de erro pra tela mostrar
  * @param onBusy   avisa quando o login pelo Google começa e termina
  */
 const SocialButtons = ({ only, disabled = false, onError, onBusy }) => {
-  const navigate = useNavigate();
   const { t } = useLanguage();
   const tAuth = t.auth;
-  const [googleWrapperRef, googleFocused] = useIframeFocus();
   const showGoogle = only !== "DISCORD";
   const showDiscord = only !== "GOOGLE";
-
-  const handleGoogleSuccess = async (credentialResponse) => {
-    onError?.("");
-    onBusy?.(true);
-    try {
-      const credential = credentialResponse?.credential;
-      if (!credential) {
-        throw new Error(tAuth.errors.googleNoCredential);
-      }
-      await loginWithGoogle(credential);
-      navigate(takePostAuthPath());
-    } catch (err) {
-      onError?.(err.response?.data?.message || err.message || tAuth.errors.google);
-    } finally {
-      onBusy?.(false);
-    }
-  };
 
   const handleDiscordLogin = () => {
     onError?.("");
@@ -71,32 +99,7 @@ const SocialButtons = ({ only, disabled = false, onError, onBusy }) => {
   return (
     <>
       {showGoogle && (googleClientId ? (
-        <div ref={googleWrapperRef} className={`auth-google-wrapper${googleFocused ? " is-focused" : ""}`}>
-          <button
-            className="auth-social-button auth-social-button--google auth-google-trigger"
-            type="button"
-            tabIndex="-1"
-            aria-hidden="true"
-          >
-            <GoogleMark />
-            {tAuth.google}
-          </button>
-          <div className="auth-google-provider">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={(error) => {
-                console.error("Erro no login do Google:", error);
-                onError?.(tAuth.errors.googleConfig);
-              }}
-              theme="filled_black"
-              shape="pill"
-              size="large"
-              text="continue_with"
-              logo_alignment="left"
-              width="446"
-            />
-          </div>
-        </div>
+        <GoogleButton disabled={disabled} onError={onError} onBusy={onBusy} />
       ) : (
         <p className="auth-error" role="alert">{tAuth.errors.googleNotConfigured}</p>
       ))}

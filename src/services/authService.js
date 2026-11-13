@@ -13,8 +13,12 @@ export const login = async (email, password) => {
   return response.data;
 };
 
-export const loginWithGoogle = async (idToken) => {
-  const response = await api.post("/auth/oauth/google", { token: idToken });
+/**
+ * Login com Google pelo código de autorização que a janela do Google devolve:
+ * quem troca o código pela sessão é o back (com o client secret).
+ */
+export const loginWithGoogleCode = async (code) => {
+  const response = await api.post("/auth/oauth/google/callback", { code });
   saveAuthResponse(response.data);
   return response.data;
 };
