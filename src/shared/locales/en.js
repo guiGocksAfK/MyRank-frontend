@@ -940,7 +940,6 @@ export default {
       google: 'Error signing in with Google.',
       googleConfig: "Couldn't sign in with Google right now. Please try again.",
       googleNotConfigured: 'Google sign-in is currently unavailable.',
-      googleNoCredential: "Couldn't complete Google sign-in. Please try again.",
       discordNotConfigured: 'Discord sign-in is currently unavailable.',
       emailRequired: 'Enter your email to continue.',
       usernameRequired: 'Enter a username.',

@@ -940,7 +940,6 @@ export default {
       google: 'Erro ao entrar com Google.',
       googleConfig: 'Não foi possível entrar com o Google agora. Tente novamente.',
       googleNotConfigured: 'O login com Google está indisponível no momento.',
-      googleNoCredential: 'Não foi possível concluir o login com o Google. Tente novamente.',
       discordNotConfigured: 'O login com Discord está indisponível no momento.',
       emailRequired: 'Informe seu email para continuar.',
       usernameRequired: 'Informe um nome de usuário.',

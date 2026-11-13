@@ -940,7 +940,6 @@ export default {
       google: 'Error al iniciar sesión con Google.',
       googleConfig: 'No se pudo iniciar sesión con Google ahora. Inténtalo de nuevo.',
       googleNotConfigured: 'El inicio de sesión con Google no está disponible por el momento.',
-      googleNoCredential: 'No se pudo completar el inicio de sesión con Google. Inténtalo de nuevo.',
       discordNotConfigured: 'El inicio de sesión con Discord no está disponible por el momento.',
       emailRequired: 'Ingresa tu email para continuar.',
       usernameRequired: 'Ingresa un nombre de usuario.',
