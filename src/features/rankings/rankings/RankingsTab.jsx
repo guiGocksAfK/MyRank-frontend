@@ -233,9 +233,11 @@ export default function RankingsTab({ onNavigateToCreators }) {
     setUnifiedOrder(nextOrder);
     if (!unifiedGroupId) return;
     setActionError(null);
-    updateGroupOrder(unifiedGroupId, nextOrder).catch(err => {
-      setActionError(err?.response?.data?.message || tr.reorderError);
-    });
+    updateGroupOrder(unifiedGroupId, nextOrder)
+      .then(() => bumpWorks())
+      .catch(err => {
+        setActionError(err?.response?.data?.message || tr.reorderError);
+      });
   }
 
   // ── Criar tabela (categoria) ──
@@ -351,6 +353,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
     setActionError(null);
     try {
       await updateGroup(unifiedGroupId, 'Unificado', newIds);
+      bumpWorks();
     } catch (err) {
       setActionError(err?.response?.data?.message || err.message || tr.saveSelectionError);
     }

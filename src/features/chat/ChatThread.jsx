@@ -23,6 +23,7 @@ import {
 } from '../../services/chatService';
 import { socialApi, typeIconFor } from '../social/socialData';
 import BadgeIcon from '../../shared/badgeIcons';
+import { BADGE_I18N } from '../../shared/badgeI18n';
 
 const POLL_MS = 15_000;
 const BODY_MAX = 2000;
@@ -998,7 +999,7 @@ function MessageRow({
 
 /** Rail lateral de contexto: perfil do outro (DM) ou info do grupo. */
 function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfile }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [members, setMembers] = useState(null);
   const [failed, setFailed] = useState(false);
@@ -1125,11 +1126,14 @@ function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfi
             <div>
               <div className="chat-rail-section-title">{tc.railBadges}</div>
               <div className="chat-rail-badges">
-                {profile.badges.map((b) => (
-                  <span key={b.name} className="chat-rail-badge" title={b.name}>
-                    <BadgeIcon code={b.code} /> {b.name}
-                  </span>
-                ))}
+                {profile.badges.map((b) => {
+                  const label = BADGE_I18N[lang]?.[b.code]?.name || b.name;
+                  return (
+                    <span key={b.code || b.name} className="chat-rail-badge" title={label}>
+                      <BadgeIcon code={b.code} /> {label}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           )}

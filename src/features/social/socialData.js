@@ -98,7 +98,7 @@ export function decorateComment(c) {
   };
 }
 
-export const normTitle = (t) => (t || '').trim().toLowerCase();
+const normTitle = (t) => (t || '').trim().toLowerCase();
 
 /** Obra em comum = mesmo título e mesmo tipo ("Duna" filme e livro são obras diferentes). */
 export const tasteKey = (title, type) => `${normTitle(title)}|${type || ''}`;
@@ -333,7 +333,7 @@ let lastOwner = null;
 
 // de quem são as respostas guardadas: trocou de conta (ou ligou os dados de teste), zera
 function ownerKey() {
-  try { return `${localStorage.getItem('myrank_token') || ''}|${socialMock.isOn()}`; } catch { return ''; }
+  try { return `${localStorage.getItem('myrank_username') || ''}|${socialMock.isOn()}`; } catch { return ''; }
 }
 function answers() {
   const owner = ownerKey();

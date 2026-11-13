@@ -59,7 +59,7 @@ export default function FeedStart({ onOpenUser, onGoPeople, onFollowed }) {
               <span className="social-person-name">{u.username}</span>
               {u.matchPct != null ? (
                 <span className="social-start-meta">
-                  <b className="social-match">{fmt(tp.match, { pct: u.matchPct })}</b>
+                  <span><b className="social-match">{u.matchPct}%</b> {tp.matchWord}</span>
                   <span>{fmt(tp.inCommon, { n: u.sharedCount })}</span>
                 </span>
               ) : (

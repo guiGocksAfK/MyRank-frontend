@@ -334,7 +334,7 @@ export default {
         {
           h: "In your browser",
           p: [
-            "We store in your browser (localStorage) access to your account, so you don't have to sign in every time, plus your language, theme and display preferences such as table order. We don't use advertising cookies or tracking tools.",
+            "We use a secure session cookie (HttpOnly) to keep you signed in without having to log in every time, and store in your browser (localStorage) your language, theme and display preferences such as table order. We don't use advertising cookies or tracking tools.",
           ],
         },
         {
@@ -979,16 +979,6 @@ export default {
       back: 'Back',
       submit: 'Create account',
       submitting: 'Creating...',
-    },
-    verify: {
-      notVerified: 'Confirm your email before signing in. We sent a link to your inbox.',
-      resend: 'Resend email',
-      resending: 'Sending...',
-      resent: 'Done! We sent you a new link.',
-      resendError: "Couldn't resend right now. Try again in a moment.",
-      confirming: 'Confirming your email...',
-      invalid: 'This link is invalid or has expired. Sign in with your email and password to get a new one.',
-      backToLogin: 'Go to sign in',
     },
     discordCallback: {
       connecting: 'Connecting to Discord…',
