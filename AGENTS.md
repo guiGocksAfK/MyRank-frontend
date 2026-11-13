@@ -55,8 +55,12 @@ O guia completo está em [`docs/visual.md`](docs/visual.md). O resumo:
   instância do Axios com o token). Um 401 desloga e leva ao login.
 - Templates (nomes, emojis, linha de detalhes do card) ficam só em
   `src/shared/tableTemplates.js`.
-- Mudou o domínio da API? Atualize também o `connect-src` da CSP no `vercel.json`
-  e o `preconnect` do `index.html`.
+- O site é servido inteiro por `https://myrank.duckdns.org`: o Caddy da VM busca o
+  front na Vercel e manda o cabeçalho `X-MyRank-Proxy`. O `vercel.json` redireciona
+  pra lá quem abre o endereço da Vercel **sem** esse cabeçalho. Tirar o cabeçalho
+  do Caddy (ou a condição do redirect) põe o site em loop.
+- Mudou o domínio? Atualize o redirect e o `connect-src` da CSP no `vercel.json`
+  e os endereços `og:`/`twitter:` do `index.html`.
 - Antes de entregar: `npm run build` passando e `npm run lint` sem erro novo.
 
 ## Conversa

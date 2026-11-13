@@ -1,4 +1,13 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "myrank-oficial.vercel.app" }],
+      "missing": [{ "type": "header", "key": "x-myrank-proxy" }],
+      "destination": "https://myrank.duckdns.org/:path*",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],

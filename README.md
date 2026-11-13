@@ -5,7 +5,7 @@ series, anime, manga, games, books and music), but a table can hold food or
 school subjects just as well. Scores become tables, tables merge into
 a single ranking, and your ranking becomes a profile of your taste.
 
-Live at **[myrank-oficial.vercel.app](https://myrank-oficial.vercel.app/)**.
+Live at **[myrank.duckdns.org](https://myrank.duckdns.org/)**.
 This repository contains the web app; the API, database and infrastructure live
 in [MyRank-backend](https://github.com/guiGocksAfK/MyRank-backend).
 
