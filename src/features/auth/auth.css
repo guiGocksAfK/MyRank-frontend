@@ -661,6 +661,24 @@
   margin: 0 !important;
 }
 
+/* Enquanto o iframe não carrega (ou se o navegador o bloqueia, como em janela
+   anônima), o Google deixa ele com tamanho zero e põe um botão de reserva na
+   própria página. Esticado pela regra acima, o iframe vazio engolia o clique e
+   só o Tab alcançava o botão de reserva. Nesse estado o iframe sai da frente e
+   o botão de reserva ocupa a área toda. */
+.auth-google-provider iframe[style*="height: 0px"] {
+  pointer-events: none !important;
+}
+
+.auth-google-provider div[role="button"] {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  cursor: pointer;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-backdrop {
     animation: none;
