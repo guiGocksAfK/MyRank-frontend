@@ -1,8 +1,10 @@
 import api from "./api";
 
-const saveAuthResponse = ({ token, username }) => {
-  localStorage.setItem("myrank_token", token);
-  localStorage.setItem("myrank_username", username);
+const saveAuthResponse = ({ username }) => {
+  localStorage.removeItem("myrank_token");
+  if (username) {
+    localStorage.setItem("myrank_username", username);
+  }
 };
 
 export const login = async (email, password) => {
@@ -30,17 +32,6 @@ export const loginWithDiscord = async (code) => {
   });
   saveAuthResponse(response.data);
   return response.data;
-};
-
-/** Token do link do email de confirmação; o backend já devolve a sessão. */
-export const verifyEmail = async (token) => {
-  const response = await api.post("/auth/verify-email", { token });
-  saveAuthResponse(response.data);
-  return response.data;
-};
-
-export const resendVerification = async (email) => {
-  await api.post("/auth/resend-verification", { email });
 };
 
 /** Cadastro, etapa 1: manda o código de 6 dígitos pro email. */
@@ -79,10 +70,6 @@ export const resetPassword = async (resetPass, password) => {
   saveAuthResponse(response.data);
   return response.data;
 };
-
-/** Login com senha recusado só porque a conta ainda não confirmou o email. */
-export const isEmailNotVerifiedError = (err) =>
-  err?.response?.status === 403 && err.response.data?.code === "EMAIL_NOT_VERIFIED";
 
 export const getDiscordAuthUrl = () => {
   const clientId = import.meta.env.VITE_DISCORD_CLIENT_ID?.trim();
@@ -162,17 +149,18 @@ export const takePostAuthPath = () => {
   return "/dashboard";
 };
 
-export const logout = () => {
+export const logout = async () => {
   localStorage.removeItem("myrank_token");
   localStorage.removeItem("myrank_username");
-};
-
-export const getToken = () => {
-  return localStorage.getItem("myrank_token");
+  try {
+    await api.post("/auth/logout");
+  } catch {
+    /* sem rede: pelo menos o estado local já foi limpo */
+  }
 };
 
 export const isAuthenticated = () => {
-  return !!getToken();
+  return Boolean(localStorage.getItem("myrank_username"));
 };
 
 export const getStoredUser = () => {

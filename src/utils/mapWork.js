@@ -1,7 +1,7 @@
 // Backend (WorkResponseDTO) → shape usado pelos componentes visuais
 import { templateType } from '../shared/tableTemplates';
 
-export function safeImageUrl(url) {
+function safeImageUrl(url) {
   const s = (url || '').trim();
   return /^https?:\/\//i.test(s) ? s : '';
 }

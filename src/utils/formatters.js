@@ -41,7 +41,7 @@ export function getMode(sortBy, useTimeWeight) {
 }
 
 // Status da API (TMDB / MyAnimeList) agrupados nos dois botões do filtro
-export const STATUS_GROUPS = {
+const STATUS_GROUPS = {
   ongoing: ['Returning Series', 'In Production', 'currently_airing', 'currently_publishing', 'on_hiatus'],
   finished: ['Ended', 'Canceled', 'finished_airing', 'finished', 'discontinued'],
 };

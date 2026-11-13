@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import api from '../services/api';
+import { isAuthenticated } from '../services/authService';
 import { LANGUAGES as LANGS, STORAGE_KEY, dictOf, loadLanguage, readStoredLang } from './locales/load';
 
 /**
@@ -44,7 +45,7 @@ export function LanguageProvider({ children }) {
     const persist = opts.persist !== false;
     if (persist) {
       try { localStorage.setItem(STORAGE_KEY, next); } catch { /* ignora */ }
-      if (localStorage.getItem('myrank_token')) {
+      if (isAuthenticated()) {
         api.put('/users/me', { language: next }).catch(() => { /* best-effort */ });
       }
     }

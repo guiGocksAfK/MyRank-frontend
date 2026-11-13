@@ -68,10 +68,9 @@ export function ChatProvider({ children }) {
   useEffect(() => {
     if (!userId) return undefined;
 
-    const token = localStorage.getItem('myrank_token');
     const client = new Client({
+      // O handshake do SockJS leva o cookie HttpOnly da sessão automaticamente
       webSocketFactory: () => new SockJS(WS_URL),
-      connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
       reconnectDelay: 5000,
       heartbeatIncoming: 15000,
       heartbeatOutgoing: 15000,

@@ -334,7 +334,7 @@ export default {
         {
           h: "En tu navegador",
           p: [
-            "Guardamos en tu navegador (localStorage) el acceso a tu cuenta, para que no tengas que entrar cada vez, además del idioma, el tema y preferencias de pantalla, como el orden de las tablas. No usamos cookies de publicidad ni herramientas de rastreo.",
+            "Usamos una cookie de sesión segura (HttpOnly) para mantener tu sesión iniciada sin tener que entrar cada vez, y guardamos en tu navegador (localStorage) el idioma, el tema y preferencias de pantalla, como el orden de las tablas. No usamos cookies de publicidad ni herramientas de rastreo.",
           ],
         },
         {
@@ -979,16 +979,6 @@ export default {
       back: 'Volver',
       submit: 'Crear cuenta',
       submitting: 'Creando...',
-    },
-    verify: {
-      notVerified: 'Confirma tu email antes de entrar. Enviamos un enlace a tu bandeja de entrada.',
-      resend: 'Reenviar email',
-      resending: 'Enviando...',
-      resent: '¡Listo! Te enviamos un nuevo enlace.',
-      resendError: 'No se pudo reenviar ahora. Inténtalo de nuevo en un momento.',
-      confirming: 'Confirmando tu email...',
-      invalid: 'Este enlace no es válido o caducó. Entra con tu email y contraseña para recibir uno nuevo.',
-      backToLogin: 'Ir a iniciar sesión',
     },
     discordCallback: {
       connecting: 'Conectando con Discord…',

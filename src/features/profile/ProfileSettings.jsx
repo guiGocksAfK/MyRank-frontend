@@ -128,7 +128,7 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
     } catch {
       // segue pro logout local
     }
-    logout();
+    await logout();
     window.location.assign('/');
   };
 

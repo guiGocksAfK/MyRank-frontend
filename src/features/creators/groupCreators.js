@@ -1,12 +1,12 @@
 import { creatorKey, splitCreators } from '../../shared/creatorNames';
 
 /** Tipo de criador que cada template sugere (o usuário pode trocar no "Editar"). */
-export function creatorType(template) {
+function creatorType(template) {
   return { book: 'Escritor', manga: 'Escritor', game: 'Studio', anime: 'Studio', movie: 'Diretor', tv: 'Diretor' }[template] ?? 'Criador';
 }
 
 /** Tipo predominante entre as obras de um criador. */
-export function dominantType(works) {
+function dominantType(works) {
   const counts = {};
   works.forEach(w => {
     const type = creatorType(w.template);
