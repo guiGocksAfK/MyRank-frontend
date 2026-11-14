@@ -1,6 +1,5 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import AnimatedNumber from './AnimatedNumber';
-import { formatTime } from '../../../utils/formatters';
+import { formatScore, formatTime } from '../../../utils/formatters';
 import { rowColumns } from './rankColumns';
 
 /**
@@ -28,23 +27,23 @@ export function ScoreCells({ item, mode, locale }) {
   if (mode === 'weight') {
     return (
       <>
-        <span className="rk-cell rk-hide-mobile"><AnimatedNumber value={item.note} locale={locale} /></span>
+        <span className="rk-cell rk-hide-mobile">{formatScore(item.note, locale)}</span>
         <span className="rk-cell rk-hide-mobile">
-          {item.bonusTime > 0 ? <AnimatedNumber value={item.bonusTime} prefix="+" locale={locale} /> : '—'}
+          {item.bonusTime > 0 ? formatScore(item.bonusTime, locale, '+') : '—'}
         </span>
-        <span className="rk-score"><AnimatedNumber value={item.finalNote} locale={locale} /></span>
+        <span className="rk-score">{formatScore(item.finalNote, locale)}</span>
       </>
     );
   }
   if (mode === 'time') {
     return (
       <>
-        <span className="rk-cell rk-hide-mobile"><AnimatedNumber value={item.note} locale={locale} /></span>
+        <span className="rk-cell rk-hide-mobile">{formatScore(item.note, locale)}</span>
         <span className="rk-score rk-score-time">{formatTime(item.timeMinutes)}</span>
       </>
     );
   }
-  return <span className="rk-score"><AnimatedNumber value={item.note} locale={locale} /></span>;
+  return <span className="rk-score">{formatScore(item.note, locale)}</span>;
 }
 
 /** Sobe/desce a obra trocando com a vizinha de mesma nota (no celular não tem arrastar). */
