@@ -52,7 +52,10 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
 
   const orderedItems = useMemo(() => applyUnifiedOrder(allItems, unifiedOrder), [allItems, unifiedOrder]);
   const filteredItems = useMemo(() => applyFilters(orderedItems, filters), [orderedItems, filters]);
-  const sorted = sortItems(filteredItems, sortBy, useTimeWeight);
+  const sorted = useMemo(
+    () => sortItems(filteredItems, sortBy, useTimeWeight),
+    [filteredItems, sortBy, useTimeWeight],
+  );
 
   function canDropOn(target) {
     const draggedItem = sorted.find(item => getItemKey(item) === draggedItemKey);
@@ -157,7 +160,7 @@ export default function UnifiedTable({ tables, selectedTableIds, loading, sortBy
               onDrop={event => handleDrop(event, item)}
               style={{
                 '--rk-cols': rowColumns(mode, { unified: true, reordering }),
-                '--rank-delay': `${Math.min(i, 12) * 35}ms`,
+                '--rank-delay': `${Math.min(i, 8) * 18}ms`,
                 opacity: draggedItemKey === getItemKey(item) ? 0.45 : 1,
               }}
             >

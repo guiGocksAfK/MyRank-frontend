@@ -28,7 +28,10 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
   const subFilter = filters.subcategory ?? 'all';
 
   const filteredItems = useMemo(() => applyFilters(table.items, filters), [table.items, filters]);
-  const sorted = sortItems(filteredItems, sortBy, useTimeWeight);
+  const sorted = useMemo(
+    () => sortItems(filteredItems, sortBy, useTimeWeight),
+    [filteredItems, sortBy, useTimeWeight],
+  );
 
   // Adicionar obra com uma subcategoria filtrada já deixa ela selecionada.
   const defaultSubcategoryId = typeof subFilter === 'number' ? subFilter : null;
@@ -150,7 +153,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
                 onDrop={event => handleDrop(event, item)}
                 style={{
                   '--rk-cols': rowColumns(mode, { actions: true, reordering }),
-                  '--rank-delay': `${Math.min(i, 12) * 35}ms`,
+                  '--rank-delay': `${Math.min(i, 8) * 18}ms`,
                   opacity: isDeleting ? 0.5 : (draggedItemId === item.id ? 0.45 : 1),
                 }}
               >

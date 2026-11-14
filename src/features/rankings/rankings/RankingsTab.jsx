@@ -4,12 +4,12 @@ import UnifiedTable from './UnifiedTable';
 import IndividualTable from './IndividualTable';
 import FilterPanel from './FilterPanel';
 import NewTableModal from './NewTableModal';
-import { getGroups, createGroup, updateGroup, updateGroupOrder } from '../../../services/masterTableGroupService';
+import { createGroup, updateGroup, updateGroupOrder } from '../../../services/masterTableGroupService';
 import {
-  getCategories, createCategory, updateCategory, deleteCategory,
+  peekCategories, getCategories, createCategory, updateCategory, deleteCategory,
   createSubcategory, renameSubcategory, deleteSubcategory, updateCustomFields,
 } from '../../../services/CategoryService.js';
-import { getWorksByCategory, createWork, updateWork, deleteWork } from '../../../services/WorkService.js';
+import { createWork, updateWork, deleteWork } from '../../../services/WorkService.js';
 import { mapWorkToItem, mapItemToWorkDTO, mapCategoryToTable } from '../../../utils/mapWork';
 import { activeFilterCount, getMode } from '../../../utils/formatters';
 import { useBadges } from '../../../shared/badges';
@@ -75,20 +75,44 @@ function saveItemOrder(tableId, items) {
   localStorage.setItem(getItemOrderKey(tableId), JSON.stringify(items.map(item => item.id)));
 }
 
+function buildTables(categories, unifiedItems) {
+  const itemsByCat = new Map();
+  for (const item of unifiedItems || []) {
+    const key = String(item.categoryId);
+    if (!itemsByCat.has(key)) itemsByCat.set(key, []);
+    itemsByCat.get(key).push(item);
+  }
+  const nextTables = categories.map(cat => {
+    const catItems = itemsByCat.get(String(cat.id)) || [];
+    return mapCategoryToTable(cat, orderItems(cat.id, catItems));
+  });
+  return orderTables(nextTables);
+}
+
 export default function RankingsTab({ onNavigateToCreators }) {
   const { refresh: refreshBadges } = useBadges();
-  const { bumpWorks } = useWorks();
+  const { unified, groups, bumpWorks } = useWorks();
   const { t } = useLanguage();
   const tr = t.rankings;
-  const [tables,           setTables]           = useState([]);
-  const [loadingTableIds,  setLoadingTableIds]  = useState([]);
-  const [loadError,        setLoadError]        = useState(null);
-  // tabelas cujas obras não carregaram: as outras seguem funcionando
-  const [failedTableIds,   setFailedTableIds]   = useState([]);
-  const [reloadKey,        setReloadKey]        = useState(0);
-  const [activeTab,        setActiveTab]        = useState('unified');
-  const [useTimeWeight,    setUseTimeWeight]    = useState(false);
-  const [sortBy,           setSortBy]           = useState('nota');
+  const initialCategories = peekCategories();
+  const initialGroup = (groups || []).find(g => g.name === 'Unificado');
+
+  const [rawCategories,     setRawCategories]     = useState(initialCategories);
+  const [loadingCategories, setLoadingCategories] = useState(initialCategories === null);
+  const [tables,            setTables]            = useState(() => (
+    initialCategories && unified.items
+      ? buildTables(initialCategories, unified.items)
+      : initialCategories
+        ? orderTables(initialCategories.map(cat => mapCategoryToTable(cat)))
+        : []
+  ));
+  const [itemsHydrated,     setItemsHydrated]     = useState(() => Boolean(initialCategories && unified.items));
+  const [groupHydrated,     setGroupHydrated]     = useState(() => Boolean(initialGroup));
+  const [loadError,         setLoadError]         = useState(null);
+  const [reloadKey,         setReloadKey]         = useState(0);
+  const [activeTab,         setActiveTab]         = useState('unified');
+  const [useTimeWeight,     setUseTimeWeight]     = useState(false);
+  const [sortBy,            setSortBy]            = useState('nota');
   // "nota ponderada ligada por padrão" (Configurações): abre em "Ponderada" quando ligado
   const { user } = useUser();
   const weightedDefault = Boolean(user?.weightedByDefault);
@@ -108,74 +132,66 @@ export default function RankingsTab({ onNavigateToCreators }) {
   }
   const [showFilters,      setShowFilters]      = useState(false);
   const [filters,          setFilters]          = useState({});
-  const [selectedTableIds, setSelectedTableIds] = useState([]);
+  const [selectedTableIds, setSelectedTableIds] = useState(
+    () => initialGroup?.categoryIds ?? (initialCategories ? initialCategories.map(c => c.id) : []),
+  );
   const [showNewTable,     setShowNewTable]     = useState(false);
-  const [unifiedGroupId,   setUnifiedGroupId]   = useState(null);
-  const [unifiedOrder,     setUnifiedOrder]     = useState([]);
+  const [unifiedGroupId,   setUnifiedGroupId]   = useState(() => initialGroup?.id ?? null);
+  const [unifiedOrder,     setUnifiedOrder]     = useState(() => initialGroup?.manualOrder || []);
   const [draggedTableId,   setDraggedTableId]   = useState(null);
   const [reordering,       setReordering]       = useState(false);
   const [actionError,      setActionError]      = useState(null);
 
-  // ── Carrega categorias + obras + grupo "Unificado" do backend ao montar ──
+  if (rawCategories && unified.items && !itemsHydrated) {
+    setItemsHydrated(true);
+    setTables(buildTables(rawCategories, unified.items));
+  }
+
+  const foundGroup = (groups || []).find(g => g.name === 'Unificado');
+  if (foundGroup && !groupHydrated) {
+    setGroupHydrated(true);
+    setUnifiedGroupId(foundGroup.id);
+    setSelectedTableIds(foundGroup.categoryIds);
+    setUnifiedOrder(foundGroup.manualOrder || []);
+  }
+
+  // ── Carrega só categorias (ou reaproveita do prefetch) — obras e grupo já vêm do WorksProvider ──
   useEffect(() => {
+    if (reloadKey === 0 && peekCategories() !== null) return undefined;
     let cancelled = false;
-
-    async function loadAll() {
-      setLoadError(null);
-      setFailedTableIds([]);
-      try {
-        const categories = await getCategories();
-        const tablesWithoutItems = categories.map(cat => mapCategoryToTable(cat));
+    getCategories({ fresh: reloadKey > 0 })
+      .then((categories) => {
         if (cancelled) return;
-        setTables(orderTables(tablesWithoutItems));
-        setSelectedTableIds(tablesWithoutItems.map(table => table.id));
-        setLoadingTableIds(tablesWithoutItems.map(table => table.id));
-
-        await Promise.all(tablesWithoutItems.map(async table => {
-          try {
-            const works = await getWorksByCategory(table.id);
-            if (!cancelled) {
-              setTables(prev => prev.map(current => current.id === table.id
-                ? { ...current, items: orderItems(table.id, works.map(mapWorkToItem)) }
-                : current));
-            }
-          } catch {
-            // só esta tabela falhou: marca e segue, em vez de derrubar a aba inteira
-            if (!cancelled) setFailedTableIds(prev => [...prev, table.id]);
-          } finally {
-            if (!cancelled) {
-              setLoadingTableIds(prev => prev.filter(id => id !== table.id));
-            }
-          }
-        }));
-
+        setRawCategories(categories);
+        setLoadingCategories(false);
+      })
+      .catch((err) => {
         if (cancelled) return;
-
-        // Busca o grupo "Unificado" já existente, ou cria um novo com tudo selecionado
-        const groups = await getGroups();
-        let unifiedGroup = groups.find(g => g.name === 'Unificado');
-
-        if (!unifiedGroup && tablesWithoutItems.length > 0) {
-          unifiedGroup = await createGroup('Unificado', tablesWithoutItems.map(t => t.id));
-        }
-
-        if (cancelled) return;
-
-        if (unifiedGroup) {
-          setUnifiedGroupId(unifiedGroup.id);
-          setSelectedTableIds(unifiedGroup.categoryIds);
-          setUnifiedOrder(unifiedGroup.manualOrder || []);
-        }
-      } catch (err) {
-        if (!cancelled) setLoadError(err?.response?.data?.message || err.message || tr.loadError);
-      }
-    }
-
-    loadAll();
+        setLoadError(err?.response?.data?.message || err.message || tr.loadError);
+        setLoadingCategories(false);
+      });
     return () => { cancelled = true; };
     // tr.loadError fica de fora: trocar o idioma não deve recarregar tudo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reloadKey]);
+
+  // Se o usuário já tem tabelas mas ainda não tem grupo "Unificado", cria uma vez.
+  useEffect(() => {
+    if (groupHydrated || groups === null || !rawCategories?.length) return undefined;
+    if (groups.some(g => g.name === 'Unificado')) return undefined;
+    let cancelled = false;
+    createGroup('Unificado', rawCategories.map(cat => cat.id))
+      .then((unifiedGroup) => {
+        if (cancelled || !unifiedGroup) return;
+        setGroupHydrated(true);
+        setUnifiedGroupId(unifiedGroup.id);
+        setSelectedTableIds(unifiedGroup.categoryIds);
+        setUnifiedOrder(unifiedGroup.manualOrder || []);
+        bumpWorks();
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [groupHydrated, groups, rawCategories, bumpWorks]);
 
   // ── Salvar obra (criar ou editar) ──
   async function handleSaveWork(categoryId, payload) {
@@ -271,7 +287,9 @@ export default function RankingsTab({ onNavigateToCreators }) {
         // tabela). Sem ele, a ordem do Unificado não era salva até recarregar a página.
         const group = await createGroup('Unificado', newSelectedIds);
         setUnifiedGroupId(group.id);
+        setGroupHydrated(true);
       }
+      bumpWorks();
     } catch (err) {
       console.error('Erro ao atualizar grupo unificado:', err);
     }
@@ -359,29 +377,31 @@ export default function RankingsTab({ onNavigateToCreators }) {
     }
   }
 
-  const retryLoad = () => setReloadKey(key => key + 1);
+  const retryLoad = () => {
+    setLoadError(null);
+    setLoadingCategories(true);
+    setItemsHydrated(false);
+    setGroupHydrated(false);
+    bumpWorks();
+    setReloadKey(key => key + 1);
+  };
   const retryButton = (
     <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={retryLoad}>
       {t.insights.result.retry}
     </button>
   );
 
-  if (loadError) {
+  const errorMessage = loadError || (unified.error ? (unified.error?.response?.data?.message || unified.error.message || tr.loadError) : null);
+  if (errorMessage) {
     return (
       <div className="rk-empty rk-error" role="alert">
-        <p>{loadError}</p>
+        <p>{errorMessage}</p>
         {retryButton}
       </div>
     );
   }
 
-  // aviso da(s) tabela(s) que não carregou(aram), no lugar de mostrar "tabela vazia"
-  const failedNotice = (
-    <div className="rk-empty rk-error" role="alert">
-      <p>{tr.loadError}</p>
-      {retryButton}
-    </div>
-  );
+  const isLoading = loadingCategories || unified.items === null || groups === null;
 
   const filterCount = activeFilterCount(filters);
   const mode = getMode(sortBy, useTimeWeight);
@@ -536,13 +556,11 @@ export default function RankingsTab({ onNavigateToCreators }) {
         </div>
       )}
 
-      {activeTab === 'unified' && failedTableIds.length > 0 && failedNotice}
-
       {activeTab === 'unified' ? (
         <UnifiedTable
           tables={tables}
           selectedTableIds={selectedTableIds}
-          loading={loadingTableIds.length > 0}
+          loading={isLoading}
           sortBy={sortBy}
           useTimeWeight={useTimeWeight}
           viewMode={viewMode}
@@ -558,12 +576,11 @@ export default function RankingsTab({ onNavigateToCreators }) {
         (() => {
           const table = tables.find(t => t.id === activeTab);
           if (!table) return null;
-          if (failedTableIds.includes(table.id)) return failedNotice;
           return (
             <IndividualTable
               key={table.id} // zera o filtro de subcategoria ao trocar de tabela
               table={table}
-              loading={loadingTableIds.includes(table.id)}
+              loading={isLoading}
               sortBy={sortBy}
               useTimeWeight={useTimeWeight}
               viewMode={viewMode}

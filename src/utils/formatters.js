@@ -1,5 +1,13 @@
 import { genreKeys } from '../shared/genres';
 import { creatorKey, splitCreators } from '../shared/creatorNames';
+export function formatScore(value, locale, prefix = '') {
+  const num = Number(value) || 0;
+  const text = locale
+    ? num.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+    : num.toFixed(1);
+  return `${prefix}${text}`;
+}
+
 // Formata minutos → "2h 30min" / "45min" / "50h"
 export function formatTime(minutes) {
   if (!minutes || minutes <= 0) return '—';

@@ -5,11 +5,6 @@ export async function createWork(dto) {
   return res.data;
 }
 
-export async function getWorksByCategory(categoryId) {
-  const res = await api.get(`/works/category/${categoryId}`);
-  return res.data;
-}
-
 export async function getUnifiedWorks() {
   const res = await api.get('/works/unified');
   return res.data;

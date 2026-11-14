@@ -5,7 +5,6 @@ import { getStoredUser } from '../../services/authService';
 import { useUser } from '../../shared/userContext';
 import { useLanguage } from '../../shared/i18n';
 import { relativeTime, useUnifiedItems } from '../../shared/useUnifiedItems';
-import { getGroups } from '../../services/masterTableGroupService';
 import { getLatestInsights } from '../../services/insightsService';
 import { sortItems } from '../../utils/formatters';
 import { TEMPLATE_ICONS, hasSquareCover } from '../../shared/tableTemplates';
@@ -43,8 +42,6 @@ function PosterCover({ item }) {
 
 export default function DashboardHome({ onNavigate }) {
   const [weighted, setWeighted] = useState(false);
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState(null); // null = todas as tabelas
-  const [unifiedOrder, setUnifiedOrder] = useState([]);
   // "agora" fixo na montagem: decide quais conquistas ganham a etiqueta de nova
   const [now] = useState(() => Date.now());
   // null = ainda carregando (ou falhou): a seção nem aparece
@@ -57,7 +54,7 @@ export default function DashboardHome({ onNavigate }) {
     setSeenWeightedDefault(weightedDefault);
     setWeighted(weightedDefault);
   }
-  const { worksVersion } = useWorks();
+  const { groups } = useWorks();
   const { items: unifiedItems, loading: loadingItems } = useUnifiedItems();
   const { lang, locale, t } = useLanguage();
   const th = t.dash.home;
@@ -65,24 +62,15 @@ export default function DashboardHome({ onNavigate }) {
   const storedUser = useMemo(() => getStoredUser(), []);
   const userName = user?.username || storedUser?.username || 'usuário';
 
-  useEffect(() => {
-    let cancelled = false;
-    getGroups()
-      .then((groups) => {
-        if (cancelled) return;
-        const unifiedGroup = (groups || []).find(group => group.name === 'Unificado');
-        setSelectedCategoryIds(
-          unifiedGroup?.categoryIds?.length
-            ? new Set(unifiedGroup.categoryIds.map(id => String(id)))
-            : null,
-        );
-        setUnifiedOrder(unifiedGroup?.manualOrder || []);
-      })
-      .catch(() => {
-        // A Home continua funcional mesmo se o grupo unificado não estiver disponível.
-      });
-    return () => { cancelled = true; };
-  }, [worksVersion]);
+  const { selectedCategoryIds, unifiedOrder } = useMemo(() => {
+    const unifiedGroup = (groups || []).find(group => group.name === 'Unificado');
+    return {
+      selectedCategoryIds: unifiedGroup?.categoryIds?.length
+        ? new Set(unifiedGroup.categoryIds.map(id => String(id)))
+        : null,
+      unifiedOrder: unifiedGroup?.manualOrder || [],
+    };
+  }, [groups]);
 
   const mediaItems = useMemo(() => {
     const all = (unifiedItems || []).map(item => ({ ...item, _tableId: item.categoryId }));

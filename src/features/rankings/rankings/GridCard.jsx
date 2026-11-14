@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
-import { formatTime } from '../../../utils/formatters';
+import { formatScore, formatTime } from '../../../utils/formatters';
 import { useLanguage } from '../../../shared/i18n';
 import { TEMPLATE_ICONS, hasSquareCover, itemSubline, tableName } from '../../../shared/tableTemplates';
-import AnimatedNumber from './AnimatedNumber';
 
 /**
  * Capa do grid, no mesmo desenho do Hall da fama: arte limpa (nada em cima dela) e,
@@ -22,12 +21,12 @@ export default function GridCard({ item, customFields = [], mode, index, unified
 
   const value = mode === 'time'
     ? <span className="rk-gcard-value">{formatTime(item.timeMinutes)}</span>
-    : <span className="rk-gcard-value"><AnimatedNumber value={mode === 'weight' ? item.finalNote : item.note} locale={locale} /></span>;
+    : <span className="rk-gcard-value">{formatScore(mode === 'weight' ? item.finalNote : item.note, locale)}</span>;
 
   return (
     <div
       className={`rk-gcard mr-rankings-enter${index < 3 ? ' is-top' : ''}${isDragging ? ' is-dragging' : ''}${draggable ? ' is-draggable' : ''}`}
-      style={{ '--rank-delay': `${Math.min(index, 12) * 35}ms` }}
+      style={{ '--rank-delay': `${Math.min(index, 8) * 18}ms` }}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}

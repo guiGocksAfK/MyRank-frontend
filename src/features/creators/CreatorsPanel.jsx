@@ -5,7 +5,7 @@ import { useUnifiedItems } from '../../shared/useUnifiedItems';
 import { useLanguage } from '../../shared/i18n';
 import InfoTip from '../../shared/components/InfoTip';
 import { hasSquareCover, tableName } from '../../shared/tableTemplates';
-import AnimatedNumber from '../rankings/rankings/AnimatedNumber';
+import { formatScore } from '../../utils/formatters';
 import CreatorAvatar from './CreatorAvatar';
 import EditCreatorModal from './EditCreatorModal';
 import { groupCreators } from './groupCreators';
@@ -13,6 +13,32 @@ import '../rankings/rankings/rankings.css';
 import './creators.css';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
+
+let cachedProfilesOwner = null;
+let cachedProfiles = {};
+
+function profileOwner() {
+  try { return localStorage.getItem('myrank_username') || ''; } catch { return ''; }
+}
+
+function readCachedProfiles() {
+  const owner = profileOwner();
+  if (cachedProfilesOwner !== owner) {
+    cachedProfilesOwner = owner;
+    cachedProfiles = {};
+  }
+  return cachedProfiles;
+}
+
+function writeCachedProfiles(updater) {
+  const owner = profileOwner();
+  if (cachedProfilesOwner !== owner) {
+    cachedProfilesOwner = owner;
+    cachedProfiles = {};
+  }
+  cachedProfiles = typeof updater === 'function' ? updater(cachedProfiles) : updater;
+  return cachedProfiles;
+}
 
 // Ranking de criadores derivado das obras reais do usuário (/works/unified). Quem
 // junta pessoas, duplas e co-criadores é o groupCreators; as fotos vêm do back.
@@ -78,7 +104,7 @@ export default function CreatorsPanel({ onBack }) {
   const [expanded, setExpanded] = useState([]);
   // mesma lista do resto do dashboard (WorksProvider); null = carregando
   const { items: works, error: loadFailed } = useUnifiedItems();
-  const [profiles, setProfiles] = useState({}); // chave da pessoa → { photoUrl, customPhoto, type }
+  const [profiles, setProfiles] = useState(readCachedProfiles); // chave da pessoa → { photoUrl, customPhoto, type }
   const [editing, setEditing] = useState(null);
   const weighted = order === 'weighted';
 
@@ -88,16 +114,21 @@ export default function CreatorsPanel({ onBack }) {
   // fotos e tipos escolhidos; sem o endpoint (back antigo) ficam as iniciais
   useEffect(() => {
     if (entries.length === 0) return undefined;
-    const request = entries.flatMap(entry => entry.members.map(m => ({
-      name: m.name, kind: entry.autoType === 'Studio' ? 'COMPANY' : 'PERSON',
-    })));
+    const cached = readCachedProfiles();
+    const request = entries.flatMap(entry => entry.members
+      .filter(m => !cached[m.key] || cached[m.key].pending)
+      .map(m => ({
+        name: m.name, kind: entry.autoType === 'Studio' ? 'COMPANY' : 'PERSON',
+      })));
+    if (request.length === 0) return undefined;
     let active = true;
     let timer;
     const load = (attempt) => {
       getCreatorProfiles(request)
         .then(list => {
           if (!active) return;
-          setProfiles(current => ({ ...current, ...Object.fromEntries(list.map(p => [p.key, p])) }));
+          const byKey = Object.fromEntries(list.map(p => [p.key, p]));
+          setProfiles(writeCachedProfiles(current => ({ ...current, ...byKey })));
           if (list.some(p => p.pending) && attempt < PROFILE_RETRIES) timer = setTimeout(() => load(attempt + 1), 1200);
         })
         .catch(() => {});
@@ -145,7 +176,7 @@ export default function CreatorsPanel({ onBack }) {
       <div className="cr-cards">
         {sorted.map((entry, i) => (
           <div key={entry.id} className={`cr-card mr-rankings-enter${i < 3 ? ' is-top' : ''}`}
-            style={{ '--rank-delay': `${Math.min(i, 12) * 35}ms` }}>
+            style={{ '--rank-delay': `${Math.min(i, 8) * 18}ms` }}>
             <span className="cr-card-rank">{i + 1}</span>
             <CreatorAvatar entry={entry} profiles={profiles} isCompany={entry.type === 'Studio'} size="lg" top={i < 3}
               onEdit={() => setEditing(entry)} editLabel={editLabel(entry)} />
@@ -153,7 +184,7 @@ export default function CreatorsPanel({ onBack }) {
             <div className="cr-card-sub">
               {order === 'works' ? worksLabel(entry.count) : typeLabel(entry.type)}
               {' · '}
-              <span className="cr-card-score"><AnimatedNumber value={entry.score.value} locale={locale} /></span>
+              <span className="cr-card-score">{formatScore(entry.score.value, locale)}</span>
             </div>
             <Filmography works={byNote(entry.works)} more={tc.more} />
           </div>
@@ -178,7 +209,7 @@ export default function CreatorsPanel({ onBack }) {
             <Fragment key={entry.id}>
               <div
                 className={`rk-row mr-rankings-enter cr-row${i < 3 ? ' is-top' : ''}${isOpen ? ' is-open' : ''}`}
-                style={{ '--rk-cols': COLS, '--rank-delay': `${Math.min(i, 12) * 35}ms` }}
+                style={{ '--rk-cols': COLS, '--rank-delay': `${Math.min(i, 8) * 18}ms` }}
                 role="button"
                 tabIndex={0}
                 aria-expanded={isOpen}
@@ -194,7 +225,7 @@ export default function CreatorsPanel({ onBack }) {
                   <div className="rk-sub">{typeLabel(entry.type)} · {worksLabel(entry.count)}</div>
                 </div>
                 <span className="rk-hide-mobile"><Filmography works={shown} more={tc.more} /></span>
-                <span className="rk-score"><AnimatedNumber value={entry.score.value} locale={locale} /></span>
+                <span className="rk-score">{formatScore(entry.score.value, locale)}</span>
                 <ChevronDown className="cr-chevron" size={18} strokeWidth={1.8} aria-hidden="true" />
               </div>
 
@@ -214,7 +245,7 @@ export default function CreatorsPanel({ onBack }) {
                             {entry.coCredits[work.id] && ` · ${fmt(tc.withPeople, { names: entry.coCredits[work.id].join(', ') })}`}
                           </span>
                         </span>
-                        <span className="cr-work-note"><AnimatedNumber value={noteOf(work)} locale={locale} /></span>
+                        <span className="cr-work-note">{formatScore(noteOf(work), locale)}</span>
                       </li>
                     ))}
                   </ul>
@@ -285,7 +316,7 @@ export default function CreatorsPanel({ onBack }) {
         <EditCreatorModal
           entry={editing}
           profiles={profiles}
-          onSaved={list => setProfiles(current => ({ ...current, ...Object.fromEntries(list.map(p => [p.key, p])) }))}
+          onSaved={list => setProfiles(writeCachedProfiles(current => ({ ...current, ...Object.fromEntries(list.map(p => [p.key, p])) })))}
           onClose={() => setEditing(null)}
         />
       )}
