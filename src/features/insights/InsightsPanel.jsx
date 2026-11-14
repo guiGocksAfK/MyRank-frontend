@@ -5,7 +5,7 @@ import { useLanguage } from '../../shared/i18n';
 import InfoTip from '../../shared/components/InfoTip';
 import { tableName } from '../../shared/tableTemplates';
 import Poster from '../rankings/rankings/Poster';
-import AnimatedNumber from '../rankings/rankings/AnimatedNumber';
+import { formatScore } from '../../utils/formatters';
 import '../rankings/rankings/rankings.css';
 import './insights.css';
 
@@ -152,7 +152,7 @@ export default function InsightsPanel({ onGenerate }) {
               aria-checked={on}
               aria-label={fmt(tp.toggle, { title: item.title })}
               className={`rk-row mr-rankings-enter ai-row${idx < 3 ? ' is-top' : ''}${on ? ' is-selected' : ''}`}
-              style={{ '--rk-cols': COLS, '--rank-delay': `${Math.min(idx, 12) * 30}ms` }}
+              style={{ '--rk-cols': COLS, '--rank-delay': `${Math.min(idx, 8) * 18}ms` }}
               onClick={() => toggle(item.id)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
@@ -169,7 +169,7 @@ export default function InsightsPanel({ onGenerate }) {
                 <div className="rk-sub ai-only-mobile">{tableName(item.table)}</div>
               </div>
               <span className="rk-table rk-hide-mobile">{tableName(item.table)}</span>
-              <span className="rk-score"><AnimatedNumber value={item.note} locale={locale} /></span>
+              <span className="rk-score">{formatScore(item.note, locale)}</span>
             </div>
           );
         })}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Settings } from 'lucide-react';
-import { socialApi } from '../social/socialData';
+import { lastSocial, socialApi } from '../social/socialData';
 import Avatar from '../../shared/components/Avatar';
 import { useUser } from '../../shared/userContext';
 import { useLanguage } from '../../shared/i18n';
@@ -26,7 +26,7 @@ export default function ProfilePanel({ isDark, onThemeToggle, startOnSettings = 
   const { user: profile, loading, error, setUser: applyUser } = useUser();
 
   const [avatarVersion, setAvatarVersion] = useState(0); // fura o cache do <img> depois de trocar a foto
-  const [summary, setSummary] = useState(null);
+  const [summary, setSummary] = useState(() => lastSocial('getSummary') ?? null);
   const [tab, setTab] = useState('stats'); // estatísticas primeiro: é a parte mais pessoal do perfil
   const [badgeFilter, setBadgeFilter] = useState('all');
   const [view, setView] = useState(startOnSettings ? 'settings' : 'profile'); // 'profile' | 'settings'
