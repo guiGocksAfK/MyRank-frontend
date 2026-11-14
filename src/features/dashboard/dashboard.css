@@ -886,8 +886,12 @@
 }
 
 .mr-rankings-enter {
-  animation: mr-rankings-rise 0.45s ease-out both;
+  animation: mr-rankings-rise 0.22s ease-out both;
   animation-delay: var(--rank-delay, 0ms);
+}
+
+.mr-tab-enter {
+  animation: mr-tab-fade 0.16s ease-out both;
 }
 
 /* Etiqueta da subcategoria na linha da obra (tabela individual, filtro "Todas") */
@@ -919,7 +923,12 @@
 
 /* ============ ANIMAÇÃO DAS LINHAS DO RANKING ============ */
 @keyframes mr-rankings-rise {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes mr-tab-fade {
+  from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 

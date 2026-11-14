@@ -3,6 +3,15 @@ import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import DashboardHeader from './DashboardHeader';
 import DashboardHome from './DashboardHome';
 import SiteFooter from '../../shared/components/SiteFooter';
+import { getCategories } from '../../services/CategoryService';
+import { UserProvider, useUser } from '../../shared/userContext';
+import { WorksProvider } from '../../shared/worksContext';
+import { BadgeProvider } from '../../shared/badges';
+import { isAuthenticated } from '../../services/authService';
+import { useLanguage } from '../../shared/i18n';
+import { NotificationsProvider } from '../../shared/notifications';
+import { ChatProvider } from '../../shared/chat';
+import './dashboard.css';
 
 // o código de cada aba fica num arquivo separado, baixado só quando precisa
 const TAB_CHUNKS = {
@@ -21,29 +30,29 @@ const InsightsPanel = lazy(TAB_CHUNKS.ai);
 const InsightsResult = lazy(TAB_CHUNKS.aiResult);
 const ProfilePanel = lazy(TAB_CHUNKS.profile);
 
+function prefetchTab(tab) {
+  TAB_CHUNKS[tab]?.().catch(() => {});
+  if (tab === 'rankings') getCategories().catch(() => {});
+}
+
 /**
  * Com o dashboard já na tela e o navegador ocioso, adianta o download das
- * outras abas: o primeiro clique em cada uma abre na hora, sem tela vazia.
+ * outras abas e das categorias: o primeiro clique abre na hora, sem tela vazia.
  * Quem pediu economia de dados fica de fora.
  */
 function preloadTabs() {
   if (navigator.connection?.saveData) return undefined;
-  const run = () => Object.values(TAB_CHUNKS).forEach((load) => load().catch(() => {}));
+  const run = () => {
+    Object.values(TAB_CHUNKS).forEach((load) => load().catch(() => {}));
+    getCategories().catch(() => {});
+  };
   if ('requestIdleCallback' in window) {
-    const id = window.requestIdleCallback(run, { timeout: 4000 });
+    const id = window.requestIdleCallback(run, { timeout: 2000 });
     return () => window.cancelIdleCallback(id);
   }
-  const id = setTimeout(run, 2000); // Safari não tem requestIdleCallback
+  const id = setTimeout(run, 1200); // Safari não tem requestIdleCallback
   return () => clearTimeout(id);
 }
-import { UserProvider, useUser } from '../../shared/userContext';
-import { WorksProvider } from '../../shared/worksContext';
-import { BadgeProvider } from '../../shared/badges';
-import { isAuthenticated } from '../../services/authService';
-import { useLanguage } from '../../shared/i18n';
-import { NotificationsProvider } from '../../shared/notifications';
-import { ChatProvider } from '../../shared/chat';
-import './dashboard.css';
 
 const VALID_TABS = ['home', 'rankings', 'social', 'ai', 'profile'];
 const THEME_KEY = 'myrank_theme';
@@ -148,7 +157,7 @@ export default function DashboardPage() {
     if (tab === 'rankings') setRankingsVisited(true);
     setCreatorsView(false);
     setInsightRun(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   };
 
   const renderTab = () => {
@@ -179,8 +188,8 @@ export default function DashboardPage() {
 
   return (
     <UserProvider>
-    <OnboardingGate>
     <WorksProvider>
+    <OnboardingGate>
     <BadgeProvider>
     <NotificationsProvider>
     <ChatProvider>
@@ -188,20 +197,21 @@ export default function DashboardPage() {
       <DashboardHeader
         activeTab={activeTab}
         onTabChange={handleTabChange}
+        onTabPrefetch={prefetchTab}
       />
       <div className="mr-main">
-        <div style={{ display: activeTab === 'home' ? 'block' : 'none' }}>
+        <div className="mr-tab-enter" style={{ display: activeTab === 'home' ? 'block' : 'none' }}>
           <DashboardHome onNavigate={handleTabChange} />
         </div>
-        <Suspense fallback={null}>
+        <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
           {rankingsVisited && (
-            <div style={{ display: activeTab === 'rankings' && !creatorsView ? 'block' : 'none' }}>
+            <div className="mr-tab-enter" style={{ display: activeTab === 'rankings' && !creatorsView ? 'block' : 'none' }}>
               <RankingsTab onNavigateToCreators={() => setCreatorsView(true)} />
             </div>
           )}
           {activeTab === 'home' || (activeTab === 'rankings' && rankingsVisited)
-            ? creatorsView && <CreatorsPanel onBack={() => setCreatorsView(false)} />
-            : renderTab()}
+            ? creatorsView && <div className="mr-tab-enter"><CreatorsPanel onBack={() => setCreatorsView(false)} /></div>
+            : <div key={activeTab} className="mr-tab-enter">{renderTab()}</div>}
         </Suspense>
       </div>
 
@@ -211,8 +221,8 @@ export default function DashboardPage() {
     </ChatProvider>
     </NotificationsProvider>
     </BadgeProvider>
-    </WorksProvider>
     </OnboardingGate>
+    </WorksProvider>
     </UserProvider>
   );
 }

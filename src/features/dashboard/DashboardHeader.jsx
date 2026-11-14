@@ -33,7 +33,7 @@ const BellIcon = () => (
   </svg>
 );
 
-export default function DashboardHeader({ activeTab, onTabChange }) {
+export default function DashboardHeader({ activeTab, onTabChange, onTabPrefetch }) {
   const { user: me } = useUser();
   const { lang, setLang, t } = useLanguage();
   const th = t.dash.header;
@@ -86,6 +86,8 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
           type="button"
           className={`app-nav-tab${activeTab === id ? ' active' : ''}`}
           aria-current={activeTab === id ? 'page' : undefined}
+          onMouseEnter={() => onTabPrefetch?.(id)}
+          onFocus={() => onTabPrefetch?.(id)}
           onClick={() => goTo(id)}
         >
           {t.dash.tabs[id]}
@@ -195,6 +197,8 @@ export default function DashboardHeader({ activeTab, onTabChange }) {
             type="button"
             className={`app-mobile-tab${activeTab === id ? ' active' : ''}`}
             aria-current={activeTab === id ? 'page' : undefined}
+            onMouseEnter={() => onTabPrefetch?.(id)}
+            onFocus={() => onTabPrefetch?.(id)}
             onClick={() => goTo(id)}
           >
             <TabIcon id={id} />
