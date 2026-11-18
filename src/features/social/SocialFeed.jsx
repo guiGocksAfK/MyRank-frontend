@@ -27,6 +27,7 @@ export default function SocialFeed({
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(() => (items?.length ?? 0) >= 20);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [moreFailed, setMoreFailed] = useState(false);
   const { items: myItems } = useUnifiedItems();
   const { user } = useUser();
 
@@ -58,6 +59,7 @@ export default function SocialFeed({
 
   const loadMore = () => {
     if (loadingMore || !hasMore) return;
+    setMoreFailed(false);
     const nextPage = page + 1;
     setLoadingMore(true);
     socialApi.getFeed(nextPage, 20, scope)
@@ -70,7 +72,7 @@ export default function SocialFeed({
           return [...list, ...r.filter((i) => !seen.has(i.id))];
         });
       })
-      .catch(() => {})
+      .catch(() => setMoreFailed(true))
       .finally(() => setLoadingMore(false));
   };
 
@@ -140,6 +142,7 @@ export default function SocialFeed({
               onDeleted={handleDeleted}
             />
           ))}
+          {moreFailed && <p className="social-muted" role="alert" style={{ alignSelf: 'center' }}>{tf.loadMoreError}</p>}
           {hasMore && !filter && (
             <button
               type="button"

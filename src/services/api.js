@@ -1,4 +1,5 @@
 import axios from "axios";
+import { readStoredLang } from "../shared/locales/load";
 
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
@@ -9,6 +10,12 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+// Idioma da pessoa em cada pedido: as mensagens de erro do servidor voltam nele.
+api.interceptors.request.use((config) => {
+  config.headers["Accept-Language"] = readStoredLang().toLowerCase();
+  return config;
 });
 
 let redirectingToLogin = false;
