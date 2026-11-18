@@ -891,6 +891,12 @@ export default {
     signOut: 'Salir',
     signingOut: 'Saliendo…',
     signOutHint: 'Sale de este y de todos los otros dispositivos',
+    discordConnect: 'Conectar Discord',
+    discordDisconnect: 'Desconectar Discord',
+    discordConnectHint: 'Vincula tu Discord a esta cuenta para usar el bot de MyRank',
+    discordConnectedSub: 'Discord conectado: el bot de MyRank responde por ti',
+    discordConnectedNotice: 'Discord conectado. Ya puedes usar el bot de MyRank.',
+    discordDisconnectedNotice: 'Discord desconectado. El bot ya no responde por esta cuenta.',
   },
   auth: {
     back: '← Volver',
@@ -986,6 +992,9 @@ export default {
       invalidState: 'No se pudo confirmar que este inicio de sesión empezó aquí. Intenta entrar con Discord de nuevo.',
       error: 'Error al iniciar sesión con Discord.',
       backToLogin: 'Volver a iniciar sesión',
+      linking: 'Conectando Discord a tu cuenta…',
+      linkError: 'No se pudo conectar Discord.',
+      backToSettings: 'Volver a la configuración',
     },
   },
   onboarding: {
