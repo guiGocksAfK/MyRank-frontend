@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { consumeDiscordState, loginWithDiscord, takePostAuthPath } from "../../services/authService";
+import {
+  consumeDiscordIntent, consumeDiscordState, loginWithDiscord, markDiscordLinked, takePostAuthPath,
+} from "../../services/authService";
+import { connectDiscord } from "../../services/userService";
 import { useLanguage } from "../../shared/i18n";
 import "./auth.css";
 
@@ -9,6 +12,8 @@ export default function DiscordCallbackPage() {
   const { t } = useLanguage();
   const td = t.auth.discordCallback;
   const [error, setError] = useState("");
+  // "link" = Conectar Discord nas Configurações; a volta é para elas, não para o login
+  const [intent] = useState(consumeDiscordIntent);
   // O código e o state só valem uma vez; sem isso o StrictMode (dev) rodaria duas.
   const handled = useRef(false);
 
@@ -43,12 +48,26 @@ export default function DiscordCallbackPage() {
       return;
     }
 
+    if (intent === "link") {
+      connectDiscord(code)
+        .then(() => {
+          markDiscordLinked();
+          navigate("/dashboard", { state: { tab: "profile", settings: true } });
+        })
+        .catch((err) => setError(err.response?.data?.message || td.linkError));
+      return;
+    }
+
     loginWithDiscord(code)
       .then(() => navigate(takePostAuthPath()))
       .catch((err) => {
         setError(err.response?.data?.message || td.error);
       });
-  }, [navigate, td]);
+  }, [navigate, td, intent]);
+
+  const back = intent === "link"
+    ? { label: td.backToSettings, go: () => navigate("/dashboard", { state: { tab: "profile", settings: true } }) }
+    : { label: td.backToLogin, go: () => navigate("/entrar") };
 
   return (
     <main className="auth-page auth-page--noscroll">
@@ -56,12 +75,12 @@ export default function DiscordCallbackPage() {
         {error ? (
           <>
             <p className="auth-error" role="alert">{error}</p>
-            <button className="mr-btn mr-btn-gold auth-submit" type="button" onClick={() => navigate("/entrar")}>
-              {td.backToLogin}
+            <button className="mr-btn mr-btn-gold auth-submit" type="button" onClick={back.go}>
+              {back.label}
             </button>
           </>
         ) : (
-          <p>{td.connecting}</p>
+          <p>{intent === "link" ? td.linking : td.connecting}</p>
         )}
       </section>
     </main>

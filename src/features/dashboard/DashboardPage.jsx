@@ -101,7 +101,8 @@ export default function DashboardPage() {
       : 'home';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [seenUrlTab, setSeenUrlTab] = useState(urlTab);
-  const [profileOnSettings, setProfileOnSettings] = useState(false);
+  // volta do "Conectar Discord": abre o Perfil já nas Configurações
+  const [profileOnSettings, setProfileOnSettings] = useState(location.state?.settings === true);
   // Configurações abertas pela Social: pra onde o Voltar delas leva ({ view, tab } da Social)
   const [settingsBack, setSettingsBack] = useState(null);
   const [socialResume, setSocialResume] = useState(null);

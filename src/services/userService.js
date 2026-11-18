@@ -1,4 +1,5 @@
 import api from "./api";
+import { getDiscordRedirectUri } from "./authService";
 
 export const getMe = async () => {
   const response = await api.get("/users/me");
@@ -27,6 +28,17 @@ export const deleteMe = async ({ confirmUsername, deletionCode }) => {
 export const avatarUrlFor = (user) => {
   const url = (user?.avatarUrl || '').trim();
   return /^https?:\/\//i.test(url) ? url : null;
+};
+
+/** "Conectar Discord": liga à conta logada o Discord que autorizou (é o que o bot usa). */
+export const connectDiscord = async (code) => {
+  const { data } = await api.post("/users/me/discord", { code, redirectUri: getDiscordRedirectUri() });
+  return data;
+};
+
+export const disconnectDiscord = async () => {
+  const { data } = await api.delete("/users/me/discord");
+  return data;
 };
 
 /**

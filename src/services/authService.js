@@ -75,7 +75,15 @@ export const resetPassword = async (resetPass, password) => {
   return response.data;
 };
 
-export const getDiscordAuthUrl = () => {
+const DISCORD_INTENT_KEY = "myrank_discord_oauth_intent";
+const DISCORD_LINKED_KEY = "myrank_discord_linked";
+
+/**
+ * `intent`: "login" (entrar com Discord) ou "link" (Conectar Discord nas
+ * Configurações, com a pessoa já logada). Os dois voltam para a mesma página de
+ * retorno, que já está cadastrada no Discord; a intenção fica guardada nesta aba.
+ */
+export const getDiscordAuthUrl = (intent = "login") => {
   const clientId = import.meta.env.VITE_DISCORD_CLIENT_ID?.trim();
 
   if (!clientId) {
@@ -89,12 +97,17 @@ export const getDiscordAuthUrl = () => {
     scope: "identify email",
     state: createDiscordState(),
   });
+  try {
+    sessionStorage.setItem(DISCORD_INTENT_KEY, intent);
+  } catch {
+    /* sem storage, a volta trata como login */
+  }
 
   return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
 };
 
 /** Tem que ser a mesma na ida (authorize) e na troca do código, senão o Discord recusa. */
-function getDiscordRedirectUri() {
+export function getDiscordRedirectUri() {
   const currentOrigin = window.location.origin.replace(/\/$/, "");
   const configuredRedirectUri = import.meta.env.VITE_DISCORD_REDIRECT_URI?.trim();
   return configuredRedirectUri && !/^(http:\/\/localhost|http:\/\/127\.0\.0\.1)/.test(currentOrigin)
@@ -115,6 +128,32 @@ function createDiscordState() {
   sessionStorage.setItem(DISCORD_STATE_KEY, state);
   return state;
 }
+
+/** Para que a ida ao Discord foi feita ("login" ou "link"); vale uma vez. */
+export const consumeDiscordIntent = () => {
+  try {
+    const intent = sessionStorage.getItem(DISCORD_INTENT_KEY);
+    sessionStorage.removeItem(DISCORD_INTENT_KEY);
+    return intent === "link" ? "link" : "login";
+  } catch {
+    return "login";
+  }
+};
+
+/** Aviso de "Discord conectado" para as Configurações mostrarem uma vez, na volta. */
+export const markDiscordLinked = () => {
+  try { sessionStorage.setItem(DISCORD_LINKED_KEY, "1"); } catch { /* só não avisa */ }
+};
+
+export const takeDiscordLinked = () => {
+  try {
+    const linked = sessionStorage.getItem(DISCORD_LINKED_KEY) === "1";
+    sessionStorage.removeItem(DISCORD_LINKED_KEY);
+    return linked;
+  } catch {
+    return false;
+  }
+};
 
 /** Confere o `state` que voltou do Discord e descarta o guardado (só vale uma vez). */
 export const consumeDiscordState = (returnedState) => {

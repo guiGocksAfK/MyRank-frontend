@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import {
-  ArrowLeft, Check, Database, Download, Flame, Globe, Heart, KeyRound, LayoutGrid, List, Lock, LogOut,
-  MessageSquare, UserCheck, UserPlus, Users,
+  ArrowLeft, Bot, Check, Database, Download, Flame, Globe, Heart, KeyRound, LayoutGrid, List, Lock, LogOut,
+  MessageSquare, Unlink, UserCheck, UserPlus, Users,
 } from 'lucide-react';
-import { updateMe, revokeSessions } from '../../services/userService';
-import { logout } from '../../services/authService';
+import { updateMe, revokeSessions, disconnectDiscord } from '../../services/userService';
+import { getDiscordAuthUrl, logout, takeDiscordLinked } from '../../services/authService';
 import { useLanguage, LANGUAGES } from '../../shared/i18n';
 import Avatar from '../../shared/components/Avatar';
 import InfoTip from '../../shared/components/InfoTip';
@@ -86,7 +86,8 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
   const tp = t.profile;
   const [saving, setSaving] = useState(null); // qual ajuste está salvando
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
+  // volta do Discord com a conta conectada: avisa uma vez
+  const [notice, setNotice] = useState(() => (takeDiscordLinked() ? t.profile.discordConnectedNotice : ''));
   const [signingOut, setSigningOut] = useState(false);
   const [modal, setModal] = useState(null); // 'delete' | 'password' | 'export'
 
@@ -117,6 +118,30 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
     const next = new Set(muted);
     if (next.has(group)) next.delete(group); else next.add(group);
     save('notif', { mutedNotifications: [...next] });
+  };
+
+  // Conectar vai ao Discord e volta pela página de retorno, que liga o Discord a esta conta.
+  const connectDiscord = () => {
+    setError('');
+    try {
+      window.location.assign(getDiscordAuthUrl('link'));
+    } catch {
+      setError(tp.settingsError);
+    }
+  };
+
+  const unlinkDiscord = async () => {
+    setSaving('discord');
+    setError('');
+    setNotice('');
+    try {
+      onUserChange(await disconnectDiscord());
+      setNotice(tp.discordDisconnectedNotice);
+    } catch (err) {
+      setError(err?.response?.data?.message || tp.settingsError);
+    } finally {
+      setSaving(null);
+    }
   };
 
   // "Sair" desconecta todos os aparelhos de uma vez. Se o pedido falhar (sem
@@ -152,8 +177,22 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
         <div className="pf-account-who">
           <span className="pf-account-email">{profile.email}</span>
           <span className="pf-account-sub">{signedIn}</span>
+          {profile.discordConnected && <span className="pf-account-sub">{tp.discordConnectedSub}</span>}
         </div>
         <div className="pf-account-actions">
+          {profile.discordConnected ? (
+            <button type="button" className="mr-btn mr-btn-outline mr-btn-sm"
+              disabled={saving === 'discord'} onClick={unlinkDiscord}>
+              <Unlink size={14} strokeWidth={2} aria-hidden="true" />
+              {tp.discordDisconnect}
+            </button>
+          ) : (
+            <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" title={tp.discordConnectHint}
+              onClick={connectDiscord}>
+              <Bot size={14} strokeWidth={2} aria-hidden="true" />
+              {tp.discordConnect}
+            </button>
+          )}
           {profile.hasPassword && (
             <button type="button" className="mr-btn mr-btn-outline mr-btn-sm" onClick={() => setModal('password')}>
               <KeyRound size={14} strokeWidth={2} aria-hidden="true" />
