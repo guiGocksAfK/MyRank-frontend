@@ -53,6 +53,11 @@ O guia completo está em [`docs/visual.md`](docs/visual.md). O resumo:
   português explicando o **porquê**.
 - Chamadas à API só pelos módulos de `src/services/` (que usam `api.js`, a
   instância do Axios com o token). Um 401 desloga e leva ao login.
+- **Erro na tela:** `errorText(err, textoDeReserva)` (`src/services/errors.js`):
+  mostra a mensagem do servidor, que já vem no idioma da pessoa (o `api.js` manda
+  o `Accept-Language`), ou a reserva da tela. Nunca `err.message` (é o erro cru do
+  navegador, em inglês) e nunca `.catch(() => {})` numa ação que a pessoa fez: se
+  falhou, ela precisa saber. Engolir erro só vale para carregamento em segundo plano.
 - Templates (nomes, emojis, linha de detalhes do card) ficam só em
   `src/shared/tableTemplates.js`.
 - O site é servido inteiro por `https://myrank.duckdns.org`: o Caddy da VM busca o

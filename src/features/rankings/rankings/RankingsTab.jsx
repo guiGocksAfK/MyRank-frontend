@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { errorText } from '../../../services/errors';
 import { ArrowRight, ArrowUpDown, LayoutGrid, List, Plus, SlidersHorizontal, Users } from 'lucide-react';
 import UnifiedTable from './UnifiedTable';
 import IndividualTable from './IndividualTable';
@@ -391,7 +392,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
     </button>
   );
 
-  const errorMessage = loadError || (unified.error ? (unified.error?.response?.data?.message || unified.error.message || tr.loadError) : null);
+  const errorMessage = loadError || (unified.error ? errorText(unified.error, tr.loadError) : null);
   if (errorMessage) {
     return (
       <div className="rk-empty rk-error" role="alert">
