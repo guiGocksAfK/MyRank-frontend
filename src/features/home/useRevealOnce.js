@@ -8,7 +8,14 @@ export const prefersReducedMotion = () =>
  * Fica `true` uma única vez, quando o elemento entra na tela (fração `threshold`
  * visível). Com prefers-reduced-motion já nasce `true`: tudo aparece pronto.
  */
-export default function useRevealOnce(threshold = 0.35) {
+/* no celular as seções viram uma coluna só e ficam muito altas: uma fração grande
+   delas nunca cabe na tela, então lá basta um pedacinho aparecer. PC não muda. */
+const isPhone = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(max-width: 640px)").matches;
+
+export default function useRevealOnce(desktopThreshold = 0.35) {
+  const threshold = isPhone() ? 0.08 : desktopThreshold;
   const ref = useRef(null);
   const [visible, setVisible] = useState(prefersReducedMotion);
 

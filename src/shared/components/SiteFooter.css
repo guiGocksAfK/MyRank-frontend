@@ -86,6 +86,30 @@
   .sf-links { flex-wrap: wrap; justify-content: center; row-gap: var(--mr-space-2); }
 }
 
+/* celular: rodapé compacto, os 3 links cabem numa linha só */
+@media (max-width: 640px) {
+  .sf {
+    padding: 20px 1.25rem;
+  }
+
+  .sf-inner {
+    gap: var(--mr-space-3);
+    font-size: 12px;
+  }
+
+  .sf-logo {
+    font-size: 16px;
+  }
+
+  .sf-brand {
+    gap: var(--mr-space-3);
+  }
+
+  .sf-links {
+    gap: var(--mr-space-4);
+  }
+}
+
 /* ---- modal Fontes dos dados ---- */
 .ds-intro {
   margin: 0;

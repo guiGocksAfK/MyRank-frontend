@@ -147,7 +147,23 @@
   }
 
   .navbar-actions {
-    gap: 7px;
+    gap: 6px;
+  }
+
+  /* botões de texto mais compactos pra caber logo + idioma + Entrar + Cadastrar */
+  .navbar-actions .mr-btn:not(.navbar-icon-btn) {
+    padding: 0.45rem 0.7rem;
+    font-size: 13px;
+  }
+
+  /* idioma: só "PT", sem a setinha */
+  .navbar-lang-btn svg {
+    display: none;
+  }
+
+  .navbar-actions .navbar-lang-btn {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 }
 
