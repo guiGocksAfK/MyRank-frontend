@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { TriangleAlert } from 'lucide-react';
 import { useLanguage } from '../i18n';
 import useModalBehavior from './useModalBehavior';
+import { errorText } from '../../services/errors';
 
 /**
  * Diálogo de confirmação padrão do site (usado em rankings, takes, grupos…).
@@ -27,7 +28,7 @@ export default function ConfirmModal({ title, message, confirmLabel, busyLabel, 
       const confirmed = await onConfirm();
       if (confirmed) onClose();
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || t.chat.actionError);
+      setError(errorText(err, t.chat.actionError));
     } finally {
       setConfirming(false);
     }

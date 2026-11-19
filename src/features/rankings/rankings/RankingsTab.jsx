@@ -168,7 +168,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
       })
       .catch((err) => {
         if (cancelled) return;
-        setLoadError(err?.response?.data?.message || err.message || tr.loadError);
+        setLoadError(errorText(err, tr.loadError));
         setLoadingCategories(false);
       });
     return () => { cancelled = true; };
@@ -253,7 +253,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
     updateGroupOrder(unifiedGroupId, nextOrder)
       .then(() => bumpWorks())
       .catch(err => {
-        setActionError(err?.response?.data?.message || tr.reorderError);
+        setActionError(errorText(err, tr.reorderError));
       });
   }
 
@@ -374,7 +374,7 @@ export default function RankingsTab({ onNavigateToCreators }) {
       await updateGroup(unifiedGroupId, 'Unificado', newIds);
       bumpWorks();
     } catch (err) {
-      setActionError(err?.response?.data?.message || err.message || tr.saveSelectionError);
+      setActionError(errorText(err, tr.saveSelectionError));
     }
   }
 
