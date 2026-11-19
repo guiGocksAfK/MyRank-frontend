@@ -6,6 +6,7 @@ import {
 import { connectDiscord } from "../../services/userService";
 import { useLanguage } from "../../shared/i18n";
 import "./auth.css";
+import { errorText } from '../../services/errors';
 
 export default function DiscordCallbackPage() {
   const navigate = useNavigate();
@@ -54,14 +55,14 @@ export default function DiscordCallbackPage() {
           markDiscordLinked();
           navigate("/dashboard", { state: { tab: "profile", settings: true } });
         })
-        .catch((err) => setError(err.response?.data?.message || td.linkError));
+        .catch((err) => setError(errorText(err, td.linkError)));
       return;
     }
 
     loginWithDiscord(code)
       .then(() => navigate(takePostAuthPath()))
       .catch((err) => {
-        setError(err.response?.data?.message || td.error);
+        setError(errorText(err, td.error));
       });
   }, [navigate, td, intent]);
 
