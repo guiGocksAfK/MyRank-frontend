@@ -31,6 +31,10 @@ in [MyRank-backend](https://github.com/guiGocksAfK/MyRank-backend).
 - **Chat** with direct messages, groups and invite links.
 - **Achievements**: badges unlocked from what you consume, with a toast when
   one is earned.
+- **Discord bot.** Connecting Discord in the settings lets the
+  [MyRank bot](https://github.com/guiGocksAfK/MyRank-discordBot) act for the
+  account inside any server: search and add works, rankings, takes, the feed
+  and AI Insights.
 - **Accounts** with e-mail and password, Google or Discord. Sign-up, password
   recovery and account deletion are confirmed with a six-digit code sent by
   e-mail, without leaving the page.
@@ -52,6 +56,10 @@ on a phone. A few decisions follow from that:
 - **One visual base.** Tokens, scales, buttons, menus and panels live in
   `src/styles/base.css`, so every screen shares the same black-and-gold
   system instead of re-styling its own components.
+- **Errors that say what to do.** Every failure shows a short message, in the
+  user's language, with what happened and what to try next. The API answers in
+  the language the app sends, raw browser errors ("Network Error") never reach
+  the screen, and no action fails silently.
 - **Real data in examples.** Scores shown on the landing page are real public
   averages (MyAnimeList, IMDb, Metacritic), and the affinity example uses the
   same formula as the product.
@@ -70,7 +78,7 @@ for the full architecture.
 | React 19 | UI |
 | Vite 8 | Dev server and production build |
 | React Router 7 | Client-side routing |
-| Axios | HTTP client with an auth interceptor |
+| Axios | HTTP client; interceptors attach the session token and the user's language |
 | STOMP over SockJS | Real-time chat |
 | `@react-oauth/google` | Google sign-in (Discord uses a custom OAuth flow) |
 | Plain CSS | Shared design system in `src/styles/base.css` plus per-feature stylesheets |
@@ -129,6 +137,7 @@ Read at build time and prefixed with `VITE_`:
 | `VITE_GOOGLE_CLIENT_ID` | Google OAuth client id. Google sign-in is disabled if empty. |
 | `VITE_DISCORD_CLIENT_ID` | Discord OAuth client id. |
 | `VITE_DISCORD_REDIRECT_URI` | Discord redirect, e.g. `http://localhost:5173/auth/discord/callback`. |
+| `VITE_WS_URL` | Chat WebSocket URL. Optional: derived from `VITE_API_URL` (`/api` becomes `/ws`). |
 
 Changing the production API domain also requires updating `connect-src` in the
 CSP in `vercel.json`.
@@ -147,8 +156,9 @@ src/
 │   ├── insights/    AI Insights
 │   ├── social/      feed, discover, compare, takes and profiles
 │   ├── chat/        direct messages, groups and invites
-│   └── profile/     profile, avatar and achievements
-├── services/        Axios instance and one module per API resource
+│   ├── profile/     profile, settings (including Connect Discord) and achievements
+│   └── legal/       terms of use and privacy policy
+├── services/        Axios instance, error text helper and one module per API resource
 ├── shared/          contexts (user, works, chat, notifications), i18n, templates, shared components
 ├── styles/          base.css: tokens, scales and reusable pieces
 └── utils/           formatters and DTO to view-model mappers
