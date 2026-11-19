@@ -422,6 +422,7 @@ export default {
     creating: 'Creando…',
     createError: 'No se pudo crear el grupo.',
     memberCount: '{n} miembros',
+    memberCountOne: '1 miembro',
     manage: 'Gestionar',
     groupSettings: 'Ajustes del grupo',
     sectionIdentity: 'Identidad',

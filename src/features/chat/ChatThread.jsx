@@ -173,6 +173,9 @@ const InfoIcon = () => (
   </svg>
 );
 
+/** "1 membro" no singular; o resto usa o plural com o número. */
+const membersText = (tc, n) => (n === 1 ? tc.memberCountOne : tc.memberCount.replace('{n}', n));
+
 /** Conversa aberta. `conversation` = { id, type, name, imageUrl, peer, memberCount, myRole }. */
 export default function ChatThread({ conversation, onBack, backAlways = false, onChanged, onLeft, onOpenProfile }) {
   const { t, lang, locale } = useLanguage();
@@ -581,7 +584,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
             </div>
             {isGroup ? (
               <span className="chat-thread-sub">
-                {tc.memberCount.replace('{n}', conversation.memberCount)}
+                {membersText(tc, conversation.memberCount)}
                 {conversation.pendingRequests > 0 && canModerate && (
                   <span className="chat-pending-dot"> · {tc.pendingN.replace('{n}', conversation.pendingRequests)}</span>
                 )}
@@ -809,7 +812,7 @@ function ThreadIntro({ conversation, isGroup, tc, onOpenDetails }) {
         {isGroup ? conversation.name : `@${conversation.peer?.username ?? '—'}`}
       </div>
       <div className="chat-intro-meta">
-        {isGroup ? tc.memberCount.replace('{n}', conversation.memberCount) : tc.dmIntro}
+        {isGroup ? membersText(tc, conversation.memberCount) : tc.dmIntro}
       </div>
       {isGroup && conversation.description && (
         <div className="chat-intro-desc">{conversation.description}</div>
@@ -1032,7 +1035,7 @@ function ContextRail({ conversation, isGroup, tc, onClose, onManage, onOpenProfi
             <GroupIcon name={conversation.name} imageUrl={conversation.imageUrl} className="chat-rail-avatar" />
             <div className="chat-rail-name">{conversation.name}</div>
             <div className="chat-rail-handle">
-              {tc.memberCount.replace('{n}', members?.length ?? conversation.memberCount)}
+              {membersText(tc, members?.length ?? conversation.memberCount)}
             </div>
             {conversation.description && (
               <p className="chat-rail-bio">{conversation.description}</p>
