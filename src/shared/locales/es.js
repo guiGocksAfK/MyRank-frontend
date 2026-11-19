@@ -18,6 +18,9 @@ export default {
     devTutorial: 'Tutorial',
     devTutorialHint: 'Abre el tutorial del registro desde el principio. No se guarda nada.',
     loading: 'Cargando…',
+    followError: 'No se pudo actualizar a quién sigues. Inténtalo de nuevo.',
+    joinError: 'No se pudo entrar al grupo. Inténtalo de nuevo.',
+    requestError: 'No se pudo responder la solicitud. Inténtalo de nuevo.',
     feed: {
       loading: 'Cargando feed…',
       startTitle: 'Empieza siguiendo a quien tiene un gusto parecido al tuyo',
@@ -67,6 +70,8 @@ export default {
     },
     take: {
       delete: 'Eliminar take',
+      editError: 'No se pudo guardar la edición. Inténtalo de nuevo.',
+      deleteError: 'No se pudo eliminar el take. Inténtalo de nuevo.',
       options: 'Opciones del take', menuEdit: 'Editar', menuDelete: 'Eliminar',
       save: 'Guardar', cancel: 'Cancelar',
       edited: '(editado)',
