@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import './homePage.css';
-import { POSTER_TILES, buildTiles, loadShowcaseTiles } from './showcaseTiles';
+import { POSTER_TILES, buildTiles, loadShowcaseTiles, preloadShowcaseTiles } from './showcaseTiles';
 import { useLanguage } from '../../shared/i18n';
 import HowItWorks from './HowItWorks';
 import HomeIdentity from './HomeIdentity';
@@ -29,20 +29,6 @@ const tileReveal = (i) => {
 };
 const REVEAL_CAP_MS = 1200;     // teto: revela o grid mesmo que alguma imagem trave
 
-/** Pré-carrega todas as URLs; resolve quando todas terminam (load ou erro). */
-const preloadAll = (urls) =>
-  Promise.all(
-    urls.map(
-      (url) =>
-        new Promise((resolve) => {
-          const img = new Image();
-          img.onload = resolve;
-          img.onerror = resolve;
-          img.src = url;
-        })
-    )
-  );
-
 const HomePage = () => {
   const { t } = useLanguage();
   const [tiles, setTiles] = useState(() => buildTiles([]));
@@ -55,11 +41,14 @@ const HomePage = () => {
     loadShowcaseTiles()
       .then((finalTiles) => {
         if (active) setTiles(finalTiles);
-        // 2. Pré-carrega tudo antes de revelar — sem "pipoca".
-        return preloadAll(finalTiles);
+        // 2. Pré-carrega tudo antes de revelar — trocando URLs que falharem pelo fallback.
+        return preloadShowcaseTiles(finalTiles);
       })
-      .then(() => {
-        if (active) setRevealed(true);
+      .then((verifiedTiles) => {
+        if (active) {
+          setTiles(verifiedTiles);
+          setRevealed(true);
+        }
       });
 
     // 3. Teto de segurança: revela mesmo que o preload trave.
@@ -82,7 +71,7 @@ const HomePage = () => {
               key={i}
               className="home-poster-tile"
               style={{
-                backgroundImage: `url(${url})`,
+                backgroundImage: `url("${url}")`,
                 ...tileReveal(i),
               }}
             />

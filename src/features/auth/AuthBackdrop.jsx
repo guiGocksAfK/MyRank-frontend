@@ -18,7 +18,7 @@ const AuthBackdrop = () => {
     <div className="auth-backdrop" aria-hidden="true">
       <div className="auth-backdrop-grid">
         {tiles?.map((url) => (
-          <div key={url} className="auth-backdrop-tile" style={{ backgroundImage: `url(${url})` }} />
+          <div key={url} className="auth-backdrop-tile" style={{ backgroundImage: `url("${url}")` }} />
         ))}
       </div>
       <div className="auth-backdrop-veil" />
