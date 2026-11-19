@@ -913,6 +913,9 @@
   .mr-main {
     width: calc(100% - 32px);
     padding: 16px 0 32px;
+    /* nada de dentro pode alargar a página e fazer ela deslizar pro lado
+       (clip, e não hidden: não cria rolagem própria nem quebra o sticky) */
+    overflow-x: clip;
   }
   .mr-section-title { font-size: 1rem; }
   .myrank-dashboard .sf { padding-inline: 16px; }
