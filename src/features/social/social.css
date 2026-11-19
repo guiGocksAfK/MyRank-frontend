@@ -1179,6 +1179,27 @@ button.social-cmp-side:hover .social-cmp-who b { color: var(--mr-gold); }
   .social-verdict-bar { width: 36px; }
   .social-react-btn { padding: 4px 7px; }
   .social-composer-cta { display: none; }
+
+  /* posts mais compactos */
+  .social-feed-col { gap: var(--mr-space-2); }
+  .social-card { gap: var(--mr-space-2); }
+  .social-card-head { gap: 10px; }
+  .social-card-avatar > * { width: 30px !important; height: 30px !important; }
+  .social-card-line { font-size: 13px; }
+
+  /* "avaliou N obras": capas de tamanho fixo (5 por linha), em vez de esticar
+     até um pôster gigante quando é uma obra só ou transbordar quando são várias */
+  .social-day { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .social-day-cover { border-radius: 3px; }
+  .social-day-score { font-size: 11px; }
+
+  .social-take-text { font-size: var(--mr-text-sm); line-height: 1.5; }
+  .social-card-actions { padding-top: var(--mr-space-2); }
+
+  /* topo: seu cartão e o "escrever take" mais baixos */
+  .social-you { padding: 10px var(--mr-space-3); gap: 10px; }
+  .social-you-photo > * { width: 34px !important; height: 34px !important; }
+  .social-composer-collapsed { padding: 10px var(--mr-space-3); }
 }
 
 @media (prefers-reduced-motion: reduce) {

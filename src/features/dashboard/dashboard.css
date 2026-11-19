@@ -909,8 +909,53 @@
 
 /* ============ MOBILE: escala geral menor (padrões de app mobile) ============ */
 @media (max-width: 640px) {
-  .mr-main { padding: 16px 0 32px; }
+  /* margem lateral de 16px (era 12px): o conteúdo grudava na borda da tela */
+  .mr-main {
+    width: calc(100% - 32px);
+    padding: 16px 0 32px;
+    /* nada de dentro pode alargar a página e fazer ela deslizar pro lado
+       (clip, e não hidden: não cria rolagem própria nem quebra o sticky) */
+    overflow-x: clip;
+  }
   .mr-section-title { font-size: 1rem; }
+  .myrank-dashboard .sf { padding-inline: 16px; }
+
+  /* saudação */
+  .dash-eyebrow { letter-spacing: 0.18em; }
+
+  /* números: rótulos menos espaçados, cabem sem ficar "gritando" */
+  .dash-stat-value { font-size: 1.375rem; }
+  .dash-stat-label {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  /* hall da fama: nº menor e título com mais espaço antes do "..." */
+  .dash-top { grid-auto-columns: 42%; }
+  .dash-top-info { gap: var(--mr-space-2); }
+  .dash-top-rank { font-size: var(--mr-text-lg); }
+  .dash-top-title { font-size: 0.875rem; }
+  .dash-top-info .dash-row-sub { font-size: 11px; }
+
+  /* cartões de baixo (avaliadas, conquistas, recomendados) mais compactos */
+  /* meio-termo: menores que no PC, mas no mesmo peso dos números e do hall da fama */
+  .dash-card-title { font-size: 1.0625rem; }
+
+  .dash-row {
+    min-height: 70px;
+    padding: 9px 0;
+  }
+  .dash-thumb { width: 36px; height: 54px; }
+  .dash-thumb.is-square { height: 36px; }
+  .dash-row .dash-medal {
+    width: 42px;
+    height: 42px;
+    font-size: 1.15rem;
+  }
+
+  .dash-reco-item { padding: 14px 16px; }
+  .dash-reco-title { font-size: 1rem; }
+  .dash-reco-reason { font-size: 13.5px; }
 }
 
 /* ============ AI INSIGHTS ============ */

@@ -1159,3 +1159,58 @@ input.chat-modal-input { max-height: none; }
   .chat-panel:not(.has-active) .chat-main { display: none; }
   .chat-back { display: block; }
 }
+
+/* celular: conversa aberta vira tela cheia abaixo da navbar (como app de mensagem),
+   sem a página rolar por trás e sem o rodapé aparecendo embaixo. PC não muda. */
+@media (max-width: 640px) {
+  .chat-panel.has-active {
+    position: fixed;
+    top: var(--mr-navbar-h);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    height: auto;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  /* a animação de entrada da aba deixa um transform no contêiner, e isso prende o
+     position:fixed dentro dele (a conversa virava uma faixa fininha): desliga só aqui */
+  .mr-tab-enter:has(.chat-panel.has-active) {
+    animation: none;
+    transform: none;
+  }
+  html:has(.chat-panel.has-active),
+  body:has(.chat-panel.has-active) {
+    overflow: hidden;
+  }
+}
+
+/* celular: "Novo grupo" com cara de ação (um "+" no ícone e o nome em dourado),
+   pra não parecer mais uma conversa da lista. PC não muda. */
+@media (max-width: 640px) {
+  .chat-conv-newgroup .chat-conv-avatar.is-icon {
+    position: relative;
+    overflow: visible;
+  }
+  .chat-conv-newgroup .chat-conv-avatar.is-icon::after {
+    content: "+";
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--mr-gold);
+    color: #111;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 0 0 2px var(--mr-surface, #0f0f0f);
+  }
+  .chat-conv-newgroup .chat-conv-name { color: var(--mr-gold); }
+}

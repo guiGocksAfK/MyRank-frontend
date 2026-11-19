@@ -79,6 +79,26 @@
   .ai-bar { bottom: var(--mr-space-3); padding-left: var(--mr-space-4); }
   .ai-bar-text { flex-direction: column; align-items: flex-start; gap: 0; }
   .ai-bar .mr-btn { padding: 0 16px; }
+
+  /* filtros por tabela: um bloco só ficava mais largo que a tela e empurrava a
+     página pro lado. No celular cada filtro vira uma pílula e quebra linha */
+  .ai-panel .rk-controls { min-width: 0; }
+  .ai-panel .rk-seg {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+    height: auto;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+  }
+  .ai-panel .rk-seg button {
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--mr-border);
+  }
+  .ai-panel .rk-seg button.is-active { border-color: var(--mr-gold-20); }
+  .ai-panel .rk-title { font-size: 0.875rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -570,8 +590,40 @@
 
 @media (max-width: 640px) {
   .ir-page { gap: var(--mr-space-6); }
-  .ir-genres li { grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr) auto; }
   .ir-fan { display: none; }
+
+  /* topo: voltar, etiqueta e "gerar de novo" mais juntos; título e resumo menores */
+  .ir-back { margin-bottom: calc(var(--mr-space-6) * -1 + var(--mr-space-4)); }
+  .ir-hero-meta { row-gap: 10px; }
+  .ir-title { margin: var(--mr-space-4) 0 var(--mr-space-3); font-size: 1.625rem; }
+  /* minmax(0, …): o texto dos traços quebra dentro da tela em vez de alargar a coluna */
+  .ir-traits { grid-template-columns: minmax(0, 1fr); }
+  .ir-summary { font-size: 0.9375rem; line-height: 1.6; }
+
+  /* traços */
+  .ir-traits li { padding-top: var(--mr-space-3); }
+  .ir-traits strong { font-size: 0.9375rem; }
+  .ir-traits p { font-size: 13.5px; line-height: 1.55; }
+
+  /* gêneros: nome e nota na mesma linha, barra embaixo na largura toda
+     (em 3 colunas a nota passava da borda da tela) */
+  .ir-genres { gap: var(--mr-space-3); }
+  .ir-genres li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 6px;
+  }
+  .ir-genre-bar { grid-column: 1 / -1; grid-row: 2; }
+
+  /* recomendações mais compactas */
+  .ir-recos { gap: var(--mr-space-3); }
+  .ir-reco { gap: var(--mr-space-3); padding: var(--mr-space-3); }
+  .ir-reco-cover { width: 56px; height: 84px; }
+  .ir-reco-body strong { font-size: 0.9375rem; }
+  .ir-reco-body p { font-size: 13px; line-height: 1.5; -webkit-line-clamp: 3; }
+
+  /* chat */
+  .ir-suggestion { padding: 6px 12px; font-size: 13px; }
+  .ir-composer { padding: 8px 8px 8px 14px; border-radius: 18px; }
 }
 
 /* ---- estados (vazio / erro) ---- */

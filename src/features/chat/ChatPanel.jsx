@@ -210,7 +210,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
     const people = (following || []).filter((u) => !q || plain(u.username).includes(q));
     return (
       <>
-        <button type="button" className="chat-conv" onClick={() => { closeComposer(); setShowNewGroup(true); }}>
+        <button type="button" className="chat-conv chat-conv-newgroup" onClick={() => { closeComposer(); setShowNewGroup(true); }}>
           <span className="chat-conv-avatar is-icon" aria-hidden="true"><Users size={18} strokeWidth={2} /></span>
           <div className="chat-conv-main"><span className="chat-conv-name">{tc.newGroup}</span></div>
         </button>
