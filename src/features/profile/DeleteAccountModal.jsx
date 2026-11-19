@@ -3,6 +3,7 @@ import { deleteMe, requestDeletionCode } from '../../services/userService';
 import { logout } from '../../services/authService';
 import { useLanguage } from '../../shared/i18n';
 import Modal from '../../shared/components/Modal';
+import { errorText } from '../../services/errors';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -29,7 +30,7 @@ export default function DeleteAccountModal({ user, onClose }) {
       await requestDeletionCode();
       setCodeSent(true);
     } catch (err) {
-      setError(err?.response?.data?.message || tp.deleteCodeError);
+      setError(errorText(err, tp.deleteCodeError));
     } finally {
       setBusy(false);
     }
@@ -49,7 +50,7 @@ export default function DeleteAccountModal({ user, onClose }) {
       // Recarrega do zero: derruba o chat em tempo real e qualquer estado da sessão antiga.
       window.location.replace('/');
     } catch (err) {
-      setError(err?.response?.data?.message || tp.deleteError);
+      setError(errorText(err, tp.deleteError));
       setBusy(false);
     }
   };

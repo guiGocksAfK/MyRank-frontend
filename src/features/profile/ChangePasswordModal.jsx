@@ -4,6 +4,7 @@ import CodeInput from '../auth/CodeInput';
 import PasswordInput from '../auth/PasswordInput';
 import { forgotPassword, verifyResetCode, resetPassword } from '../../services/authService';
 import { useLanguage } from '../../shared/i18n';
+import { errorText } from '../../services/errors';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -30,7 +31,7 @@ export default function ChangePasswordModal({ email, onClose, onDone }) {
     try {
       await fn();
     } catch (err) {
-      setError(err?.response?.data?.message || tp.passwordError);
+      setError(errorText(err, tp.passwordError));
     } finally {
       setBusy(false);
     }

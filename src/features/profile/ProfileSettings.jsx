@@ -11,6 +11,7 @@ import InfoTip from '../../shared/components/InfoTip';
 import DeleteAccountModal from './DeleteAccountModal';
 import ChangePasswordModal from './ChangePasswordModal';
 import ExportWorksModal from './ExportWorksModal';
+import { errorText } from '../../services/errors';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -108,7 +109,7 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
       onUserChange(await updateMe(patch));
     } catch (err) {
       onUserChange(before);
-      setError(err?.response?.data?.message || tp.settingsError);
+      setError(errorText(err, tp.settingsError));
     } finally {
       setSaving(null);
     }
@@ -138,7 +139,7 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
       onUserChange(await disconnectDiscord());
       setNotice(tp.discordDisconnectedNotice);
     } catch (err) {
-      setError(err?.response?.data?.message || tp.settingsError);
+      setError(errorText(err, tp.settingsError));
     } finally {
       setSaving(null);
     }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ChevronRight, Globe, Lock, UserCheck } from 'lucide-react';
 import { useLanguage } from '../../shared/i18n';
 import { updateMe } from '../../services/userService';
+import { errorText } from '../../services/errors';
 
 /**
  * No seu próprio perfil pela Social: os ajustes que só fazem sentido aqui
@@ -22,7 +23,7 @@ export default function SelfQuickSettings({ user, onSaved, onMore }) {
     try {
       onSaved(await updateMe(patch));
     } catch (err) {
-      setError(err?.response?.data?.message || tp.settingsError);
+      setError(errorText(err, tp.settingsError));
     } finally {
       setSaving(null);
     }

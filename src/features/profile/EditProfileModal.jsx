@@ -5,6 +5,7 @@ import Modal from '../../shared/components/Modal';
 import Avatar from '../../shared/components/Avatar';
 import { useLanguage } from '../../shared/i18n';
 import useDismiss from '../../shared/components/useDismiss';
+import { errorText } from '../../services/errors';
 
 const USERNAME_MAX = 50;
 const BIO_MAX = 500;
@@ -65,7 +66,7 @@ export default function EditProfileModal({ profile, onClose, onSaved }) {
     try {
       onSaved(await updateMe({ username: name, bio: bio.trim(), avatarUrl: url }));
     } catch (err) {
-      const text = err?.response?.data?.message || tp.saveError;
+      const text = errorText(err, tp.saveError);
       // erro do nome (em uso, tamanho) aparece embaixo do próprio campo
       setError({ field: /username|usu[aá]rio/i.test(text) ? 'username' : null, text });
     } finally {
