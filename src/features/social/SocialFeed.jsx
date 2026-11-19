@@ -53,6 +53,7 @@ export default function SocialFeed({
         setItems(r);
         setHasMore(r.length >= 20);
         setFailed(false);
+        setMoreFailed(false); // aba, filtro ou take novo: o "Carregar mais" de antes não vale mais
       })
       .catch(() => setFailed(true));
   }, [scope]);
@@ -142,7 +143,7 @@ export default function SocialFeed({
               onDeleted={handleDeleted}
             />
           ))}
-          {moreFailed && <p className="social-muted" role="alert" style={{ alignSelf: 'center' }}>{tf.loadMoreError}</p>}
+          {moreFailed && hasMore && !filter && <p className="social-muted" role="alert" style={{ alignSelf: 'center' }}>{tf.loadMoreError}</p>}
           {hasMore && !filter && (
             <button
               type="button"

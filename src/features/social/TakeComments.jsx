@@ -22,6 +22,15 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
   const [pendingDelete, setPendingDelete] = useState(null); // { id, rootId } esperando confirmar
   const [actionError, setActionError] = useState(''); // enviar/editar/apagar que falhou
   const inputRef = useRef(null);
+  const [shownTakeId, setShownTakeId] = useState(takeId);
+
+  // outro take: nada do anterior (lista, falha, aviso) vale para este
+  if (shownTakeId !== takeId) {
+    setShownTakeId(takeId);
+    setComments(null);
+    setFailed(false);
+    setActionError('');
+  }
 
   useEffect(() => {
     socialApi.getTakeComments(takeId).then(setComments).catch(() => setFailed(true));
@@ -131,6 +140,7 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
               onEdit={(txt) => edit(c.id, null, txt)}
               onDeleteReply={(rid) => setPendingDelete({ id: rid, rootId: c.id })}
               onEditReply={(rid, txt) => edit(rid, c.id, txt)}
+              onStopEdit={() => setActionError('')}
             />
           ))}
         </ul>
@@ -181,7 +191,7 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
 }
 
 function CommentNode({
-  c, lang, tc, onOpenUser, onReply, onDelete, onEdit, onDeleteReply, onEditReply,
+  c, lang, tc, onOpenUser, onReply, onDelete, onEdit, onDeleteReply, onEditReply, onStopEdit,
 }) {
   const [showReplies, setShowReplies] = useState(false);
   return (
@@ -194,6 +204,7 @@ function CommentNode({
         onReply={onReply}
         onDelete={onDelete}
         onEdit={onEdit}
+        onStopEdit={onStopEdit}
       />
       {c.replies.length > 0 && (
         <>
@@ -215,6 +226,7 @@ function CommentNode({
                     onOpenUser={onOpenUser}
                     onDelete={() => onDeleteReply(r.id)}
                     onEdit={(txt) => onEditReply(r.id, txt)}
+                    onStopEdit={onStopEdit}
                   />
                 </li>
               ))}
@@ -226,7 +238,7 @@ function CommentNode({
   );
 }
 
-function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete, onEdit }) {
+function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete, onEdit, onStopEdit }) {
   const a = c.author || {};
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(c.text);
@@ -236,7 +248,7 @@ function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete, onEdit }) {
     e?.preventDefault?.();
     const body = draft.trim();
     if (!body || busy) return;
-    if (body === c.text) { setEditing(false); return; }
+    if (body === c.text) { stopEditing(); return; }
     setBusy(true);
     try {
       await onEdit(body);
@@ -246,6 +258,13 @@ function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete, onEdit }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  // sair da edição sem salvar: o aviso de "não foi possível salvar" some junto
+  function stopEditing() {
+    setEditing(false);
+    setDraft(c.text);
+    onStopEdit?.();
   }
 
   return (
@@ -270,7 +289,7 @@ function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete, onEdit }) {
               maxLength={500}
               autoFocus
               onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Escape') { setEditing(false); setDraft(c.text); } }}
+              onKeyDown={(e) => { if (e.key === 'Escape') stopEditing(); }}
             />
             <button type="submit" className="mr-btn mr-btn-gold mr-btn-sm" disabled={busy || !draft.trim()}>
               {tc.save}
@@ -278,7 +297,7 @@ function CommentRow({ c, lang, tc, onOpenUser, onReply, onDelete, onEdit }) {
             <button
               type="button"
               className="mr-btn mr-btn-outline mr-btn-sm"
-              onClick={() => { setEditing(false); setDraft(c.text); }}
+              onClick={stopEditing}
             >
               {tc.cancel}
             </button>

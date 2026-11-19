@@ -5,6 +5,7 @@ import { useUser } from '../../shared/userContext';
 import { socialApi, lastSocial, tasteKey, typeIconFor, DEBATE_MAX_PCT } from './socialData';
 import SocialAvatar from './SocialAvatar';
 import YouCard from './YouCard';
+import { errorText } from '../../services/errors';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 /** Quantas obras o "Em alta" mostra, e quantas pessoas uma obra precisa pra entrar. */
@@ -73,6 +74,7 @@ export default function SocialRail({
     return last ? topSuggestions(last) : null;
   });
   const [requests, setRequests] = useState(() => lastSocial('getFollowRequests') ?? []);
+  const [actionError, setActionError] = useState(''); // seguir ou responder pedido que falhou
   const [debaters, setDebaters] = useState(() => (lastSocial('getDebaters') ?? []).slice(0, 2));
 
   useEffect(() => {
@@ -86,16 +88,20 @@ export default function SocialRail({
 
   const resolveRequest = async (id, accept) => {
     setRequests((prev) => prev.filter((r) => r.id !== id));
+    setActionError('');
     try {
       if (accept) await socialApi.approveFollowRequest(id);
       else await socialApi.rejectFollowRequest(id);
       onCountsChanged?.();
-    } catch {
+    } catch (err) {
+      // o pedido volta para a lista, e a pessoa sabe por quê
+      setActionError(errorText(err, t.social.requestError));
       socialApi.getFollowRequests().then(setRequests).catch(() => {});
     }
   };
 
   const followSuggestion = async (id) => {
+    setActionError('');
     try {
       const u = await socialApi.toggleFollow(id);
       setSuggestions((prev) =>
@@ -104,8 +110,8 @@ export default function SocialRail({
           .map((s) => (s.id === id ? { ...s, requested: u.requested, following: u.following } : s)),
       );
       onCountsChanged?.();
-    } catch {
-      /* silencioso */
+    } catch (err) {
+      setActionError(errorText(err, t.social.followError));
     }
   };
 
@@ -113,6 +119,7 @@ export default function SocialRail({
     <aside className="social-rail">
       {/* em tela grande o "Você" fica na coluna da esquerda */}
       <YouCard className="is-rail" onOpenUser={onOpenUser} onOpenConnections={onOpenConnections} refreshKey={youKey} />
+      {actionError && <p className="social-self-error" role="alert">{actionError}</p>}
 
       {requests.map((u) => (
         <section key={u.id} className="mr-panel social-rail-request">

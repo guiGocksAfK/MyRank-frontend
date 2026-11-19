@@ -199,6 +199,26 @@
 @media (max-width: 640px) {
   .home-how-steps {
     grid-template-columns: 1fr;
-    gap: var(--mr-space-7);
+    /* espaço entre passos bem maior que entre cartão e título: cada texto "gruda" no seu cartão */
+    gap: var(--mr-space-8);
+  }
+
+  .home-how-steps .home-feature {
+    gap: var(--mr-space-2);
+  }
+
+  /* no celular a coluna é uma só: o texto usa a largura toda */
+  .home-how-steps .home-feature p {
+    max-width: none;
+  }
+
+  /* abas da miniatura menores pra "Restaurantes" não cortar em tela estreita */
+  .how-demo-tabs {
+    gap: 4px;
+  }
+
+  .how-demo-tabs span {
+    padding: 2px 8px;
+    font-size: 11px;
   }
 }

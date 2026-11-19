@@ -401,3 +401,17 @@
     display: none;
   }
 }
+
+/* com content-box, 100% + padding passava da tela e jogava o "+" pra fora */
+@media (max-width: 900px) {
+  .faq {
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 640px) {
+  .faq {
+    gap: var(--mr-space-5);
+    padding: 36px 1.25rem 48px;
+  }
+}

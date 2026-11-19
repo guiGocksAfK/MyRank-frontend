@@ -10,6 +10,7 @@ import { rowColumns } from './rankColumns';
 import { sortItems, getMode, getDisplayedNote, applyFilters } from '../../../utils/formatters';
 import { useLanguage } from '../../../shared/i18n';
 import { itemSubline } from '../../../shared/tableTemplates';
+import { errorText, userError } from '../../../services/errors';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -75,7 +76,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
       await onDeleteWork(table.id, id);
       return true;
     } catch (err) {
-      throw new Error(err?.response?.data?.message || err.message || tr.deleteWorkError, { cause: err });
+      throw userError(errorText(err, tr.deleteWorkError), err);
     } finally {
       setDeletingId(null);
     }
@@ -86,7 +87,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
       await onDeleteTable(table.id);
       return true;
     } catch (err) {
-      throw new Error(err?.response?.data?.message || err.message || tr.deleteTableError, { cause: err });
+      throw userError(errorText(err, tr.deleteTableError), err);
     }
   }
 

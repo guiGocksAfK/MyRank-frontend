@@ -4,6 +4,7 @@ import SelectMenu from '../../shared/components/SelectMenu';
 import { useLanguage } from '../../shared/i18n';
 import { updateCreatorProfile } from '../../services/creatorService';
 import CreatorAvatar from './CreatorAvatar';
+import { errorText } from '../../services/errors';
 
 const TYPES = ['Diretor', 'Escritor', 'Studio', 'Criador'];
 
@@ -36,7 +37,7 @@ export default function EditCreatorModal({ entry, profiles, onSaved, onClose }) 
       onSaved(saved);
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.message || te.saveError);
+      setError(errorText(err, te.saveError));
     } finally {
       setSaving(false);
     }

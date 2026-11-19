@@ -301,12 +301,25 @@
 @media (max-width: 640px) {
   .home-hero {
     min-height: auto;
-    padding: calc(var(--mr-navbar-h) + 72px) 1.25rem 64px;
+    padding: calc(var(--mr-navbar-h) + 48px) 1.25rem 32px;
+  }
+
+  /* pôsteres um pouco mais visíveis: no celular o véu escuro apagava tudo */
+  .home-poster-grid.is-revealed .home-poster-tile {
+    opacity: 0.75;
+  }
+
+  .home-overlay {
+    background:
+      linear-gradient(to bottom, rgba(15, 15, 15, 0.85) 0, transparent 120px),
+      linear-gradient(to bottom, transparent 70%, var(--mr-bg) 100%),
+      radial-gradient(ellipse 75% 55% at 50% 50%, rgba(15, 15, 15, 0.86) 0%, rgba(15, 15, 15, 0.7) 60%, rgba(15, 15, 15, 0.55) 100%);
   }
 
   .home-subtitle {
     font-size: 14px;
     margin-top: var(--mr-space-3);
+    max-width: 30ch;
   }
 
   .home-cta {
@@ -318,15 +331,26 @@
     font-size: var(--mr-text-xs);
   }
 
+  /* sem o "·": no celular ele ia parar no começo da linha nova */
+  .home-categories {
+    gap: 2px 14px;
+    max-width: 320px;
+  }
+
   .home-categories span + span::before {
-    margin: 0 7px;
+    content: none;
+  }
+
+  /* "Como funciona" logo abaixo do topo: menos vazio entre os dois */
+  .home-hero + .home-block {
+    padding-top: 24px;
   }
 
 
   /* seções da home */
   .home-block {
-    gap: var(--mr-space-6);
-    padding: 56px 1.25rem;
+    gap: var(--mr-space-5);
+    padding: 36px 1.25rem;
   }
 
   .home-block-head {

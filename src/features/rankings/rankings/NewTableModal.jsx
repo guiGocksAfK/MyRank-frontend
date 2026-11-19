@@ -5,6 +5,7 @@ import { TABLE_TEMPLATES, cleanCustomFields, tableName } from '../../../shared/t
 import TemplatePicker from './TemplatePicker';
 import CustomFieldsEditor from './CustomFieldsEditor';
 import SubcategoryEditor from './SubcategoryEditor';
+import { errorText } from '../../../services/errors';
 
 export default function NewTableModal({ onSave, onClose }) {
   const { t } = useLanguage();
@@ -37,7 +38,7 @@ export default function NewTableModal({ onSave, onClose }) {
         subcategories: subcategories.map(sub => sub.name.trim()).filter(Boolean) });
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || tm.createError);
+      setError(errorText(err, tm.createError));
     } finally {
       setSaving(false);
     }

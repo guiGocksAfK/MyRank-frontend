@@ -7,6 +7,7 @@ import { socialApi, lastSocial, DEBATE_MAX_PCT } from './socialData';
 import PersonRow from './PersonRow';
 import SocialAvatar from './SocialAvatar';
 import SocialEmpty from './SocialEmpty';
+import { errorText } from '../../services/errors';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 const CARDS_SHOWN = 8;
@@ -29,6 +30,7 @@ export default function People({ onOpenUser, onCompare, onOpenConversation, onOp
   const [q, setQ] = useState('');
   const [found, setFound] = useState(null); // { people, groups } da busca
   const [creating, setCreating] = useState(false);
+  const [actionError, setActionError] = useState(''); // seguir ou entrar em grupo que falhou
 
   useEffect(() => {
     socialApi.getFollowing().then(setFollowing).catch(() => setFollowing([]));
@@ -55,26 +57,29 @@ export default function People({ onOpenUser, onCompare, onOpenConversation, onOp
 
   // seguir / deixar de seguir: atualiza a pessoa em todas as listas
   const follow = async (id) => {
+    setActionError('');
     try {
       const u = await socialApi.toggleFollow(id);
       const patch = (list) => list?.map((x) => (x.id === id ? { ...x, following: u.following, requested: u.requested } : x));
       setSuggestions(patch);
       setFound((f) => f && { ...f, people: patch(f.people) });
       if (u.following) setFollowing((list) => (list?.some((x) => x.id === id) ? list : [...(list || []), u]));
-    } catch {
-      /* silencioso */
+    } catch (err) {
+      setActionError(errorText(err, t.social.followError));
     }
   };
 
   const join = async (g) => {
+    setActionError('');
     try {
       const state = await socialApi.joinGroup(g.id);
       if (state === 'JOINED') { onOpenConversation?.(g.id); return; }
       const mark = (list) => list?.map((x) => (x.id === g.id ? { ...x, membership: 'PENDING' } : x));
       setGroups(mark);
       setFound((f) => f && { ...f, groups: mark(f.groups) });
-    } catch {
-      /* silencioso */
+    } catch (err) {
+      // ex.: "O grupo está cheio."
+      setActionError(errorText(err, t.social.joinError));
     }
   };
 
@@ -246,6 +251,7 @@ export default function People({ onOpenUser, onCompare, onOpenConversation, onOp
           onChange={(e) => setQ(e.target.value)}
         />
       </label>
+      {actionError && <p className="social-self-error" role="alert">{actionError}</p>}
 
       {term ? (
         <>

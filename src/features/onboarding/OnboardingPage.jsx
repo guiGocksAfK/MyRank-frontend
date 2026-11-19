@@ -13,6 +13,7 @@ import AuthBackdrop from '../auth/AuthBackdrop';
 import ItemModal from '../rankings/rankings/ItemModal';
 import '../auth/auth.css';
 import './onboarding.css';
+import { errorText } from '../../services/errors';
 
 // Personalizado fica de fora: ele nasce vazio e a pessoa monta depois.
 const CHOICES = Object.keys(TABLE_TEMPLATES).filter(template => template !== 'custom');
@@ -78,7 +79,7 @@ export default function OnboardingPage() {
       setTableId(created[0]?.id ?? null);
       setStep('first');
     } catch (err) {
-      setError(err.response?.data?.message || to.error);
+      setError(errorText(err, to.error));
     } finally {
       setBusy(false);
     }
@@ -91,7 +92,7 @@ export default function OnboardingPage() {
       if (!testMode) await finishOnboarding();
       setStep('done');
     } catch (err) {
-      setError(err.response?.data?.message || to.error);
+      setError(errorText(err, to.error));
     } finally {
       setBusy(false);
     }

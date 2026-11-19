@@ -4,6 +4,7 @@ import { useLanguage } from '../../shared/i18n';
 import { socialApi } from './socialData';
 import PersonRow from './PersonRow';
 import SocialEmpty from './SocialEmpty';
+import { errorText } from '../../services/errors';
 
 // "João" acha "joao": sem acento e sem maiúscula
 const plain = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -24,6 +25,7 @@ export default function ConnectionsView({ initialTab = 'following', onTabChange,
   const [counts, setCounts] = useState(null);
   const [query, setQuery] = useState('');
   const [failed, setFailed] = useState(false);
+  const [actionError, setActionError] = useState(''); // seguir que falhou
   const [attempt, setAttempt] = useState(0); // "Tentar de novo" busca outra vez
 
   useEffect(() => {
@@ -52,11 +54,12 @@ export default function ConnectionsView({ initialTab = 'following', onTabChange,
   };
 
   const follow = async (id) => {
+    setActionError('');
     try {
       const u = await socialApi.toggleFollow(id);
       setList((l) => l?.map((x) => (x.id === id ? { ...x, following: u.following, requested: u.requested } : x)));
-    } catch {
-      /* silencioso */
+    } catch (err) {
+      setActionError(errorText(err, t.social.followError));
     }
   };
 
@@ -104,6 +107,7 @@ export default function ConnectionsView({ initialTab = 'following', onTabChange,
           </label>
         )}
       </div>
+      {actionError && <p className="social-self-error" role="alert">{actionError}</p>}
 
       {failed ? (
         <SocialEmpty role="alert" icon={TriangleAlert} text={tcn.loadError} actionLabel={tcn.retry} onAction={retry} />

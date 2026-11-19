@@ -7,6 +7,7 @@ import CodeInput from "./CodeInput";
 import PasswordInput from "./PasswordInput";
 import SocialButtons from "./SocialButtons";
 import "./auth.css";
+import { errorText } from '../../services/errors';
 
 const CODE_LENGTH = 6;
 const RESEND_COOLDOWN_S = 30; // igual ao intervalo mínimo do backend
@@ -47,7 +48,7 @@ const ForgotPasswordPage = () => {
     return () => clearTimeout(id);
   }, [cooldown]);
 
-  const apiError = (err, fallback) => err.response?.data?.message || fallback;
+  const apiError = (err, fallback) => errorText(err, fallback);
 
   const sendCode = async ({ resend = false } = {}) => {
     setError("");

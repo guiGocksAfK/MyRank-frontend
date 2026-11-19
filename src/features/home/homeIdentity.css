@@ -212,12 +212,30 @@
 @media (max-width: 640px) {
   .idp {
     min-height: 0;
-    padding: 80px 1.25rem;
+    padding: 48px 1.25rem;
   }
 
   .idp-starring,
   .idp-synopsis {
     font-size: 15px;
+  }
+
+  /* nomes longos do cartaz não podem passar da largura da tela */
+  .idp-title {
+    font-size: clamp(28px, 9vw, 40px);
+  }
+
+  .idp-title span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .idp-content {
+    max-width: 100%;
+  }
+
+  .idp-presents {
+    letter-spacing: 0.28em;
   }
 
   .idp-credits {

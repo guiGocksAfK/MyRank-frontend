@@ -8,6 +8,7 @@ import { relativeTime, useUnifiedItems } from '../../shared/useUnifiedItems';
 import { TEMPLATE_ICONS } from '../../shared/tableTemplates';
 import '../rankings/rankings/rankings.css';
 import './insights.css';
+import { errorText } from '../../services/errors';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 const plural = (pair, n) => fmt(n === 1 ? pair[0] : pair[1], { n });
@@ -41,7 +42,7 @@ export default function InsightsResult({ workIds = null, onBack }) {
       })
       .catch((err) => {
         if (!active) return;
-        setErrorMessage(err?.response?.data?.message || tr.errorDefault);
+        setErrorMessage(errorText(err, tr.errorDefault));
         setStatus('error');
       });
     return () => { active = false; };
@@ -56,7 +57,7 @@ export default function InsightsResult({ workIds = null, onBack }) {
       setResult(data);
       setStatus('ready');
     } catch (err) {
-      setErrorMessage(err?.response?.data?.message || tr.errorDefault);
+      setErrorMessage(errorText(err, tr.errorDefault));
       setStatus('error');
     } finally {
       setRegenerating(false);
@@ -310,7 +311,7 @@ function InsightChat({ insightId, initialChat, dailyLimit, dailyRemaining, onRes
       setThread((prev) => prev.slice(0, -1)); // desfaz a mensagem otimista
       setRemaining((r) => Math.min(dailyLimit, r + 1));
       setDraft(question);
-      setError(err?.response?.data?.message || tr.chatError);
+      setError(errorText(err, tr.chatError));
     } finally {
       setSending(false);
     }

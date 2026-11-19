@@ -235,8 +235,22 @@
 }
 
 @media (max-width: 640px) {
-  .cmp-board {
-    --label-col: 124px;
+  /* o número fantasma invadia os nomes: menor e mais apagado no celular */
+  .cmp-ghost b {
+    font-size: 84px;
+    -webkit-text-stroke-color: color-mix(in srgb, var(--mr-gold) 30%, transparent);
+  }
+
+  .cmp-ghost small {
+    margin-top: var(--mr-space-2);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    opacity: 0.6;
+  }
+
+  .cmp-person {
+    font-size: 10px;
+    letter-spacing: 0.16em;
   }
 
   .cmp-chart {
@@ -244,8 +258,13 @@
     grid-template-columns: var(--label-col) 1fr var(--label-col);
   }
 
+  /* nomes menores: cabem mais letras e sobra mais espaço pros fios */
+  .cmp-board {
+    --label-col: 104px;
+  }
+
   .cmp-label {
-    gap: 6px;
-    font-size: 12px;
+    gap: 5px;
+    font-size: 11px;
   }
 }

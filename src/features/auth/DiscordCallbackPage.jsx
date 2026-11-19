@@ -1,19 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  consumeDiscordIntent, consumeDiscordState, loginWithDiscord, markDiscordLinked, takePostAuthPath,
+  consumeDiscordState, loginWithDiscord, markDiscordLinked, peekDiscordIntent, takePostAuthPath,
 } from "../../services/authService";
 import { connectDiscord } from "../../services/userService";
 import { useLanguage } from "../../shared/i18n";
 import "./auth.css";
+import { errorText } from '../../services/errors';
 
 export default function DiscordCallbackPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const td = t.auth.discordCallback;
   const [error, setError] = useState("");
-  // "link" = Conectar Discord nas Configurações; a volta é para elas, não para o login
-  const [intent] = useState(consumeDiscordIntent);
+  // "link" = Conectar Discord nas Configurações; a volta é para elas, não para o login.
+  // Só lê aqui: quem apaga é o consumeDiscordState, dentro do efeito, uma vez só.
+  const [intent] = useState(peekDiscordIntent);
   // O código e o state só valem uma vez; sem isso o StrictMode (dev) rodaria duas.
   const handled = useRef(false);
 
@@ -54,14 +56,14 @@ export default function DiscordCallbackPage() {
           markDiscordLinked();
           navigate("/dashboard", { state: { tab: "profile", settings: true } });
         })
-        .catch((err) => setError(err.response?.data?.message || td.linkError));
+        .catch((err) => setError(errorText(err, td.linkError)));
       return;
     }
 
     loginWithDiscord(code)
       .then(() => navigate(takePostAuthPath()))
       .catch((err) => {
-        setError(err.response?.data?.message || td.error);
+        setError(errorText(err, td.error));
       });
   }, [navigate, td, intent]);
 

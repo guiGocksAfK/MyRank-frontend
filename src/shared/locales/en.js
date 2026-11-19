@@ -18,6 +18,9 @@ export default {
     devTutorial: 'Tutorial',
     devTutorialHint: 'Opens the sign-up tutorial from the start. Nothing is saved.',
     loading: 'Loading…',
+    followError: "Couldn't update who you follow. Try again.",
+    joinError: "Couldn't join the group. Try again.",
+    requestError: "Couldn't answer the request. Try again.",
     feed: {
       loading: 'Loading feed…',
       startTitle: 'Start by following people with taste like yours',
@@ -67,6 +70,8 @@ export default {
     },
     take: {
       delete: 'Delete take',
+      editError: "Couldn't save the edit. Try again.",
+      deleteError: "Couldn't delete the take. Try again.",
       options: 'Take options', menuEdit: 'Edit', menuDelete: 'Delete',
       save: 'Save', cancel: 'Cancel',
       edited: '(edited)',
@@ -948,7 +953,7 @@ export default {
     errors: {
       login: "Couldn't sign in. Try again.",
       google: "Couldn't sign in with Google. Try again.",
-      googleConfig: "Couldn't sign in with Google right now. Please try again.",
+      googleConfig: "Couldn't sign in with Google right now. Try again.",
       googleNotConfigured: 'Google sign-in is currently unavailable.',
       discordNotConfigured: 'Discord sign-in is currently unavailable.',
       emailRequired: 'Enter your email to continue.',

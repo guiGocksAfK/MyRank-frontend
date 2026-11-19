@@ -8,6 +8,7 @@ import { useLanguage } from '../../shared/i18n';
 import { relativeTime } from '../../shared/useUnifiedItems';
 import ConfirmModal from '../../shared/components/ConfirmModal';
 import TakeMenu from './TakeMenu';
+import { errorText, userError } from '../../services/errors';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -104,6 +105,7 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(item.text || '');
   const [busy, setBusy] = useState(false);
+  const [editError, setEditError] = useState('');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const isTake = item.type === 'TAKE' && item.takeId != null;
   const canManage = isTake && item.canManage;
@@ -119,19 +121,26 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
     e?.preventDefault?.();
     const body = draft.trim();
     if (busy) return;
-    if (!body || body === text) { setEditing(false); setDraft(text || ''); return; }
+    if (!body || body === text) { stopEditing(); return; }
     setBusy(true);
+    setEditError('');
     try {
       const updated = await socialApi.editTake(item.takeId, body);
       setText(updated.text);
       setEdited(updated.takeEdited);
       setEditing(false);
       onEdited?.(updated);
-    } catch {
-      /* silencioso */
+    } catch (err) {
+      setEditError(errorText(err, tt.editError)); // o texto continua na caixa
     } finally {
       setBusy(false);
     }
+  }
+
+  function stopEditing() {
+    setEditing(false);
+    setDraft(text || '');
+    setEditError('');
   }
 
   async function confirmDeleteTake() {
@@ -139,8 +148,9 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
       await socialApi.deleteTake(item.takeId);
       onDeleted?.(item.id);
       return true;
-    } catch {
-      return false;
+    } catch (err) {
+      // o modal de confirmação mostra o motivo e continua aberto
+      throw userError(errorText(err, tt.deleteError), err);
     }
   }
 
@@ -181,8 +191,9 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
               rows={3}
               autoFocus
               onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Escape') { setEditing(false); setDraft(text || ''); } }}
+              onKeyDown={(e) => { if (e.key === 'Escape') stopEditing(); }}
             />
+            {editError && <p className="social-self-error" role="alert">{editError}</p>}
             <div className="social-take-editactions">
               <button type="submit" className="mr-btn mr-btn-gold mr-btn-sm" disabled={busy || !draft.trim()}>
                 {tt.save}
@@ -190,7 +201,7 @@ export default function ActivityCard({ item, myScoreOf, onReact, onOpenUser, onE
               <button
                 type="button"
                 className="mr-btn mr-btn-outline mr-btn-sm"
-                onClick={() => { setEditing(false); setDraft(text || ''); }}
+                onClick={stopEditing}
               >
                 {tt.cancel}
               </button>

@@ -129,15 +129,23 @@ function createDiscordState() {
   return state;
 }
 
-/** Para que a ida ao Discord foi feita ("login" ou "link"); vale uma vez. */
-export const consumeDiscordIntent = () => {
+/**
+ * Para que a ida ao Discord foi feita ("login" ou "link"). Só lê, não apaga: a
+ * página de retorno chama isto ao desenhar, e o React pode desenhar mais de uma
+ * vez. Apagar aqui fez a volta do "Conectar Discord" cair no login e criar conta
+ * nova; quem apaga é o consumeDiscordState, uma vez só.
+ */
+export const peekDiscordIntent = () => {
+  let stored = null;
   try {
-    const intent = sessionStorage.getItem(DISCORD_INTENT_KEY);
-    sessionStorage.removeItem(DISCORD_INTENT_KEY);
-    return intent === "link" ? "link" : "login";
+    stored = sessionStorage.getItem(DISCORD_INTENT_KEY);
   } catch {
-    return "login";
+    /* storage bloqueado: decide pelo login abaixo */
   }
+  if (stored === "link" || stored === "login") return stored;
+  // sem a marca: quem já está logado só chega ao Discord pelo "Conectar Discord"
+  // (a tela de login é só para visitante), então nunca vira login
+  return isAuthenticated() ? "link" : "login";
 };
 
 /** Aviso de "Discord conectado" para as Configurações mostrarem uma vez, na volta. */
@@ -155,12 +163,16 @@ export const takeDiscordLinked = () => {
   }
 };
 
-/** Confere o `state` que voltou do Discord e descarta o guardado (só vale uma vez). */
+/**
+ * Confere o `state` que voltou do Discord e descarta o guardado junto com a
+ * intenção (os dois só valem uma vez, e somem juntos).
+ */
 export const consumeDiscordState = (returnedState) => {
   let expected = null;
   try {
     expected = sessionStorage.getItem(DISCORD_STATE_KEY);
     sessionStorage.removeItem(DISCORD_STATE_KEY);
+    sessionStorage.removeItem(DISCORD_INTENT_KEY);
   } catch {
     /* storage bloqueado: expected fica null e o login é recusado */
   }

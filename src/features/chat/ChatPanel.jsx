@@ -49,10 +49,13 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
   const [query, setQuery] = useState('');
   const [composing, setComposing] = useState(false); // "nova mensagem": a lista vira quem você segue
   const [following, setFollowing] = useState(null);
-  const [startError, setStartError] = useState('');
+  // o erro em si (não o texto): o texto sai no render, no idioma atual, e o efeito
+  // do "Mensagem" no perfil não precisa depender das traduções
+  const [startError, setStartError] = useState(null);
 
   const changeFilter = (next) => {
     setFilter(next);
+    setStartError(null);
     try {
       localStorage.setItem('myrank_chat_filter', next);
     } catch {
@@ -113,16 +116,20 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
   // pedido externo: botão "Mensagem" no perfil de alguém → abre/cria o DM
   useEffect(() => {
     if (!pendingPeer) return;
+    // o pedido do perfil manda: sem isso, zerar o pendingPeer abaixo fazia a lista
+    // abrir a primeira conversa sozinha, mesmo quando esta falhava
+    didAutoOpen.current = true;
     consumePendingPeer();
     startDirect(pendingPeer.id)
       .then((conv) => {
+        setStartError(null);
         setActiveId(conv.id);
         loadConversations();
         loadSuggested();
       })
       // ex.: "Essa pessoa só recebe mensagens de quem ela segue." — antes o clique não fazia nada
-      .catch((err) => setStartError(errorText(err, tc.actionError)));
-  }, [pendingPeer, consumePendingPeer, loadConversations, loadSuggested, tc.actionError]);
+      .catch(setStartError);
+  }, [pendingPeer, consumePendingPeer, loadConversations, loadSuggested]);
 
   useEffect(() => {
     onActiveChange?.(activeId);
@@ -131,12 +138,13 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
 
   const openComposer = () => {
     setComposing(true);
-    setStartError('');
+    setStartError(null);
     if (following === null) socialApi.getFollowing().then(setFollowing).catch(() => setFollowing([]));
   };
   const closeComposer = () => {
     setComposing(false);
     setQuery('');
+    setStartError(null);
   };
 
   const active = conversations?.find((c) => c.id === activeId) || null;
@@ -157,7 +165,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
 
   // começa (ou reabre) a conversa com alguém: do "diga oi" ou da "nova mensagem"
   const openDirect = (u) => {
-    setStartError('');
+    setStartError(null);
     startDirect(u.id)
       .then((conv) => {
         setSuggested((prev) => prev.filter((x) => x.id !== u.id));
@@ -165,10 +173,11 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
         setActiveId(conv.id);
         loadConversations();
       })
-      .catch((err) => setStartError(errorText(err, tc.actionError)));
+      .catch(setStartError);
   };
 
   const closeThread = () => {
+    setStartError(null);
     setActiveId(null);
     loadConversations();
     refreshCount();
@@ -176,6 +185,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
 
   const handleGroupCreated = (conv) => {
     setShowNewGroup(false);
+    setStartError(null);
     loadConversations();
     setActiveId(conv.id);
   };
@@ -228,7 +238,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
             key={c.id}
             type="button"
             className={`chat-conv ${activeId === c.id ? 'active' : ''} ${c.unread > 0 ? 'is-unread' : ''}`}
-            onClick={() => setActiveId(c.id)}
+            onClick={() => { setStartError(null); setActiveId(c.id); }}
           >
             {c.type === 'GROUP' ? (
               <GroupIcon name={c.name} imageUrl={c.imageUrl} className="chat-conv-avatar" />
@@ -303,7 +313,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
           </div>
         )}
 
-        {startError && <div className="chat-hint is-error" role="alert">{startError}</div>}
+        {startError && <div className="chat-hint is-error" role="alert">{errorText(startError, tc.actionError)}</div>}
         <div className="chat-conv-list">{composing ? composer() : inbox()}</div>
       </aside>
 

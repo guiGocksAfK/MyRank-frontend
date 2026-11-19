@@ -6,6 +6,7 @@ import AuthBackdrop from "./AuthBackdrop";
 import PasswordInput from "./PasswordInput";
 import SocialButtons from "./SocialButtons";
 import "./auth.css";
+import { errorText } from '../../services/errors';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const LoginPage = () => {
       await login(email, password);
       navigate(takePostAuthPath());
     } catch (err) {
-      const message = err.response?.data?.message || tAuth.errors.login;
+      const message = errorText(err, tAuth.errors.login);
       setError(message);
     } finally {
       setLoading(false);

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { getDiscordAuthUrl, loginWithGoogleCode, takePostAuthPath } from "../../services/authService";
 import { useLanguage } from "../../shared/i18n";
+import { errorText } from '../../services/errors';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
 
@@ -45,7 +46,7 @@ const GoogleButton = ({ disabled, onError, onBusy }) => {
         await loginWithGoogleCode(code);
         navigate(takePostAuthPath());
       } catch (err) {
-        onError?.(err.response?.data?.message || tAuth.errors.google);
+        onError?.(errorText(err, tAuth.errors.google));
       } finally {
         onBusy?.(false);
       }

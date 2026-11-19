@@ -133,5 +133,12 @@
   .social-lede {
     align-items: flex-start;
     text-align: left;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .social-grid {
+    gap: var(--mr-space-6);
   }
 }
