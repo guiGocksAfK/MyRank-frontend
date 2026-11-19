@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLanguage } from '../../shared/i18n';
 import { socialApi, looksLikeMe } from './socialData';
 import SocialAvatar from './SocialAvatar';
+import { errorText } from '../../services/errors';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 const SHOWN = 4;
@@ -16,6 +17,7 @@ export default function FeedStart({ onOpenUser, onGoPeople, onFollowed }) {
   const tf = t.social.feed;
   const tp = t.social.people;
   const [people, setPeople] = useState(null);
+  const [actionError, setActionError] = useState(''); // seguir que falhou
 
   useEffect(() => {
     let alive = true;
@@ -26,12 +28,13 @@ export default function FeedStart({ onOpenUser, onGoPeople, onFollowed }) {
   }, []);
 
   const follow = async (id) => {
+    setActionError('');
     try {
       const u = await socialApi.toggleFollow(id);
       setPeople((list) => list.map((p) => (p.id === id ? { ...p, following: u.following, requested: u.requested } : p)));
       if (u.following) onFollowed?.();
-    } catch {
-      /* silencioso */
+    } catch (err) {
+      setActionError(errorText(err, t.social.followError));
     }
   };
 
@@ -78,6 +81,7 @@ export default function FeedStart({ onOpenUser, onGoPeople, onFollowed }) {
           </li>
         ))}
       </ul>
+      {actionError && <p className="social-self-error" role="alert">{actionError}</p>}
       <button type="button" className="social-rail-more" onClick={onGoPeople}>{tf.emptyCta}</button>
     </section>
   );
