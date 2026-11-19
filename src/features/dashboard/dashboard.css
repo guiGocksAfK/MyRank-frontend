@@ -933,6 +933,26 @@
   .dash-top-rank { font-size: var(--mr-text-lg); }
   .dash-top-title { font-size: 0.875rem; }
   .dash-top-info .dash-row-sub { font-size: 11px; }
+
+  /* cartões de baixo (avaliadas, conquistas, recomendados) mais compactos */
+  /* meio-termo: menores que no PC, mas no mesmo peso dos números e do hall da fama */
+  .dash-card-title { font-size: 1.0625rem; }
+
+  .dash-row {
+    min-height: 70px;
+    padding: 9px 0;
+  }
+  .dash-thumb { width: 36px; height: 54px; }
+  .dash-thumb.is-square { height: 36px; }
+  .dash-row .dash-medal {
+    width: 42px;
+    height: 42px;
+    font-size: 1.15rem;
+  }
+
+  .dash-reco-item { padding: 14px 16px; }
+  .dash-reco-title { font-size: 1rem; }
+  .dash-reco-reason { font-size: 13.5px; }
 }
 
 /* ============ AI INSIGHTS ============ */
