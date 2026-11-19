@@ -142,6 +142,44 @@
     align-items: center;
     gap: var(--mr-space-6);
   }
+
+  .credits {
+    padding: 0 1.25rem;
+  }
+
+  .credits-stage {
+    min-height: max(48vh, 340px);
+  }
+
+  .credits-disclaimer {
+    font-size: 15px;
+  }
+
+  /* créditos menores: no celular cada nome quebrava em duas linhas */
+  .credits-card {
+    gap: var(--mr-space-5);
+  }
+
+  .credits-entry {
+    gap: 6px;
+  }
+
+  .credits-card small {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+  }
+
+  .credits-card span {
+    font-size: 20px;
+  }
+
+  .credits-brand {
+    font-size: 36px;
+  }
+
+  .credits-title {
+    font-size: 28px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

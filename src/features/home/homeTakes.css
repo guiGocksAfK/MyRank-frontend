@@ -127,4 +127,10 @@
   .tk-text-reply {
     font-size: 14px;
   }
+
+  /* recuo das respostas menor para sobrar espaço pro texto */
+  .tk-replies {
+    margin-left: 8px;
+    padding-left: 16px;
+  }
 }
