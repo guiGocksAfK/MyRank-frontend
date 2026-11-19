@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { errorText } from '../../services/errors';
 import { SendHorizontal } from 'lucide-react';
 import SocialAvatar from './SocialAvatar';
 import { socialApi } from './socialData';
@@ -19,6 +20,7 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
   const [busy, setBusy] = useState(false);
   const [replyTo, setReplyTo] = useState(null); // id do comentário raiz sendo respondido
   const [pendingDelete, setPendingDelete] = useState(null); // { id, rootId } esperando confirmar
+  const [actionError, setActionError] = useState(''); // enviar/editar/apagar que falhou
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -30,6 +32,7 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
     const body = text.trim();
     if (!body || busy) return;
     setBusy(true);
+    setActionError('');
     try {
       const c = await socialApi.addTakeComment(takeId, body, replyTo);
       setComments((prev) => {
@@ -42,8 +45,8 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
       setText('');
       setReplyTo(null);
       onCountChange?.(1);
-    } catch {
-      /* silencioso */
+    } catch (err) {
+      setActionError(errorText(err, tc.sendError)); // o texto continua na caixa
     } finally {
       setBusy(false);
     }
@@ -62,16 +65,26 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
         r.id === rootId ? { ...r, replies: r.replies.filter((x) => x.id !== id) } : r,
       );
     });
+    setActionError('');
     try {
       await socialApi.deleteTakeComment(id);
       onCountChange?.(-removed);
-    } catch {
+    } catch (err) {
+      // o comentário volta para a lista, e a pessoa sabe por quê
+      setActionError(errorText(err, tc.deleteError));
       socialApi.getTakeComments(takeId).then(setComments).catch(() => {});
     }
   }
 
   async function edit(id, rootId, newText) {
-    const updated = await socialApi.editTakeComment(id, newText);
+    setActionError('');
+    let updated;
+    try {
+      updated = await socialApi.editTakeComment(id, newText);
+    } catch (err) {
+      setActionError(errorText(err, tc.editError));
+      throw err; // a linha continua em edição, com o texto digitado
+    }
     const patch = { text: updated.text, edited: true };
     setComments((prev) => {
       const list = prev || [];
@@ -123,6 +136,7 @@ export default function TakeComments({ takeId, onOpenUser, onCountChange }) {
         </ul>
       )}
 
+      {actionError && <div className="social-comments-hint" role="alert">{actionError}</div>}
       <form className="social-comment-form" onSubmit={submit}>
         <SocialAvatar name={user?.username || '?'} src={user?.avatarUrl} size={28} />
         {replyTo && (

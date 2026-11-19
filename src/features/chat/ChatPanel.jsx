@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { errorText } from '../../services/errors';
 import { MessageSquare, Search, SquarePen, Users, X } from 'lucide-react';
 import './chat.css';
 import { useLanguage } from '../../shared/i18n';
@@ -119,8 +120,9 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
         loadConversations();
         loadSuggested();
       })
-      .catch(() => {});
-  }, [pendingPeer, consumePendingPeer, loadConversations, loadSuggested]);
+      // ex.: "Essa pessoa só recebe mensagens de quem ela segue." — antes o clique não fazia nada
+      .catch((err) => setStartError(errorText(err, tc.actionError)));
+  }, [pendingPeer, consumePendingPeer, loadConversations, loadSuggested, tc.actionError]);
 
   useEffect(() => {
     onActiveChange?.(activeId);
@@ -163,7 +165,7 @@ export default function ChatPanel({ initialConvId = null, onInitialConvConsumed,
         setActiveId(conv.id);
         loadConversations();
       })
-      .catch((err) => setStartError(err?.response?.data?.message || tc.actionError));
+      .catch((err) => setStartError(errorText(err, tc.actionError)));
   };
 
   const closeThread = () => {
