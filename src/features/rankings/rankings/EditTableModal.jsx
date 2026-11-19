@@ -5,6 +5,7 @@ import { TABLE_TEMPLATES, needsCustomEmoji, cleanCustomFields } from '../../../s
 import TemplatePicker from './TemplatePicker';
 import CustomFieldsEditor from './CustomFieldsEditor';
 import SubcategoryEditor from './SubcategoryEditor';
+import { errorText } from '../../../services/errors';
 
 export default function EditTableModal({ table, onSave, onAddSubcategory, onRenameSubcategory, onDeleteSubcategory, onDeleteTable, onClose }) {
   const { t } = useLanguage();
@@ -55,7 +56,7 @@ export default function EditTableModal({ table, onSave, onAddSubcategory, onRena
       await saveSubcategories();
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || tm.renameError);
+      setError(errorText(err, tm.renameError));
     } finally {
       setSaving(false);
     }

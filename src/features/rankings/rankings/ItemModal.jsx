@@ -7,6 +7,7 @@ import Modal from '../../../shared/components/Modal';
 import SelectMenu from '../../../shared/components/SelectMenu';
 import './itemModal.css';
 import { TEMPLATE_ICONS, templateProvider, isTimeWeighted, hasSquareCover } from '../../../shared/tableTemplates';
+import { errorText } from '../../../services/errors';
 
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
 
@@ -107,7 +108,7 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
         if (!active || thisRequestId !== requestIdRef.current) return;
         setSuggestions([]);
         setSearchMsg({
-          text: workType === 'anime' ? tm.searchErrAnime : err.response?.data?.message || tm.searchErr,
+          text: workType === 'anime' ? tm.searchErrAnime : errorText(err, tm.searchErr),
           tone: 'error',
         });
       } finally {
@@ -135,7 +136,7 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
     setSearchMsg({ text: tm.refreshed, tone: 'ok' });
   }
 
-  const detailsError = err => ({ text: err.response?.data?.message || tm.detailsErr, tone: 'error' });
+  const detailsError = err => ({ text: errorText(err, tm.detailsErr), tone: 'error' });
 
   async function handleRefresh() {
     const thisRequestId = ++requestIdRef.current;
@@ -292,7 +293,7 @@ export default function ItemModal({ item, templates = ['custom'], customFields =
       }
       onClose();
     } catch (err) {
-      setValidationError(err?.response?.data?.message || err.message || tm.saveError);
+      setValidationError(errorText(err, tm.saveError));
     } finally {
       setSaving(false);
     }
