@@ -4,6 +4,7 @@ import { useLanguage } from '../../shared/i18n';
 import { isAuthenticated, setPendingInvite } from '../../services/authService';
 import { acceptInvite } from '../../services/chatService';
 import './chat.css';
+import { errorText } from '../../services/errors';
 
 /** Rota /chat/invite/:token — aceita o convite e joga o usuário na conversa. */
 export default function ChatInvitePage() {
@@ -30,7 +31,7 @@ export default function ChatInvitePage() {
         navigate('/dashboard', { replace: true, state: { tab: 'social', openConvId: conv.id } });
       })
       .catch((err) => {
-        setError(err?.response?.data?.message || ti.error);
+        setError(errorText(err, ti.error));
       });
   }, [token, navigate, ti.error]);
 

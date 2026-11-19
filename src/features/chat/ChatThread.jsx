@@ -24,6 +24,7 @@ import {
 import { socialApi, typeIconFor } from '../social/socialData';
 import BadgeIcon from '../../shared/badgeIcons';
 import { BADGE_I18N } from '../../shared/badgeI18n';
+import { errorText } from '../../services/errors';
 
 const POLL_MS = 15_000;
 const BODY_MAX = 2000;
@@ -242,7 +243,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
         setError(null);
         markRead();
       } catch (err) {
-        setError(err?.response?.data?.message || tc.loadError);
+        setError(errorText(err, tc.loadError));
         if (!silent) setMessages([]);
       }
     },
@@ -262,7 +263,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
         setMessages((prev) => mergePrepend(older, prev || []));
       }
     } catch (err) {
-      setError(err?.response?.data?.message || tc.loadError);
+      setError(errorText(err, tc.loadError));
     } finally {
       setLoadingMore(false);
     }
@@ -298,7 +299,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
       })
       .catch((err) => {
         if (!active) return;
-        setError(err?.response?.data?.message || tc.loadError);
+        setError(errorText(err, tc.loadError));
         setMessages([]);
       });
     return () => { active = false; };
@@ -417,7 +418,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
         setDraft('');
         setError(null);
       } catch (err) {
-        setError(err?.response?.data?.message || tc.editError);
+        setError(errorText(err, tc.editError));
       } finally {
         setSending(false);
       }
@@ -438,7 +439,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
       onChanged?.();
       requestAnimationFrame(() => scrollToBottom(true));
     } catch (err) {
-      setError(err?.response?.data?.message || tc.sendError);
+      setError(errorText(err, tc.sendError));
       setDraft(body);
     } finally {
       setSending(false);
@@ -475,7 +476,7 @@ export default function ChatThread({ conversation, onBack, backAlways = false, o
       const updated = await reactMessage(m.id, emoji);
       patchMessage(updated);
     } catch (err) {
-      setError(err?.response?.data?.message || tc.actionError);
+      setError(errorText(err, tc.actionError));
     }
   };
 

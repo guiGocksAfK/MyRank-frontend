@@ -22,6 +22,7 @@ import {
   revokeInviteToken,
   inviteUrl,
 } from '../../services/chatService';
+import { errorText } from '../../services/errors';
 
 const RANK = { OWNER: 0, ADMIN: 1, MOD: 2, MEMBER: 3 };
 const ACCESSES = ['OPEN', 'REQUEST', 'CLOSED'];
@@ -120,7 +121,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
       onLeft?.();
       return true;
     } catch (err) {
-      setError(err?.response?.data?.message || tc.actionError);
+      setError(errorText(err, tc.actionError));
       return false;
     }
   };
@@ -138,7 +139,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
         loadRequests();
       }
     } catch (err) {
-      setError(err?.response?.data?.message || tc.actionError);
+      setError(errorText(err, tc.actionError));
     } finally {
       setBusy(false);
     }
@@ -177,7 +178,7 @@ export default function GroupPanel({ conversation, onClose, onChanged, onLeft })
       onChanged?.();
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.message || tc.actionError);
+      setError(errorText(err, tc.actionError));
       setBusy(false);
     }
   };

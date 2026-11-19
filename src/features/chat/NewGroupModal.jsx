@@ -6,6 +6,7 @@ import { createGroup } from '../../services/chatService';
 import SocialAvatar from '../social/SocialAvatar';
 import ImagePreview from './ImagePreview';
 import useModalBehavior from '../../shared/components/useModalBehavior';
+import { errorText } from '../../services/errors';
 
 const NAME_MAX = 80;
 const DESC_MAX = 300;
@@ -70,7 +71,7 @@ export default function NewGroupModal({ onClose, onCreated }) {
       });
       onCreated(conv);
     } catch (err) {
-      setError(err?.response?.data?.message || tc.createError);
+      setError(errorText(err, tc.createError));
     } finally {
       setBusy(false);
     }

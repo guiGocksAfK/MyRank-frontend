@@ -4,6 +4,7 @@ import { useLanguage } from '../../shared/i18n';
 import { useUser } from '../../shared/userContext';
 import SocialAvatar from './SocialAvatar';
 import WorkPicker from './WorkPicker';
+import { errorText } from '../../services/errors';
 
 const MAX = 280;
 const fmt = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v[k] ?? ''));
@@ -48,7 +49,7 @@ export default function TakeComposer({ items, onPost, onNavigate }) {
       setChosen(null);
       setExpanded(false);
     } catch (err) {
-      setError(err?.response?.data?.message || tc.postError);
+      setError(errorText(err, tc.postError));
     } finally {
       setBusy(false);
     }
