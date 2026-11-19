@@ -1186,6 +1186,12 @@ input.chat-modal-input { max-height: none; }
   body:has(.chat-panel.has-active) {
     overflow: hidden;
   }
+  body:has(.chat-panel.has-active) .app-mobile-nav {
+    display: none;
+  }
+  .chat-panel.has-active .chat-composer {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* celular: "Novo grupo" com cara de ação (um "+" no ícone e o nome em dourado),

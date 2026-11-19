@@ -333,6 +333,26 @@
 }
 
 @media (max-width: 640px) {
+  /* filtro de tipos (Todos, Diretores, Autores...): vira pílulas que quebram linha */
+  .creators-panel .rk-controls { min-width: 0; }
+  .creators-panel .rk-controls > .rk-seg:first-child {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+    height: auto;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+  }
+  .creators-panel .rk-controls > .rk-seg:first-child button {
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--mr-border);
+  }
+  .creators-panel .rk-controls > .rk-seg:first-child button.is-active {
+    border-color: var(--mr-gold-20);
+  }
+
   .cr-avatar { flex: none; }
   .cr-chevron { flex: none; }
   .cr-works { padding-left: var(--mr-space-3); }

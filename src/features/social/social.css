@@ -1184,7 +1184,7 @@ button.social-cmp-side:hover .social-cmp-who b { color: var(--mr-gold); }
   .social-feed-col { gap: var(--mr-space-2); }
   .social-card { gap: var(--mr-space-2); }
   .social-card-head { gap: 10px; }
-  .social-card-avatar > * { width: 30px !important; height: 30px !important; }
+  .social-card-avatar > * { width: 30px !important; height: 30px !important; font-size: 12px !important; }
   .social-card-line { font-size: 13px; }
 
   /* "avaliou N obras": capas de tamanho fixo (5 por linha), em vez de esticar
@@ -1198,7 +1198,7 @@ button.social-cmp-side:hover .social-cmp-who b { color: var(--mr-gold); }
 
   /* topo: seu cartão e o "escrever take" mais baixos */
   .social-you { padding: 10px var(--mr-space-3); gap: 10px; }
-  .social-you-photo > * { width: 34px !important; height: 34px !important; }
+  .social-you-photo > * { width: 34px !important; height: 34px !important; font-size: 13.5px !important; }
   .social-composer-collapsed { padding: 10px var(--mr-space-3); }
 }
 

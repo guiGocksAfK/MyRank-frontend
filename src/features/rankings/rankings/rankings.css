@@ -1140,20 +1140,20 @@
 
   /* abas quebram linha em vez de deslizar: todas as tabelas à vista.
      O fio de baixo sai do contêiner (com várias linhas ele ficava no meio) */
-  /* só na página de Rankings: o Social usa as mesmas abas e lá elas ficam numa linha */
-  .rk-page:not(.social-panel) .rk-tabs {
+  /* só na página de Rankings: Social e Perfil usam as mesmas abas numa linha só */
+  .rk-page:not(.social-panel):not(.pf-page) .rk-tabs {
     flex-wrap: wrap;
     align-items: flex-start;
     border-bottom: 0;
   }
-  .rk-page:not(.social-panel) .rk-tabs-scroll {
+  .rk-page:not(.social-panel):not(.pf-page) .rk-tabs-scroll {
     flex-wrap: wrap;
     overflow: visible;
     row-gap: 2px;
     margin-left: -10px;
   }
-  .rk-page:not(.social-panel) .rk-tab { padding: 8px 10px; }
-  .rk-page:not(.social-panel) .rk-tab.is-active::after { left: 10px; right: 10px; bottom: 2px; }
+  .rk-page:not(.social-panel):not(.pf-page) .rk-tab { padding: 8px 10px; }
+  .rk-page:not(.social-panel):not(.pf-page) .rk-tab.is-active::after { left: 10px; right: 10px; bottom: 2px; }
 
   /* controles: quebram linha em vez de deslizar pro lado */
   .rk-controls { flex-wrap: wrap; row-gap: var(--mr-space-2); }
