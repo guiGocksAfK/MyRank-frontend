@@ -1108,15 +1108,80 @@
   .pf-era-row.is-dense .pf-era-year { font-size: 0.625rem; }
   .pf-era-row.is-dense .pf-era-info, .pf-era-row.is-dense .pf-era-avg { display: none; }
   /* destaques em 2×2: quatro numa linha deixava capa e rótulo espremidos */
-  .pf-stats-grid.is-top .pf-hl-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mr-space-5) var(--mr-space-4); }
+  /* destaques viram lista: capa pequena à esquerda, rótulo/título/ano à direita
+     (em 2×2 cada capa tinha meia tela de largura e ficava gigante) */
+  .pf-stats-grid.is-top .pf-hl-row { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .pf-hl {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    column-gap: var(--mr-space-3);
+    align-content: center;
+    padding: 10px 0;
+  }
+  .pf-hl + .pf-hl { border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .pf-hl .rk-gcard-cover {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    width: 44px;
+    margin: 0;
+    align-self: center;
+  }
+  .pf-hl-label, .pf-hl-title, .pf-hl-meta { grid-column: 2; }
+  .pf-hl-label { font-size: 10px; }
+  .pf-hl-title { margin-top: 2px; font-size: 0.9375rem; }
+  .pf-hl-meta { font-size: var(--mr-text-xs); }
+  .pf-hl .rk-gcard-empty svg { width: 18px; height: 18px; }
   /* os três números das notas cabem lado a lado: menos espaço entre eles e letra menor */
   .pf-card { padding: var(--mr-space-4); }
   .pf-strip-stats { flex-wrap: wrap; gap: var(--mr-space-2) var(--mr-space-4); }
   .pf-strip-stats dt { letter-spacing: 0.08em; }
-  .pf-strip-stats dd { font-size: var(--mr-text-xl); }
-  .pf-badge-groups { grid-template-columns: 1fr; }
+  .pf-strip-stats dd { font-size: 1.375rem; }
+  .pf-strip-stats dt { font-size: 10px; }
+  .pf-strip-plot { margin-top: var(--mr-space-3); }
+
+  /* "Por tipo": tabela um pouco mais baixa e com letra menor */
+  .pf-group-title { margin-bottom: var(--mr-space-2); }
+  .pf-split { height: 8px; }
+  .pf-types { margin-top: var(--mr-space-3); font-size: 13px; }
+  .pf-types th, .pf-types td { padding: 8px 0; }
+  .pf-types thead th { font-size: 10px; }
+  .pf-swatch { width: 8px; height: 8px; }
+  .pf-badge-groups { grid-template-columns: 1fr; gap: var(--mr-space-3); }
   .pf-badge-card.is-wide { grid-column: auto; }
-  .pf-badge-card.is-wide .pf-badge-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* conquistas: 3 por linha (os grupos têm 6: fecha 3 + 3, simétrico), ícone e nome menores */
+  .pf-badge-grid,
+  .pf-badge-card.is-wide .pf-badge-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; }
+  .pf-badge-card { padding: var(--mr-space-3) var(--mr-space-3) var(--mr-space-2); }
+  .pf-badge { gap: 6px; padding: var(--mr-space-2) 2px; }
+  .pf-badge-icon { width: 36px; height: 36px; }
+  .pf-badge-icon svg { width: 18px; height: 18px; }
+  .pf-badge-name { font-size: 11px; }
+
+  /* configurações: tudo um degrau menor */
+  .pf-settings { gap: var(--mr-space-3); }
+  .pf-account { padding: var(--mr-space-3); gap: var(--mr-space-3); }
+  .mr-avatar.pf-account-avatar { width: 36px; height: 36px; }
+  .pf-account-email { font-size: 13px; }
+  .pf-account-sub { font-size: 11px; }
+  /* botões da conta esticam e preenchem a linha: o "Sair" que cai embaixo
+     ocupa a largura toda em vez de ficar sobrando no canto */
+  .pf-account-actions { width: 100%; gap: 6px; }
+  .pf-account-actions .mr-btn { flex: 1 1 auto; justify-content: center; height: 32px; padding: 0 12px; font-size: 12px; }
+  .pf-account-who { min-width: 0; }
+  /* minmax(0, …): os cartões não alargam além da tela */
+  .pf-set-grid { grid-template-columns: minmax(0, 1fr); gap: var(--mr-space-3); }
+  .pf-set-card { gap: var(--mr-space-3); padding: var(--mr-space-3); }
+  .pf-opt-field { gap: 6px; }
+  .pf-opt-label { font-size: 13px; }
+  .pf-opts { gap: 6px; }
+  .pf-opt { min-height: 34px; padding: 6px; font-size: 11px; gap: 4px; }
+  .pf-opt-big { font-size: 1rem; }
+  .pf-theme-mini { height: 30px; padding: 4px 5px; }
+  .pf-theme-mini i { height: 4px; }
+  .pf-notify { gap: 4px; }
+  .pf-notify-row { padding: 6px var(--mr-space-3); font-size: 13px; }
+  .pf-data-icon { width: 32px; }
   .pf-hero {
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--mr-space-4);
