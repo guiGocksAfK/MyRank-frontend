@@ -708,9 +708,10 @@
 
 .pf-set-card .pf-group-title { margin: 0; }
 
-/* simetria entre os 4 quadros: o 1º ajuste fica no topo e o 2º encosta no pé,
-   então "Idioma", "Abrir em" e "Quem te manda mensagem" ficam na mesma linha */
-.pf-set-card > .pf-opt-field + .pf-opt-field { margin-top: auto; }
+/* simetria entre os 4 quadros: os ajustes ficam colados um no outro (sem buraco
+   no meio) e a lista de avisos é compacta, então os quadros têm alturas parecidas */
+.pf-set-card { gap: var(--mr-space-5); }
+.pf-set-card .pf-group-title { margin-bottom: calc(var(--mr-space-1) * -1); }
 
 /* todas as opções com a mesma altura, ícone/número e nome numa linha só
    (a nota de exemplo deixava os botões da Nota padrão mais altos que os outros) */
@@ -779,14 +780,15 @@
 .pf-opt.is-on .pf-opt-big { color: var(--mr-gold); }
 
 /* avisos: uma linha por grupo, ✓ dourado = recebe */
-.pf-notify { display: flex; flex-direction: column; gap: 6px; }
+.pf-notify { display: flex; flex-direction: column; gap: 4px; }
 
 .pf-notify-row {
   display: flex;
   align-items: center;
   gap: var(--mr-space-3);
   width: 100%;
-  padding: 7px var(--mr-space-3);
+  height: 32px;
+  padding: 0 var(--mr-space-3);
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius-sm);
   background: transparent;
@@ -827,7 +829,17 @@
 }
 
 /* faixa "Seus dados" */
-.pf-data-icon { flex: none; width: 44px; color: var(--mr-text-muted); }
+/* ícone num círculo do tamanho da foto da faixa da conta, pra as duas faixas casarem */
+.pf-data-icon {
+  flex: none;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  padding: 11px;
+  border: 1px solid var(--mr-border);
+  border-radius: 50%;
+  color: var(--mr-text-muted);
+}
 .pf-data .pf-account-actions { align-items: center; }
 
 /* exportar: formato em cartões, tabelas com contagem e a prévia */
@@ -897,20 +909,18 @@
 .pf-export-empty { margin: 0; color: var(--mr-text-muted); font-size: var(--mr-text-sm); }
 
 /* excluir conta: sozinho, discreto */
-.pf-set-delete {
-  padding: var(--mr-space-2) var(--mr-space-1);
-  border: 0;
-  background: none;
-  color: color-mix(in srgb, var(--mr-red) 80%, var(--mr-text-muted));
-  font: inherit;
-  font-size: var(--mr-text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: color var(--mr-duration-fast) var(--mr-ease);
+/* "Excluir conta": mesmo botão do "Exportar obras", em vermelho */
+.mr-btn.pf-set-delete {
+  border-color: color-mix(in srgb, var(--mr-red) 35%, transparent);
+  color: color-mix(in srgb, var(--mr-red) 85%, var(--mr-text));
 }
 
-.pf-set-delete:hover,
-.pf-set-delete:focus-visible { outline: none; color: var(--mr-red); }
+.mr-btn.pf-set-delete:hover,
+.mr-btn.pf-set-delete:focus-visible {
+  border-color: color-mix(in srgb, var(--mr-red) 60%, transparent);
+  background: color-mix(in srgb, var(--mr-red) 10%, transparent);
+  color: var(--mr-red);
+}
 
 .pf-set-notice {
   margin: 0;
