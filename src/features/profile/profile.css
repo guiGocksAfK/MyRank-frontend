@@ -708,6 +708,21 @@
 
 .pf-set-card .pf-group-title { margin: 0; }
 
+/* simetria entre os 4 quadros: os ajustes ficam colados um no outro (sem buraco
+   no meio) e a lista de avisos é compacta, então os quadros têm alturas parecidas */
+.pf-set-card { gap: var(--mr-space-5); }
+.pf-set-card .pf-group-title { margin-bottom: calc(var(--mr-space-1) * -1); }
+
+/* todas as opções com a mesma altura, ícone/número e nome numa linha só
+   (a nota de exemplo deixava os botões da Nota padrão mais altos que os outros) */
+.pf-set-card .pf-opt {
+  flex-direction: row;
+  gap: 8px;
+  height: 44px;
+  min-height: 0;
+}
+.pf-set-card .pf-opt-big { font-size: var(--mr-text-md); }
+
 .pf-opt-field { display: flex; flex-direction: column; gap: var(--mr-space-2); }
 
 .pf-opt-label {
@@ -743,9 +758,10 @@
 
 .pf-opt:hover { border-color: color-mix(in srgb, var(--mr-text) 28%, transparent); color: var(--mr-text); }
 
+/* escolhida: só um contorno dourado discreto, sem encher de cor */
 .pf-opt.is-on {
-  border-color: var(--mr-gold);
-  background: var(--mr-gold-10);
+  border-color: color-mix(in srgb, var(--mr-gold) 55%, transparent);
+  background: color-mix(in srgb, var(--mr-gold) 4%, transparent);
   color: var(--mr-text);
 }
 
@@ -763,32 +779,16 @@
 
 .pf-opt.is-on .pf-opt-big { color: var(--mr-gold); }
 
-/* miniatura do tema: as cores de cada tema, fixas, pra mostrar como fica */
-.pf-theme-mini {
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  height: 44px;
-  padding: 5px 6px;
-  border: 1px solid var(--mr-border);
-  border-radius: 4px;
-}
-
-.pf-theme-mini.is-dark { background: #0d0d0d; }
-.pf-theme-mini.is-light { background: #eceef1; }
-.pf-theme-mini i { display: block; width: 40%; height: 5px; border-radius: 3px; }
-.pf-theme-mini.is-dark i { background: #d4af37; }
-.pf-theme-mini.is-light i { background: #9a6b12; }
-
 /* avisos: uma linha por grupo, ✓ dourado = recebe */
-.pf-notify { display: flex; flex-direction: column; gap: 6px; }
+.pf-notify { display: flex; flex-direction: column; gap: 4px; }
 
 .pf-notify-row {
   display: flex;
   align-items: center;
   gap: var(--mr-space-3);
   width: 100%;
-  padding: 7px var(--mr-space-3);
+  height: 32px;
+  padding: 0 var(--mr-space-3);
   border: 1px solid var(--mr-border);
   border-radius: var(--mr-radius-sm);
   background: transparent;
@@ -805,9 +805,8 @@
 .pf-notify-row:focus-visible { outline: 2px solid var(--mr-gold); outline-offset: 2px; }
 .pf-notify-row:disabled { cursor: progress; }
 
+/* ligado: texto claro e só o ✓ dourado; a linha não ganha fundo */
 .pf-notify-row.is-on {
-  border-color: var(--mr-gold-20);
-  background: var(--mr-gold-10);
   color: var(--mr-text);
 }
 
@@ -825,13 +824,22 @@
 }
 
 .pf-notify-row.is-on .pf-notify-check {
-  border-color: var(--mr-gold);
-  background: var(--mr-gold);
-  color: var(--mr-bg);
+  border-color: color-mix(in srgb, var(--mr-gold) 60%, transparent);
+  color: var(--mr-gold);
 }
 
 /* faixa "Seus dados" */
-.pf-data-icon { flex: none; width: 44px; color: var(--mr-text-muted); }
+/* ícone num círculo do tamanho da foto da faixa da conta, pra as duas faixas casarem */
+.pf-data-icon {
+  flex: none;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  padding: 11px;
+  border: 1px solid var(--mr-border);
+  border-radius: 50%;
+  color: var(--mr-text-muted);
+}
 .pf-data .pf-account-actions { align-items: center; }
 
 /* exportar: formato em cartões, tabelas com contagem e a prévia */
@@ -901,20 +909,18 @@
 .pf-export-empty { margin: 0; color: var(--mr-text-muted); font-size: var(--mr-text-sm); }
 
 /* excluir conta: sozinho, discreto */
-.pf-set-delete {
-  padding: var(--mr-space-2) var(--mr-space-1);
-  border: 0;
-  background: none;
-  color: color-mix(in srgb, var(--mr-red) 80%, var(--mr-text-muted));
-  font: inherit;
-  font-size: var(--mr-text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: color var(--mr-duration-fast) var(--mr-ease);
+/* "Excluir conta": mesmo botão do "Exportar obras", em vermelho */
+.mr-btn.pf-set-delete {
+  border-color: color-mix(in srgb, var(--mr-red) 35%, transparent);
+  color: color-mix(in srgb, var(--mr-red) 85%, var(--mr-text));
 }
 
-.pf-set-delete:hover,
-.pf-set-delete:focus-visible { outline: none; color: var(--mr-red); }
+.mr-btn.pf-set-delete:hover,
+.mr-btn.pf-set-delete:focus-visible {
+  border-color: color-mix(in srgb, var(--mr-red) 60%, transparent);
+  background: color-mix(in srgb, var(--mr-red) 10%, transparent);
+  color: var(--mr-red);
+}
 
 .pf-set-notice {
   margin: 0;
@@ -1177,8 +1183,7 @@
   .pf-opts { gap: 6px; }
   .pf-opt { min-height: 34px; padding: 6px; font-size: 11px; gap: 4px; }
   .pf-opt-big { font-size: 1rem; }
-  .pf-theme-mini { height: 30px; padding: 4px 5px; }
-  .pf-theme-mini i { height: 4px; }
+  .pf-set-card .pf-opt { height: 38px; }
   .pf-notify { gap: 4px; }
   .pf-notify-row { padding: 6px var(--mr-space-3); font-size: 13px; }
   .pf-data-icon { width: 32px; }

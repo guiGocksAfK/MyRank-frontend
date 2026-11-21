@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  ArrowLeft, Bot, Check, Database, Download, Flame, Globe, Heart, KeyRound, LayoutGrid, List, Lock, LogOut,
+  ArrowLeft, Bot, Check, Database, Download, Flame, Globe, Heart, KeyRound, LayoutGrid, List, Lock, LogOut, Moon, Sun, Trash2,
   MessageSquare, Unlink, UserCheck, UserPlus, Users,
 } from 'lucide-react';
 import { updateMe, revokeSessions, disconnectDiscord } from '../../services/userService';
@@ -212,8 +212,8 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
         <Card title={tp.appearance}>
           <Options label={tp.theme} value={isDark ? 'dark' : 'light'} onChange={onThemeToggle}
             options={[
-              { id: 'dark', label: tp.themeDark, hideText: true, preview: <span className="pf-theme-mini is-dark" aria-hidden="true"><i /></span> },
-              { id: 'light', label: tp.themeLight, hideText: true, preview: <span className="pf-theme-mini is-light" aria-hidden="true"><i /></span> },
+              { id: 'dark', label: tp.themeDark, icon: Moon },
+              { id: 'light', label: tp.themeLight, icon: Sun },
             ]} />
           <Options label={tp.language} value={lang} onChange={setLang}
             options={LANGUAGES.map((code) => ({ id: code, label: LANGUAGE_NAMES[code] || code }))} />
@@ -249,7 +249,8 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
         <Card title={tp.notifications}>
           {/* uma linha por aviso: ✓ dourado = recebe; vazio = silenciado */}
           <div className="pf-opt-field">
-            <Label text={tp.notifyLabel} />
+            {/* sem o "Me avise quando" visível: o título AVISOS já diz isso, e o
+                quadro fica da altura dos outros (o nome segue pro leitor de tela) */}
             <div className="pf-notify" role="group" aria-label={tp.notifyLabel}>
               {NOTIFICATION_GROUPS.map(({ id, icon: Icon }) => {
                 const on = !muted.has(id);
@@ -281,7 +282,10 @@ export default function ProfileSettings({ profile, onUserChange, isDark, onTheme
             <Download size={14} strokeWidth={2} aria-hidden="true" />
             {tp.exportWorks}
           </button>
-          <button type="button" className="pf-set-delete" onClick={() => setModal('delete')}>{tp.deleteAccount}</button>
+          <button type="button" className="mr-btn mr-btn-outline mr-btn-sm pf-set-delete" onClick={() => setModal('delete')}>
+            <Trash2 size={14} strokeWidth={2} aria-hidden="true" />
+            {tp.deleteAccount}
+          </button>
         </div>
       </section>
 

@@ -163,7 +163,7 @@ export default function IndividualTable({ table, loading, sortBy, useTimeWeight,
                 <div className="rk-main">
                   <div className="rk-title">{item.title}</div>
                   <div className="rk-sub">
-                    {itemSubline(item, tr, table.customFields)}
+                    <span className="rk-sub-text">{itemSubline(item, tr, table.customFields)}</span>
                     {/* Em "Todas", mostra de qual subcategoria a obra é */}
                     {subFilter === 'all' && item.subcategoryName && (
                       <span className="mr-subcategory-tag">{item.subcategoryName}</span>
