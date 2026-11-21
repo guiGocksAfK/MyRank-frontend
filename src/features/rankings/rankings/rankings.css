@@ -1160,6 +1160,21 @@
   .rk-controls > * { flex: none; }
   .rk-seg button { padding: 0 10px; }
 
+  /* "N obras · Editar tabela · Adicionar obra": linha inteira, contagem à esquerda
+     e os dois botões dividindo o resto (antes sobrava espaço solto no começo) */
+  .rk-controls-end {
+    flex: 1 1 100%;
+    margin-left: 0;
+    gap: 6px;
+  }
+  .rk-controls-end .rk-count { flex: none; margin-right: 4px; font-size: var(--mr-text-xs); }
+  .rk-controls-end .mr-btn { flex: 1 1 0; min-width: 0; justify-content: center; padding-inline: 8px; font-size: 12px; }
+
+  /* etiqueta Anime/Séries sempre visível: só o texto antes dela é cortado com "…" */
+  .rk-sub { display: flex; align-items: center; gap: 6px; }
+  .rk-sub-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rk-sub .mr-subcategory-tag { flex: none; margin-left: 0; }
+
   .rk-only-mobile { display: inline-flex !important; }
   .rk-hide-mobile { display: none !important; }
 

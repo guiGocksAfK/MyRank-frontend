@@ -974,9 +974,13 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* termina em `transform: none` (visualmente igual a translateY(0)): com a animação
+   presa no fim (fill both), um transform que sobra faz o contêiner da aba prender
+   tudo que é position:fixed dentro dele — no celular os menus dos filtros abriam
+   lá no fim da página, fora da tela */
 @keyframes mr-tab-fade {
   from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

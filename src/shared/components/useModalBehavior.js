@@ -1,4 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+
+// celular: campo com autoFocus abria o teclado assim que o modal aparecia,
+// tampando metade do formulário. Lá o foco fica no diálogo e o teclado só
+// abre quando a pessoa toca no campo. PC continua com o cursor no campo.
+const isPhone = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(max-width: 640px)').matches;
+
+const isTextField = (el) =>
+  el instanceof HTMLElement && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !['checkbox', 'radio', 'button', 'submit', 'range'].includes(el.type)));
 
 // Pilha dos modais abertos: só o de cima responde ao Esc. Sem isso, uma
 // confirmação aberta por cima de um formulário fechava os dois de uma vez.
@@ -15,6 +24,14 @@ const FOCUSABLE =
 export default function useModalBehavior(dialogRef, onEscape) {
   const escapeRef = useRef(onEscape);
   useEffect(() => { escapeRef.current = onEscape; });
+
+  // roda antes da tela pintar: tira o foco do campo antes do teclado subir
+  useLayoutEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog && isPhone() && dialog.contains(document.activeElement) && isTextField(document.activeElement)) {
+      dialog.focus();
+    }
+  }, [dialogRef]);
 
   useEffect(() => {
     const token = {};
