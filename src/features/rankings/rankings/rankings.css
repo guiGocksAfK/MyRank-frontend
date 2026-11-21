@@ -1193,19 +1193,23 @@
   .rk-icon-btn { opacity: 1; width: 28px; height: 28px; }
 
   .rk-hint { flex-direction: column; align-items: stretch; }
-  /* barra de filtros desliza; o menu abre como folha no pé da tela (a barra corta o que sai dela) */
-  /* filtros: busca na largura toda e os menus quebram linha embaixo */
-  .rk-filterbar { flex-wrap: wrap; }
+  /* filtros: busca na largura toda e os botões quebram linha embaixo.
+     O menu de cada filtro abre logo abaixo da barra de filtros, na largura
+     toda (antes abria como folha no pé da tela, longe do botão tocado) */
+  .rk-filterbar { position: relative; flex-wrap: wrap; }
   .rk-search { width: 100%; flex: none; }
+  .rk-fmenu { position: static; }
   .rk-fmenu-title { display: block; color: var(--mr-text); }
-  .rk-fmenu-list.is-wide { width: auto; }
-  .rk-fmenu-list.is-right { left: var(--mr-space-3); right: var(--mr-space-3); }
-  .rk-fmenu-list {
-    position: fixed;
-    top: auto;
-    left: var(--mr-space-3);
-    right: var(--mr-space-3);
-    bottom: var(--mr-space-3);
+  .rk-fmenu-list,
+  .rk-fmenu-list.is-right,
+  .rk-fmenu-list.is-wide {
+    position: absolute;
+    top: calc(100% + 6px);
+    bottom: auto;
+    left: 0;
+    right: 0;
+    width: auto;
+    min-width: 0;
     max-height: 55vh;
   }
 }
